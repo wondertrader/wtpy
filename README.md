@@ -1,6 +1,5 @@
-# wt > py
-这是wonder trader针对python3适配的子框架<br />
-该适配框架仅`适用于CTA策略组合盘的运营`
+# wtpy
+这是`WonderTrader`针对`python3`适配的子框架，基于`WonderTrader` `v0.3.6`开发
 
 # 子框架简介
 + common子模块
