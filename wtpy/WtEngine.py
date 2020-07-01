@@ -1,11 +1,13 @@
 from wtpy.porter import WtWrapper
 from wtpy.Context import Context
-from wtpy.BaseDefs import BaseStrategy
+from wtpy.SelContext import SelContext
+from wtpy.BaseDefs import BaseStrategy, BaseSelStrategy
 from wtpy.ExtDefs import BaseIndexWriter
 from wtpy.ExtDefs import BaseDataReporter
 
 from .ProductMgr import ProductMgr
 from .SessionMgr import SessionMgr
+from .ContractMgr import ContractMgr
 
 import os
 import json
@@ -22,16 +24,21 @@ def singleton(cls):
 @singleton
 class WtEngine:
 
-    def __init__(self):
+    def __init__(self, isCta:bool = True):
         self.__wrapper__ = WtWrapper()  #api接口转换器
         self.__ctx_dict__ = dict()      #策略ctx映射表
+        self.__selctx_dict__ = dict()    #多因子策略ctx映射表
         self.__config__ = dict()        #框架配置项
         self.__cfg_commited__ = False   #配置是否已提交
 
         self.__writer__ = None          #指标输出模块
         self.__reporter__ = None        #数据提交模块
 
-        self.__wrapper__.initialize(self)   #初始化api接口        
+        self.__is_cta__ = isCta
+        if isCta:
+            self.__wrapper__.initialize_cta(self)   #初始化api接口
+        else:
+            self.__wrapper__.initialize_sel(self)   #初始化api接口
 
     def __check_config__(self):
         '''
@@ -48,6 +55,10 @@ class WtEngine:
             self.__config__["env"]["product"] = {
                 "session":"TRADING"
             }
+    
+    def isCta(self):
+        return self.__is_cta__
+
     def set_writer(self, writer:BaseIndexWriter):
         '''
         设置指标输出模块
@@ -88,6 +99,9 @@ class WtEngine:
 
         self.productMgr = ProductMgr()
         self.productMgr.load(folder + commfile)
+
+        self.contractMgr = ContractMgr()
+        self.contractMgr.load(folder + contractfile)
 
         self.sessionMgr = SessionMgr()
         self.sessionMgr.load(folder + "sessions.json")
@@ -203,7 +217,12 @@ class WtEngine:
         通过合约代码获取交易时间模板\n
         @code   合约代码，格式如SHFE.rb.HOT
         '''
-        pInfo = self.productMgr.getProductInfo(code)
+        cInfo = self.contractMgr.getContractInfo(code)
+        if cInfo is None:
+            return None
+
+        pid = cInfo.exchg + "." + cInfo.product
+        pInfo = self.productMgr.getProductInfo(pid)
         if pInfo is None:
             return None
 
@@ -223,23 +242,56 @@ class WtEngine:
         '''
         return self.productMgr.getProductInfo(code)
 
+    def getContractInfo(self, code:str):
+        '''
+        获取品种信息\n
+        @code   合约代码，格式如SHFE.rb.HOT
+        '''
+        return self.contractMgr.getContractInfo(code)
+
+    def getAllCodes(self):
+        '''
+        获取全部合约代码
+        '''
+        return self.contractMgr.getTotalCodes()
+
     def add_strategy(self, strategy:BaseStrategy):
         '''
         添加策略\n
         @strategy   策略对象
         '''
-        id = self.__wrapper__.create_context(strategy.name())
+        id = self.__wrapper__.create_cta_context(strategy.name())
         self.__ctx_dict__[id] = Context(id, strategy, self.__wrapper__, self)
+
+    def add_sel_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str):
+        id = self.__wrapper__.create_sel_context(strategy.name(), date, time, period)
+        self.__selctx_dict__[id] = SelContext(id, strategy, self.__wrapper__, self)
 
     def get_context(self, id:int):
         '''
         根据ID获取策略上下文\n
         @id     上下文id，一般添加策略的时候会自动生成一个唯一的上下文id
         '''
-        if id not in self.__ctx_dict__:
+        if self.__is_cta__:
+            if id not in self.__ctx_dict__:
+                return None
+
+            return self.__ctx_dict__[id]
+        else:
+            if id not in self.__selctx_dict__:
+                return None
+
+            return self.__selctx_dict__[id]
+
+    def get_sel_context(self, id:int):
+        '''
+        根据ID获取策略上下文\n
+        @id     上下文id，一般添加策略的时候会自动生成一个唯一的上下文id
+        '''
+        if id not in self.__selctx_dict__:
             return None
 
-        return self.__ctx_dict__[id]
+        return self.__selctx_dict__[id]
 
     def run(self):
         '''
@@ -282,7 +334,7 @@ class WtEngine:
             self.__reporter__.report_init_data()
         return
 
-    def on_schedule(self, date:int, time:int):
+    def on_schedule(self, date:int, time:int, taskid:int = 0):
         # print("engine scheduled")
         if self.__reporter__ is not None:
             self.__reporter__.report_rt_data()

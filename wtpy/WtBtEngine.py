@@ -1,10 +1,12 @@
 from wtpy.backtest import WtBtWrapper
 from wtpy.Context import Context
-from wtpy.BaseDefs import BaseStrategy
+from wtpy.SelContext import SelContext
+from wtpy.BaseDefs import BaseStrategy, BaseSelStrategy
 from wtpy.ExtDefs import BaseIndexWriter
 
 from .ProductMgr import ProductMgr
 from .SessionMgr import SessionMgr
+from .ContractMgr import ContractMgr
 
 import os
 import json
@@ -21,7 +23,7 @@ def singleton(cls):
 @singleton
 class WtBtEngine:
 
-    def __init__(self):
+    def __init__(self, isCta:bool = True):
         self.__wrapper__ = WtBtWrapper()  #api接口转换器
         self.__context__ = None      #策略ctx映射表
         self.__config__ = dict()        #框架配置项
@@ -29,7 +31,10 @@ class WtBtEngine:
 
         self.__idx_writer__ = None  #指标输出模块
 
-        self.__wrapper__.initialize(self)   #初始化api接口        
+        if isCta:
+            self.__wrapper__.initialize_cta(self)   #初始化api接口   
+        else:
+            self.__wrapper__.initialize_mf(self)
 
     def __check_config__(self):
         '''
@@ -84,6 +89,9 @@ class WtBtEngine:
         self.productMgr = ProductMgr()
         self.productMgr.load(folder + commfile)
 
+        self.contractMgr = ContractMgr()
+        self.contractMgr.load(folder + contractfile)
+
         self.sessionMgr = SessionMgr()
         self.sessionMgr.load(folder + "sessions.json")
 
@@ -135,7 +143,12 @@ class WtBtEngine:
         通过合约代码获取交易时间模板\n
         @code   合约代码，格式如SHFE.rb.HOT
         '''
-        pInfo = self.productMgr.getProductInfo(code)
+        cInfo = self.contractMgr.getContractInfo(code)
+        if cInfo is None:
+            return None
+
+        pid = cInfo.exchg + "." + cInfo.product
+        pInfo = self.productMgr.getProductInfo(pid)
         if pInfo is None:
             return None
 
@@ -155,13 +168,34 @@ class WtBtEngine:
         '''
         return self.productMgr.getProductInfo(code)
 
+    def getContractInfo(self, code:str):
+        '''
+        获取品种信息\n
+        @code   合约代码，格式如SHFE.rb.HOT
+        '''
+        return self.contractMgr.getContractInfo(code)
+
+    def getAllCodes(self):
+        '''
+        获取全部合约代码
+        '''
+        return self.contractMgr.getTotalCodes()
+
     def set_strategy(self, strategy:BaseStrategy):
         '''
         添加策略\n
         @strategy   策略对象
         '''
-        self.__wrapper__.init_cta_mocker(strategy.name())
-        self.__context__ = Context(0, strategy, self.__wrapper__, self)
+        ctxid = self.__wrapper__.init_cta_mocker(strategy.name())
+        self.__context__ = Context(ctxid, strategy, self.__wrapper__, self)
+
+    def set_mf_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str):
+        '''
+        添加策略\n
+        @strategy   策略对象
+        '''
+        ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period)
+        self.__context__ = SelContext(ctxid, strategy, self.__wrapper__, self)
 
     def get_context(self):
         return self.__context__
