@@ -8,6 +8,8 @@ from .ProductMgr import ProductMgr
 from .SessionMgr import SessionMgr
 from .ContractMgr import ContractMgr
 
+from .CodeHelper import CodeHelper
+
 import os
 import json
 
@@ -34,7 +36,7 @@ class WtBtEngine:
         if isCta:
             self.__wrapper__.initialize_cta(self)   #初始化api接口   
         else:
-            self.__wrapper__.initialize_mf(self)
+            self.__wrapper__.initialize_sel(self)
 
     def __check_config__(self):
         '''
@@ -143,11 +145,8 @@ class WtBtEngine:
         通过合约代码获取交易时间模板\n
         @code   合约代码，格式如SHFE.rb.HOT
         '''
-        cInfo = self.contractMgr.getContractInfo(code)
-        if cInfo is None:
-            return None
+        pid = CodeHelper.stdCodeToStdCommID(code)
 
-        pid = cInfo.exchg + "." + cInfo.product
         pInfo = self.productMgr.getProductInfo(pid)
         if pInfo is None:
             return None
@@ -189,12 +188,12 @@ class WtBtEngine:
         ctxid = self.__wrapper__.init_cta_mocker(strategy.name())
         self.__context__ = Context(ctxid, strategy, self.__wrapper__, self)
 
-    def set_mf_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str):
+    def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING"):
         '''
         添加策略\n
         @strategy   策略对象
         '''
-        ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period)
+        ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session)
         self.__context__ = SelContext(ctxid, strategy, self.__wrapper__, self)
 
     def get_context(self):

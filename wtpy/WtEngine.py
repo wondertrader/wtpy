@@ -8,6 +8,7 @@ from wtpy.ExtDefs import BaseDataReporter
 from .ProductMgr import ProductMgr
 from .SessionMgr import SessionMgr
 from .ContractMgr import ContractMgr
+from .CodeHelper import CodeHelper
 
 import os
 import json
@@ -217,11 +218,7 @@ class WtEngine:
         通过合约代码获取交易时间模板\n
         @code   合约代码，格式如SHFE.rb.HOT
         '''
-        cInfo = self.contractMgr.getContractInfo(code)
-        if cInfo is None:
-            return None
-
-        pid = cInfo.exchg + "." + cInfo.product
+        pid = CodeHelper.stdCodeToStdCommID(code)
         pInfo = self.productMgr.getProductInfo(pid)
         if pInfo is None:
             return None
