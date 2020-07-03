@@ -109,28 +109,28 @@ class SelContext:
         输出日志
         @message    消息内容\n
         '''
-        self.__wrapper__.mf_log_text(self.__id__, message)
+        self.__wrapper__.sel_log_text(self.__id__, message)
         
     def stra_get_date(self):
         '''
         获取当前日期\n
         @return int，格式如20180513
         '''
-        return self.__wrapper__.mf_get_date()
+        return self.__wrapper__.sel_get_date()
 
     def stra_get_time(self):
         '''
         获取当前时间，24小时制，精确到分\n
         @return int，格式如1231
         '''
-        return self.__wrapper__.mf_get_time()
+        return self.__wrapper__.sel_get_time()
 
     def stra_get_price(self, code):
         '''
         获取最新价格，一般在获取了K线以后再获取该价格
         @return 最新价格
         '''
-        return self.__wrapper__.mf_get_price(code)
+        return self.__wrapper__.sel_get_price(code)
 
     def stra_get_bars(self, code:str, period:str, count:int):
         '''
@@ -149,7 +149,7 @@ class SelContext:
         #     else:
         #         return None
 
-        cnt =  self.__wrapper__.mf_get_bars(self.__id__, code, period, count)
+        cnt =  self.__wrapper__.sel_get_bars(self.__id__, code, period, count)
         if cnt == 0:
             return None
 
@@ -164,7 +164,7 @@ class SelContext:
         @code   合约代码
         @count  要拉取的tick数量
         '''
-        cnt = self.__wrapper__.mf_get_ticks(self.__id__, code, count)
+        cnt = self.__wrapper__.sel_get_ticks(self.__id__, code, count)
         if cnt == 0:
             return None
         
@@ -178,7 +178,7 @@ class SelContext:
         @usertag    入场标记
         @return     正为多仓，负为空仓
         '''
-        return self.__wrapper__.mf_get_position(self.__id__, code, usertag)
+        return self.__wrapper__.sel_get_position(self.__id__, code, usertag)
 
     def stra_set_position(self, code:str, qty:float, usertag:str = ""):
         '''
@@ -187,7 +187,7 @@ class SelContext:
         @qty    目标仓位，正为多仓，负为空仓\n
         @return 设置结果TRUE/FALSE
         '''
-        self.__wrapper__.mf_set_position(self.__id__, code, qty, usertag)
+        self.__wrapper__.sel_set_position(self.__id__, code, qty, usertag)
         
     def user_save_data(self, key:str, val):
         '''
@@ -195,7 +195,7 @@ class SelContext:
         @key    数据id
         @val    数据值，可以直接转换成str的数据均可
         '''
-        self.__wrapper__.mf_save_user_data(self.__id__, key, str(val))
+        self.__wrapper__.sel_save_user_data(self.__id__, key, str(val))
 
     def user_load_data(self, key:str, defVal = None, vType = float):
         '''
@@ -204,7 +204,7 @@ class SelContext:
         @defVal 默认数据，如果找不到则返回改数据，默认为None
         @return 返回值，默认处理为float数据
         '''
-        ret = self.__wrapper__.mf_load_user_data(self.__id__, key, "")
+        ret = self.__wrapper__.sel_load_user_data(self.__id__, key, "")
         if ret == "":
             return defVal
 
