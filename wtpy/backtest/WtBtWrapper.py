@@ -224,7 +224,7 @@ class WtBtWrapper:
 
         self.write_log(102, "Wt回测框架已初始化完成，框架版本号：%s" % (self.ver))
 
-    def initialize_mf(self, engine, logProfile:str = "logcfgbt.json"):
+    def initialize_sel(self, engine, logProfile:str = "logcfgbt.json"):
         '''
         C接口初始化
         '''
@@ -252,13 +252,14 @@ class WtBtWrapper:
         '''
         return self.api.init_cta_mocker(bytes(name, encoding = "utf8") )
 
-    def init_sel_mocker(self, name:str, date:int, time:int, period:str):
+    def init_sel_mocker(self, name:str, date:int, time:int, period:str, trdtpl:str = "CHINA", session:str = "TRADING"):
         '''
         创建策略环境\n
         @name      策略名称
         @return    系统内策略ID 
         '''
-        return self.api.init_sel_mocker(bytes(name, encoding = "utf8"), date, time, period)
+        return self.api.init_sel_mocker(bytes(name, encoding = "utf8"), date, time, 
+            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"))
 
     def cta_enter_long(self, id:int, code:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''

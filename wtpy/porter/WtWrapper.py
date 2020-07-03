@@ -265,13 +265,14 @@ class WtWrapper:
         '''
         return self.api.create_cta_context(bytes(name, encoding = "utf8") )
 
-    def create_sel_context(self, name:str, date:int, time:int, period:str):
+    def create_sel_context(self, name:str, date:int, time:int, period:str, trdtpl:str = 'CHINA', session:str = "TRADING"):
         '''
         创建策略环境\n
         @name      策略名称
         @return    系统内策略ID 
         '''
-        return self.api.create_sel_context(bytes(name, encoding = "utf8"), date, time, period )
+        return self.api.create_sel_context(bytes(name, encoding = "utf8"), date, time, 
+            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"))
 
     def reg_cta_factories(self, factFolder:str):
         return self.api.reg_cta_factories(bytes(factFolder, encoding = "utf8") )
