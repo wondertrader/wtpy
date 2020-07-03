@@ -82,6 +82,16 @@ class SessionInfo:
         
         return False
 
+    def	isInTradingTime(self, rawTime:int, bStrict:bool = False):
+        mins = self.timeToMinutes(rawTime)
+        if mins == -1:
+            return False
+
+        if bStrict and self.isLastOfSection(rawTime):
+            return False
+            
+        return True
+
     def isFirstOfSection(self, rawTime:int):
         offTime = self.offsetTime(rawTime)
 
