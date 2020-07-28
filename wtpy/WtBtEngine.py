@@ -1,8 +1,10 @@
-from wtpy.backtest import WtBtWrapper
-from wtpy.Context import Context
+from wtpy.wrapper import WtBtWrapper
+from wtpy.CtaContext import CtaContext
 from wtpy.SelContext import SelContext
-from wtpy.BaseDefs import BaseStrategy, BaseSelStrategy
-from wtpy.ExtDefs import BaseIndexWriter
+from wtpy.HftContext import HftContext
+from wtpy.StrategyDefs import BaseCtaStrategy, BaseSelStrategy, BaseHftStrategy
+from wtpy.ExtToolDefs import BaseIndexWriter
+from wtpy.WtCoreDefs import EngineType
 
 from .ProductMgr import ProductMgr
 from .SessionMgr import SessionMgr
@@ -25,7 +27,7 @@ def singleton(cls):
 @singleton
 class WtBtEngine:
 
-    def __init__(self, isCta:bool = True):
+    def __init__(self, eType:EngineType):
         self.__wrapper__ = WtBtWrapper()  #api接口转换器
         self.__context__ = None      #策略ctx映射表
         self.__config__ = dict()        #框架配置项
@@ -33,9 +35,11 @@ class WtBtEngine:
 
         self.__idx_writer__ = None  #指标输出模块
 
-        if isCta:
-            self.__wrapper__.initialize_cta(self)   #初始化api接口   
-        else:
+        if eType == eType.ET_CTA:
+            self.__wrapper__.initialize_cta(self)   #初始化api接口
+        elif eType == eType.ET_HFT:
+            self.__wrapper__.initialize_hft(self)   #初始化api接口  
+        elif eType == eType.ET_SEL:
             self.__wrapper__.initialize_sel(self)
 
     def __check_config__(self):
@@ -180,13 +184,21 @@ class WtBtEngine:
         '''
         return self.contractMgr.getTotalCodes()
 
-    def set_strategy(self, strategy:BaseStrategy):
+    def set_cta_strategy(self, strategy:BaseCtaStrategy):
         '''
         添加策略\n
         @strategy   策略对象
         '''
         ctxid = self.__wrapper__.init_cta_mocker(strategy.name())
-        self.__context__ = Context(ctxid, strategy, self.__wrapper__, self)
+        self.__context__ = CtaContext(ctxid, strategy, self.__wrapper__, self)
+
+    def set_hft_strategy(self, strategy:BaseHftStrategy):
+        '''
+        添加策略\n
+        @strategy   策略对象
+        '''
+        ctxid = self.__wrapper__.init_hft_mocker(strategy.name())
+        self.__context__ = HftContext(ctxid, strategy, self.__wrapper__, self)
 
     def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING"):
         '''

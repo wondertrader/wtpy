@@ -1,9 +1,11 @@
-from wtpy.porter import WtWrapper
-from wtpy.Context import Context
+from wtpy.wrapper import WtWrapper
+from wtpy.CtaContext import CtaContext
 from wtpy.SelContext import SelContext
-from wtpy.BaseDefs import BaseStrategy, BaseSelStrategy
-from wtpy.ExtDefs import BaseIndexWriter
-from wtpy.ExtDefs import BaseDataReporter
+from wtpy.HftContext import HftContext
+from wtpy.StrategyDefs import BaseCtaStrategy, BaseSelStrategy, BaseHftStrategy
+from wtpy.ExtToolDefs import BaseIndexWriter
+from wtpy.ExtToolDefs import BaseDataReporter
+from wtpy.WtCoreDefs import EngineType
 
 from .ProductMgr import ProductMgr
 from .SessionMgr import SessionMgr
@@ -25,20 +27,23 @@ def singleton(cls):
 @singleton
 class WtEngine:
 
-    def __init__(self, isCta:bool = True):
+    def __init__(self, eType:EngineType):
         self.__wrapper__ = WtWrapper()  #api接口转换器
-        self.__ctx_dict__ = dict()      #策略ctx映射表
-        self.__selctx_dict__ = dict()    #多因子策略ctx映射表
+        self.__cta_ctxs__ = dict()      #CTA策略ctx映射表
+        self.__sel_ctxs__ = dict()      #SEL策略ctx映射表
+        self.__hft_ctxs__ = dict()      #HFT策略ctx映射表
         self.__config__ = dict()        #框架配置项
         self.__cfg_commited__ = False   #配置是否已提交
 
         self.__writer__ = None          #指标输出模块
         self.__reporter__ = None        #数据提交模块
 
-        self.__is_cta__ = isCta
-        if isCta:
+        self.__engine_type = eType
+        if eType == EngineType.ET_CTA:
             self.__wrapper__.initialize_cta(self)   #初始化api接口
-        else:
+        elif eType == EngineType.ET_HFT:
+            self.__wrapper__.initialize_hft(self)
+        elif eType == EngineType.ET_SEL:
             self.__wrapper__.initialize_sel(self)   #初始化api接口
 
     def __check_config__(self):
@@ -57,8 +62,8 @@ class WtEngine:
                 "session":"TRADING"
             }
     
-    def isCta(self):
-        return self.__is_cta__
+    def getEngineType(self):
+        return self.__engine_type
 
     def set_writer(self, writer:BaseIndexWriter):
         '''
@@ -140,13 +145,13 @@ class WtEngine:
         params["id"] = id
         self.__config__["strategies"]["hft"].append(params)
 
-    def configStorage(self, mode:str, path:str):
+    def configStorage(self, path:str, module:str=""):
         '''
         配置数据存储\n
         @mode   存储模式，csv-表示从csv直接读取，一般回测使用，wtp-表示使用wt框架自带数据存储
         '''
-        self.__config__["store"]["mode"] = mode
-        self.__config__["store"]["path"] = path
+        self.__config__["data"]["store"]["module"] = module
+        self.__config__["data"]["store"]["path"] = path
 
     def commitConfig(self):
         '''
@@ -252,43 +257,46 @@ class WtEngine:
         '''
         return self.contractMgr.getTotalCodes()
 
-    def add_strategy(self, strategy:BaseStrategy):
+    def add_cta_strategy(self, strategy:BaseCtaStrategy):
         '''
-        添加策略\n
+        添加CTA策略\n
         @strategy   策略对象
         '''
         id = self.__wrapper__.create_cta_context(strategy.name())
-        self.__ctx_dict__[id] = Context(id, strategy, self.__wrapper__, self)
+        self.__cta_ctxs__[id] = CtaContext(id, strategy, self.__wrapper__, self)
+
+    def add_hft_strategy(self, strategy:BaseHftStrategy, trader:str):
+        '''
+        添加HFT策略\n
+        @strategy   策略对象
+        '''
+        id = self.__wrapper__.create_hft_context(strategy.name(), trader)
+        self.__hft_ctxs__[id] = HftContext(id, strategy, self.__wrapper__, self)
 
     def add_sel_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str):
         id = self.__wrapper__.create_sel_context(strategy.name(), date, time, period)
-        self.__selctx_dict__[id] = SelContext(id, strategy, self.__wrapper__, self)
+        self.__sel_ctxs__[id] = SelContext(id, strategy, self.__wrapper__, self)
 
     def get_context(self, id:int):
         '''
         根据ID获取策略上下文\n
         @id     上下文id，一般添加策略的时候会自动生成一个唯一的上下文id
         '''
-        if self.__is_cta__:
-            if id not in self.__ctx_dict__:
+        if self.__engine_type == EngineType.ET_CTA:
+            if id not in self.__cta_ctxs__:
                 return None
 
-            return self.__ctx_dict__[id]
-        else:
-            if id not in self.__selctx_dict__:
+            return self.__cta_ctxs__[id]
+        elif self.__engine_type == EngineType.ET_HFT:
+            if id not in self.__hft_ctxs__:
                 return None
 
-            return self.__selctx_dict__[id]
+            return self.__hft_ctxs__[id]
+        elif self.__engine_type == EngineType.ET_SEL:
+            if id not in self.__sel_ctxs__:
+                return None
 
-    def get_sel_context(self, id:int):
-        '''
-        根据ID获取策略上下文\n
-        @id     上下文id，一般添加策略的时候会自动生成一个唯一的上下文id
-        '''
-        if id not in self.__selctx_dict__:
-            return None
-
-        return self.__selctx_dict__[id]
+            return self.__sel_ctxs__[id]
 
     def run(self):
         '''
@@ -304,27 +312,6 @@ class WtEngine:
         释放框架
         '''
         self.__wrapper__.release()
-
-    def set_strategy_position(self, straname:str, positions:list, outdir:str = ""):
-        '''
-        手动设置策略初始仓位，主要为了防止手动编辑出错\n
-        @straname   策略名\n
-        @posdetails 持仓明细，list()
-        '''
-        stradata = {
-            "positions": positions
-        }
-
-        if outdir[-1] != "\\":
-            outdir += "\\"
-
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
-
-        filename = outdir + "%s.json" % (straname)
-        f = open(filename, "w")
-        f.write(json.dumps(stradata, indent=4))
-        f.close()
 
     def on_init(self):
         if self.__reporter__ is not None:
