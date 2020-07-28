@@ -1,4 +1,4 @@
-from wtpy.datakit import WtDtWrapper
+from wtpy.wrapper import WtDtWrapper
 
 def singleton(cls):
     instances = {}
