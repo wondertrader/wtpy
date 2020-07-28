@@ -8,6 +8,7 @@ Python下的demo目前大概罗列了6个，主要是演示不同环境下不同
 + datakit_stk   股票数据组件demo
 + product_fut   期货实盘demo，配置的是SIMNOW通道
 + product_stk   股票实盘demo，配置的是XTP的仿真通道
++ product_hft_fut 期货高频实盘demo
 
 # 如何使用这些demo
 + 首先确认本地安装的是 *Python3.6* 以上的版本，32位、64位都可以，wtpy子框架会根据Python的版本自动选择对应的底层

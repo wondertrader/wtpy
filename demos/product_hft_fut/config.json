@@ -17,7 +17,7 @@
     },
     "data":{
         "store":{
-            "path":"E:\\WTP_Data\\"
+            "path":"./FUT_Data/"
         }
     },
     "executers":[
@@ -41,8 +41,8 @@
             "module":"TraderCTP.dll",
             "front":"tcp://180.168.146.187:10101",
             "broker":"9999",
-            "user":"107959",
-            "pass":"hx2019",
+            "user":"你的SIMNOW账号",
+            "pass":"你的SIMNOW密码",
             "appid":"simnow_client_test",
             "authcode":"0000000000000000",
             "quick": true,
@@ -78,10 +78,10 @@
 			"id":"parser0",
             "active":true,
             "module":"ParserCTP.dll",
-            "front":"tcp://zjzx-front1.ctp.shcifco.com:21213",
-            "broker":"8070",
-            "user":"880996",
-            "pass":"tnt123456",
+            "front":"tcp://180.168.146.187:10100",
+            "broker":"9999",
+            "user":"你的SIMNOW账号",
+            "pass":"你的SIMNOW密码",
             "code":"CFFEX.IF2008"
         }
     ],
