@@ -1,0 +1,489 @@
+import $ from 'jquery'
+import md5 from 'js-md5'
+
+Date.prototype.format = function (fmt) { // author: meizz
+	var o = {
+		"M+": this.getMonth() + 1, // 月份
+		"d+": this.getDate(), // 日
+		"h+": this.getHours(), // 小时
+		"m+": this.getMinutes(), // 分
+		"s+": this.getSeconds(), // 秒
+		"q+": Math.floor((this.getMonth() + 3) / 3), // 季度
+		"S": this.getMilliseconds()
+		// 毫秒
+	};
+	if (/(y+)/.test(fmt))
+		fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "")
+			.substr(4 - RegExp.$1.length));
+	for (var k in o)
+		if (new RegExp("(" + k + ")").test(fmt))
+			fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) :
+				(("00" + o[k]).substr(("" + o[k]).length)));
+	return fmt;
+};
+
+Date.prototype.addDays = function (days) {
+	var d = this.valueOf();
+	d += 24 * 60 * 60 * 1000 * days;
+	return new Date(d);
+};
+
+
+export default function () {
+
+	var self = this;
+
+	///////////////////////////////////////////////////////
+	//本地存储
+	/*
+	 * 存储本地数据
+	 */
+	self.setItem = function (key, val) {
+		return window.localStorage.setItem(key, val);
+	};
+
+	/*
+	 * 获取本地数据
+	 */
+	self.getItem = function (key) {
+		return window.localStorage.getItem(key) || "";
+	};
+
+	self.token = self.getItem('token');
+
+	/*
+	 * 删除本地数据
+	 */
+	self.removeItem = function (key) {
+		return window.localStorage.removeItem(key);
+	};
+
+	///////////////////////////////////////////////////////
+	//接口相关
+
+	self.login = function (loginid, pwd, cb) {
+		let reqInfo = {
+			loginid: loginid,
+			passwd: md5(pwd)
+		};
+
+		$.post("/mgr/login",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getGroups = function(cb){
+		let reqInfo = {	};
+
+		$.post("/mgr/qrygrp",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.startGroup = function(grpid, cb){
+		let reqInfo = {
+			groupid: grpid||""
+		};
+
+		$.post("/mgr/startgrp",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.stopGroup = function(grpid, cb){
+		let reqInfo = {
+			groupid: grpid||""
+		};
+
+		$.post("/mgr/stopgrp",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getFolders = function(cb){
+		let reqInfo = {	};
+
+		$.post("/mgr/qrydir",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.addGroup = function(grpInfo, cb){
+		let reqInfo = grpInfo;
+		reqInfo.groupid = grpInfo.id;
+
+		$.post("/mgr/addgrp",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getLogs = function(grpid, logtype, cb){
+		if(typeof(logtype) == 'function'){
+			cb = logtype;
+			logtype = "";
+		}
+
+		let reqInfo = {
+			id: grpid,
+			type:logtype
+		};
+
+
+		$.post("/mgr/qrylogs",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getMonCfg = function(grpid, cb){
+		let reqInfo = {
+			groupid: grpid
+		};
+
+
+		$.post("/mgr/qrymon",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.commitMonCfg = function(monCfg, cb){
+		let reqInfo = monCfg;
+
+		$.post("/mgr/cfgmon",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getStrategies = function(grpid, stype, cb){
+		if(typeof(stype) == 'function'){
+			cb = stype;
+			stype = "";
+		}
+
+		let reqInfo = {
+			groupid: grpid,
+			type:stype
+		};
+
+
+		$.post("/mgr/qrystras",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getChannels = function(grpid, cb){
+		let reqInfo = {
+			groupid: grpid
+		};
+
+		$.post("/mgr/qrychnls",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getTrades = function(gid, sid, cb){
+		if(typeof(stype) == 'function'){
+			cb = stype;
+			stype = "";
+		}
+
+		let reqInfo = {
+			groupid: gid,
+			strategyid:sid
+		};
+
+
+		$.post("/mgr/qrytrds",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getSignals = function(gid, sid, cb){
+		if(typeof(stype) == 'function'){
+			cb = stype;
+			stype = "";
+		}
+
+		let reqInfo = {
+			groupid: gid,
+			strategyid:sid
+		};
+
+
+		$.post("/mgr/qrysigs",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getRounds = function(gid, sid, cb){
+		if(typeof(stype) == 'function'){
+			cb = stype;
+			stype = "";
+		}
+
+		let reqInfo = {
+			groupid: gid,
+			strategyid:sid
+		};
+
+
+		$.post("/mgr/qryrnds",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getPositions = function(gid, sid, cb){
+		if(typeof(stype) == 'function'){
+			cb = stype;
+			stype = "";
+		}
+
+		let reqInfo = {
+			groupid: gid,
+			strategyid:sid
+		};
+
+
+		$.post("/mgr/qrypos",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getFunds = function(gid, sid, cb){
+		if(typeof(stype) == 'function'){
+			cb = stype;
+			stype = "";
+		}
+
+		let reqInfo = {
+			groupid: gid,
+			strategyid:sid
+		};
+
+
+		$.post("/mgr/qryfunds",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getChnlOrders = function(gid, cid, cb){
+		if(typeof(stype) == 'function'){
+			cb = stype;
+			stype = "";
+		}
+
+		let reqInfo = {
+			groupid: gid,
+			channelid:cid
+		};
+
+
+		$.post("/mgr/qrychnlords",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getChnlTrades = function(gid, cid, cb){
+		if(typeof(stype) == 'function'){
+			cb = stype;
+			stype = "";
+		}
+
+		let reqInfo = {
+			groupid: gid,
+			channelid:cid
+		};
+
+
+		$.post("/mgr/qrychnltrds",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getChnlPositions = function(gid, cid, cb){
+		if(typeof(stype) == 'function'){
+			cb = stype;
+			stype = "";
+		}
+
+		let reqInfo = {
+			groupid: gid,
+			channelid:cid
+		};
+
+
+		$.post("/mgr/qrychnlpos",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+};
