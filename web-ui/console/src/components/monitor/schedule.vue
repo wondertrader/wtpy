@@ -26,7 +26,7 @@
                 <el-col :span="20">
                     <el-input size="mini" v-model="config.path" placeholder="python执行程序所在目录，请上服务器查询">
                         <el-tooltip slot="append"  effect="dark" content="直接获取python路径" placement="top">
-                            <el-button icon="el-icon-link"></el-button>
+                            <el-button icon="el-icon-link" @click="onLinkPython"></el-button>
                         </el-tooltip>
                     </el-input>
                 </el-col>
@@ -311,6 +311,15 @@ export default {
         }
     },
     methods: {
+        onLinkPython: function(){
+            this.$api.getPythonPath((resObj)=>{
+                if(resObj.result < 0){
+                    this.$alert(resObj.message);
+                } else {
+                    this.config.path = resObj.path;
+                }
+            })
+        },
         onConfigCommit: function(){
             let config = JSON.parse(JSON.stringify(this.config));
             if(config.path.length == 0){

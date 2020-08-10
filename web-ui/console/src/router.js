@@ -10,6 +10,7 @@ import Monitor from '@/components/monitor/main'
 import Deploy from '@/components/deploy/main'
 import Backtest from '@/components/backtest/main'
 import Schedule from '@/components/schedule/main'
+import Admins from '@/components/admins/main'
 
 
 export default new Router({
@@ -33,6 +34,7 @@ export default new Router({
                 {path: '/deploy', name:"deploy", component: Deploy},
                 {path: '/backtest', name:"backtest", component: Backtest},
                 {path: '/schedule', name:"schedule", component: Schedule},
+                {path: '/admins', name:"admins", component: Admins}
             ]
         }
     ]

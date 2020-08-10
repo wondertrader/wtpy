@@ -54,6 +54,18 @@
                                         </el-menu-item>
                                     </el-menu-item-group>                           
                                 </el-submenu>
+                                <el-submenu index="3">
+                                    <template slot="title">
+                                        <i class="el-icon-setting"></i>
+                                        <span>系统设置</span>
+                                    </template>
+                                    <el-menu-item-group>
+                                        <el-menu-item index="3-1" route="/admins">
+                                            <i class="el-icon-user"></i>
+                                            <span>用户管理</span>
+                                        </el-menu-item>
+                                    </el-menu-item-group>                           
+                                </el-submenu>
                             </el-menu>
                         </div>
                         <div style="flex:0;margin:8px;font-size:14px;">
@@ -96,11 +108,6 @@
                     <div style="flex:0;margin-top:4px; min-width:150px;">
                         <i class="el-icon-connection" style="color:dark-green;padding-right:8px;"></i><a>推送通道已连接</a>
                     </div>  
-                    <div style="flex:0;margin-top:4px;">
-                        <el-tooltip class="item" effect="dark" content="管理用户" placement="top-start" v-show="selectedIdx!=''">
-                            <el-button type="primary" icon="el-icon-setting" circle size="mini" plain @click="showadmins=true;"></el-button>
-                        </el-tooltip>
-                    </div> 
                 </el-footer>
             </el-container>
         </el-container>
@@ -135,14 +142,14 @@ export default {
     },
     methods: {
         handleItemSel: function(index, idxPath, obj, e){
-            console.log(index, idxPath, obj, e);
+            // console.log(index, idxPath, obj, e);
             if(index == "admins"){
                 this.showadmins = true;
             }
         }
     },
     mounted(){
-        console.log("mounted");
+        // console.log("mounted");
         if(!this.cache.isLogined){
             this.$router.push("/login");
         } else {

@@ -402,7 +402,7 @@ export default {
         onCommitGroup: function(){
             let self = this;
             let grpInfo = this.copyGroup;
-            this.$api.addGroup(grpInfo, (resObj)=>{
+            this.$api.commitGroup(grpInfo, this.addGroup?"add":"mod", (resObj)=>{
                 if(resObj.result < 0){
                     self.$alert(resObj.message);
                 } else {
@@ -425,7 +425,7 @@ export default {
             if(this.curGroup == null || this.curGroup.id == "")
                 return;
 
-            this.copyGroup = this.curGroup;
+            this.copyGroup = JSON.parse(JSON.stringify(this.curGroup));
             this.copyGroup.datmod = this.copyGroup.datmod || "mannual";
 
             this.addGroup = false;
@@ -441,11 +441,48 @@ export default {
                 return;
             }
 
-            this.$api.startGroup(this.curGroup.id, (resObj)=>{
-                if(resObj.result < 0){
-                    this.$notify.error(resObj.message);
-                } 
-            });
+            let self = this;
+            let grpid = self.curGroup.id;
+            if(!self.monitors[grpid]){
+                self.$api.getMonCfg(grpid, (resObj)=>{
+                    if(resObj.result < 0){
+                        self.$notify.error(resObj.message);
+                    } else if(resObj.config) {
+                        let config = resObj.config;
+                        config.schedule.weekmask = [];
+                        for(let idx = 0; idx < config.schedule.weekflag.length; idx++){
+                            config.schedule.weekmask.push(config.schedule.weekflag[idx]=='1');
+                        }
+
+                        for(let idx = 0; idx < 6; idx++){
+                            let curTime = config.schedule.tasks[idx].time + '';
+                            if(curTime.length == 1)
+                                config.schedule.tasks[idx].time = "00:0" + curTime;
+                            else if(curTime.length == 2)
+                                config.schedule.tasks[idx].time = "00:" + curTime;
+                            else if(curTime.length == 3)
+                                config.schedule.tasks[idx].time = '0' + curTime[0] + ":" + curTime.substr(1);
+                            else
+                                config.schedule.tasks[idx].time = curTime.substr(0,2) + ":" + curTime.substr(2);
+                        }
+                        self.monitors[grpid] = config;
+
+                        this.$api.startGroup(this.curGroup.id, (resObj)=>{
+                            if(resObj.result < 0){
+                                this.$notify.error(resObj.message);
+                            } 
+                        });
+                    } else {
+                        self.$message.error("该组合尚未配置调度，不能启动");
+                    }
+                });
+            } else {
+                this.$api.startGroup(this.curGroup.id, (resObj)=>{
+                    if(resObj.result < 0){
+                        this.$notify.error(resObj.message);
+                    } 
+                });
+            }
         },
         handleStopGroup: function(){
             if(this.curGroup == null || this.curGroup.id == "")
