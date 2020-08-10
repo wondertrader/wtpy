@@ -3,7 +3,7 @@
         <div class="login">
             <div class="loginForm">
                  <el-row>
-                    <h2>量化控制中心</h2>
+                    <h2>交易控制中心</h2>
                 </el-row>
                 <el-row>
                     <el-input v-model="loginid" placeholder="用户名"></el-input>

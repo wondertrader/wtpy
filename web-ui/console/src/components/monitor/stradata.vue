@@ -283,7 +283,6 @@
 </template>
 
 <script>
-import Fund from './fund'
 export default {
     name: 'stradata',
     props:{
@@ -295,7 +294,6 @@ export default {
         }
     },
     components: {
-        Fund
     },
     watch:{
         groupid: function(newVal, oldVal){

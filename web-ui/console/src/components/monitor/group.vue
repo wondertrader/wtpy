@@ -34,11 +34,14 @@
                             </el-tab-pane>
                             <el-tab-pane label="交易数据" name="tdata">
                             </el-tab-pane>
+                            <el-tab-pane label="组合配置" name="setting">
+                            </el-tab-pane>
                         </el-tabs>
                     </div>
                     <div style="flex:1;margin:2px;overflow:auto;">
                         <StrategyData v-show="selData=='sdata'" :groupid="groupid"/>
                         <ChannelData v-show="selData=='tdata'" :groupid="groupid"/>
+                        <Setting v-show="selData=='setting'" :groupid="groupid"/>
                     </div>
                 </div>
             </el-col>
@@ -49,10 +52,11 @@
 <script>
 import StrategyData from './stradata'
 import ChannelData from './trddata'
+import Setting from './setting'
 export default {
     name: 'empty',
     components: {
-        StrategyData, ChannelData
+        StrategyData, ChannelData, Setting
     },
     computed: {
         groupid(){
@@ -132,9 +136,6 @@ export default {
                 return;
 
             if(oldVal != null && newGrp.id == oldVal.id)
-                return;
-
-            if(newGrp.datmod != "mannual")
                 return;
 
             //只有手动模式的组合才需要请求日志数据

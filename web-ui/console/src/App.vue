@@ -54,4 +54,8 @@ body{
     background-color: #cccccc;
     border-radius: 2px;
 }
+
+.el-table td, .el-table th {
+    padding: 4px 0;
+}
 </style>

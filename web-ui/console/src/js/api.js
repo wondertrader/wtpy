@@ -153,9 +153,10 @@ export default function () {
 			}, 'json');
 	};
 
-	self.addGroup = function(grpInfo, cb){
-		let reqInfo = grpInfo;
+	self.commitGroup = function(grpInfo, action, cb){
+		let reqInfo = JSON.parse(JSON.stringify(grpInfo));
 		reqInfo.groupid = grpInfo.id;
+		reqInfo.action = action;
 
 		$.post("/mgr/addgrp",
 			JSON.stringify(reqInfo),
@@ -474,6 +475,100 @@ export default function () {
 
 
 		$.post("/mgr/qrychnlpos",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getUsers = function(cb){
+		let reqInfo = {
+		};
+
+		$.post("/mgr/qryusers",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.commitUser = function(usrInfo, action, cb){
+		let reqInfo = Object.assign({}, usrInfo);
+		reqInfo.action = action||"add";
+		if(reqInfo.passwd != "********")
+			reqInfo.passwd = md5(reqInfo.passwd);
+
+		$.post("/mgr/cmtuser",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.delUser = function(loginid, cb){
+		let reqInfo = {
+			loginid: loginid
+		};
+
+		$.post("/mgr/deluser",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getActions = function(beginDt, endDt, cb){
+		let reqInfo = {
+			sdate: beginDt,
+			edate: endDt
+		};
+
+		$.post("/mgr/qryacts",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getPythonPath = function(cb){
+		let reqInfo = {};
+
+		$.post("/mgr/qryexec",
 			JSON.stringify(reqInfo),
 			function (data, textStatus) {
 				if (textStatus != 'success') {
