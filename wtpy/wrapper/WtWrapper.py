@@ -126,6 +126,7 @@ def on_stra_get_bar(id, stdCode, period, curBar, isLast):
             bar["time"] = realBar.date
         else:
             bar["time"] = 1990*100000000 + realBar.time
+        bar["bartime"] = bar["time"]
         bar["open"] = realBar.open
         bar["high"] = realBar.high
         bar["low"] = realBar.low

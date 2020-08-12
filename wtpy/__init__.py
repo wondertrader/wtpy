@@ -10,5 +10,8 @@ from .ExtToolDefs import BaseIndexWriter
 from .ExtToolDefs import BaseDataReporter
 from wtpy.wrapper.WtExecApi import WtExecApi
 from .WtCoreDefs import WTSTickStruct,WTSBarStruct,EngineType
+from .WtDataDefs import WtKlineData,WtTickData
 
-__all__ = ["BaseCtaStrategy", "BaseSelStrategy", "BaseHftStrategy", "WtEngine", "CtaContext", "SelContext", "HftContext", "WtBtEngine", "BaseIndexWriter", "BaseDataReporter", "WtDtEngine", "WtExecApi","WTSTickStruct","WTSBarStruct","EngineType","WtBtAnalyst"]
+__all__ = ["BaseCtaStrategy", "BaseSelStrategy", "BaseHftStrategy", "WtEngine", "CtaContext", "SelContext", "HftContext", 
+            "WtBtEngine", "BaseIndexWriter", "BaseDataReporter", "WtDtEngine", "WtExecApi","WTSTickStruct","WTSBarStruct",
+            "EngineType","WtBtAnalyst", "WtKlineData", "WtTickData"]
