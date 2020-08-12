@@ -149,6 +149,18 @@
                 <el-button type="primary" @click="onCommitGroup()" plain size="mini" icon="el-icon-thumb" >提交</el-button>
             </span>
         </el-dialog>
+        <el-dialog
+            title="选择目录"
+            :visible.sync="showfolders"
+            width="25%">
+            <div style="width:100%;height:300px;overflow:auto;border:1px solid #E4E7ED;">
+                <el-tree :data="folders" @node-click="handleFolderClick"></el-tree>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="showfolders = false" size='mini'>取 消</el-button>
+                <el-button type="primary" @click="handleFolderPicked" plain size='mini'>确 定</el-button>
+            </span>
+        </el-dialog>
     </div>    
 </template>
 
@@ -157,7 +169,7 @@ import { mapGetters } from 'vuex';
 
 import Group from './group'
 import Empty from './empty'
-import Schedule from './schedule'
+import Schedule from '../common/moncfg'
 
 export default {
     name: 'monitor',
@@ -247,6 +259,36 @@ export default {
         }
     },
     methods: {
+        handlePickFolder: function(e){
+            let self = this;
+            self.selfolder = "";
+            if(self.folders.length == 0){
+                this.$api.getFolders((resObj)=>{
+                    if(resObj.result < 0){
+                        self.$alert(resObj.message);
+                    } else {
+                        this.$store.commit("setfolders", {
+                            folders: [resObj.tree]
+                        });
+                        self.showfolders = true;
+                    }
+                })
+            } else {
+                self.showfolders = true;
+            }
+        },
+        handleFolderPicked: function(){
+            let self = this;
+            if(self.selfolder == ''){
+                self.$alert("请选择目录");
+            } else {
+                self.copyGroup.path = self.selfolder;
+                self.showfolders = false;
+            }
+        },
+        handleFolderClick: function(data){
+            this.selfolder = data.path;
+        },
         handleTabSel: function(key, keypath){
             //console.log(key,keypath);
             let self = this;
@@ -372,33 +414,6 @@ export default {
                 this.showgrpdlg = false;
             }
         },
-        handlePickFolder: function(e){
-            let self = this;
-            self.selfolder = "";
-            if(self.folders.length == 0){
-                this.$api.getFolders((resObj)=>{
-                    if(resObj.result < 0){
-                        self.$alert(resObj.message);
-                    } else {
-                        this.$store.commit("setfolders", {
-                            folders: [resObj.tree]
-                        });
-                        self.showfolders = true;
-                    }
-                })
-            } else {
-                self.showfolders = true;
-            }
-        },
-        handleFolderPicked: function(){
-            let self = this;
-            if(self.selfolder == ''){
-                self.$alert("请选择目录");
-            } else {
-                self.copyGroup.path = self.selfolder;
-                self.showfolders = false;
-            }
-        },
         onCommitGroup: function(){
             let self = this;
             let grpInfo = this.copyGroup;
@@ -417,9 +432,6 @@ export default {
         },
         onCloseGrpDlg: function(done){
             done();
-        },
-        handleFolderClick: function(data){
-            this.selfolder = data.path;
         },
         handleViewGrop: function(){
             if(this.curGroup == null || this.curGroup.id == "")

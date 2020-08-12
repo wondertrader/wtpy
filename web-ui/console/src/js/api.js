@@ -172,6 +172,45 @@ export default function () {
 			}, 'json');
 	};
 
+	self.getGroupCfg = function(grpid, cb){
+		let reqInfo = {
+			groupid: grpid
+		}
+
+		$.post("/mgr/qrygrpcfg",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.commitGroupCfg = function(grpid, config, cb){
+		let reqInfo = {
+			groupid: grpid,
+			config: config
+		}
+
+		$.post("/mgr/cmtgrpcfg",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
 	self.getLogs = function(grpid, logtype, cb){
 		if(typeof(logtype) == 'function'){
 			cb = logtype;
@@ -569,6 +608,23 @@ export default function () {
 		let reqInfo = {};
 
 		$.post("/mgr/qryexec",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.getMonApps = function(cb){
+		let reqInfo = {};
+
+		$.post("/mgr/qrymons",
 			JSON.stringify(reqInfo),
 			function (data, textStatus) {
 				if (textStatus != 'success') {
