@@ -94,6 +94,7 @@ def on_strategy_get_bar(id, code, period, curBar, isLast):
             bar["time"] = realBar.date
         else:
             bar["time"] = 1990*100000000 + realBar.time
+        bar["bartime"] = bar["time"]
         bar["open"] = realBar.open
         bar["high"] = realBar.high
         bar["low"] = realBar.low
