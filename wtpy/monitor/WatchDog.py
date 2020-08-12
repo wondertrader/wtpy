@@ -8,7 +8,7 @@ import copy
 
 from enum import Enum
 
-class EventSink:
+class WatcherSink:
 
     def __init__(self):
         pass
@@ -42,7 +42,7 @@ class AppState(Enum):
     AS_Closed       = 904
 
 class AppInfo:
-    def __init__(self, appConf:dict, sink:EventSink = None):
+    def __init__(self, appConf:dict, sink:WatcherSink = None):
         self.__info__ = appConf
 
         self._lock = threading.Lock()
@@ -100,18 +100,6 @@ class AppInfo:
                 r = line.decode("utf-8")
             if self._sink is not None:
                 self._sink.on_output(self._id, r)
-
-        '''
-        if self._proc.poll() != 0:
-            line = self._proc.stderr.readline()
-            if len(line) != 0:
-                try:
-                    r = line.decode("gbk")
-                except:
-                    r = line.decode("utf-8")
-                if self._sink is not None:
-                    self._sink.on_output(self._id, r)
-        '''
             
         self._proc = None
         if self._state != AppState.AS_Closed:
@@ -199,25 +187,38 @@ class AppInfo:
 
 class WatchDog:
 
-    def __init__(self, cfgfile:str="schedule.json", sink:EventSink = None):
-        self.__cfg_file__ = cfgfile
+    def __init__(self, db, sink:WatcherSink = None):
+        self.__db_conn__ = db
         self.__apps__ = dict()
         self.__app_conf__ = dict()
         self.__stopped__ = False
         self.__worker__ = None
         self.__sink__ = sink
-        if True:
-            f = open(cfgfile, "r")
-            content =f.read()
-            f.close()
 
-            json_data = json.loads(content)
-            for appid in json_data["apps"]:
-                appConf = json_data["apps"][appid]
-                self.__apps__[appConf["id"]] = AppInfo(appConf, sink)
-                self.__app_conf__[appConf["id"]] = appConf
-        else:
-            pass
+        #加载调度列表
+        cur = self.__db_conn__.cursor()
+        for row in cur.execute("SELECT * FROM schedules;"):
+            appConf = dict()
+            appConf["id"] = row[1]
+            appConf["path"] = row[2]
+            appConf["folder"] = row[3]
+            appConf["param"] = row[4]
+            appConf["span"] = row[5]
+            appConf["guard"] = row[6]=='true'
+            appConf["redirect"] = row[7]=='true'
+            appConf["schedule"] = dict()
+            appConf["schedule"]["active"] = row[8]=='true'
+            appConf["schedule"]["weekflag"] = row[9]
+            appConf["schedule"]["tasks"] = list()
+            appConf["schedule"]["tasks"].append(json.loads(row[10]))
+            appConf["schedule"]["tasks"].append(json.loads(row[11]))
+            appConf["schedule"]["tasks"].append(json.loads(row[12]))
+            appConf["schedule"]["tasks"].append(json.loads(row[13]))
+            appConf["schedule"]["tasks"].append(json.loads(row[14]))
+            appConf["schedule"]["tasks"].append(json.loads(row[15]))
+            self.__app_conf__[appConf["id"]] = appConf
+            self.__apps__[appConf["id"]] = AppInfo(appConf, sink)
+
 
     def __watch_impl__(self):
         while not self.__stopped__:
@@ -227,11 +228,14 @@ class WatchDog:
 
                 appInfo.tick()
 
-    def save_data(self):
-        f = open(self.__cfg_file__, "w")
-        config = {"apps":self.__app_conf__}
-        f.write(json.dumps(config, indent=4))
-        f.close()
+    def get_apps(self):
+        ret = {}
+        for appid in self.__app_conf__:
+            bRunning = self.__apps__[appid].isRunning()
+            conf = copy.copy(self.__app_conf__[appid])
+            conf["running"] = bRunning
+            ret[appid] = conf
+        return ret
 
     def run(self):
         if self.__worker__ is None:
@@ -276,9 +280,31 @@ class WatchDog:
     def applyAppConf(self, appConf:dict):
         appid = appConf["id"]
         self.__app_conf__[appid] = appConf
+        isNewApp = False
         if appid not in self.__apps__:
+            isNewApp = True
             self.__apps__[appid] = AppInfo(appConf, self.__sink__)
         else:
             appInst = self.__apps__[appid]
             appInst.applyConf(appConf)
-        self.save_data()
+
+        guard = 'true' if appConf["guard"] else 'false'
+        redirect = 'true' if appConf["redirect"] else 'false'
+        schedule = 'true' if appConf["schedule"] else 'false'
+
+        cur = self.__db_conn__.cursor()
+        sql = ''
+        if isNewApp:
+            sql = "INSERT INTO schedules(appid,path,folder,param,span,guard,redirect,schedule,weekflag,task1,task2,task3,task4,task5,task6) \
+                    VALUES('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s');" % (
+                    appid, appConf["path"], appConf["folder"], appConf["param"], appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
+                    json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
+                    json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]))
+        else:
+            sql = "UPDATE schedules SET path='%s',folder='%s',param='%s',span='%s',guard='%s',redirect='%s',schedule='%s',weekflag='%s',task1='%s',task2='%s',\
+                    task3='%s',task4='%s',task5='%s',task6='%s',modifytime=datetime('now','localtime') WHERE appid='%s';" % (
+                    appConf["path"], appConf["folder"], appConf["param"], appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
+                    json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
+                    json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]), appid)
+        cur.execute(sql)
+        self.__db_conn__.commit()

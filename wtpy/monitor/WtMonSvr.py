@@ -3,10 +3,12 @@ import json
 import datetime
 import os
 import hashlib
+import sys
 
 from .DataMgr import DataMgr
 from .PushSvr import PushServer
-from .WatchDog import WatchDog, EventSink
+from .WatchDog import WatchDog, WatcherSink
+from .EventReceiver import EventReceiver, EventSink
 
 def pack_rsp(obj):
     rsp = make_response(json.dumps(obj))
@@ -100,19 +102,17 @@ def get_path_tree(root:str, name:str):
             ret["children"].append(get_path_tree(filepath, filename))
     return ret
 
-
-
-class WtMonSvr(EventSink):
+class WtMonSvr(WatcherSink, EventSink):
 
     def __init__(self, static_folder:str="", static_url_path="/", deploy_dir="C:/"):
         if len(static_folder) == 0:
             static_folder = 'static'
 
         # 数据管理器，主要用于缓存各组合的数据
-        self.__data_mgr__ = DataMgr('monitor.json')
+        self.__data_mgr__ = DataMgr('data.db')
 
         # 看门狗模块，主要用于调度各个组合启动关闭
-        self._dog = WatchDog(sink=self, cfgfile="schedule.json")
+        self._dog = WatchDog(sink=self, db=self.__data_mgr__.get_db())
 
         app = Flask(__name__, instance_relative_config=True, static_folder=static_folder, static_url_path=static_url_path)
         app.secret_key = "!@#$%^&*()"
@@ -153,39 +153,21 @@ class WtMonSvr(EventSink):
                 else:
                     encpwd = hashlib.md5((user+pwd).encode("utf-8")).hexdigest()
                     now = datetime.datetime.now()
-                    if user == "superman":
-                        superpwd = '25ed305a56504e95fd1ca9900a1da174'
-                        if encpwd != superpwd:
-                            ret = {
-                                "result":-1,
-                                "message":"登录密码错误"
-                            }
-                        else:
-                            usrInf = {
-                                "loginid":user,
-                                "name":"超管",
-                                "loginip":request.remote_addr,
-                                "logintime":now.strftime("%Y/%m/%d %H:%M:%S"),
-                                "role":"admin"
-                            }
-
-                            exptime = now + datetime.timedelta(minutes=30)  #30分钟令牌超时
-                            session["userinfo"] = usrInf
-                            session["expiretime"] = exptime
-
-                            ret = {
-                                "result":0,
-                                "message":"Ok",
-                                "userinfo":usrInf
-                            }
-                    else:
-                        usrInf = {
-                            "loginid":user,
-                            "name":"张三",
-                            "loginip":request.remote_addr,
-                            "logintime":now.strftime("%Y/%m/%d %H:%M:%S"),
-                            "role":"user"
+                    usrInf = self.__data_mgr__.get_user(user)
+                    if usrInf is None:
+                        ret = {
+                            "result":-1,
+                            "message":"用户不存在"
                         }
+                    elif encpwd != usrInf["passwd"]:
+                        ret = {
+                            "result":-1,
+                            "message":"登录密码错误"
+                        }
+                    else:
+                        usrInf.pop("passwd")
+                        usrInf["loginip"]=request.remote_addr
+                        usrInf["logintime"]=now.strftime("%Y/%m/%d %H:%M:%S")
 
                         exptime = now + datetime.timedelta(minutes=30)  #30分钟令牌超时
                         session["userinfo"] = usrInf
@@ -196,6 +178,8 @@ class WtMonSvr(EventSink):
                             "message":"Ok",
                             "userinfo":usrInf
                         }
+
+                        self.__data_mgr__.log_action(usrInf, "login", json.dumps(request.headers.get('User-Agent')))
             else:
                 ret = {
                     "result":-1,
@@ -213,15 +197,21 @@ class WtMonSvr(EventSink):
             if not bSucc:
                 return pack_rsp(json_data)
 
-            bSucc, usrInfo = check_auth()
+            bSucc, adminInfo = check_auth()
             if not bSucc:
-                return pack_rsp(usrInfo)
+                return pack_rsp(adminInfo)
 
             id = get_param(json_data, "groupid")
             name = get_param(json_data, "name")
             path = get_param(json_data, "path")
             info = get_param(json_data, "info")
             gtype = get_param(json_data, "gtype")
+            env = get_param(json_data, "env")
+            datmod = get_param(json_data, "datmod")
+
+            action = get_param(json_data, "action")
+            if action == "":
+                action = "add"
 
             if len(id) == 0 or len(name) == 0 or len(gtype) == 0:
                 ret = {
@@ -233,7 +223,7 @@ class WtMonSvr(EventSink):
                     "result":-2,
                     "message":"组合运行目录不正确"
                 }
-            elif self.__data_mgr__.has_group(id):
+            elif action == "add" and self.__data_mgr__.has_group(id):
                 ret = {
                     "result":-3,
                     "message":"组合ID不能重复"
@@ -245,14 +235,26 @@ class WtMonSvr(EventSink):
                         "name":name,
                         "path":path,
                         "info":info,
-                        "gtype":gtype
+                        "gtype":gtype,
+                        "datmod":datmod,
+                        "env":env
                     }   
 
-                    self.__data_mgr__.add_group(grpInfo)
-                    ret = {
-                        "result":0,
-                        "message":"Ok"
-                    }
+                    if self.__data_mgr__.add_group(grpInfo):
+                        ret = {
+                            "result":0,
+                            "message":"Ok"
+                        }
+
+                        if action == "add":
+                            self.__data_mgr__.log_action(adminInfo, "addgrp", json.dumps(grpInfo))
+                        else:
+                            self.__data_mgr__.log_action(adminInfo, "modgrp", json.dumps(grpInfo))
+                    else:
+                        ret = {
+                            "result":-2,
+                            "message":"添加用户失败"
+                        }
                 except:
                     ret = {
                         "result":-1,
@@ -268,9 +270,9 @@ class WtMonSvr(EventSink):
             if not bSucc:
                 return pack_rsp(json_data)
 
-            bSucc, usrInfo = check_auth()
+            bSucc, adminInfo = check_auth()
             if not bSucc:
-                return pack_rsp(usrInfo)
+                return pack_rsp(adminInfo)
             
             grpid = get_param(json_data, "groupid")
             if not self.__data_mgr__.has_group(grpid):
@@ -286,6 +288,8 @@ class WtMonSvr(EventSink):
                     "message":"Ok"
                 }
 
+                self.__data_mgr__.log_action(adminInfo, "stopgrp", grpid)
+
             return pack_rsp(ret)
         
         # 组合启动
@@ -295,9 +299,9 @@ class WtMonSvr(EventSink):
             if not bSucc:
                 return pack_rsp(json_data)
 
-            bSucc, usrInfo = check_auth()
+            bSucc, adminInfo = check_auth()
             if not bSucc:
-                return pack_rsp(usrInfo)
+                return pack_rsp(adminInfo)
             
             grpid = get_param(json_data, "groupid")
             if not self.__data_mgr__.has_group(grpid):
@@ -312,6 +316,26 @@ class WtMonSvr(EventSink):
                     "result":0,
                     "message":"Ok"
                 }
+                self.__data_mgr__.log_action(adminInfo, "startgrp", grpid)
+
+            return pack_rsp(ret)
+
+        # 获取执行的python进程的路径
+        @app.route("/mgr/qryexec", methods=["POST"])
+        def qry_exec_path():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+
+            ret = {
+                "result":0,
+                "message":"Ok",
+                "path": sys.executable
+            }
 
             return pack_rsp(ret)
 
@@ -322,9 +346,9 @@ class WtMonSvr(EventSink):
             if not bSucc:
                 return pack_rsp(json_data)
 
-            bSucc, usrInfo = check_auth()
+            bSucc, adminInfo = check_auth()
             if not bSucc:
-                return pack_rsp(usrInfo)
+                return pack_rsp(adminInfo)
 
             grpid = get_param(json_data, "groupid")
             if not self.__data_mgr__.has_group(grpid):
@@ -355,9 +379,9 @@ class WtMonSvr(EventSink):
             if not bSucc:
                 return pack_rsp(json_data)
 
-            bSucc, usrInfo = check_auth()
+            bSucc, adminInfo = check_auth()
             if not bSucc:
-                return pack_rsp(usrInfo)
+                return pack_rsp(adminInfo)
 
             #这里本来是要做检查的，算了，先省事吧
             
@@ -366,6 +390,7 @@ class WtMonSvr(EventSink):
                 "result":0,
                 "message":"ok"
             }
+            self.__data_mgr__.log_action(adminInfo, "cfgmon", json.dumps(json_data))
 
             return pack_rsp(ret)
 
@@ -422,6 +447,66 @@ class WtMonSvr(EventSink):
                     "result":-1,
                     "message":"请求解析失败"
                 }
+
+            return pack_rsp(ret)
+
+        # 查询组合配置
+        @app.route("/mgr/qrygrpcfg", methods=["POST"])
+        def qry_group_cfg():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            grpid = get_param(json_data, "groupid")
+            if not self.__data_mgr__.has_group(grpid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"Ok",
+                    "config":self.__data_mgr__.get_group_cfg(grpid)
+                }
+
+            return pack_rsp(ret)
+
+        # 提交组合配置
+        @app.route("/mgr/cmtgrpcfg", methods=["POST"])
+        def cmd_commit_group_cfg():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            grpid = get_param(json_data, "groupid")
+            config = get_param(json_data, "config")
+            if not self.__data_mgr__.has_group(grpid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                try:
+                    config = json.loads(config)
+                    self.__data_mgr__.set_group_cfg(grpid, config)
+                    ret = {
+                        "result":0,
+                        "message":"Ok"
+                    }
+                except:
+                    ret = {
+                        "result":-1,
+                        "message":"配置解析失败"
+                    }
 
             return pack_rsp(ret)
         
@@ -748,6 +833,119 @@ class WtMonSvr(EventSink):
                 }
 
             return pack_rsp(ret)
+
+        # 查询用户列表
+        @app.route("/mgr/qryusers", methods=["POST"])
+        def qry_users():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            users = self.__data_mgr__.get_users()
+            for usrInfo in users:
+                usrInfo.pop("passwd")
+            
+            ret = {
+                "result":0,
+                "message":"",
+                "users": users
+            }
+                
+
+            return pack_rsp(ret)
+
+        # 提交用户信息
+        @app.route("/mgr/cmtuser", methods=["POST"])
+        def cmd_commit_user():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+
+            self.__data_mgr__.add_user(json_data, adminInfo["loginid"])
+            ret = {
+                "result":0,
+                "message":"Ok"
+            }
+
+            self.__data_mgr__.log_action(adminInfo, "cmtuser", json.dumps(json_data))
+
+            return pack_rsp(ret)
+
+        # 删除用户
+        @app.route("/mgr/deluser", methods=["POST"])
+        def cmd_delete_user():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+
+            loginid = get_param(json_data, "loginid")
+
+            if self.__data_mgr__.del_user(loginid, adminInfo["loginid"]):
+                self.__data_mgr__.log_action(adminInfo, "delusr", loginid)
+            ret = {
+                "result":0,
+                "message":"Ok"
+            }
+
+            return pack_rsp(ret)
+
+        # 查询操作记录
+        @app.route("/mgr/qryacts", methods=["POST"])
+        def qry_actions():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+
+            sdate = get_param(json_data, "sdate")
+            edate = get_param(json_data, "edate")
+
+            ret = {
+                "result":0,
+                "message":"",
+                "actions": self.__data_mgr__.get_actions(sdate, edate)
+            }   
+
+            return pack_rsp(ret)
+
+        # 查询全部调度
+        @app.route("/mgr/qrymons", methods=["POST"])
+        def qry_mon_apps():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+
+            schedules = self._dog.get_apps()
+            for appid in schedules:
+                schedules[appid]["group"] = self.__data_mgr__.has_group(appid)                
+
+            ret = {
+                "result":0,
+                "message":"",
+                "schedules": schedules
+            }   
+
+            return pack_rsp(ret)
+            
     
     def __run_impl__(self, port:int, host:str):
         self.push_svr.run(port = port, host = host)
@@ -772,3 +970,12 @@ class WtMonSvr(EventSink):
     
     def on_output(self, grpid:str, message:str):
         self.push_svr.notifyGrpLog(grpid, message)
+
+    def on_order(self, grpid:str, chnl:str, ordInfo:dict):
+        self.push_svr.notifyGrpChnlEvt(grpid, chnl, 'order', ordInfo)
+
+    def on_trade(self, grpid:str, chnl:str, trdInfo:dict):
+        self.push_svr.notifyGrpChnlEvt(grpid, chnl, 'trade', trdInfo)
+    
+    def on_message(self, grpid:str, chnl:str, message:str):
+        self.push_svr.notifyGrpChnlEvt(grpid, chnl, 'message', message)
