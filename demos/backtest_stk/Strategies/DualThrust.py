@@ -1,5 +1,6 @@
 from wtpy import BaseCtaStrategy
 from wtpy import CtaContext
+import numpy as np
 
 class StraDualThrust(BaseCtaStrategy):
     
@@ -51,21 +52,21 @@ class StraDualThrust(BaseCtaStrategy):
         k2 = self.__k2__
 
         #平仓价序列、最高价序列、最低价序列
-        closes = df_bars["close"]
-        highs = df_bars["high"]
-        lows = df_bars["low"]
+        closes = df_bars.closes
+        highs = df_bars.highs
+        lows = df_bars.lows
 
         #读取days天之前到上一个交易日位置的数据
-        hh = highs[-days:-1].max()
-        hc = closes[-days:-1].max()
-        ll = lows[-days:-1].min()
-        lc = closes[-days:-1].min()
+        hh = np.amax(highs[-days:-1])
+        hc = np.amax(closes[-days:-1])
+        ll = np.amin(lows[-days:-1])
+        lc = np.amin(closes[-days:-1])
 
         #读取今天的开盘价、最高价和最低价
-        lastBar = df_bars.iloc[-1]
-        openpx = lastBar["open"]
-        highpx = lastBar["high"]
-        lowpx = lastBar["low"]
+        # lastBar = df_bars.get_last_bar()
+        openpx = df_bars.opens[-1]
+        highpx = df_bars.highs[-1]
+        lowpx = df_bars.lows[-1]
 
         '''
         !!!!!这里是重点
@@ -84,7 +85,7 @@ class StraDualThrust(BaseCtaStrategy):
         if curPos == 0:
             if highpx >= upper_bound:
                 context.stra_enter_long(code, 1*trdUnit, 'enterlong')
-                context.stra_log_text("向上突破%.2f>=%.2f，多仓进场" % (highpx, upper_bound))
+                # context.stra_log_text("向上突破%.2f>=%.2f，多仓进场" % (highpx, upper_bound))
                 #修改并保存
                 self.xxx = 1
                 context.user_save_data('xxx', self.xxx)
@@ -97,7 +98,7 @@ class StraDualThrust(BaseCtaStrategy):
         elif curPos > 0:
             if lowpx <= lower_bound:
                 context.stra_exit_long(code, 1*trdUnit, 'exitlong')
-                context.stra_log_text("向下突破%.2f<=%.2f，多仓出场" % (lowpx, lower_bound))
+                # context.stra_log_text("向下突破%.2f<=%.2f，多仓出场" % (lowpx, lower_bound))
                 #raise Exception("except on purpose")
                 return
         else:
