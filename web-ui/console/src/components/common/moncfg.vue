@@ -16,7 +16,9 @@
                     <a>启动参数：</a>
                 </el-col>
                 <el-col :span="7">
-                    <el-input size="mini" v-model="config.param" placeholder="run.py"></el-input>
+                    <el-tooltip slot="append"  effect="dark" content="一般为脚本文件名，没有留空即可" placement="top">
+                        <el-input size="mini" v-model="config.param" placeholder="run.py"></el-input>
+                    </el-tooltip>
                 </el-col>
             </el-row>
             <el-row>
@@ -38,7 +40,7 @@
                 <el-col :span="20">
                     <el-input size="mini" :disabled="fixinfo" v-model="config.folder">
                         <el-tooltip slot="append"  effect="dark" content="选择组合所在的目录" placement="top">
-                            <el-button icon="el-icon-folder" :disabled="fixinfo"></el-button>
+                            <el-button icon="el-icon-folder" :disabled="fixinfo" @click="handlePickFolder"></el-button>
                         </el-tooltip>
                     </el-input>
                     </el-col>
@@ -240,12 +242,31 @@
                 <el-button type="primary" size="mini" style="float:right;" plain @click="onConfigCommit()">提交设置</el-button>
             </div>
         </div>
+        <el-dialog
+            title="选择目录"
+            :visible.sync="showfolders"
+            width="25%">
+            <div style="width:100%;height:300px;overflow:auto;border:1px solid #E4E7ED;">
+                <el-tree :data="folders" @node-click="handleFolderClick"></el-tree>
+            </div>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="showfolders = false">取 消</el-button>
+                <el-button type="primary" @click="handleFolderPicked" plain>确 定</el-button>
+            </span>
+        </el-dialog>
     </div>   
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+
 export default {
     name: 'schedule',
+    computed: {
+        ...mapGetters([
+            'folders'
+        ])
+    },
     props:{
         fixinfo:{
             type:Boolean,
@@ -307,6 +328,8 @@ export default {
     },
     data () {
         return {
+            showfolders:false,
+            selfolder:"",
             actions:["启动","停止","重启"]
         }
     },
@@ -319,6 +342,36 @@ export default {
                     this.config.path = resObj.path;
                 }
             })
+        },
+        handlePickFolder: function(e){
+            let self = this;
+            self.selfolder = "";
+            if(self.folders.length == 0){
+                this.$api.getFolders((resObj)=>{
+                    if(resObj.result < 0){
+                        self.$alert(resObj.message);
+                    } else {
+                        this.$store.commit("setfolders", {
+                            folders: [resObj.tree]
+                        });
+                        self.showfolders = true;
+                    }
+                })
+            } else {
+                self.showfolders = true;
+            }
+        },
+        handleFolderPicked: function(){
+            let self = this;
+            if(self.selfolder == ''){
+                self.$alert("请选择目录");
+            } else {
+                self.config.folder = self.selfolder;
+                self.showfolders = false;
+            }
+        },
+        handleFolderClick: function(data){
+            this.selfolder = data.path;
         },
         onConfigCommit: function(){
             let config = JSON.parse(JSON.stringify(this.config));
@@ -358,12 +411,14 @@ export default {
                 delete config.schedule.weekmask;
                 this.$api.commitMonCfg(config, (resObj)=>{
                     if(resObj.result < 0){
-                        this.$notify.error(resObj.message);
+                        this.$message.error(resObj.message);
                     } else {
-                        this.$notify({
+                        this.$message({
                             message: "监控配置已提交成功",
                             type:"success"
                         });
+
+                        this.$emit('cfgudt');
                     }
                 });
             });
