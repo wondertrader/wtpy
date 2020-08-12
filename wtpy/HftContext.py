@@ -4,6 +4,7 @@ import os
 import json
 
 from wtpy.wrapper import WtWrapper
+from wtpy.WtDataDefs import WtKlineData, WtTickData
 
 class HftContext:
     '''
@@ -32,41 +33,19 @@ class HftContext:
 
     def on_getticks(self, code:str, curTick:dict, isLast:bool):
         key = code
-        if key not in self.__tick_cache__:
-            self.__tick_cache__[key] = list()
-        elif not isinstance(self.__tick_cache__[key], list):
-            self.__tick_cache__[key] = list()
 
         ticks = self.__tick_cache__[key]
             
         if curTick is not None:          
-            ticks.append(curTick)
-
-        if isLast:
-            localTicks = df(ticks)
-            tickTime = localTicks["time"]
-            localTicks.insert(0,'ticktime', tickTime)
-            localTicks = localTicks.set_index("time") 
-            self.__tick_cache__[key] = localTicks
+            ticks.append_tick(curTick)
 
     def on_getbars(self, code:str, period:str, curBar:dict, isLast:bool):
         key = "%s#%s" % (code, period)
-        if key not in self.__bar_cache__:
-            self.__bar_cache__[key] = list()
-        elif not isinstance(self.__bar_cache__[key], list):
-            self.__bar_cache__[key] = list()
 
         bars = self.__bar_cache__[key]
             
         if curBar is not None:          
-            bars.append(curBar)
-
-        if isLast:
-            localBars = df(bars)
-            barTime = localBars["time"]
-            localBars.insert(0,'bartime', barTime)
-            localBars = localBars.set_index("time") 
-            self.__bar_cache__[key] = localBars
+            bars.append_bar(curBar)
 
 
     def on_tick(self, code:str, newTick):
@@ -101,7 +80,7 @@ class HftContext:
             return
 
         try:
-            self.__bar_cache__[key].loc[newBar["bartime"]] = pd.Series(newBar)
+            self.__bar_cache__[key].append_bar(newBar)
             self.__bar_cache__[key].closed = True
             self.__stra_info__.on_bar(self, code, period, newBar)
         except ValueError as ve:
@@ -144,7 +123,7 @@ class HftContext:
         '''
         return self.__wrapper__.hft_get_price(code)
 
-    def stra_get_bars(self, code:str, period:str, count:int):
+    def stra_get_bars(self, code:str, period:str, count:int) -> WtKlineData:
         '''
         获取历史K线
         @code   合约代码
@@ -156,8 +135,9 @@ class HftContext:
 
         if key in self.__bar_cache__:
             #这里做一个数据长度处理
-            return self.__bar_cache__[key].iloc[-count:]
+            return self.__bar_cache__[key]
 
+        self.__bar_cache__[key] = WtKlineData(size=count)
         cnt =  self.__wrapper__.hft_get_bars(self.__id__, code, period, count)
         if cnt == 0:
             return None
@@ -167,12 +147,13 @@ class HftContext:
 
         return df_bars
 
-    def stra_get_ticks(self, code:str, count:int):
+    def stra_get_ticks(self, code:str, count:int) -> WtTickData:
         '''
         获取tick数据
         @code   合约代码
         @count  要拉取的tick数量
         '''
+        self.__bar_cache__[code] = WtTickData(size=count)
         cnt = self.__wrapper__.hft_get_ticks(self.__id__, code, count)
         if cnt == 0:
             return None

@@ -154,7 +154,7 @@ class CtaContext:
 
         return df_bars
 
-    def stra_get_ticks(self, code:str, count:int):
+    def stra_get_ticks(self, code:str, count:int) -> WtTickData:
         '''
         获取tick数据
         @code   合约代码

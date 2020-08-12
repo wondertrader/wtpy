@@ -52,7 +52,7 @@ class ProductMgr:
                 self.__products__[key] = pInfo
 
 
-    def getProductInfo(self, pid:str):
+    def getProductInfo(self, pid:str) -> ProductInfo:
         #pid形式可能为SHFE.ag.HOT，或者SHFE.ag.1912，或者SHFE.ag
         items = pid.split(".")
         key = items[0] + "." + items[1]
