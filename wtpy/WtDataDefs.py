@@ -1,9 +1,10 @@
 import numpy as np
+from pandas import DataFrame
 
 class WtKlineData:
     def __init__(self, size:int):
-        self.size = size
-        self.count = 0
+        self.size:int = size
+        self.count:int = 0
 
         self.bartimes = np.zeros(self.size)
         self.opens = np.zeros(self.size)
@@ -39,37 +40,49 @@ class WtKlineData:
     def clear(self):
         self.count = 0
 
-        self.bartimes = np.zeros(self.size)
-        self.opens = np.zeros(self.size)
-        self.highs = np.zeros(self.size)
-        self.lows = np.zeros(self.size)
-        self.closes = np.zeros(self.size)
-        self.volumns = np.zeros(self.size)
+        self.bartimes:np.ndarray = np.zeros(self.size)
+        self.opens:np.ndarray = np.zeros(self.size)
+        self.highs:np.ndarray = np.zeros(self.size)
+        self.lows:np.ndarray = np.zeros(self.size)
+        self.closes:np.ndarray = np.zeros(self.size)
+        self.volumns:np.ndarray = np.zeros(self.size)
 
-    def get_last_bar(self) -> dict:
+    def get_bar(self, iLoc:int = -1) -> dict:
         if self.is_empty():
             return None
 
         lastBar = dict()
-        lastBar["bartime"] = self.bartimes[-1]
-        lastBar["open"] = self.opens[-1]
-        lastBar["high"] = self.highs[-1]
-        lastBar["low"] = self.lows[-1]
-        lastBar["close"] = self.closes[-1]
-        lastBar["volumn"] = self.volumns[-1]
+        lastBar["bartime"] = self.bartimes[iLoc]
+        lastBar["open"] = self.opens[iLoc]
+        lastBar["high"] = self.highs[iLoc]
+        lastBar["low"] = self.lows[iLoc]
+        lastBar["close"] = self.closes[iLoc]
+        lastBar["volumn"] = self.volumns[iLoc]
 
         return lastBar
 
+    def to_df(self) -> DataFrame:
+        ret = DataFrame({
+            "bartime":self.bartimes,
+            "open":self.opens,
+            "high":self.highs,
+            "low":self.lows,
+            "close":self.closes,
+            "volumn":self.volumns
+        })
+        ret.set_index(self.bartimes)
+        return ret
+
 class WtTickData:
     def __init__(self, size:int):
-        self.size = size
-        self.count = 0
+        self.size:int = size
+        self.count:int = 0
 
-        self.times = np.zeros(self.size)
-        self.opens = np.zeros(self.size)
-        self.highs = np.zeros(self.size)
-        self.lows = np.zeros(self.size)
-        self.prices = np.zeros(self.size)
+        self.times:np.ndarray = np.zeros(self.size)
+        self.opens:np.ndarray = np.zeros(self.size)
+        self.highs:np.ndarray = np.zeros(self.size)
+        self.lows:np.ndarray = np.zeros(self.size)
+        self.prices:np.ndarray = np.zeros(self.size)
 
     def append_tick(self, newTick:dict):
 
@@ -102,14 +115,25 @@ class WtTickData:
         self.lows = np.zeros(self.size)
         self.prices = np.zeros(self.size)
 
-    def get_last_tick(self) -> dict:
+    def get_tick(self, iLoc:int=-1) -> dict:
         if self.is_empty():
             return None
 
         lastTick = dict()
-        lastTick["time"] = self.times[-1]
-        lastTick["open"] = self.opens[-1]
-        lastTick["high"] = self.highs[-1]
-        lastTick["low"] = self.lows[-1]
-        lastTick["price"] = self.prices[-1]
+        lastTick["time"] = self.times[iLoc]
+        lastTick["open"] = self.opens[iLoc]
+        lastTick["high"] = self.highs[iLoc]
+        lastTick["low"] = self.lows[iLoc]
+        lastTick["price"] = self.prices[iLoc]
         return lastTick
+
+    def to_df(self) -> DataFrame:
+        ret = DataFrame({
+            "time":self.times,
+            "open":self.opens,
+            "high":self.highs,
+            "low":self.lows,
+            "price":self.prices
+        })
+        ret.set_index(self.times)
+        return ret
