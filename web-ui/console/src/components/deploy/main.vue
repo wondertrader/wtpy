@@ -1,29 +1,44 @@
 <template>
-	<div style="height:100%;">
-        <el-container style="height:100%;">
-            部署界面
-        </el-container>
+    <div class="loginBox">
+        <div class="login">
+            在线部署功能建设中，敬请期待
+        </div>
     </div>
 </template>
 
 <script>
 export default {
-    name: 'Login',
+    name: "Deploy",
     data() {
-        return {
-            
-        }
+        return {};
     },
-    methods:{
+    methods: {
+       
     },
-    mounted (){
-               
-    }
-}
-
+    mounted() {
+        
+    },
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-    
+* {
+    margin: 0;
+}
+
+.loginBox {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height:100vh;
+    width:100%;
+}
+
+.login {
+    width: 240px;
+    height: 400px;
+    text-align: center;
+}
 </style>
