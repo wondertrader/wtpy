@@ -3,9 +3,9 @@ import threading
 import struct
 import json
 
-UDP_MSG_PUSHTRADE = 301
-UDP_MSG_PUSHORDER = 302
-UDP_MSG_PUSHEVENT = 303
+UDP_MSG_PUSHTRADE = 0x301
+UDP_MSG_PUSHORDER = 0x302
+UDP_MSG_PUSHEVENT = 0x303
 
 class EventSink:
     def __init__(self):
@@ -45,6 +45,11 @@ class EventReceiver:
                 data, remote = self.sock.recvfrom(10240)
                 json_str = data[40:]
                 grpid, trader, mtype, length = struct.unpack('=16s16s2I', data[:40])
+
+                grpid = grpid.decode("gbk")
+                trader = trader.decode("gbk")
+
+                json_str = json_str.decode("gbk")
 
                 if mtype == UDP_MSG_PUSHTRADE:
                     if self._sink is not None:
