@@ -59,6 +59,9 @@ class SelContext:
     def on_tick(self, code:str, newTick):
         self.__stra_info__.on_tick(self, code, newTick)
 
+    def on_bar(self, code:str, period:str, newBar:dict):
+        pass
+
     def on_calculate(self):
         self.__stra_info__.on_calculate(self)
 
