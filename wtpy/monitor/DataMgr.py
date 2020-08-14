@@ -61,6 +61,7 @@ class DataMgr:
             sql += "[id] INTEGER PRIMARY KEY autoincrement, \n"
             sql += "[loginid] VARCHAR(20) NOT NULL DEFAULT '', \n"
             sql += "[actiontime] DATETIME default (datetime('now', 'localtime')), \n"
+            sql += "[actionip] VARCHAR(30) NOT NULL DEFAULT '', \n"
             sql += "[actiontype] VARCHAR(20) NOT NULL DEFAULT '',\n"
             sql += "[remark] TEXT default '');"
             cur.execute(sql)
