@@ -1,0 +1,32 @@
+{
+    "root":{
+        "level":"debug",
+        "async":false,
+        "sinks":[
+            {
+                "type":"basic_file_sink",
+                "filename":"Logs/Runner.log",
+                "pattern":"[%Y.%m.%d %H:%M:%S - %-5l] %v",
+                "truncate":true
+            },
+            {
+                "type":"console_sink",
+                "pattern":"[%m.%d %H:%M:%S - %^%-5l%$] %v"
+            }
+        ]
+    },
+    "dyn_pattern":{
+        "strategy":{
+            "level":"debug",
+            "async":false,
+            "sinks":[
+                {
+                    "type":"basic_file_sink",
+                    "filename":"Logs/Strategy_%s.log",
+                    "pattern":"[%Y.%m.%d %H:%M:%S - %-5l] %v",
+                    "truncate":false
+                }
+            ]
+        }
+    }
+}
