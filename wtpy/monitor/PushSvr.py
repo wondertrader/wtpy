@@ -26,12 +26,12 @@ class PushServer:
         self.dataMgr = dataMgr
 
         @sockio.on('connect', namespace='/')
-        def test_connect():
+        def on_connect():
             # emit('my response', {'data': 'Connected'})
             usrInfo = session.get("userinfo")
 
         @sockio.on('disconnect', namespace='/')
-        def test_disconnect():
+        def on_disconnect():
             print('Client disconnected')
 
         @sockio.on('setgroup', namespace='/')
