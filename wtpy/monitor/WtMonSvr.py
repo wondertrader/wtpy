@@ -5,6 +5,7 @@ import os
 import hashlib
 import sys
 
+from .WtLogger import WtLogger
 from .DataMgr import DataMgr
 from .PushSvr import PushServer
 from .WatchDog import WatchDog, WatcherSink
@@ -107,6 +108,8 @@ class WtMonSvr(WatcherSink, EventSink):
     def __init__(self, static_folder:str="", static_url_path="/", deploy_dir="C:/"):
         if len(static_folder) == 0:
             static_folder = 'static'
+
+        self.logger = WtLogger(__name__, "WtMonSvr.log")
 
         # 数据管理器，主要用于缓存各组合的数据
         self.__data_mgr__ = DataMgr('data.db')
