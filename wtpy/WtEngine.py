@@ -167,7 +167,7 @@ class WtEngine:
         f.write(json.dumps(self.__config__, indent=4, sort_keys=True))
         f.close()
         self.__wrapper__.config(cfgfile)
-        #os.remove(cfgfile)
+        os.remove(cfgfile)
         self.__cfg_commited__ = True
 
     def regCtaStraFactories(self, factFolder:str):
