@@ -1,6 +1,5 @@
 import logging
 import os
-from utils import getcwd
 
 logging.basicConfig(filename='hotsel.log', level=logging.INFO, filemode="a", 
     format='[%(asctime)s - %(levelname)s] %(message)s',
@@ -21,9 +20,11 @@ class WtLogger:
         self.logger.setLevel(logging.DEBUG)
 
         #创建一个handler，用于写入日志文件
-        log_path = os.path.dirname(getcwd.get_cwd())+"/logs/" # 指定文件输出路径，注意logs是个文件夹，一定要加上/，不然会导致输出路径错误，把logs变成文件名的一部分了
+        log_path = os.path.dirname(os.getcwd())+"logs/" # 指定文件输出路径，注意logs是个文件夹，一定要加上/，不然会导致输出路径错误，把logs变成文件名的一部分了
+        if not os.path.exists(log_path):
+            os.mkdir(log_path)
         logname = log_path + filename #指定输出的日志文件名
-        fh = logging.FileHandler(logname,encoding = 'utf-8')  # 指定utf-8格式编码，避免输出的日志文本乱码
+        fh = logging.FileHandler(logname,encoding = 'utf-8',mode='a')  # 指定utf-8格式编码，避免输出的日志文本乱码
         fh.setLevel(logging.INFO)
 
         #创建一个handler，用于将日志输出到控制台

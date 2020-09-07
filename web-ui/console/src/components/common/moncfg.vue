@@ -16,9 +16,7 @@
                     <a>启动参数：</a>
                 </el-col>
                 <el-col :span="7">
-                    <el-tooltip slot="append"  effect="dark" content="一般为脚本文件名，没有留空即可" placement="top">
-                        <el-input size="mini" v-model="config.param" placeholder="run.py"></el-input>
-                    </el-tooltip>
+                    <el-input size="mini" v-model="config.param" placeholder="run.py"></el-input>
                 </el-col>
             </el-row>
             <el-row>
@@ -274,6 +272,12 @@ export default {
                 return false;
             }
         },
+        forapp:{
+            type:Boolean,
+            default(){
+                return false;
+            }
+        },
         config:{
             type:Object,
             default(){
@@ -374,6 +378,7 @@ export default {
             this.selfolder = data.path;
         },
         onConfigCommit: function(){
+            let self = this;
             let config = JSON.parse(JSON.stringify(this.config));
             if(config.path.length == 0){
                 this.$alert("执行程序路径不能为空");
@@ -403,12 +408,16 @@ export default {
                 config.schedule.tasks[idx].time = parseInt(timestr);
             }
 
+            config.redirect = !self.forapp;
+            config.isapp = self.forapp;
+
             this.$confirm('确定要提交该调度配置?', '自动调度', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
                 delete config.schedule.weekmask;
+                console.log(config);
                 this.$api.commitMonCfg(config, (resObj)=>{
                     if(resObj.result < 0){
                         this.$message.error(resObj.message);

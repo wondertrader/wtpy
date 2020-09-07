@@ -79,10 +79,15 @@ class AppInfo:
         return ret
     
     def __run_subproc__(self):
-        self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
-                        cwd=self.__info__["folder"],
-                        stdout = subprocess.PIPE,
-                        stderr = subprocess.PIPE)
+        redirect = self.__info__["redirect"]
+        if redirect:
+            self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
+                            cwd=self.__info__["folder"],
+                            stdout = subprocess.PIPE,
+                            stderr = subprocess.PIPE)
+        else:
+            self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
+                            cwd=self.__info__["folder"])
 
         self._state = AppState.AS_Running
 
@@ -91,15 +96,18 @@ class AppInfo:
             self._sink.on_start(self._id)
 
         while self._proc.poll() is None:                      # None表示正在执行中
-            line = self._proc.stdout.readline()
-            if len(line) == 0:
-                continue
-            try:
-                r = line.decode("gbk")
-            except:
-                r = line.decode("utf-8")
-            if self._sink is not None:
-                self._sink.on_output(self._id, r)
+            if redirect:
+                line = self._proc.stdout.readline()
+                if len(line) == 0:
+                    continue
+                try:
+                    r = line.decode("gbk")
+                except:
+                    r = line.decode("utf-8")
+                if self._sink is not None:
+                    self._sink.on_output(self._id, r)
+            else:
+                time.sleep(1)
             
         self._proc = None
         if self._state != AppState.AS_Closed:
@@ -256,6 +264,9 @@ class WatchDog:
         appInfo = self.__apps__[appid]
         appInfo.stop()
 
+    def has_app(self, appid:str):
+        return appid in self.__apps__
+
     def restart(self, appid:str):
         if appid not in self.__apps__:
             return
@@ -276,6 +287,14 @@ class WatchDog:
         
         appInfo = self.__apps__[appid]
         return appInfo.getConf()
+
+    def delApp(self, appid:str):
+        if appid not in self.__apps__:
+            return
+
+        cur = self.__db_conn__.cursor()
+        cur.execute("DELETE FROM schedules WHERE appid='%s';" % (appid))
+        self.__db_conn__.commit()
 
     def applyAppConf(self, appConf:dict):
         appid = appConf["id"]

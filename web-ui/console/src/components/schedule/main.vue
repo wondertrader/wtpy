@@ -14,6 +14,8 @@
                                     <el-dropdown-item command="add"><i class="el-icon-circle-plus-outline"></i>添加应用</el-dropdown-item>
                                     <el-dropdown-item command="del"><i class="el-icon-delete"></i>删除应用</el-dropdown-item>
                                     <el-dropdown-item divided  command="refresh"><i class="el-icon-refresh"></i>刷新列表</el-dropdown-item>
+                                    <el-dropdown-item divided  command="start"><i class="el-icon-refresh"></i>启动应用</el-dropdown-item>
+                                    <el-dropdown-item command="stop"><i class="el-icon-delete"></i>停止应用</el-dropdown-item>
                                 </el-dropdown-menu>
                             </el-dropdown>
                         </div> 
@@ -75,7 +77,7 @@
                 </div>
             </el-col>
             <el-col :span="8" style="height:100%;border-left: 1px solid #E4E7ED;">
-                <MoniforCfg :config="curMonCfg" :fixinfo="false" @cfgudt="onCfgUpdated"/>
+                <MoniforCfg :config="curMonCfg" :fixinfo="!addApp" :forapp="true" @cfgudt="onCfgUpdated"/>
             </el-col>
         </el-row>
     </div>
@@ -150,6 +152,7 @@ export default {
             this.queryData();
         },
         handleSelectApp: function(appInfo){
+            console.log(appInfo);
             let config = JSON.parse(JSON.stringify(appInfo));
             config.schedule.weekmask = [];
             for(let idx = 0; idx < config.schedule.weekflag.length; idx++){
@@ -253,6 +256,14 @@ export default {
 
             } else if(command == 'refresh'){
                 this.queryData();
+            } else if(command == 'start'){
+                this.$api.startApp(this.curMonCfg.id, (resObj)=>{
+                    if(resObj.result < 0){
+                        this.$message.error(resObj.message);
+                    } 
+                });
+            } else if(command == 'stop'){
+                
             }
         }
     },
