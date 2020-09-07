@@ -266,6 +266,52 @@ class WtMonSvr(WatcherSink, EventSink):
 
             return pack_rsp(ret)
 
+        # 删除组合
+        @app.route("/mgr/delgrp", methods=["POST"])
+        def cmd_del_group():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+
+            id = get_param(json_data, "groupid")
+
+            if len(id) == 0:
+                ret = {
+                    "result":-1,
+                    "message":"组合ID不能为空"
+                }
+            elif not self.__data_mgr__.has_group(id):
+                ret = {
+                    "result":-3,
+                    "message":"该组合不存在"
+                }
+            elif self._dog.isRunning(id):
+                ret = {
+                    "result":-3,
+                    "message":"请先停止该组合"
+                }
+            else:
+                if True:
+                    self._dog.delApp(id)
+                    self.__data_mgr__.del_group(id)
+                    ret = {
+                        "result":0,
+                        "message":"Ok"
+                    }
+
+                    self.__data_mgr__.log_action(adminInfo, "delgrp", id)
+                else:
+                    ret = {
+                        "result":-1,
+                        "message":"请求解析失败"
+                    }
+
+            return pack_rsp(ret)
+
         # 组合停止
         @app.route("/mgr/stopgrp", methods=["POST"])
         def cmd_stop_group():
@@ -946,6 +992,62 @@ class WtMonSvr(WatcherSink, EventSink):
                 "message":"",
                 "schedules": schedules
             }   
+
+            return pack_rsp(ret)
+
+        @app.route("/mgr/startapp", methods=["POST"])
+        def cmd_start_app():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+            
+            appid = get_param(json_data, "appid")
+            if not self._dog.has_app(appid):
+                ret = {
+                    "result":-1,
+                    "message":"App不存在"
+                }
+            else:
+                if not self._dog.isRunning(appid):
+                    self._dog.start(appid)
+                ret = {
+                    "result":0,
+                    "message":"Ok"
+                }
+                self.__data_mgr__.log_action(adminInfo, "startapp", appid)
+
+            return pack_rsp(ret)
+
+        # 组合停止
+        @app.route("/mgr/stopapp", methods=["POST"])
+        def cmd_stop_app():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+            
+            appid = get_param(json_data, "appid")
+            if not self._dog.has_app(appid):
+                ret = {
+                    "result":-1,
+                    "message":"App不存在"
+                }
+            else:
+                if self._dog.isRunning(appid):
+                    self._dog.stop(appid)
+                ret = {
+                    "result":0,
+                    "message":"Ok"
+                }
+
+                self.__data_mgr__.log_action(adminInfo, "stopapp", appid)
 
             return pack_rsp(ret)
             

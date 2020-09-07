@@ -396,6 +396,7 @@ export default {
             }
         },
         handleGrpCmd: function(cmdid){
+            let self = this;
             if(cmdid == "addgrp"){
                 this.copyGroup = {
                     id:"",
@@ -412,6 +413,31 @@ export default {
             } else if(cmdid == "delgrp"){
                 this.addGroup = false;
                 this.showgrpdlg = false;
+
+                let grpInfo = self.curGroup;
+
+                this.$confirm('确定要删除该组合?', '组合管理', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.$api.delGroup(grpInfo.id, (resObj)=>{
+                        if(resObj.result < 0){
+                            self.$alert(resObj.message);
+                        } else {
+                            let nextIdx = 0;
+                            for(let i = 0; i < self.groups.length; i++){
+                                if(self.groups[i].id == grpInfo.id){
+                                    self.groups.splice(i, 1);
+                                    nextIdx = i;
+                                    break;
+                                }
+                            }
+
+                        }
+                    });
+                });
+                
             }
         },
         onCommitGroup: function(){

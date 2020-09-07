@@ -549,10 +549,10 @@ export default {
                                                 y2: 1,
                                                 colorStops: [{
                                                     offset: 0,
-                                                    color: 'rgba(250,183,8,0.5)' // 0% 处的颜色
+                                                    color: 'rgba(0,71,157,0.7)' // 0% 处的颜色
                                                 }, {
                                                     offset: 1,
-                                                    color: 'rgba(0,0,0,0.3)' // 100% 处的颜色
+                                                    color: 'rgba(242,242,242,0.5)' // 100% 处的颜色
                                                 }],
                                                 globalCoord: false // 缺省为 false
                                             }
@@ -561,13 +561,13 @@ export default {
                                     data: [],
                                     lineStyle: {
                                         normal: {
-                                            color: 'rgb(250,183,8)',
+                                            color: 'rgb(0,71,157)',
                                             width: 2
                                         }
                                     },
                                     itemStyle: {
                                         normal: {
-                                            color: 'rgb(250,183,8)',
+                                            color: 'rgb(0,71,157)',
                                             borderWidth: 1
                                         }
                                     }

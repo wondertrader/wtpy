@@ -227,7 +227,7 @@ class DataMgr:
             self.__config__["groups"].pop(grpid)
             
             cur = self.__db_conn__.cursor()
-            cur.execute("DELETE FROM groups WHERE groupid=?;", (grpid))
+            cur.execute("DELETE FROM groups WHERE groupid='%s';" % (grpid))
             self.__db_conn__.commit()
 
     def get_users(self):

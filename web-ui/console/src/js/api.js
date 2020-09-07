@@ -136,6 +136,26 @@ export default function () {
 			}, 'json');
 	};
 
+	self.delGroup = function(grpid, cb){
+		let reqInfo = {
+			groupid: grpid||""
+		};
+
+		$.post("/mgr/delgrp",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+
 	self.getFolders = function(cb){
 		let reqInfo = {	};
 
@@ -625,6 +645,44 @@ export default function () {
 		let reqInfo = {};
 
 		$.post("/mgr/qrymons",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.startApp = function(appid, cb){
+		let reqInfo = {
+			appid: appid||""
+		};
+
+		$.post("/mgr/startapp",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.stopApp = function(appid, cb){
+		let reqInfo = {
+			appid: appid||""
+		};
+
+		$.post("/mgr/stopapp",
 			JSON.stringify(reqInfo),
 			function (data, textStatus) {
 				if (textStatus != 'success') {
