@@ -4,24 +4,32 @@
             <el-col :span="16" style="height:100%;">
                 <div style="height:100%;display:flex;flex-direction:column;">
                     <div style="flex:0;margin:2px 4px 0px 4px;min-height:39px;display:flex;flex-direction:row;">
-                        <div style="flex:0;" class="simtab">
-                            <span>应用列表</span>
+                        <div style="flex:0;height:100%;">
+                            <el-tabs :value="selCat" type="card" tab-position="top" style="height:100%;margin:0;" @tab-click="handleClickTab">
+                                <el-tab-pane label="调度列表" name="list">
+                                </el-tab-pane>
+                                <el-tab-pane label="调度日志" name="logs">
+                                </el-tab-pane>
+                            </el-tabs>
                         </div> 
-                        <div style="flex:1;border-bottom: 1px solid #E4E7ED;margin-top:6px;">
+                        <div style="flex:1;border-bottom: 1px solid #E4E7ED;margin-top:6px;height:34px;">
                             <el-dropdown split-button type="danger" size="mini" style="float:right;" trigger="click" @command="handleAppCommand">
                                 <i class="el-icon-edit-outline"></i>管理
                                 <el-dropdown-menu slot="dropdown">
                                     <el-dropdown-item command="add"><i class="el-icon-circle-plus-outline"></i>添加应用</el-dropdown-item>
                                     <el-dropdown-item command="del"><i class="el-icon-delete"></i>删除应用</el-dropdown-item>
                                     <el-dropdown-item divided  command="refresh"><i class="el-icon-refresh"></i>刷新列表</el-dropdown-item>
-                                    <el-dropdown-item divided  command="start"><i class="el-icon-refresh"></i>启动应用</el-dropdown-item>
-                                    <el-dropdown-item command="stop"><i class="el-icon-delete"></i>停止应用</el-dropdown-item>
+                                    <el-dropdown-item divided  command="start"><i class="el-icon-video-play"></i>启动应用</el-dropdown-item>
+                                    <el-dropdown-item command="stop"><i class="el-icon-switch-button"></i>停止应用</el-dropdown-item>
                                 </el-dropdown-menu>
                             </el-dropdown>
                         </div> 
                     </div>
                     <div style="flex:1;margin:10px 4px;height:100%;">
-                        <div style="max-height:100%;overflow:auto;">
+                        <div style="height:100%;" v-show="selCat=='logs'" v-loading="logOnway">
+                            <textarea readonly="readonly" ref="logs" autocomplete="off" placeholder="这里是日志内容" class="el-textarea__inner" :value="logs"></textarea>
+                        </div>
+                        <div style="max-height:100%;overflow:auto;" v-show="selCat=='list'">
                             <el-table
                                 border
                                 stripe
@@ -77,7 +85,7 @@
                 </div>
             </el-col>
             <el-col :span="8" style="height:100%;border-left: 1px solid #E4E7ED;">
-                <MoniforCfg :config="curMonCfg" :fixinfo="!addApp" :forapp="true" @cfgudt="onCfgUpdated"/>
+                <MoniforCfg :config="curMonCfg" :fixinfo="!addApp" :forapp="curMonCfg.type==0" @cfgudt="onCfgUpdated"/>
             </el-col>
         </el-row>
     </div>
@@ -93,17 +101,22 @@ export default {
     },
     data() {
         return {
+            selCat:"list",
             showfolders:false,
             selfolder:"",
             loading: false,
             committing: false,
             addApp: false,
             monitors:[],
+            logs: "",
+            logLines: 0,
+            logOnway: false,
             curMonCfg:{
                 "id": "",
                 "folder": "",
                 "path": "",
                 "param": "",
+                "type": 0,
                 "span":3,
                 "guard":false,
                 "redirect":false,
@@ -148,6 +161,11 @@ export default {
         }
     },
     methods:{
+        handleClickTab: function(tab, event){
+            this.selCat = tab.name;
+            if(tab.name == "logs")
+                this.queryLogs();
+        },
         onCfgUpdated: function(){
             this.queryData();
         },
@@ -221,6 +239,24 @@ export default {
                 }
             };
         },
+        queryLogs: function(){
+            let self = this;
+
+            self.logOnway = true;
+            this.$api.getMonLogs((resObj)=>{
+                if(resObj.result < 0){
+                    this.$alert(resObj.message);
+                } else {
+                    this.logs = resObj.content;
+                    this.logLines = resObj.lines||0;
+                    self.$nextTick(()=>{
+                        let height = self.$refs.logs.scrollHeight;
+                        self.$refs.logs.scrollTo(0,height);
+                    });
+                }
+                self.logOnway = false;
+            });
+        },
         queryData: function(){
             let self = this;
 
@@ -249,27 +285,69 @@ export default {
             }, 300);
         },
         handleAppCommand: function(command){
+            let self = this;
             if(command == 'add'){
                 this.resetConf();
                 this.addApp = true;
             } else if(command == "del"){
+                this.$confirm('确定要删除该调度任务吗?', '调度管理', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.$api.delApp(self.curMonCfg.id, (resObj)=>{
+                        if(resObj.result < 0){
+                            self.$alert(resObj.message);
+                        } else {
+                            let nextIdx = 0;
+                            for(let i = 0; i < self.monitors.length; i++){
+                                if(self.monitors[i].id == self.curMonCfg.id){
+                                    self.monitors.splice(i, 1);
+                                    nextIdx = i;
+                                    break;
+                                }
+                            }
 
+                        }
+                    });
+                });
             } else if(command == 'refresh'){
                 this.queryData();
             } else if(command == 'start'){
                 this.$api.startApp(this.curMonCfg.id, (resObj)=>{
                     if(resObj.result < 0){
                         this.$message.error(resObj.message);
-                    } 
+                    } else {
+                        for(let idx = 0; idx < this.monitors.length; idx++){
+                            if(this.monitors[idx].id == this.curMonCfg.id){
+                                this.monitors[idx].state = "运行中";
+                                this.monitors[idx].running = true;
+                                break;
+                            }                            
+                        }
+                    }
                 });
             } else if(command == 'stop'){
-                
+                this.$api.stopApp(this.curMonCfg.id, (resObj)=>{
+                    if(resObj.result < 0){
+                        this.$message.error(resObj.message);
+                    } else {
+                        for(let idx = 0; idx < this.monitors.length; idx++){
+                            if(this.monitors[idx].id == this.curMonCfg.id){
+                                this.monitors[idx].state = "未启动";
+                                this.monitors[idx].running = false;
+                                break;
+                            }                            
+                        }
+                    }
+                });
             }
         }
     },
     mounted (){
         this.$nextTick(()=>{
             this.queryData();
+            this.queryLogs();
         });
     }
 }
@@ -293,6 +371,10 @@ export default {
     border-top-right-radius: 4px;
     min-width:56px;
     font-size:14px;
+}
+
+.el-textarea__inner{
+    height: 100% !important;
 }
 
 </style>
