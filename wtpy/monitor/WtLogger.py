@@ -1,18 +1,6 @@
 import logging
 import os
 
-logging.basicConfig(filename='hotsel.log', level=logging.INFO, filemode="a", 
-    format='[%(asctime)s - %(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S')
-
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-# 设置日志打印格式
-formatter = logging.Formatter(fmt="[%(asctime)s - %(levelname)s] %(message)s", datefmt='%m-%d %H:%M:%S')
-console.setFormatter(formatter)
-# 将定义好的console日志handler添加到root logger
-logging.getLogger('').addHandler(console)
-
 class WtLogger:
 
     def __init__(self, catName:str='', filename:str="out.log"):
@@ -20,7 +8,7 @@ class WtLogger:
         self.logger.setLevel(logging.DEBUG)
 
         #创建一个handler，用于写入日志文件
-        log_path = os.path.dirname(os.getcwd())+"logs/" # 指定文件输出路径，注意logs是个文件夹，一定要加上/，不然会导致输出路径错误，把logs变成文件名的一部分了
+        log_path = os.getcwd()+"/logs/" # 指定文件输出路径，注意logs是个文件夹，一定要加上/，不然会导致输出路径错误，把logs变成文件名的一部分了
         if not os.path.exists(log_path):
             os.mkdir(log_path)
         logname = log_path + filename #指定输出的日志文件名

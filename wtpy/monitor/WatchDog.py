@@ -5,6 +5,7 @@ import os
 import datetime
 import json
 import copy
+from .WtLogger import WtLogger
 
 from enum import Enum
 
@@ -42,8 +43,10 @@ class AppState(Enum):
     AS_Closed       = 904
 
 class AppInfo:
-    def __init__(self, appConf:dict, sink:WatcherSink = None):
+    def __init__(self, appConf:dict, sink:WatcherSink = None, logger:WtLogger=None):
         self.__info__ = appConf
+
+        self.__logger__ = logger
 
         self._lock = threading.Lock()
         self._id = appConf["id"]
@@ -71,6 +74,7 @@ class AppInfo:
         self._weekflag = appConf["schedule"]["weekflag"]
         self._ticks = 0
         self._lock.release()
+        self.__logger__.info("应用%s的调度设置已更新" % (self._id))
 
     def getConf(self):
         self._lock.acquire()
@@ -84,15 +88,16 @@ class AppInfo:
             self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
                             cwd=self.__info__["folder"],
                             stdout = subprocess.PIPE,
-                            stderr = subprocess.PIPE)
+                            stderr = subprocess.PIPE,
+                            creationflags=subprocess.CREATE_NEW_CONSOLE)
         else:
             self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
-                            cwd=self.__info__["folder"])
+                            cwd=self.__info__["folder"], creationflags=subprocess.CREATE_NEW_CONSOLE)
 
         self._state = AppState.AS_Running
 
+        self.__logger__.info("应用%s的已启动" % (self._id))
         if self._sink is not None:
-            print("started")
             self._sink.on_start(self._id)
 
         while self._proc.poll() is None:                      # None表示正在执行中
@@ -108,7 +113,8 @@ class AppInfo:
                     self._sink.on_output(self._id, r)
             else:
                 time.sleep(1)
-            
+        
+        self.__logger__.info("应用%s的已停止" % (self._id))
         self._proc = None
         if self._state != AppState.AS_Closed:
             self._state = AppState.AS_NotRunning
@@ -145,9 +151,9 @@ class AppInfo:
         if self._ticks == self._check_span:
 
             if self._state == AppState.AS_NotRunning and self._guard:
+                self.__logger__.info("应用%s未启动，正在自动重启" % (self._id))
                 self.run()
-
-            if self._schedule:
+            elif self._schedule:
                 self.__schedule__()
 
             self._ticks = 0
@@ -159,6 +165,8 @@ class AppInfo:
         wd = now.weekday()
         if weekflag[wd] != "1":
             return
+
+        appid = self.__info__["id"]
 
         curMin = int(now.strftime("%H%M"))
         curDt = int(now.strftime("%y%m%d"))
@@ -179,11 +187,14 @@ class AppInfo:
             if curMin == targetTm and (curMin != lastTime or curDt != lastDate):
                 if action == ActionType.AT_START.value:
                     if self._state not in [AppState.AS_NotExist, AppState.AS_Running]:
+                        self.__logger__.info("自动启动应用%s" % (appid))
                         self.run()
                 elif action == ActionType.AT_STOP.value:
                     if self._state == AppState.AS_Running:
+                        self.__logger__.info("自动停止应用%s" % (appid))
                         self.stop()
                 elif action == ActionType.AT_RESTART.value:
+                    self.__logger__.info("自动重启应用%s" % (appid))
                     self.restart()
 
                 tInfo["lastDate"] = curDt
@@ -195,13 +206,14 @@ class AppInfo:
 
 class WatchDog:
 
-    def __init__(self, db, sink:WatcherSink = None):
+    def __init__(self, db, sink:WatcherSink = None, logger:WtLogger=None):
         self.__db_conn__ = db
         self.__apps__ = dict()
         self.__app_conf__ = dict()
         self.__stopped__ = False
         self.__worker__ = None
         self.__sink__ = sink
+        self.__logger__ = logger
 
         #加载调度列表
         cur = self.__db_conn__.cursor()
@@ -211,21 +223,22 @@ class WatchDog:
             appConf["path"] = row[2]
             appConf["folder"] = row[3]
             appConf["param"] = row[4]
-            appConf["span"] = row[5]
-            appConf["guard"] = row[6]=='true'
-            appConf["redirect"] = row[7]=='true'
+            appConf["type"] = row[5]
+            appConf["span"] = row[6]
+            appConf["guard"] = row[7]=='true'
+            appConf["redirect"] = row[8]=='true'
             appConf["schedule"] = dict()
-            appConf["schedule"]["active"] = row[8]=='true'
-            appConf["schedule"]["weekflag"] = row[9]
+            appConf["schedule"]["active"] = row[9]=='true'
+            appConf["schedule"]["weekflag"] = row[10]
             appConf["schedule"]["tasks"] = list()
-            appConf["schedule"]["tasks"].append(json.loads(row[10]))
+            appConf["schedule"]["tasks"].append(json.loads(row[11]))
             appConf["schedule"]["tasks"].append(json.loads(row[11]))
             appConf["schedule"]["tasks"].append(json.loads(row[12]))
             appConf["schedule"]["tasks"].append(json.loads(row[13]))
             appConf["schedule"]["tasks"].append(json.loads(row[14]))
             appConf["schedule"]["tasks"].append(json.loads(row[15]))
             self.__app_conf__[appConf["id"]] = appConf
-            self.__apps__[appConf["id"]] = AppInfo(appConf, sink)
+            self.__apps__[appConf["id"]] = AppInfo(appConf, sink, self.__logger__)
 
 
     def __watch_impl__(self):
@@ -292,17 +305,20 @@ class WatchDog:
         if appid not in self.__apps__:
             return
 
+        self.__apps__.pop(appid)
+
         cur = self.__db_conn__.cursor()
         cur.execute("DELETE FROM schedules WHERE appid='%s';" % (appid))
         self.__db_conn__.commit()
+        self.__logger__.info("应用%s自动调度已删除" % (appid))
 
-    def applyAppConf(self, appConf:dict):
+    def applyAppConf(self, appConf:dict, isGroup:bool = False):
         appid = appConf["id"]
         self.__app_conf__[appid] = appConf
         isNewApp = False
         if appid not in self.__apps__:
             isNewApp = True
-            self.__apps__[appid] = AppInfo(appConf, self.__sink__)
+            self.__apps__[appid] = AppInfo(appConf, self.__sink__, self.__logger__)
         else:
             appInst = self.__apps__[appid]
             appInst.applyConf(appConf)
@@ -311,18 +327,20 @@ class WatchDog:
         redirect = 'true' if appConf["redirect"] else 'false'
         schedule = 'true' if appConf["schedule"] else 'false'
 
+        stype = 1 if isGroup else 0
+
         cur = self.__db_conn__.cursor()
         sql = ''
         if isNewApp:
-            sql = "INSERT INTO schedules(appid,path,folder,param,span,guard,redirect,schedule,weekflag,task1,task2,task3,task4,task5,task6) \
-                    VALUES('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s');" % (
-                    appid, appConf["path"], appConf["folder"], appConf["param"], appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
+            sql = "INSERT INTO schedules(appid,path,folder,param,type,span,guard,redirect,schedule,weekflag,task1,task2,task3,task4,task5,task6) \
+                    VALUES('%s','%s','%s','%s',%d, %d,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s');" % (
+                    appid, appConf["path"], appConf["folder"], appConf["param"], stype, appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
                     json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
                     json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]))
         else:
-            sql = "UPDATE schedules SET path='%s',folder='%s',param='%s',span='%s',guard='%s',redirect='%s',schedule='%s',weekflag='%s',task1='%s',task2='%s',\
+            sql = "UPDATE schedules SET path='%s',folder='%s',param='%s',stype=%d,span='%s',guard='%s',redirect='%s',schedule='%s',weekflag='%s',task1='%s',task2='%s',\
                     task3='%s',task4='%s',task5='%s',task6='%s',modifytime=datetime('now','localtime') WHERE appid='%s';" % (
-                    appConf["path"], appConf["folder"], appConf["param"], appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
+                    appConf["path"], appConf["folder"], appConf["param"], stype, appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
                     json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
                     json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]), appid)
         cur.execute(sql)

@@ -34,10 +34,10 @@ def get_param(json_data, key:str, type=str, defVal = ""):
         return type(json_data[key])
 
 #获取文件最后N行的函数
-def get_tail(filename, N:int = 100) :
+def get_tail(filename, N:int = 100, encoding="GBK") :
     filesize = os.path.getsize(filename)
     blocksize = 10240
-    dat_file = open(filename, 'r')
+    dat_file = open(filename, 'r', encoding=encoding)
     last_line = ""
     if filesize > blocksize :
         maxseekpoint = (filesize // blocksize)
@@ -112,10 +112,10 @@ class WtMonSvr(WatcherSink, EventSink):
         self.logger = WtLogger(__name__, "WtMonSvr.log")
 
         # 数据管理器，主要用于缓存各组合的数据
-        self.__data_mgr__ = DataMgr('data.db')
+        self.__data_mgr__ = DataMgr('data.db', logger=self.logger)
 
         # 看门狗模块，主要用于调度各个组合启动关闭
-        self._dog = WatchDog(sink=self, db=self.__data_mgr__.get_db())
+        self._dog = WatchDog(sink=self, db=self.__data_mgr__.get_db(), logger=self.logger)
 
         app = Flask(__name__, instance_relative_config=True, static_folder=static_folder, static_url_path=static_url_path)
         app.secret_key = "!@#$%^&*()"
@@ -433,8 +433,9 @@ class WtMonSvr(WatcherSink, EventSink):
                 return pack_rsp(adminInfo)
 
             #这里本来是要做检查的，算了，先省事吧
+            isGrp = get_param(json_data, "group", bool, False)
             
-            self._dog.applyAppConf(json_data)
+            self._dog.applyAppConf(json_data, isGrp)
             ret = {
                 "result":0,
                 "message":"ok"
@@ -632,7 +633,7 @@ class WtMonSvr(WatcherSink, EventSink):
                 }
             else:
                 grpInfo = self.__data_mgr__.get_group(grpid)
-                if True:
+                try:
                     logfolder = os.path.join(grpInfo["path"], "./Logs/")
                     file_list = os.listdir(logfolder)
                     targets = list()
@@ -649,7 +650,7 @@ class WtMonSvr(WatcherSink, EventSink):
                         "content":content,
                         "lines":lines
                     }
-                else:
+                except:
                     ret = {
                         "result":-1,
                         "message":"请求解析失败"
@@ -1050,6 +1051,78 @@ class WtMonSvr(WatcherSink, EventSink):
                 self.__data_mgr__.log_action(adminInfo, "stopapp", appid)
 
             return pack_rsp(ret)
+
+        # 查询调度日志
+        @app.route("/mgr/qrymonlog", methods=["POST"])
+        def qry_mon_logs():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+            
+            filename = os.getcwd() + "/logs/WtMonSvr.log"
+            content,lines = get_tail(filename, 100, "UTF-8")
+            ret = {
+                "result":0,
+                "message":"Ok",
+                "content":content,
+                "lines":lines
+            }
+
+            return pack_rsp(ret)
+
+        # 删除调度任务
+        @app.route("/mgr/delapp", methods=["POST"])
+        def cmd_del_app():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+
+            id = get_param(json_data, "appid")
+
+            if len(id) == 0:
+                ret = {
+                    "result":-1,
+                    "message":"组合ID不能为空"
+                }
+            elif self.__data_mgr__.has_group(id):
+                ret = {
+                    "result":-2,
+                    "message":"该调度任务是策略组合，请从组合管理删除"
+                }
+            elif not self._dog.has_app(id):
+                ret = {
+                    "result":-3,
+                    "message":"该调度任务不存在"
+                }
+            elif self._dog.isRunning(id):
+                ret = {
+                    "result":-4,
+                    "message":"请先停止该任务"
+                }
+            else:
+                if True:
+                    self._dog.delApp(id)
+                    ret = {
+                        "result":0,
+                        "message":"Ok"
+                    }
+
+                    self.__data_mgr__.log_action(adminInfo, "delapp", id)
+                else:
+                    ret = {
+                        "result":-1,
+                        "message":"请求解析失败"
+                    }
+
+            return pack_rsp(ret)
             
     
     def __run_impl__(self, port:int, host:str):
@@ -1068,13 +1141,16 @@ class WtMonSvr(WatcherSink, EventSink):
         pass
 
     def on_start(self, grpid:str):
-        self.push_svr.notifyGrpEvt(grpid, 'start')
+        if self.__data_mgr__.has_group(grpid):
+            self.push_svr.notifyGrpEvt(grpid, 'start')
 
     def on_stop(self, grpid:str):
-        self.push_svr.notifyGrpEvt(grpid, 'stop')
+        if self.__data_mgr__.has_group(grpid):
+            self.push_svr.notifyGrpEvt(grpid, 'stop')
     
     def on_output(self, grpid:str, message:str):
-        self.push_svr.notifyGrpLog(grpid, message)
+        if self.__data_mgr__.has_group(grpid):
+            self.push_svr.notifyGrpLog(grpid, message)
 
     def on_order(self, grpid:str, chnl:str, ordInfo:dict):
         self.push_svr.notifyGrpChnlEvt(grpid, chnl, 'order', ordInfo)
