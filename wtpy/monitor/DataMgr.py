@@ -3,11 +3,13 @@ import os
 import sqlite3
 import hashlib
 import datetime
+from .WtLogger import WtLogger
 
 class DataMgr:
 
-    def __init__(self, datafile:str="mondata.db"):
+    def __init__(self, datafile:str="mondata.db", logger:WtLogger=None):
         self.__grp_cache__ = dict()
+        self.__logger__ = logger
 
         self.__db_conn__ = sqlite3.connect(datafile, check_same_thread=False)
         self.__check_db__()
@@ -92,6 +94,7 @@ class DataMgr:
             sql += "[path] VARCHAR(256) NOT NULL DEFAULT '',\n"
             sql += "[folder] VARCHAR(256) NOT NULL DEFAULT '',\n"
             sql += "[param] VARCHAR(50) NOT NULL DEFAULT '',\n"
+            sql += "[type] INTEGER DEFAULT 0,\n"
             sql += "[span] INTEGER DEFAULT 3,\n"
             sql += "[guard] VARCHAR(20) DEFAULT 'false',\n"
             sql += "[redirect] VARCHAR(20) DEFAULT 'false',\n"
