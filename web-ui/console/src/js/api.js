@@ -695,4 +695,41 @@ export default function () {
 				}
 			}, 'json');
 	};
+
+	self.getMonLogs = function(cb){
+		let reqInfo = {
+		};
+
+		$.post("/mgr/qrymonlog",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.delApp = function(appid, cb){
+		let reqInfo = {
+			appid: appid||""
+		};
+
+		$.post("/mgr/delapp",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
 };
