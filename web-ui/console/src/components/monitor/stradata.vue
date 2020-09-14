@@ -52,15 +52,18 @@
                             width="120">
                         </el-table-column>
                         <el-table-column
-                            prop="qty"
                             label="数量"
                             width="64">
+                            <template slot-scope="scope">
+                                <span :class="scope.row.qty>=0?'text-danger':'text-success'">{{scope.row.qty}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
-                            prop="profit"
                             label="浮盈"
-                            :formatter="formatAmount"
                             width="80">
+                            <template slot-scope="scope">
+                                <span :class="scope.row.profit>=0?'text-danger':'text-success'">{{scope.row.profit.toFixed(2)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="opentime"
@@ -73,16 +76,18 @@
                             width="100">
                         </el-table-column>
                         <el-table-column
-                            prop="maxprofit"
                             label="最大浮盈"
-                            :formatter="formatAmount"
                             width="100">
+                            <template slot-scope="scope">
+                                <span class="text-danger">{{scope.row.maxprofit.toFixed(2)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
-                            prop="maxloss"
                             label="最大浮亏"
-                            :formatter="formatAmount"
                             width="100">
+                            <template slot-scope="scope">
+                                <span class="text-success">{{scope.row.maxloss.toFixed(2)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="opentag"
@@ -112,9 +117,11 @@
                             width="120">
                         </el-table-column>
                         <el-table-column
-                            prop="action"
                             label="动作"
                             width="80">
+                            <template slot-scope="scope">
+                                <span :class="(scope.row.action=='开多'||scope.row.action=='平空')?'text-danger':'text-success'">{{scope.row.action}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="price"
@@ -152,6 +159,9 @@
                             prop="target"
                             label="目标数量"
                             width="80">
+                            <template slot-scope="scope">
+                                <span :class="fmtProfit(scope.row.target)">{{scope.row.target}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="sigprice"
@@ -188,7 +198,10 @@
                         <el-table-column
                             prop="direct"
                             label="方向"
-                            width="80">
+                            width="64">
+                            <template slot-scope="scope">
+                                <span :class="scope.row.direct=='LONG'?'text-danger':'text-success'">{{scope.row.direct=='LONG'?'多':'空'}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="opentime"
@@ -216,9 +229,11 @@
                             width="64">
                         </el-table-column>
                         <el-table-column
-                            prop="profit"
                             label="盈亏"
-                            width="80">
+                            width="100">
+                            <template slot-scope="scope">
+                                <span :class="scope.row.profit>=0?'text-danger':'text-success'">{{scope.row.profit.toFixed(1)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="entertag"
@@ -234,7 +249,7 @@
                 </div>
                 <div style="height:100%;display:flex;flex-direction:column;"  v-show="selCat=='fnd'" v-loading="loading.fund">
                     <div style="flex:1;width:100%;overflow:auto;height:50%;border-bottom:1px solid #E4E7ED;">
-                        <div style="max-height:100%; margin:4px;">
+                        <div style="max-height:100%;">
                             <el-table
                                 border
                                 stripe
@@ -251,14 +266,18 @@
                                     width="120">
                                 </el-table-column>
                                 <el-table-column
-                                    prop="closeprofit"
                                     label="平仓盈亏"
-                                    width="80">
+                                    width="100">
+                                    <template slot-scope="scope">
+                                        <span :class="scope.row.closeprofit>=0?'text-danger':'text-success'">{{scope.row.closeprofit.toFixed(1)}}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column
-                                    prop="dynprofit"
                                     label="浮动盈亏"
                                     width="100">
+                                    <template slot-scope="scope">
+                                        <span :class="scope.row.dynprofit>=0?'text-danger':'text-success'">{{scope.row.dynprofit.toFixed(1)}}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column
                                     prop="fee"
@@ -268,13 +287,32 @@
                                 <el-table-column
                                     prop="dynbalance"
                                     label="动态权益">
+                                    <template slot-scope="scope">
+                                        <span :class="scope.row.dynbalance>=0?'text-danger':'text-success'">{{scope.row.dynbalance.toFixed(1)}}</span>
+                                    </template>
                                 </el-table-column>
                             </el-table>
                         </div>
                     </div>
-                    <div style="flex:1;width:100%;overflow:auto;">
-                        <div id="trend" style="width:100%;height:100%;">
+                    <div style="flex:1;width:100%;overflow:auto;display:flex;flex-direction:column;">
+                        <div style="height:40px;display:inline-block;flex:0;margin:4px;">
+                            <el-row>
+                                <el-col :span="2" style="margin-top:2px;">
+                                    <i class="el-icon-money"></i>
+                                    <a>资金规模</a>
+                                </el-col>
+                                <el-col :span="3" >
+                                    <el-input v-model="capital" placeholder="请输入资金规模" size="mini" type="number" min="1000000" step="1000000"></el-input>
+                                </el-col>
+                                <el-col :span="2" style="margin-left:2px;">
+                                    <el-button size="mini" plain type="danger" @click="onClickPaintChart">重新绘图</el-button>
+                                </el-col>
+                            </el-row>
                         </div>
+                        <div style="flex:1;width:100%;border-top:1px solid #E4E7ED;">
+                            <div id="trend" style="width:100%;height:100%;">
+                            </div>
+                        </div>                        
                     </div>
                 </div>
             </el-main>
@@ -333,6 +371,7 @@ export default {
                 position: false,
                 fund: false
             },
+            capital:5000000,
             trades:[],
             positions:[],
             signals:[],
@@ -359,6 +398,166 @@ export default {
         },
         formatAmount: function(row,col){
             return row[col.property].toFixed(2);
+        },
+        fmtProfit:function(val){
+            if(val > 0)
+                return 'text-danger';
+            else if(val < 0)
+                return 'text-success';
+            else
+                return '';
+        },
+        onClickPaintChart: function(){
+            this.paintChart();
+        },
+        paintChart: function(){
+            let self = this;
+            if(this.nvChart == null) 
+                this.nvChart = this.$echarts.init(document.getElementById('trend'));
+
+            let options = {
+                title: {
+                    text: '净值走势'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        label: {
+                            backgroundColor: '#6a7985',
+                            formatter: function(params) {
+                                var val = params.value + '';
+                                return val.substr(0, 4) + '.' + val.substr(4, 2) + '.' + val.substr(6, 2);
+                            }
+                        }
+                    },
+                    formatter: function(params) {
+                        if(params.length == 0)
+                            return "收益曲线";
+
+                        var ret = params[0].axisValueLabel;
+
+                        for(var idx in params) {
+                            if(params[idx].seriesName == '净值')
+                                ret += '<br/>净值: ' + params[idx].value.toFixed(4);
+                            else
+                                ret += '<br/>' + params[idx].seriesName + ': ' + params[idx].value;
+                        }
+
+                        return ret;
+                    }
+                },
+                grid: {
+                    top: 42,
+                    left: '8',
+                    right: '8',
+                    bottom: '8',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: [],
+                    boundaryGap: false,
+                    axisLabel: {
+                        textStyle: {
+                            color: '#000'
+                        },
+                        formatter: function(val, idx) {
+                            val = val + '';
+                            return val.substr(0, 4) + '.' + val.substr(4, 2) + '.' + val.substr(6, 2);
+                        }
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#000'
+                        }
+                    }
+                },
+                yAxis: [{
+                    type: 'value',
+                    axisLabel: {
+                        textStyle: {
+                            color: '#000'
+                        },
+                        formatter: function(val, idx) {
+                            return val.toFixed(4);
+                        }
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#000'
+                        }
+                    },
+                    scale: true
+                }],
+                series: [{
+                    name: '净值',
+                    type: 'line',
+                    smooth: true,
+                    stack: '净值',
+                    areaStyle: {
+                        normal: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: 'rgba(102,156,214,0.5)' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: 'rgba(242,242,242,0.3)' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            }
+                        }
+                    },
+                    data: [],
+                    lineStyle: {
+                        normal: {
+                            color: 'rgb(102,156,214)',
+                            width: 2
+                        }
+                    },
+                    itemStyle: {
+                        normal: {
+                            color: 'rgb(102,156,214)',
+                            borderWidth: 1
+                        }
+                    }
+                }]
+            };
+
+            let dates = [],
+                prices = [];
+            
+            let baseamt = parseInt(self.capital);
+            for(let idx = self.funds.length-1; idx >= 0; idx--) {
+                let item = self.funds[idx];
+                dates.push(item.date);
+                let dynbal = baseamt + item.dynbalance;
+                prices.push(dynbal/baseamt);
+            }
+
+            let maxPx = Math.max.apply(null, prices);
+            let minPx = Math.min.apply(null, prices);
+
+            if(maxPx == minPx) {
+                maxPx *= 1.05;
+                minPx *= 0.95;
+            } else {
+                var diff = maxPx - minPx;
+                maxPx += diff * 0.05;
+                minPx = Math.max(0, minPx - diff * 0.05);
+            }
+
+            options.xAxis.data = dates;
+            options.series[0].data = prices;
+            options.yAxis[0].max = maxPx;
+            options.yAxis[0].min = minPx;
+
+            this.nvChart.setOption(options);
         },
         queryData: function(){
             let self = this;
@@ -455,158 +654,10 @@ export default {
                         if (resObj.result < 0) {
                             self.$alert("查询绩效出错：" + resObj.message, "查询失败");
                         } else {
-                            self.funds = resObj.funds;
-                            
-                            if(this.nvChart == null) 
-                                this.nvChart = this.$echarts.init(document.getElementById('trend'));
-
-                            let options = {
-                                title: {
-                                    text: '净值走势'
-                                },
-                                tooltip: {
-                                    trigger: 'axis',
-                                    axisPointer: {
-                                        label: {
-                                            backgroundColor: '#6a7985',
-                                            formatter: function(params) {
-                                                var val = params.value + '';
-                                                return val.substr(0, 4) + '.' + val.substr(4, 2) + '.' + val.substr(6, 2);
-                                            }
-                                        }
-                                    },
-                                    formatter: function(params) {
-                                        if(params.length == 0)
-                                            return "收益曲线";
-
-                                        var ret = params[0].axisValueLabel;
-
-                                        for(var idx in params) {
-                                            if(params[idx].seriesName == '净值')
-                                                ret += '<br/>净值: ' + params[idx].value.toFixed(4);
-                                            else
-                                                ret += '<br/>' + params[idx].seriesName + ': ' + params[idx].value;
-                                        }
-
-                                        return ret;
-                                    }
-                                },
-                                grid: {
-                                    top: 42,
-                                    left: '8',
-                                    right: '8',
-                                    bottom: '8',
-                                    containLabel: true
-                                },
-                                xAxis: {
-                                    type: 'category',
-                                    data: [],
-                                    boundaryGap: false,
-                                    axisLabel: {
-                                        textStyle: {
-                                            color: '#000'
-                                        },
-                                        formatter: function(val, idx) {
-                                            val = val + '';
-                                            return val.substr(0, 4) + '.' + val.substr(4, 2) + '.' + val.substr(6, 2);
-                                        }
-                                    },
-                                    axisLine: {
-                                        lineStyle: {
-                                            color: '#000'
-                                        }
-                                    }
-                                },
-                                yAxis: [{
-                                    type: 'value',
-                                    axisLabel: {
-                                        textStyle: {
-                                            color: '#000'
-                                        },
-                                        formatter: function(val, idx) {
-                                            return val.toFixed(4);
-                                        }
-                                    },
-                                    axisLine: {
-                                        lineStyle: {
-                                            color: '#000'
-                                        }
-                                    },
-                                    scale: true
-                                }],
-                                series: [{
-                                    name: '净值',
-                                    type: 'line',
-                                    smooth: true,
-                                    stack: '净值',
-                                    areaStyle: {
-                                        normal: {
-                                            color: {
-                                                type: 'linear',
-                                                x: 0,
-                                                y: 0,
-                                                x2: 0,
-                                                y2: 1,
-                                                colorStops: [{
-                                                    offset: 0,
-                                                    color: 'rgba(102,156,214,0.5)' // 0% 处的颜色
-                                                }, {
-                                                    offset: 1,
-                                                    color: 'rgba(242,242,242,0.3)' // 100% 处的颜色
-                                                }],
-                                                globalCoord: false // 缺省为 false
-                                            }
-                                        }
-                                    },
-                                    data: [],
-                                    lineStyle: {
-                                        normal: {
-                                            color: 'rgb(102,156,214)',
-                                            width: 2
-                                        }
-                                    },
-                                    itemStyle: {
-                                        normal: {
-                                            color: 'rgb(102,156,214)',
-                                            borderWidth: 1
-                                        }
-                                    }
-                                }]
-                            };
-
-                            let dates = [],
-                                prices = [];
-                            
-                            let baseamt = 5000000;
-                            for(let idx in resObj.funds) {
-                                let item = resObj.funds[idx];
-                                dates.push(item.date);
-                                let dynbal = baseamt + item.dynbalance;
-                                prices.push(dynbal/baseamt);
-                            }
-
-                            let maxPx = Math.max.apply(null, prices);
-                            let minPx = Math.min.apply(null, prices);
-
-                            if(maxPx == minPx) {
-                                maxPx *= 1.05;
-                                minPx *= 0.95;
-                            } else {
-                                var diff = maxPx - minPx;
-                                maxPx += diff * 0.05;
-                                minPx = Math.max(0, minPx - diff * 0.05);
-                            }
-
-                            options.xAxis.data = dates;
-                            options.series[0].data = prices;
-                            options.yAxis[0].max = maxPx;
-                            options.yAxis[0].min = minPx;
-
-                            this.nvChart.setOption(options);
-
+                            self.funds = resObj.funds;                            
                             self.funds.reverse();
+                            self.paintChart();
                         }
-
                         self.loading.fund = false;
                     });
                 }, 300);   

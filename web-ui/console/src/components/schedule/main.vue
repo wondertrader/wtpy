@@ -19,8 +19,8 @@
                                     <el-dropdown-item command="add"><i class="el-icon-circle-plus-outline"></i>添加应用</el-dropdown-item>
                                     <el-dropdown-item command="del"><i class="el-icon-delete"></i>删除应用</el-dropdown-item>
                                     <el-dropdown-item divided  command="refresh"><i class="el-icon-refresh"></i>刷新列表</el-dropdown-item>
-                                    <el-dropdown-item divided  command="start"><i class="el-icon-video-play"></i>启动应用</el-dropdown-item>
-                                    <el-dropdown-item command="stop"><i class="el-icon-switch-button"></i>停止应用</el-dropdown-item>
+                                    <el-dropdown-item divided  command="start" class="text-success"><i class="el-icon-video-play"></i>启动应用</el-dropdown-item>
+                                    <el-dropdown-item command="stop" class="text-danger"><i class="el-icon-switch-button"></i>停止应用</el-dropdown-item>
                                 </el-dropdown-menu>
                             </el-dropdown>
                         </div> 
@@ -47,19 +47,25 @@
                                     </template>
                                 </el-table-column>
                                 <el-table-column
-                                    prop="state"
                                     label="状态"
                                     width="80">
+                                    <template slot-scope="scope">
+                                        <span :class="scope.row.running?'text-success':'text-danger'">{{scope.row.state}}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column
-                                    prop="guard"
                                     label="守护"
                                     width="80">
+                                    <template slot-scope="scope">
+                                        <span :class="scope.row.guard=='是'?'text-success':'text-danger'">{{scope.row.guard}}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column
-                                    prop="task"
                                     label="任务"
                                     width="80">
+                                    <template slot-scope="scope">
+                                        <span :class="scope.row.task=='是'?'text-success':'text-danger'">{{scope.row.task}}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column
                                     prop="param"
