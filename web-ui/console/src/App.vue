@@ -58,4 +58,19 @@ body{
 .el-table td, .el-table th {
     padding: 4px 0;
 }
+
+.text-danger{
+    color:#F56C6C;
+    font-weight: bold;
+}
+
+.text-warning{
+    color:#E6A23C;
+    font-weight: bold;
+}
+
+.text-success{
+    color:#67C23A;
+    font-weight: bold;
+}
 </style>

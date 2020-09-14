@@ -646,7 +646,7 @@ class DataMgr:
             self.__grp_cache__[grpid]["ctrades"] = dict()
         
         if chnlid not in self.__grp_cache__[grpid]["ctrades"]:
-            filepath = "./generated/traders/%s/orders.csv" % (chnlid)
+            filepath = "./generated/traders/%s/trades.csv" % (chnlid)
             filepath = os.path.join(grpInfo["path"], filepath)
             if not os.path.exists(filepath):
                 return []
@@ -674,9 +674,7 @@ class DataMgr:
                 "volumn": float(cells[5]),
                 "price": float(cells[6]),
                 "tradeid": cells[7],
-                "orderid": cells[8],
-                "canceled": cells[9],
-                "remark": cells[10]
+                "orderid": cells[8]
             }
 
             trdCache["ctrades"].append(tItem)
