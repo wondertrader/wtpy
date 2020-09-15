@@ -88,8 +88,7 @@ class AppInfo:
             self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
                             cwd=self.__info__["folder"],
                             stdout = subprocess.PIPE,
-                            stderr = subprocess.PIPE,
-                            creationflags=subprocess.CREATE_NEW_CONSOLE)
+                            stderr = subprocess.PIPE)
         else:
             self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
                             cwd=self.__info__["folder"], creationflags=subprocess.CREATE_NEW_CONSOLE)
@@ -338,7 +337,7 @@ class WatchDog:
                     json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
                     json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]))
         else:
-            sql = "UPDATE schedules SET path='%s',folder='%s',param='%s',stype=%d,span='%s',guard='%s',redirect='%s',schedule='%s',weekflag='%s',task1='%s',task2='%s',\
+            sql = "UPDATE schedules SET path='%s',folder='%s',param='%s',type=%d,span='%s',guard='%s',redirect='%s',schedule='%s',weekflag='%s',task1='%s',task2='%s',\
                     task3='%s',task4='%s',task5='%s',task6='%s',modifytime=datetime('now','localtime') WHERE appid='%s';" % (
                     appConf["path"], appConf["folder"], appConf["param"], stype, appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
                     json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
