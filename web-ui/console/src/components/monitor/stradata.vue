@@ -196,7 +196,6 @@
                             width="120">
                         </el-table-column>
                         <el-table-column
-                            prop="direct"
                             label="方向"
                             width="64">
                             <template slot-scope="scope">
