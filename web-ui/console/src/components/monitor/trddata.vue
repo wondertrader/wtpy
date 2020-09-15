@@ -48,9 +48,11 @@
                             label="多头"
                             width="140">
                             <template slot-scope="scope">
-                                <span>昨{{scope.row.long.prevol}}[{{ scope.row.long.preavail}}]</span>
-                                <span>|</span>
-                                <span>今{{scope.row.long.newvol}}[{{ scope.row.long.newavail}}]</span>
+                                <a class="text-danger">
+                                    <span>昨{{scope.row.long.prevol}}[{{ scope.row.long.preavail}}]</span>
+                                    <span>|</span>
+                                    <span>今{{scope.row.long.newvol}}[{{ scope.row.long.newavail}}]</span>
+                                </a>
                             </template>
                         </el-table-column>
                         <el-table-column
@@ -58,9 +60,11 @@
                             label="空头"
                             width="140">
                             <template slot-scope="scope">
-                                <span>昨{{scope.row.short.prevol}}[{{ scope.row.short.preavail}}]</span>
-                                <span>|</span>
-                                <span>今{{scope.row.short.newvol}}[{{ scope.row.short.newavail}}]</span>
+                                <a class="text-success">
+                                    <span>昨{{scope.row.short.prevol}}[{{ scope.row.short.preavail}}]</span>
+                                    <span>|</span>
+                                    <span>今{{scope.row.short.newvol}}[{{ scope.row.short.newavail}}]</span>
+                                </a>
                             </template>
                         </el-table-column>
                     </el-table>
@@ -93,9 +97,11 @@
                             width="120">
                         </el-table-column>
                         <el-table-column
-                            prop="action"
                             label="动作"
                             width="80">
+                            <template slot-scope="scope">
+                                <span :class="getActClr(scope.row.action)">{{scope.row.action}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="price"
@@ -147,9 +153,11 @@
                             width="120">
                         </el-table-column>
                         <el-table-column
-                            prop="action"
                             label="动作"
                             width="80">
+                            <template slot-scope="scope">
+                                <span :class="getActClr(scope.row.action)">{{scope.row.action}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="price"
@@ -172,9 +180,11 @@
                             width="100">
                         </el-table-column>
                         <el-table-column
-                            prop="canceled"
                             label="撤销"
                             width="80">
+                            <template slot-scope="scope">
+                                <span :class="scope.row.canceled=='TRUE'?'text-danger':'text-info'">{{scope.row.canceled=='TRUE'?'是':'否'}}</span>
+                            </template>
                         </el-table-column>
                     </el-table>
                 </div>
@@ -238,6 +248,12 @@ export default {
         }
     },
     methods: {
+        getActClr: function(act){
+            if(act == "开多" || act == "平空" || act == "平今空")
+                return 'text-danger';
+            else
+                return 'text-success';
+        },
         handleCatChange: function(tab, event){
             if(this.selCat == tab.name)
                 return;

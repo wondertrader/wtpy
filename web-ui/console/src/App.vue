@@ -73,4 +73,9 @@ body{
     color:#67C23A;
     font-weight: bold;
 }
+
+.text-info{
+    color:#909399;
+    font-weight: bold;
+}
 </style>
