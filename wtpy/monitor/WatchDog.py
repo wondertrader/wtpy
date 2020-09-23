@@ -231,11 +231,11 @@ class WatchDog:
             appConf["schedule"]["weekflag"] = row[10]
             appConf["schedule"]["tasks"] = list()
             appConf["schedule"]["tasks"].append(json.loads(row[11]))
-            appConf["schedule"]["tasks"].append(json.loads(row[11]))
             appConf["schedule"]["tasks"].append(json.loads(row[12]))
             appConf["schedule"]["tasks"].append(json.loads(row[13]))
             appConf["schedule"]["tasks"].append(json.loads(row[14]))
             appConf["schedule"]["tasks"].append(json.loads(row[15]))
+            appConf["schedule"]["tasks"].append(json.loads(row[16]))
             self.__app_conf__[appConf["id"]] = appConf
             self.__apps__[appConf["id"]] = AppInfo(appConf, sink, self.__logger__)
 
@@ -261,11 +261,13 @@ class WatchDog:
         if self.__worker__ is None:
             self.__worker__ = threading.Thread(target=self.__watch_impl__, name="WatchDog", daemon=True)
             self.__worker__.start()
+            self.__logger__.info("自动调度服务已启动")
 
     def start(self, appid:str):
         if appid not in self.__apps__:
             return
 
+        self.__logger__.info("手动启动%s" % (appid))
         appInfo = self.__apps__[appid]
         appInfo.run()
 
@@ -273,6 +275,7 @@ class WatchDog:
         if appid not in self.__apps__:
             return
 
+        self.__logger__.info("手动停止%s" % (appid))
         appInfo = self.__apps__[appid]
         appInfo.stop()
 

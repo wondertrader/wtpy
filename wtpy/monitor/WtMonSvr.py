@@ -1126,6 +1126,7 @@ class WtMonSvr(WatcherSink, EventSink):
             
     
     def __run_impl__(self, port:int, host:str):
+        self._dog.run()
         self.push_svr.run(port = port, host = host)
     
     def run(self, port:int = 8080, host="0.0.0.0", bSync:bool = True):
