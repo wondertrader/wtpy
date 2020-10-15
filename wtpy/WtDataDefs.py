@@ -2,16 +2,24 @@ import numpy as np
 from pandas import DataFrame
 
 class WtKlineData:
-    def __init__(self, size:int):
+    def __init__(self, size:int, bAlloc:bool = True):
         self.size:int = size
         self.count:int = 0
 
-        self.bartimes = np.zeros(self.size)
-        self.opens = np.zeros(self.size)
-        self.highs = np.zeros(self.size)
-        self.lows = np.zeros(self.size)
-        self.closes = np.zeros(self.size)
-        self.volumns = np.zeros(self.size)
+        if bAlloc:
+            self.bartimes = np.zeros(self.size)
+            self.opens = np.zeros(self.size)
+            self.highs = np.zeros(self.size)
+            self.lows = np.zeros(self.size)
+            self.closes = np.zeros(self.size)
+            self.volumns = np.zeros(self.size)
+        else:
+            self.bartimes = None
+            self.opens = None
+            self.highs = None
+            self.lows = None
+            self.closes = None
+            self.volumns = None
 
     def append_bar(self, newBar:dict):
 
@@ -60,6 +68,32 @@ class WtKlineData:
         lastBar["volumn"] = self.volumns[iLoc]
 
         return lastBar
+
+    def slice(self, iStart:int = 0, iEnd:int = -1, bCopy:bool = False):
+        if self.is_empty():
+            return None
+
+        bartimes = self.bartimes[iStart:iEnd]
+        cnt = len(bartimes)
+        ret = WtKlineData(cnt, False)
+        ret.count = cnt
+
+        if bCopy:
+            ret.bartimes = bartimes.copy()
+            ret.opens = self.opens[iStart:iEnd].copy()
+            ret.highs = self.highs[iStart:iEnd].copy()
+            ret.lows = self.lows[iStart:iEnd].copy()
+            ret.closes = self.closes[iStart:iEnd].copy()
+            ret.volumns = self.volumns[iStart:iEnd].copy()
+        else:
+            ret.bartimes = bartimes
+            ret.opens = self.opens[iStart:iEnd]
+            ret.highs = self.highs[iStart:iEnd]
+            ret.lows = self.lows[iStart:iEnd]
+            ret.closes = self.closes[iStart:iEnd]
+            ret.volumns = self.volumns[iStart:iEnd]
+
+        return ret
 
     def to_df(self) -> DataFrame:
         ret = DataFrame({
