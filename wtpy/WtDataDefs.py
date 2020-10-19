@@ -7,7 +7,7 @@ class WtKlineData:
         self.count:int = 0
 
         if bAlloc:
-            self.bartimes = np.zeros(self.size)
+            self.bartimes = np.zeros(self.size, np.int64)
             self.opens = np.zeros(self.size)
             self.highs = np.zeros(self.size)
             self.lows = np.zeros(self.size)
@@ -48,7 +48,7 @@ class WtKlineData:
     def clear(self):
         self.count = 0
 
-        self.bartimes:np.ndarray = np.zeros(self.size)
+        self.bartimes:np.ndarray = np.zeros(self.size, np.int64)
         self.opens:np.ndarray = np.zeros(self.size)
         self.highs:np.ndarray = np.zeros(self.size)
         self.lows:np.ndarray = np.zeros(self.size)
@@ -112,7 +112,7 @@ class WtTickData:
         self.size:int = size
         self.count:int = 0
 
-        self.times:np.ndarray = np.zeros(self.size)
+        self.times:np.ndarray = np.zeros(self.size, np.int64)
         self.opens:np.ndarray = np.zeros(self.size)
         self.highs:np.ndarray = np.zeros(self.size)
         self.lows:np.ndarray = np.zeros(self.size)
@@ -143,7 +143,7 @@ class WtTickData:
     def clear(self):
         self.count = 0
 
-        self.times = np.zeros(self.size)
+        self.times = np.zeros(self.size, np.int64)
         self.opens = np.zeros(self.size)
         self.highs = np.zeros(self.size)
         self.lows = np.zeros(self.size)
