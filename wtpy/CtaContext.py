@@ -310,3 +310,13 @@ class CtaContext:
         if self.__engine__ is None:
             return None
         return self.__engine__.getProductInfo(code)
+
+    def stra_get_sessinfo(self, code:str):
+        '''
+        获取交易时段详情\n
+        @code   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag\n
+        @return 品种信息，结构请参考SessionMgr中的SessionInfo
+        '''
+        if self.__engine__ is None:
+            return None
+        return self.__engine__.getSessionByCode(code)
