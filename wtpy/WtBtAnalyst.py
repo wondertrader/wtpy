@@ -239,13 +239,13 @@ class WtBtAnalyst:
             worksheet.write_column('H3', ayBal-ayPreBal, profit_format)
             worksheet.write_column('I3', ayDailyReturn, percent_format)
             #  计算峰值
-            upper = np.amax(ayNetVals)
+            upper = np.maximum.accumulate(ayNetVals)
             worksheet.write_column('J3', upper, fund_data_format_4)
             #  回撤指标
-            temp = 1-(ayNetVals)/(np.amax(ayNetVals))
+            temp = 1-(ayNetVals)/(np.maximum.accumulate(ayNetVals))
             worksheet.write_column('K3', temp, percent_format)
-            worksheet.write_column('L3', np.amax(temp), percent_format)
-            worksheet.write_column('M3', np.amin(ayDailyReturn), percent_format)
+            worksheet.write_column('L3', np.maximum.accumulate(temp), percent_format)
+            worksheet.write_column('M3', np.minimum.accumulate(ayDailyReturn), percent_format)
             #  计算衰落时间
             down_time = [0]
             for i in range(1, len(upper)):
