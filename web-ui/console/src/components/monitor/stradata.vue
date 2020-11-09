@@ -588,7 +588,7 @@ export default {
                                 else 
                                     action += "平";
 
-                                if(tItem.offset == "LONG")
+                                if(tItem.direction == "LONG")
                                     action += "多";
                                 else 
                                     action += "空";
