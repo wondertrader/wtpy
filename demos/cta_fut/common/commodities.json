@@ -199,6 +199,19 @@
 			"session" : "FN2300",
 			"volscale" : 10
 		},
+		"PF" : 
+		{
+			"category" : 1,
+			"covermode" : 0,
+			"exchg" : "CZCE",
+			"holiday" : "CHINA",
+			"name" : "∂ÃœÀ",
+			"precision" : 0,
+			"pricemode" : 0,
+			"pricetick" : 2.0,
+			"session" : "",
+			"volscale" : 5
+		},
 		"PM" : 
 		{
 			"category" : 1,
@@ -553,6 +566,19 @@
 			"session" : "FN2300",
 			"volscale" : 10
 		},
+		"pg" : 
+		{
+			"category" : 1,
+			"covermode" : 0,
+			"exchg" : "DCE",
+			"holiday" : "CHINA",
+			"name" : "“∫ªØ∆¯",
+			"precision" : 0,
+			"pricemode" : 0,
+			"pricetick" : 1.0,
+			"session" : "FN2300",
+			"volscale" : 20
+		},
 		"pp" : 
 		{
 			"category" : 1,
@@ -608,6 +634,32 @@
 	},
 	"INE" : 
 	{
+		"bc" : 
+		{
+			"category" : 1,
+			"covermode" : 1,
+			"exchg" : "INE",
+			"holiday" : "CHINA",
+			"name" : "π˙º Õ≠",
+			"precision" : 0,
+			"pricemode" : 1,
+			"pricetick" : 10.0,
+			"session" : "",
+			"volscale" : 5
+		},
+		"lu" : 
+		{
+			"category" : 1,
+			"covermode" : 1,
+			"exchg" : "INE",
+			"holiday" : "CHINA",
+			"name" : "µÕ¡Ú”Õ",
+			"precision" : 0,
+			"pricemode" : 1,
+			"pricetick" : 1.0,
+			"session" : "FN2300",
+			"volscale" : 10
+		},
 		"nr" : 
 		{
 			"category" : 1,

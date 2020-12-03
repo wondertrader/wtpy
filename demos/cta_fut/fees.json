@@ -3,7 +3,14 @@
     {
         "open":0.000023,
         "close":0.000023,
-        "closetoday":0.00023,
+        "closetoday":0.000023,
+        "byvolumn":false
+    },
+    "CFFEX.IC":
+    {
+        "open":0.000023,
+        "close":0.000023,
+        "closetoday":0.000023,
         "byvolumn":false
     },
 	"DCE.a":

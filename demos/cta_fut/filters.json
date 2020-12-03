@@ -1,15 +1,15 @@
 {
     "strategy_filters":
     {
-        "Q3LS00_if":
+        "Q3LS00_if0":
         {
-            "action":"redirect",
+            "action":"ignore",
             "target":0
         }
     },
     "code_filters":
     {
-        "CFFEX.IF":
+        "CFFEX.IF0":
         {
             "action":"ignore",
             "target":0
