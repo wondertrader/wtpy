@@ -76,3 +76,11 @@
 * 监控服务`monitor`增加了一个日志模块`WtLogger.py`，内部使用`logging`模块来记录日志
 * 进一步完善了`web-ui`的部分功能和配色
 * 新增一个`CTPLoader`模块，主要用于调用底层`CTPLoader`执行程序，用于从`CTP`账号加载合约列表
+
+### 0.5.3
+* `CTPLoader`增加一个isMini的参数，用于控制底层调用MiniLoader对接CTPMini2进行拉取
+* `WtKlineData`新增一个slice方法，用于对已有K线进行切片
+* `C++`底层更新到2020/12/08发布的v0.5.3版本
+* `CtaContext`新增一个stra_get_sessinfo接口，用于获取品种的交易时间信息
+* `monitor`模块中的`web-gui`修改了一些bug
+* 修正了绩效分析模块的一些bug
