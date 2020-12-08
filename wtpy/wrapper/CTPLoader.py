@@ -16,18 +16,20 @@ def isWindows():
 
 class CTPLoader:
 
-    def __init__(self, folder:str="./"):
+    def __init__(self, folder:str="./", isMini:bool = False):
         self.folder = folder
+
+        filename = "CTPLoader" if isMini else "MiniLoader"
 
         paths = os.path.split(__file__)
         exename = ''
         if isWindows(): #windows平台
             if isPythonX64():
-                exename = "x64/CTPLoader.exe"
+                exename = "x64/%s.exe" % (filename)
             else:
-                exename = "x86/CTPLoader.exe"
+                exename = "x86/%s.exe" % (filename)
         else:#Linux平台
-            exename = "linux/CTPLoader"
+            exename = "linux/" + filename
         a = (paths[:-1] + (exename,))
         self.exe_path = os.path.join(*a)
 
