@@ -51,14 +51,14 @@ class WtExecApi:
     def write_log(self, level, message:str, catName:str = ""):
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
 
-    def config(self, cfgfile:str = 'cfgexec.json'):
-        self.api.config_exec(bytes(cfgfile, encoding = "utf8"))
+    def config(self, cfgfile:str = 'cfgexec.json', isFile:bool = True):
+        self.api.config_exec(bytes(cfgfile, encoding = "utf8"), isFile)
 
-    def initialize(self, engine, logProfile:str = "logcfgexec.json"):
+    def initialize(self, engine, logCfg:str = "logcfgexec.json", isFile:bool = True):
         '''
         C接口初始化
         '''
-        self.api.init_exec(bytes(logProfile, encoding = "utf8"))
+        self.api.init_exec(bytes(logCfg, encoding = "utf8"), isFile)
         self.write_log(102, "Wt独立执行器已初始化完成，基础框架版本号：%s" % (self.ver))
 
     def set_position(self, stdCode:str, target:float):

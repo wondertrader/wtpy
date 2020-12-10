@@ -84,3 +84,7 @@
 * `CtaContext`新增一个stra_get_sessinfo接口，用于获取品种的交易时间信息
 * `monitor`模块中的`web-gui`修改了一些bug
 * 修正了绩效分析模块的一些bug
+
+### 0.5.4
+* 新增一个WtOptimizer，用于遍历优化策略参数
+* C++底层接口针对传递配置文件内容的支持做了修改，同步修改了wtpy中的部分关联代码
