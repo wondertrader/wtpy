@@ -287,10 +287,10 @@ class WtWrapper:
     def write_log(self, level, message:str, catName:str = ""):
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
 
-    def config(self, cfgfile:str = 'config.json'):
-        self.api.config_porter(bytes(cfgfile, encoding = "utf8"))
+    def config(self, cfgfile:str = 'config.json', isFile:bool = True):
+        self.api.config_porter(bytes(cfgfile, encoding = "utf8"), isFile)
 
-    def initialize_cta(self, engine, logProfile:str = "logcfg.json"):
+    def initialize_cta(self, engine, logCfg:str = "logcfg.json", isFile:bool = True):
         '''
         C接口初始化
         '''
@@ -299,13 +299,13 @@ class WtWrapper:
         try:
             self.api.register_evt_callback(cb_engine_event)
             self.api.register_cta_callbacks(cb_stra_init, cb_stra_tick, cb_stra_calc, cb_stra_bar)
-            self.api.init_porter(bytes(logProfile, encoding = "utf8"))
+            self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
 
         self.write_log(102, "Wt交易框架已初始化完成，框架版本号：%s" % (self.ver))
 
-    def initialize_hft(self, engine, logProfile:str = "logcfg.json"):
+    def initialize_hft(self, engine, logCfg:str = "logcfg.json", isFile:bool = True):
         '''
         C接口初始化
         '''
@@ -314,13 +314,13 @@ class WtWrapper:
         try:
             self.api.register_evt_callback(cb_engine_event)
             self.api.register_hft_callbacks(cb_stra_init, cb_stra_tick, cb_stra_bar, cb_hftstra_chnl_evt, cb_hftstra_order, cb_hftstra_trade, cb_hftstra_entrust)
-            self.api.init_porter(bytes(logProfile, encoding = "utf8"))
+            self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
 
         self.write_log(102, "Wt交易框架已初始化完成，框架版本号：%s" % (self.ver))
 
-    def initialize_sel(self, engine, logProfile:str = "logcfg.json"):
+    def initialize_sel(self, engine, logCfg:str = "logcfg.json", isFile:bool = True):
         '''
         C接口初始化
         '''
@@ -329,7 +329,7 @@ class WtWrapper:
         try:
             self.api.register_evt_callback(cb_engine_event)
             self.api.register_sel_callbacks(cb_stra_init, cb_stra_tick, cb_stra_calc, cb_stra_bar)
-            self.api.init_porter(bytes(logProfile, encoding = "utf8"))
+            self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
 

@@ -3,6 +3,8 @@
 .DS_Store
 node_modules/
 /dist/
+/build/*
+/wtpy.egg-info/*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

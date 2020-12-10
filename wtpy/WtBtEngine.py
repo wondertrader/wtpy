@@ -27,7 +27,7 @@ def singleton(cls):
 @singleton
 class WtBtEngine:
 
-    def __init__(self, eType:EngineType):
+    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True):
         self.__wrapper__ = WtBtWrapper()  #api接口转换器
         self.__context__ = None      #策略ctx映射表
         self.__config__ = dict()        #框架配置项
@@ -36,11 +36,11 @@ class WtBtEngine:
         self.__idx_writer__ = None  #指标输出模块
 
         if eType == eType.ET_CTA:
-            self.__wrapper__.initialize_cta(self)   #初始化api接口
+            self.__wrapper__.initialize_cta(self, logCfg, isFile)   #初始化CTA环境
         elif eType == eType.ET_HFT:
-            self.__wrapper__.initialize_hft(self)   #初始化api接口  
+            self.__wrapper__.initialize_hft(self, logCfg, isFile)   #初始化HFT环境
         elif eType == eType.ET_SEL:
-            self.__wrapper__.initialize_sel(self)
+            self.__wrapper__.initialize_sel(self, logCfg, isFile)   #初始化SEL环境
 
     def __check_config__(self):
         '''
@@ -111,10 +111,7 @@ class WtBtEngine:
         '''
         配置回测设置项\n
         @stime  开始时间\n
-        @etime  结束时间\n
-        @period 回测单步周期\n
-        @session    回测用的会话ID\n
-        @time   周期倍数
+        @etime  结束时间
         '''
         self.__config__["replayer"]["stime"] = int(stime)
         self.__config__["replayer"]["etime"] = int(etime)
@@ -136,12 +133,8 @@ class WtBtEngine:
         if self.__cfg_commited__:
             return
 
-        cfgfile = "config_runbt.json"
-        f = open(cfgfile, "w")
-        f.write(json.dumps(self.__config__, indent=4, sort_keys=True))
-        f.close()
-        self.__wrapper__.config_backtest(cfgfile)
-        os.remove(cfgfile)
+        cfgfile = json.dumps(self.__config__, indent=4, sort_keys=True)
+        self.__wrapper__.config_backtest(cfgfile, False)
         self.__cfg_commited__ = True
 
     def getSessionByCode(self, code:str):
