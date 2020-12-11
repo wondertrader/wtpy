@@ -3,8 +3,7 @@ from wtpy.CtaContext import CtaContext
 from wtpy.SelContext import SelContext
 from wtpy.HftContext import HftContext
 from wtpy.StrategyDefs import BaseCtaStrategy, BaseSelStrategy, BaseHftStrategy
-from wtpy.ExtToolDefs import BaseIndexWriter
-from wtpy.ExtToolDefs import BaseDataReporter
+from wtpy.ExtToolDefs import BaseIndexWriter, BaseDataReporter
 from wtpy.WtCoreDefs import EngineType
 
 from .ProductMgr import ProductMgr, ProductInfo
