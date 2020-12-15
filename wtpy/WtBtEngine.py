@@ -116,13 +116,17 @@ class WtBtEngine:
         self.__config__["replayer"]["stime"] = int(stime)
         self.__config__["replayer"]["etime"] = int(etime)
 
-    def configBTStorage(self, mode:str, path:str):
+    def configBTStorage(self, mode:str, path:str = None, dbcfg:dict = None):
         '''
         配置数据存储\n
         @mode   存储模式，csv-表示从csv直接读取，一般回测使用，wtp-表示使用wt框架自带数据存储
         '''
         self.__config__["replayer"]["mode"] = mode
-        self.__config__["replayer"]["path"] = path
+        if path is not None:
+            self.__config__["replayer"]["path"] = path
+        if dbcfg is not None:
+            self.__config__["replayer"]["db"] = dbcfg
+
 
     def commitBTConfig(self):
         '''
