@@ -66,7 +66,6 @@ class WtCtaOptimizer:
     def add_mutable_param(self, name:str, start_val, end_val, step_val, ndigits = 1):
         '''
         添加可变参数\n
-        适用于一般数值参数\n
 
         @name       参数名\n
         @start_val  起始值\n
@@ -78,8 +77,7 @@ class WtCtaOptimizer:
 
     def add_listed_param(self, name:str, val_list:list):
         '''
-        添加预设范围的可变参数\n
-        即参数只能在预设列表中选择，适用于标的代码、周期等参数\n
+        添加限定范围的可变参数\n
 
         @name       参数名\n
         @val_list   参数值列表
@@ -107,7 +105,7 @@ class WtCtaOptimizer:
         self.name_prefix = name_prefix
         return
 
-    def config_backtest_env(self, deps_dir:str, cfgfile:str="configbt.json", storage_type:str="csv", storage_path:str="./storage/"):
+    def config_backtest_env(self, deps_dir:str, cfgfile:str="configbt.json", storage_type:str="csv", storage_path:str = None, db_config:dict = None):
         '''
         配置回测环境\n
 
@@ -119,7 +117,15 @@ class WtCtaOptimizer:
         self.env_params["deps_dir"] = deps_dir
         self.env_params["cfgfile"] = cfgfile
         self.env_params["storage_type"] = storage_type
+
+        if storage_path is None and db_config is None:
+            raise Exception("storage_path and db_config cannot be both None!")
+
+        if storage_type == 'db' and db_config is None:
+            raise Exception("db_config cannot be None while storage_type is db!")
+
         self.env_params["storage_path"] = storage_path
+        self.env_params["db_config"] = db_config
 
     def config_backtest_time(self, start_time:int, end_time:int):
         '''
@@ -262,7 +268,7 @@ class WtCtaOptimizer:
         engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
         engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
         engine.configBacktest(self.env_params["start_time"],self.env_params["end_time"])
-        engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"])
+        engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"], dbcfg=self.env_params["db_config"])
         engine.commitBTConfig()
 
         straInfo = self.strategy_type(**params)
