@@ -5,9 +5,16 @@ import os
 import datetime
 import json
 import copy
+import platform
 from .WtLogger import WtLogger
 
 from enum import Enum
+
+def isWindows():
+    if "windows" in platform.system().lower():
+        return True
+
+    return False
 
 class WatcherSink:
 
@@ -89,9 +96,12 @@ class AppInfo:
                             cwd=self.__info__["folder"],
                             stdout = subprocess.PIPE,
                             stderr = subprocess.PIPE)
-        else:
+        elif isWindows():
             self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
                             cwd=self.__info__["folder"], creationflags=subprocess.CREATE_NEW_CONSOLE)
+        else:
+            self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
+                            cwd=self.__info__["folder"])
 
         self._state = AppState.AS_Running
 
