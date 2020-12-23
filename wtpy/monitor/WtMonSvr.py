@@ -172,7 +172,7 @@ class WtMonSvr(WatcherSink, EventSink):
                         usrInf["loginip"]=request.remote_addr
                         usrInf["logintime"]=now.strftime("%Y/%m/%d %H:%M:%S")
 
-                        exptime = now + datetime.timedelta(minutes=30)  #30分钟令牌超时
+                        exptime = now + datetime.timedelta(minutes=360)  #360分钟令牌超时
                         session["userinfo"] = usrInf
                         session["expiretime"] = exptime
 
