@@ -181,6 +181,9 @@ class AppInfo:
         curDt = int(now.strftime("%y%m%d"))
         self._lock.acquire()
         for tInfo in self.__info__["schedule"]["tasks"]:
+            if not tInfo["active"]:
+                continue
+            
             if "lastDate" in tInfo:
                 lastDate = tInfo["lastDate"]
             else:

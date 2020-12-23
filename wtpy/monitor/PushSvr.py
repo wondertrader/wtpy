@@ -1,16 +1,6 @@
 from flask_socketio import SocketIO, emit
 from flask import session, sessions
 
-def parse_data(data):
-    try:
-        json_data = json.loads(data.decode("utf-8"))
-        return True,json_data
-    except:
-        return False, {
-            "result": -998,
-            "message": "请求数据解析失败"
-        }
-
 def get_param(json_data, key:str, type=str, defVal = ""):
     if key not in json_data:
         return defVal
