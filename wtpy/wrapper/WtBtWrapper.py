@@ -292,8 +292,11 @@ class WtBtWrapper:
     def dump_kline(self, stdCode:str, period:str, filename:str):
         self.api.dump_bars(bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), bytes(filename, encoding = "utf8"))
 
-    def trans_mc_bars(self, csvFolder:str, binFolder:str, period:str):
-        self.api.trans_mc_bars(bytes(csvFolder, encoding = "utf8"),bytes(binFolder, encoding = "utf8"),bytes(period, encoding = "utf8"))
+    def dump_ticks(self, binFolder:str, csvFolder:str):
+        self.api.dump_ticks(bytes(binFolder, encoding = "utf8"), bytes(csvFolder, encoding = "utf8"))
+
+    def trans_csv_bars(self, csvFolder:str, binFolder:str, period:str):
+        self.api.trans_csv_bars(bytes(csvFolder, encoding = "utf8"),bytes(binFolder, encoding = "utf8"),bytes(period, encoding = "utf8"))
 
     def init_cta_mocker(self, name:str):
         '''
