@@ -3,6 +3,7 @@ import time
 import threading
 import json
 
+import os
 import math
 import numpy as np
 import pandas as pd
@@ -335,6 +336,10 @@ class WtCtaOptimizer:
         total_summary = list()
         for straName in obj_stras:
             filename = "./outputs_bt/%s/summary.json" % (straName)
+            if not os.path.exists(filename):
+                print("%s不存在，请检查数据" % (filename))
+                continue
+                
             f = open(filename, "r")
             content = f.read()
             f.close()
@@ -355,9 +360,13 @@ class WtCtaOptimizer:
         obj_stras = json.loads(content)
         for straName in obj_stras:
             params = obj_stras[straName]
-            self.__ayalyze_result__(straName, params)
-
             filename = "./outputs_bt/%s/summary.json" % (straName)
+            if not os.path.exists(filename):
+                print("%s不存在，请检查数据" % (filename))
+                continue
+                
+            self.__ayalyze_result__(straName, params)
+            
             f = open(filename, "r")
             content = f.read()
             f.close()
