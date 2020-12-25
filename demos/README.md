@@ -10,6 +10,7 @@ Python下的demo目前大概罗列了6个，主要是演示不同环境下不同
 + cta_stk   股票实盘demo，配置的是XTP的仿真通道
 + hft_fut   期货高频实盘demo
 + sel_fut_bt    期货SEL引擎回测demo
++ cta_optimizer CTA策略优化器demo
 
 # 如何使用这些demo
 + 首先确认本地安装的是 *Python3.6* 以上的版本，32位、64位都可以，wtpy子框架会根据Python的版本自动选择对应的底层

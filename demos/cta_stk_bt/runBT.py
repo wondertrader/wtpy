@@ -1,6 +1,6 @@
 from wtpy import WtBtEngine,EngineType
 from Strategies.DualThrust import StraDualThrust
-from wtpy import WtBtAnalyst
+from wtpy.apps import WtBtAnalyst
 
 if __name__ == "__main__":
     #创建一个运行环境，并加入策略

@@ -1,5 +1,5 @@
 from wtpy import WtBtEngine,EngineType
-from wtpy import WtBtAnalyst
+from wtpy.apps import WtBtAnalyst
 
 from Strategies.DualThrust import StraDualThrust
 
