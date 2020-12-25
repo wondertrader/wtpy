@@ -1,0 +1,28 @@
+{
+    "root":{
+        "level":"debug",
+        "async":false,
+        "sinks":[
+            {
+                "type":"basic_file_sink",
+                "filename":"BtLogs/Runner_$NAME$.log",
+                "pattern":"[%Y.%m.%d %H:%M:%S - %-5l] %v",
+                "truncate":true
+            }
+        ]
+    },
+    "dyn_pattern":{
+        "strategy":{
+            "level":"debug",
+            "async":false,
+            "sinks":[
+                {
+                    "type":"basic_file_sink",
+                    "filename":"BtLogs/Strategy/%s.log",
+                    "pattern":"[%Y.%m.%d %H:%M:%S - %-5l] %v",
+                    "truncate":true
+                }
+            ]
+        }
+    }
+}
