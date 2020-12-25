@@ -1,35 +1,38 @@
 # wtpy
-这是wonder trader针对python3适配的子框架
+这是**WonderTrader**针对`Python3`适配的子框架
 
 # wtpy子框架简介
++ apps子模块
+    > - WtBtAnalyst.py	回测分析模块，主要是利用回测生成的数据，计算各项回测指标，并输出到excel文件
+    > - WtCtaOptimizer  `CTA`优化器，主要是利用`multiprocessing`并行回测，并统计各项交易指标，最后将统计结果汇总输出到`csv`文件
 + wrapper子模块
-	> 该模块主要包含了所有和C++底层对接的接口模块
-	> - WtBtWrapper.py	主要用于和回测引擎C++核心模块对接
-	> - WtDtWrapper.py	主要用于和数据组件C++核心模块对接
-	> - WtExecApi.py	主要用于和C++独立执行模块对接
-	> - WtWrapper.py	主要用于和实盘交易引擎C++核心模块对接
+	> 该模块主要包含了所有和`C++`底层对接的接口模块
+	> - WtBtWrapper.py	主要用于和回测引擎`C++`核心模块对接
+	> - WtDtWrapper.py	主要用于和数据组件`C++`核心模块对接
+	> - WtExecApi.py	主要用于和`C++`独立执行模块`WtExecMon`对接
+	> - WtWrapper.py	主要用于和实盘交易引擎`C++`核心模块对接
+    > - WtDtHelper.py   主要用于和底层的`WtDtHelper`数据辅助模块对接
 + monitor子模块
-	> 该模块主要包含了内置的监控服务，提供了Http和websocket两种连接方式
+	> 该模块主要包含了内置的监控服务，提供了`Http`和`websocket`两种连接方式
 	> - DataMgr.py	主要用于读取并缓存组合数据
-	> - EventReceiver.py	主要用于在指定的udp端口接收组合转发的各种事件
-	> - PushSvr.py	主要用于向web提供websocket服务
+	> - EventReceiver.py	主要用于在指定的`udp`端口接收组合转发的各种事件
+	> - PushSvr.py	主要用于向`web`提供`websocket`服务
 	> - WatchDog.py	主要用于自动调度服务端的进程
-	> - WtMonSvr.py	监控服务核心服务模块 ，利用flask实现了一个http服务接口
-	> - static		webui静态文件
+	> - WtMonSvr.py	监控服务核心服务模块 ，利用`flask`实现了一个`http`服务接口
+	> - static		`webui`静态文件
 + 其他模块
 	> 主要位于根节点下，包含了各个子模块的入口组件
-	> - WtCoreDefs.py	主要定义的Py版本的策略基类，方便用户重写
+	> - WtCoreDefs.py	主要定义的`Python`版本的策略基类，方便用户重写
 	> - CodeHelper.py 品种代码辅助模块，内置了一些方法，方便使用
-	> - ContractMgr.py 合约管理器模块，用于加载contracts.json或stocks.json文件，并提供查询方法
-	> - CtaContext.py	主要定义了CTA策略的上下文，可以理解为单策略的运行环境
-	> - HftContext.py	主要定义了HFT策略的上下文，可以理解为单策略的运行环境
-	> - SelContext.py	主要定义了SEL策略的上下文，可以理解为单策略的运行环境
+	> - ContractMgr.py 合约管理器模块，用于加载`contracts.json`或`stocks.json`文件，并提供查询方法
+	> - CtaContext.py	主要定义了`CTA`策略的上下文，可以理解为单策略的运行环境
+	> - HftContext.py	主要定义了`HFT`策略的上下文，可以理解为单策略的运行环境
+	> - SelContext.py	主要定义了`SEL`策略的上下文，可以理解为单策略的运行环境
 	> - ExtToolDefs.py	扩展模块定义文件，主要定义了一些扩展模块的基础接口
-	> - ProductMgr.py	品种管理器，主要用于Py环境中的合约属性、品种属性查询
-	> - SelContext.py	选股策略上下文，即选股策略直接交互的API
-	> - SessionMgr.py	交易时间模板管理器，主要用于Py环境中的交易时段模板管理
-	> - StrategyDefs.py	各引擎策略基础定义模块，定义了CTA、HFT、SEL三种策略基类
-	> - WtBtAnalyst.py	回测分析模块，主要是利用回测生成的数据，计算各项回测指标，并输出到excel文件
+	> - ProductMgr.py	品种管理器，主要用于`Python`环境中的合约属性、品种属性查询
+	> - SelContext.py	选股策略上下文，即选股策略直接交互的`API`
+	> - SessionMgr.py	交易时间模板管理器，主要用于`Python`环境中的交易时段模板管理
+	> - StrategyDefs.py	各引擎策略基础定义模块，定义了`CTA`、`HFT`、`SEL`三种策略基类
 	> - WtBtEngine.py	回测引擎转换模块，主要封装底层接口调用
 	> - WtDtEngine.py	数据引擎转换模块，主要封装底层接口调用
 	> -	WtEngine.py		交易引擎转换模块，主要封装底层接口调用
@@ -45,13 +48,13 @@
 * 把手数相关的都从整数改成浮点数，主要目的是为了以后兼容虚拟币交易(虚拟币交易数量都是小数单位)
 * 优化手数改成浮点数以后带来的日志输出不简洁的问题(浮点数打印会显示很多“0000”)
 * 逐步完善文档
-* XTP实盘适配，主要是修复bug
+* XTP实盘适配，主要是修复`bug`
 
 ### 0.3.6
 * 执行器使用线程池，减少对网络线程的时间占用
-* 增加了一个实盘仿真模块TraderMocker，可以满足目前已经支持的股票和期货的仿真交易
-* 更多接口支持（飞马、tap、CTPMini）
-* 内置执行算法增加TWAP
+* 增加了一个实盘仿真模块`TraderMocker`，可以满足目前已经支持的股票和期货的仿真交易
+* 更多接口支持（飞马、易盛iTap、`CTPMini`）
+* 内置执行算法增加`TWAP`
 * 继续完善文档
 
 ### 0.4.0
@@ -80,11 +83,17 @@
 ### 0.5.3
 * `CTPLoader`增加一个isMini的参数，用于控制底层调用MiniLoader对接CTPMini2进行拉取
 * `WtKlineData`新增一个slice方法，用于对已有K线进行切片
-* `C++`底层更新到2020/12/08发布的v0.5.3版本
-* `CtaContext`新增一个stra_get_sessinfo接口，用于获取品种的交易时间信息
+* `C++`底层更新到2020/12/08发布的`v0.5.3`版本
+* `CtaContext`新增一个`stra_get_sessinfo`接口，用于获取品种的交易时间信息
 * `monitor`模块中的`web-gui`修改了一些bug
 * 修正了绩效分析模块的一些bug
 
 ### 0.5.4
-* 新增一个WtOptimizer，用于遍历优化策略参数
-* C++底层接口针对传递配置文件内容的支持做了修改，同步修改了wtpy中的部分关联代码
+* C++底层更新到2020/12/25发布的v0.5.4版本
+* `C++`底层接口针对传递配置文件内容的支持做了修改，同步修改了`wtpy`中的部分关联代码
+* 修正了监控服务中的`WatchDog`模块在`linux`下的启动参数的`bug`，解决了`linux`下无法启动的问题
+* 修正了监控服务的自动调度任务没有检查是否启用标记，从而导致重复启动的`bug`
+* 修改了监控服务的`WebUI`的一些展示细节
+* `wrapper`下新增一个`WtDtHelper`模块，用于对接`C++`底层的`WtDtHelpe`r模块，给`python`调用处理数据转换的任务
+* 将`WtBtAnalyst`模块迁移到`wtpy.apps`下
+* 新增一个`WtOptimizer`，用于遍历优化策略参数
