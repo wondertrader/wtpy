@@ -171,7 +171,11 @@ class AppInfo:
         weekflag = self._weekflag
 
         now = datetime.datetime.now()
-        wd = now.weekday()
+        # python中周一是0，周天是6
+        # 但是web端沿用了C++里的规则，周日是0，周六是6，所以做一个变换
+        wd = now.weekday() + 1
+        if wd == 7:
+            wd = 0
         if weekflag[wd] != "1":
             return
 
