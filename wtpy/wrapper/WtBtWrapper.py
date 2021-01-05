@@ -1,5 +1,5 @@
 from ctypes import cdll, c_int, c_char_p, c_longlong, c_bool, c_void_p, c_ulong, c_uint, c_uint64, c_double
-from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK
+from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK,CB_STRATEGY_GET_POSITION
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD
 from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST
 import platform
@@ -133,6 +133,12 @@ def on_strategy_get_tick(id, code, curTick, isLast):
         ctx.on_getticks(bytes.decode(code), tick, isLast)
     return
 
+def on_stra_get_position(id, stdCode, qty, isLast):
+    engine = theEngine
+    ctx = engine.get_context(id)
+    if ctx is not None:
+        ctx.on_getpositions(bytes.decode(stdCode), qty, isLast)
+
 def on_hftstra_channel_evt(id, trader, evtid):
     engine = theEngine
     ctx = engine.get_context(id)
@@ -166,6 +172,7 @@ cb_strategy_calc = CB_STRATEGY_CALC(on_strategy_calc)
 cb_strategy_bar = CB_STRATEGY_BAR(on_strategy_bar)
 cb_strategy_get_bar = CB_STRATEGY_GET_BAR(on_strategy_get_bar)
 cb_strategy_get_tick = CB_STRATEGY_GET_TICK(on_strategy_get_tick)
+cb_stra_get_position = CB_STRATEGY_GET_POSITION(on_stra_get_position)
 
 cb_hftstra_chnl_evt = CB_HFTSTRA_CHNL_EVT(on_hftstra_channel_evt)
 cb_hftstra_order = CB_HFTSTRA_ORD(on_hftstra_order)
@@ -291,13 +298,7 @@ class WtBtWrapper:
 
     def dump_kline(self, stdCode:str, period:str, filename:str):
         self.api.dump_bars(bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), bytes(filename, encoding = "utf8"))
-
-    def dump_ticks(self, binFolder:str, csvFolder:str):
-        self.api.dump_ticks(bytes(binFolder, encoding = "utf8"), bytes(csvFolder, encoding = "utf8"))
-
-    def trans_csv_bars(self, csvFolder:str, binFolder:str, period:str):
-        self.api.trans_csv_bars(bytes(csvFolder, encoding = "utf8"),bytes(binFolder, encoding = "utf8"),bytes(period, encoding = "utf8"))
-
+        
     def init_cta_mocker(self, name:str):
         '''
         创建策略环境\n
@@ -398,6 +399,13 @@ class WtBtWrapper:
         @return 指定合约的持仓均价
         '''
         return self.api.cta_get_position_avgpx(id, bytes(code, encoding = "utf8"))
+
+    def cta_get_all_position(self, id:int):
+        '''
+        获取全部持仓\n
+        @id     策略id
+        '''
+        return self.api.cta_get_all_position(id, cb_stra_get_position)
     
     def cta_get_position(self, id:int, code:str, usertag:str = ""):
         '''
@@ -560,6 +568,13 @@ class WtBtWrapper:
         '''
         ret = self.api.sel_load_userdata(id, bytes(key, encoding = "utf8"), bytes(defVal, encoding = "utf8"))
         return bytes.decode(ret)
+
+    def sel_get_all_position(self, id:int):
+        '''
+        获取全部持仓\n
+        @id     策略id
+        '''
+        return self.api.sel_get_all_position(id, cb_stra_get_position)
 
     def sel_get_position(self, id:int, code:str, usertag:str = ""):
         '''

@@ -1,7 +1,7 @@
 from ctypes import cdll, c_int, c_char_p, c_longlong, c_bool, c_void_p, c_ulong, c_uint, c_uint64, c_double, POINTER
-from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_ENGINE_EVENT
+from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD
-from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST
+from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST, CB_ENGINE_EVENT
 from wtpy.WtCoreDefs import WTSTickStruct,WTSBarStruct
 import platform
 import os
@@ -55,10 +55,21 @@ def on_stra_tick(id, stdCode, newTick:POINTER(WTSTickStruct)):
     tick["high"] = realTick.high
     tick["low"] = realTick.low
     tick["price"] = realTick.price
+
     tick["bidprice"] = list()
     tick["bidqty"] = list()
     tick["askprice"] = list()
     tick["askqty"] = list()
+
+    tick["upper_limit"] = realTick.total_volumn
+    tick["lower_limit"] = realTick.lower_limit
+
+    tick["total_volumn"] = realTick.total_volumn
+    tick["volumn"] = realTick.volumn
+    tick["total_turnover"] = realTick.total_turnover
+    tick["turn_over"] = realTick.turn_over
+    tick["open_interest"] = realTick.open_interest
+    tick["diff_interest"] = realTick.diff_interest
 
     for i in range(10):
         if realTick.bid_qty[i] != 0:
@@ -165,6 +176,12 @@ def on_stra_get_tick(id, stdCode, curTick, isLast):
         ctx.on_getticks(bytes.decode(stdCode), tick, isLast)
     return
 
+def on_stra_get_position(id, stdCode, qty, isLast):
+    engine = theEngine
+    ctx = engine.get_context(id)
+    if ctx is not None:
+        ctx.on_getpositions(bytes.decode(stdCode), qty, isLast)
+
 def on_hftstra_channel_evt(id, trader, evtid):
     engine = theEngine
     ctx = engine.get_context(id)
@@ -204,6 +221,7 @@ cb_stra_calc = CB_STRATEGY_CALC(on_stra_calc)
 cb_stra_bar = CB_STRATEGY_BAR(on_stra_bar)
 cb_stra_get_bar = CB_STRATEGY_GET_BAR(on_stra_get_bar)
 cb_stra_get_tick = CB_STRATEGY_GET_TICK(on_stra_get_tick)
+cb_stra_get_position = CB_STRATEGY_GET_POSITION(on_stra_get_position)
 
 cb_hftstra_chnl_evt = CB_HFTSTRA_CHNL_EVT(on_hftstra_channel_evt)
 cb_hftstra_order = CB_HFTSTRA_ORD(on_hftstra_order)
@@ -447,6 +465,13 @@ class WtWrapper:
         @return 指定合约的持仓均价
         '''
         return self.api.cta_get_position_avgpx(id, bytes(stdCode, encoding = "utf8"))
+
+    def cta_get_all_position(self, id:int):
+        '''
+        获取全部持仓\n
+        @id     策略id
+        '''
+        return self.api.cta_get_all_position(id, cb_stra_get_position)
     
     def cta_get_position(self, id:int, stdCode:str, usertag:str = ""):
         '''
@@ -473,6 +498,13 @@ class WtWrapper:
         @qty    目标仓位，正为多，负为空
         '''
         self.api.cta_set_position(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
+
+    def cta_get_tdate(self):
+        '''
+        获取当前交易日\n
+        @return    当前交易日
+        '''
+        return self.api.cta_get_tdate()
 
     def cta_get_date(self):
         '''
@@ -609,6 +641,13 @@ class WtWrapper:
         '''
         ret = self.api.sel_load_userdata(id, bytes(key, encoding = "utf8"), bytes(defVal, encoding = "utf8"))
         return bytes.decode(ret)
+
+    def sel_get_all_position(self, id:int):
+        '''
+        获取全部持仓\n
+        @id     策略id
+        '''
+        return self.api.sel_get_all_position(id, cb_stra_get_position)
 
     def sel_get_position(self, id:int, stdCode:str, usertag:str = ""):
         '''
