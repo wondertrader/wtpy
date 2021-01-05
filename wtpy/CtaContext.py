@@ -24,6 +24,7 @@ class CtaContext:
         self.__tick_cache__ = dict()    #tTick缓存，每次都重新去拉取，这个只做中转用，不在python里维护副本
         self.__sname__ = stra.name()    
         self.__engine__ = engine          #交易环境
+        self.__pos_cache__ = None
 
     def write_indicator(self, tag, time, data):
         '''
@@ -47,6 +48,9 @@ class CtaContext:
             
         if curTick is not None:          
             ticks.append_tick(curTick)
+
+    def on_getpositions(self, stdCode:str, qty:float, isLast:bool):
+        self.__pos_cache__[stdCode] = qty
 
     def on_getbars(self, code:str, period:str, curBar:dict, isLast:bool):
         key = "%s#%s" % (code, period)
@@ -92,6 +96,13 @@ class CtaContext:
         @message    消息内容\n
         '''
         self.__wrapper__.cta_log_text(self.__id__, message)
+
+    def stra_get_tdate(self):
+        '''
+        获取当前交易日\n
+        @return int，格式如20180513
+        '''
+        return self.__wrapper__.cta_get_tdate()
         
     def stra_get_date(self):
         '''
@@ -129,6 +140,14 @@ class CtaContext:
         @return 最新价格
         '''
         return self.__wrapper__.cta_get_price(code)
+
+    def stra_get_all_position(self):
+        '''
+        获取全部持仓
+        '''
+        self.__pos_cache__ = dict() #
+        self.__wrapper__.cta_get_all_position(self.__id__)
+        return self.__pos_cache__
 
     def stra_get_bars(self, code:str, period:str, count:int, isMain:bool = False) -> WtKlineData:
         '''
