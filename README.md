@@ -97,3 +97,10 @@
 * `wrapper`下新增一个`WtDtHelper`模块，用于对接`C++`底层的`WtDtHelpe`r模块，给`python`调用处理数据转换的任务
 * 将`WtBtAnalyst`模块迁移到`wtpy.apps`下
 * 新增一个`WtOptimizer`，用于遍历优化策略参数
+
+### 0.5.4.1
+* WatchDog模块中修改了一周星期的序列，因为Python从周一到周天标记为0-6，而WonderTrader采用周天到周六为0-6
+
+### 0.5.5
+* CTA策略API新增一个stra_get_tdate，用于获取当前交易日
+* CTA策略API和SEL策略API各新增一个stra_get_all_position，用于获取全部的持仓数据
