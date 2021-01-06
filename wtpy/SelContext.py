@@ -50,6 +50,8 @@ class SelContext:
             ticks.append_tick(curTick)
 
     def on_getpositions(self, stdCode:str, qty:float, isLast:bool):
+        if len(stdCode) == 0:
+            return
         self.__pos_cache__[stdCode] = qty
 
     def on_getbars(self, code:str, period:str, curBar:dict, isLast:bool):
