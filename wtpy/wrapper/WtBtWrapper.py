@@ -37,6 +37,27 @@ def on_strategy_tick(id, code, newTick):
     tick["high"] = realTick.high
     tick["low"] = realTick.low
     tick["price"] = realTick.price
+    
+    tick["bidprice"] = list()
+    tick["bidqty"] = list()
+    tick["askprice"] = list()
+    tick["askqty"] = list()
+    
+    tick["total_volumn"] = realTick.total_volumn
+    tick["volumn"] = realTick.volumn
+    tick["total_turnover"] = realTick.total_turnover
+    tick["turn_over"] = realTick.turn_over
+    tick["open_interest"] = realTick.open_interest
+    tick["diff_interest"] = realTick.diff_interest
+
+    for i in range(10):
+        if realTick.bid_qty[i] != 0:
+            tick["bidprice"].append(realTick.bid_prices[i])
+            tick["bidqty"].append(realTick.bid_qty[i])
+
+        if realTick.ask_qty[i] != 0:
+            tick["askprice"].append(realTick.ask_prices[i])
+            tick["askqty"].append(realTick.ask_qty[i])
 
     if ctx is not None:
         ctx.on_tick(code, tick)
@@ -128,6 +149,27 @@ def on_strategy_get_tick(id, code, curTick, isLast):
         tick["high"] = realTick.high
         tick["low"] = realTick.low
         tick["price"] = realTick.price
+
+        tick["bidprice"] = list()
+        tick["bidqty"] = list()
+        tick["askprice"] = list()
+        tick["askqty"] = list()
+        
+        tick["total_volumn"] = realTick.total_volumn
+        tick["volumn"] = realTick.volumn
+        tick["total_turnover"] = realTick.total_turnover
+        tick["turn_over"] = realTick.turn_over
+        tick["open_interest"] = realTick.open_interest
+        tick["diff_interest"] = realTick.diff_interest
+
+        for i in range(10):
+            if realTick.bid_qty[i] != 0:
+                tick["bidprice"].append(realTick.bid_prices[i])
+                tick["bidqty"].append(realTick.bid_qty[i])
+
+            if realTick.ask_qty[i] != 0:
+                tick["askprice"].append(realTick.ask_prices[i])
+                tick["askqty"].append(realTick.ask_qty[i])
 
     if ctx is not None:
         ctx.on_getticks(bytes.decode(code), tick, isLast)
