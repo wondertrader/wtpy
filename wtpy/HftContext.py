@@ -32,6 +32,9 @@ class HftContext:
         self.__stra_info__.on_init(self)
 
     def on_getticks(self, code:str, curTick:dict, isLast:bool):
+        if curTick is None:
+            return
+
         key = code
 
         ticks = self.__tick_cache__[key]
@@ -57,14 +60,14 @@ class HftContext:
     def on_channel_lost(self):
         self.__stra_info__.on_channel_lost(self)
 
-    def on_entrust(self, localid:int, stdCode:str, bSucc:bool, msg:str):
-        self.__stra_info__.on_entrust(self, localid, stdCode, bSucc, msg)
+    def on_entrust(self, localid:int, stdCode:str, bSucc:bool, msg:str, userTag:str):
+        self.__stra_info__.on_entrust(self, localid, stdCode, bSucc, msg, userTag)
 
-    def on_order(self, localid:int, stdCode:str, isBuy:bool, totalQty:float, leftQty:float, price:float, isCanceled:bool):
-        self.__stra_info__.on_order(self, localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled)
+    def on_order(self, localid:int, stdCode:str, isBuy:bool, totalQty:float, leftQty:float, price:float, isCanceled:bool, userTag:str):
+        self.__stra_info__.on_order(self, localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag)
 
-    def on_trade(self, stdCode:str, isBuy:bool, qty:float, price:float):
-        self.__stra_info__.on_trade(self, stdCode, isBuy, qty, price)
+    def on_trade(self, localid:int, stdCode:str, isBuy:bool, qty:float, price:float, userTag:str):
+        self.__stra_info__.on_trade(self, localid, stdCode, isBuy, qty, price, userTag)
 
     def on_bar(self, code:str, period:str, newBar:dict):
         '''
@@ -153,7 +156,7 @@ class HftContext:
         @code   合约代码
         @count  要拉取的tick数量
         '''
-        self.__bar_cache__[code] = WtTickData(size=count)
+        self.__tick_cache__[code] = WtTickData(capacity=count)
         cnt = self.__wrapper__.hft_get_ticks(self.__id__, code, count)
         if cnt == 0:
             return None
@@ -165,10 +168,17 @@ class HftContext:
         '''
         读取当前仓位\n
         @code       合约/股票代码\n
-        @usertag    入场标记
         @return     正为多仓,负为空仓
         '''
         return self.__wrapper__.hft_get_position(self.__id__, code)
+
+    def stra_get_position_profit(self, code:str = ""):
+        '''
+        读取指定持仓的浮动盈亏\n
+        @code       合约/股票代码\n
+        @return     指定持仓的浮动盈亏
+        '''
+        return self.__wrapper__.hft_get_position_profit(self.__id__, code)
 
     def stra_get_undone(self, stdCode:str):
         return self.__wrapper__.hft_get_undone(self.__id__, stdCode)
@@ -235,7 +245,7 @@ class HftContext:
             localids.append(int(localid))
         return localids
 
-    def stra_buy(self, stdCode:str, price:float, qty:float):
+    def stra_buy(self, stdCode:str, price:float, qty:float, userTag:str):
         '''
         买入指令\n
         @id         策略ID\n
@@ -243,14 +253,14 @@ class HftContext:
         @price      买入价格, 0为市价\n
         @qty        买入数量
         '''
-        idstr = self.__wrapper__.hft_buy(self.__id__, stdCode, price, qty)
+        idstr = self.__wrapper__.hft_buy(self.__id__, stdCode, price, qty, userTag)
         ids = idstr.split(",")
         localids = list()
         for localid in ids:
             localids.append(int(localid))
         return localids
 
-    def stra_sell(self, stdCode:str, price:float, qty:float):
+    def stra_sell(self, stdCode:str, price:float, qty:float, userTag:str):
         '''
         卖出指令\n
         @id         策略ID\n
@@ -258,7 +268,7 @@ class HftContext:
         @price      卖出价格, 0为市价\n
         @qty        卖出数量
         '''
-        idstr = self.__wrapper__.hft_sell(self.__id__, stdCode, price, qty)
+        idstr = self.__wrapper__.hft_sell(self.__id__, stdCode, price, qty, userTag)
         ids = idstr.split(",")
         localids = list()
         for localid in ids:

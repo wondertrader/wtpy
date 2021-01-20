@@ -191,24 +191,27 @@ def on_hftstra_channel_evt(id, trader, evtid):
     elif evtid == CHNL_EVENT_LOST:
         ctx.on_channel_lost()
 
-def on_hftstra_order(id, localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled):
+def on_hftstra_order(id, localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag):
     stdCode = bytes.decode(stdCode)
+    userTag = bytes.decode(userTag)
     engine = theEngine
     ctx = engine.get_context(id)
-    ctx.on_order(localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled)
+    ctx.on_order(localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag)
 
-def on_hftstra_trade(id, localid, stdCode, isBuy, qty, price):
+def on_hftstra_trade(id, localid, stdCode, isBuy, qty, price, userTag):
     stdCode = bytes.decode(stdCode)
+    userTag = bytes.decode(userTag)
     engine = theEngine
     ctx = engine.get_context(id)
-    ctx.on_trade(stdCode, isBuy, qty, price)
+    ctx.on_trade(localid, stdCode, isBuy, qty, price, userTag)
 
-def on_hftstra_entrust(id, localid, stdCode, bSucc, message):
+def on_hftstra_entrust(id, localid, stdCode, bSucc, message, userTag):
     stdCode = bytes.decode(stdCode)
     message = bytes.decode(message)
+    userTag = bytes.decode(userTag)
     engine = theEngine
     ctx = engine.get_context(id)
-    ctx.on_entrust(localid, stdCode, bSucc, message)
+    ctx.on_entrust(localid, stdCode, bSucc, message, userTag)
 
 '''
 将回调函数转换成C接口识别的函数类型
@@ -288,12 +291,13 @@ class WtWrapper:
         self.api.hft_load_userdata.argtypes = [c_ulong, c_char_p, c_char_p]
         self.api.hft_load_userdata.restype = c_char_p
         self.api.hft_get_position.restype = c_double
+        self.api.hft_get_position_profit.restype = c_double
         self.api.hft_get_undone.restype = c_double
 
         self.api.hft_buy.restype = c_char_p
-        self.api.hft_buy.argtypes = [c_ulong, c_char_p, c_double, c_double]
+        self.api.hft_buy.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
         self.api.hft_sell.restype = c_char_p
-        self.api.hft_sell.argtypes = [c_ulong, c_char_p, c_double, c_double]
+        self.api.hft_sell.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
         self.api.hft_cancel_all.restype = c_char_p
 
     def run(self):
@@ -754,6 +758,15 @@ class WtWrapper:
         '''
         return self.api.hft_get_position(id, bytes(stdCode, encoding = "utf8"))
 
+    def hft_get_position_profit(self, id:int, stdCode:str):
+        '''
+        获取持仓盈亏\n
+        @id     策略id\n
+        @stdCode   合约代码\n
+        @return 指定持仓的浮动盈亏
+        '''
+        return self.api.hft_get_position_profit(id, bytes(stdCode, encoding = "utf8"))
+
     def hft_get_undone(self, id:int, stdCode:str):
         '''
         获取持仓\n
@@ -825,7 +838,7 @@ class WtWrapper:
         ret = self.api.hft_cancel_all(id, bytes(stdCode, encoding = "utf8"), isBuy)
         return bytes.decode(ret)
 
-    def hft_buy(self, id:int, stdCode:str, price:float, qty:float):
+    def hft_buy(self, id:int, stdCode:str, price:float, qty:float, userTag:str):
         '''
         买入指令\n
         @id         策略ID\n
@@ -833,10 +846,10 @@ class WtWrapper:
         @price      买入价格, 0为市价\n
         @qty        买入数量
         '''
-        ret = self.api.hft_buy(id, bytes(stdCode, encoding = "utf8"), price, qty)
+        ret = self.api.hft_buy(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
         return bytes.decode(ret)
 
-    def hft_sell(self, id:int, stdCode:str, price:float, qty:float):
+    def hft_sell(self, id:int, stdCode:str, price:float, qty:float, userTag:str):
         '''
         卖出指令\n
         @id         策略ID\n
@@ -844,5 +857,5 @@ class WtWrapper:
         @price      卖出价格, 0为市价\n
         @qty        卖出数量
         '''
-        ret = self.api.hft_sell(id, bytes(stdCode, encoding = "utf8"), price, qty)
+        ret = self.api.hft_sell(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
         return bytes.decode(ret)

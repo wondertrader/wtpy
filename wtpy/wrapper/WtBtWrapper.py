@@ -1,7 +1,8 @@
-from ctypes import cdll, c_int, c_char_p, c_longlong, c_bool, c_void_p, c_ulong, c_uint, c_uint64, c_double
-from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK,CB_STRATEGY_GET_POSITION
+from ctypes import cdll, c_int, c_char_p, c_longlong, c_bool, c_void_p, c_ulong, c_uint, c_uint64, c_double, POINTER
+from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD
 from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST
+from wtpy.WtCoreDefs import WTSTickStruct,WTSBarStruct
 import platform
 import os
 import sys
@@ -26,7 +27,8 @@ def on_strategy_init(id):
         ctx.on_init()
     return
 
-def on_strategy_tick(id, code, newTick):
+def on_strategy_tick(id, code, newTick:POINTER(WTSTickStruct)):
+    code = bytes.decode(code)
     engine = theEngine
     ctx = engine.get_context()
 
@@ -70,7 +72,7 @@ def on_strategy_calc(id):
         ctx.on_calculate()
     return
 
-def on_strategy_bar(id, code, period, newBar):
+def on_strategy_bar(id, code, period, newBar:POINTER(WTSBarStruct)):
     period = bytes.decode(period)
     engine = theEngine
     ctx = engine.get_context()
@@ -177,33 +179,40 @@ def on_strategy_get_tick(id, code, curTick, isLast):
 
 def on_stra_get_position(id, stdCode, qty, isLast):
     engine = theEngine
-    ctx = engine.get_context(id)
+    ctx = engine.get_context()
     if ctx is not None:
         ctx.on_getpositions(bytes.decode(stdCode), qty, isLast)
 
 def on_hftstra_channel_evt(id, trader, evtid):
     engine = theEngine
-    ctx = engine.get_context(id)
+    ctx = engine.get_context()
     
     if evtid == CHNL_EVENT_READY:
         ctx.on_channel_ready()
     elif evtid == CHNL_EVENT_LOST:
         ctx.on_channel_lost()
 
-def on_hftstra_order(id, localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled):
+def on_hftstra_order(id, localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag):
+    stdCode = bytes.decode(stdCode)
+    userTag = bytes.decode(userTag)
     engine = theEngine
-    ctx = engine.get_context(id)
-    ctx.on_order(localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled)
+    ctx = engine.get_context()
+    ctx.on_order(localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag)
 
-def on_hftstra_trade(id, stdCode, isBuy, qty, price):
+def on_hftstra_trade(id, localid, stdCode, isBuy, qty, price, userTag):
+    stdCode = bytes.decode(stdCode)
+    userTag = bytes.decode(userTag)
     engine = theEngine
-    ctx = engine.get_context(id)
-    ctx.on_trade(stdCode, isBuy, qty, price)
+    ctx = engine.get_context()
+    ctx.on_trade(localid, stdCode, isBuy, qty, price, userTag)
 
-def on_hftstra_entrust(id, localid, stdCode, bSucc, message):
+def on_hftstra_entrust(id, localid, stdCode, bSucc, message, userTag):
+    stdCode = bytes.decode(stdCode)
+    message = bytes.decode(message, "gbk")
+    userTag = bytes.decode(userTag)
     engine = theEngine
-    ctx = engine.get_context(id)
-    ctx.on_entrust(localid, stdCode, bSucc, message)
+    ctx = engine.get_context()
+    ctx.on_entrust(localid, stdCode, bSucc, message, userTag)
 
 '''
 将回调函数转换成C接口识别的函数类型
@@ -283,6 +292,13 @@ class WtBtWrapper:
         self.api.hft_load_userdata.argtypes = [c_ulong, c_char_p, c_char_p]
         self.api.hft_load_userdata.restype = c_char_p
         self.api.hft_get_position.restype = c_double
+        self.api.hft_get_position_profit.restype = c_double
+        self.api.hft_get_undone.restype = c_double
+        
+        self.api.hft_buy.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
+        self.api.hft_buy.restype = c_char_p
+        self.api.hft_sell.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
+        self.api.hft_sell.restype = c_char_p
 
     def run_backtest(self):
         self.api.run_backtest()
@@ -723,6 +739,15 @@ class WtBtWrapper:
         '''
         return self.api.hft_get_position(id, bytes(code, encoding = "utf8"))
 
+    def hft_get_position_profit(self, id:int, stdCode:str):
+        '''
+        获取持仓盈亏\n
+        @id     策略id\n
+        @stdCode   合约代码\n
+        @return 指定持仓的浮动盈亏
+        '''
+        return self.api.hft_get_position_profit(id, bytes(stdCode, encoding = "utf8"))
+
     def hft_get_undone(self, id:int, code:str):
         '''
         获取持仓\n
@@ -793,7 +818,7 @@ class WtBtWrapper:
         '''
         return self.api.hft_cancel_all(id, bytes(stdCode, encoding = "utf8"), isBuy)
 
-    def hft_buy(self, id:int, stdCode:str, price:float, qty:float):
+    def hft_buy(self, id:int, stdCode:str, price:float, qty:float, userTag:str):
         '''
         买入指令\n
         @id         策略ID\n
@@ -801,9 +826,10 @@ class WtBtWrapper:
         @price      买入价格, 0为市价\n
         @qty        买入数量
         '''
-        return self.api.hft_buy(id, bytes(stdCode, encoding = "utf8"), price, qty)
+        idstr = self.api.hft_buy(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
+        return bytes.decode(idstr)
 
-    def hft_sell(self, id:int, stdCode:str, price:float, qty:float):
+    def hft_sell(self, id:int, stdCode:str, price:float, qty:float, userTag:str):
         '''
         卖出指令\n
         @id         策略ID\n
@@ -811,4 +837,5 @@ class WtBtWrapper:
         @price      卖出价格, 0为市价\n
         @qty        卖出数量
         '''
-        return self.api.hft_sell(id, bytes(stdCode, encoding = "utf8"), price, qty)
+        idstr = self.api.hft_sell(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
+        return bytes.decode(idstr)
