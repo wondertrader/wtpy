@@ -230,12 +230,3 @@ class WtBtEngine:
         @period 周期，一般使用d/m1/m5
         '''
         self.__wrapper__.dump_kline(code, period, filename)
-
-    def trans_mc_bars(self, csvFolder:str, binFolder:str, period:str):
-        '''
-        将MC导出的csv数据文件转换成wt格式\n
-        @csvFolder  csv文件目录\n
-        @binFolder  wt格式数据文件输出目录\n
-        @period     K线周期
-        '''
-        self.__wrapper__.trans_mc_bars(csvFolder, binFolder, period)

@@ -109,7 +109,7 @@ class BaseHftStrategy:
         '''
         return
 
-    def on_entrust(self, context:HftContext, localid:int, stdCode:str, bSucc:bool, msg:str):
+    def on_entrust(self, context:HftContext, localid:int, stdCode:str, bSucc:bool, msg:str, userTag:str):
         '''
         下单结果回报
         @context    策略上下文\n
@@ -120,7 +120,7 @@ class BaseHftStrategy:
         '''
         return
 
-    def on_order(self, context:HftContext, localid:int, stdCode:str, isBuy:bool, totalQty:float, leftQty:float, price:float, isCanceled:bool):
+    def on_order(self, context:HftContext, localid:int, stdCode:str, isBuy:bool, totalQty:float, leftQty:float, price:float, isCanceled:bool, userTag:str):
         '''
         订单回报
         @context    策略上下文\n
@@ -134,7 +134,7 @@ class BaseHftStrategy:
         '''
         return
 
-    def on_trade(self, context:HftContext, stdCode:str, isBuy:bool, qty:float, price:float):
+    def on_trade(self, context:HftContext, localid:int, stdCode:str, isBuy:bool, qty:float, price:float, userTag:str):
         '''
         成交回报
         @context    策略上下文\n

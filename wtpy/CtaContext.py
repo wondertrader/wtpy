@@ -181,7 +181,7 @@ class CtaContext:
         @code   合约代码
         @count  要拉取的tick数量
         '''
-        self.__bar_cache__[code] = WtTickData(size=count)
+        self.__bar_cache__[code] = WtTickData(capacity=count)
         cnt = self.__wrapper__.cta_get_ticks(self.__id__, code, count)
         if cnt == 0:
             return None

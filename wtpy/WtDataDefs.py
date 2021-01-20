@@ -108,66 +108,41 @@ class WtKlineData:
         return ret
 
 class WtTickData:
-    def __init__(self, size:int):
-        self.size:int = size
-        self.count:int = 0
+    def __init__(self, capacity:int):
+        self.capacity:int = capacity
+        self.size:int = 0
 
-        self.times:np.ndarray = np.zeros(self.size, np.int64)
-        self.opens:np.ndarray = np.zeros(self.size)
-        self.highs:np.ndarray = np.zeros(self.size)
-        self.lows:np.ndarray = np.zeros(self.size)
-        self.prices:np.ndarray = np.zeros(self.size)
+        self.ticks = [None]*capacity
 
     def append_tick(self, newTick:dict):
-
-        pos = self.count
-        if pos == self.size:
-            self.times[:-1] = self.times[1:]
-            self.opens[:-1] = self.opens[1:]
-            self.highs[:-1] = self.highs[1:]
-            self.lows[:-1] = self.lows[1:]
-            self.prices[:-1] = self.prices[1:]
-
+        pos = self.size
+        if pos == self.capacity:
+            self.ticks[:-1] = self.ticks[1:]
             pos = -1
         else:
-            self.count += 1
-        self.times[pos] = newTick["time"]
-        self.opens[pos] = newTick["open"]
-        self.highs[pos] = newTick["high"]
-        self.lows[pos] = newTick["low"]
-        self.prices[pos] = newTick["price"]
+            self.size += 1
+
+        self.ticks[pos] = newTick
 
     def is_empty(self) -> bool:
-        return self.count==0
+        return self.size==0
+
+    def capacity(self) -> int:
+        return self.capacity
+
+    def size(self) -> int:
+        return self.size
 
     def clear(self):
-        self.count = 0
-
-        self.times = np.zeros(self.size, np.int64)
-        self.opens = np.zeros(self.size)
-        self.highs = np.zeros(self.size)
-        self.lows = np.zeros(self.size)
-        self.prices = np.zeros(self.size)
+        self.size = 0
+        self.ticks = []*self.capacity
 
     def get_tick(self, iLoc:int=-1) -> dict:
         if self.is_empty():
             return None
 
-        lastTick = dict()
-        lastTick["time"] = self.times[iLoc]
-        lastTick["open"] = self.opens[iLoc]
-        lastTick["high"] = self.highs[iLoc]
-        lastTick["low"] = self.lows[iLoc]
-        lastTick["price"] = self.prices[iLoc]
-        return lastTick
+        return self.ticks[iLoc]
 
     def to_df(self) -> DataFrame:
-        ret = DataFrame({
-            "time":self.times,
-            "open":self.opens,
-            "high":self.highs,
-            "low":self.lows,
-            "price":self.prices
-        })
-        ret.set_index(self.times)
+        ret = DataFrame(self.ticks)
         return ret
