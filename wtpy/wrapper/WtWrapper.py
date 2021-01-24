@@ -213,6 +213,63 @@ def on_hftstra_entrust(id, localid, stdCode, bSucc, message, userTag):
     ctx = engine.get_context(id)
     ctx.on_entrust(localid, stdCode, bSucc, message, userTag)
 
+def on_hftstra_order_queue(id, stdCode, newOrdQue:POINTER(WTSOrdQueStruct)):
+    engine = theEngine
+    ctx = engine.get_context()
+    newOrdQue = newOrdQue.contents
+    # curBar = dict()
+    # if period[0] == 'd':
+    #     curBar["time"] = newOrdQue.date
+    # else:
+    #     curBar["time"] = 1990*100000000 + newOrdQue.time
+    # curBar["bartime"] = curBar["time"]
+    # curBar["open"] = newOrdQue.open
+    # curBar["high"] = newOrdQue.high
+    # curBar["low"] = newOrdQue.low
+    # curBar["close"] = newOrdQue.close
+    # curBar["volumn"] = newOrdQue.vol
+    # if ctx is not None:
+    #     ctx.on_bar(bytes.decode(code), period, curBar)
+    return
+
+def on_hftstra_order_detail(id, stdCode, newOrdDtl:POINTER(WTSOrdDtlStruct)):
+    engine = theEngine
+    ctx = engine.get_context()
+    newOrdDtl = newOrdDtl.contents
+    # curBar = dict()
+    # if period[0] == 'd':
+    #     curBar["time"] = newOrdQue.date
+    # else:
+    #     curBar["time"] = 1990*100000000 + newOrdQue.time
+    # curBar["bartime"] = curBar["time"]
+    # curBar["open"] = newOrdQue.open
+    # curBar["high"] = newOrdQue.high
+    # curBar["low"] = newOrdQue.low
+    # curBar["close"] = newOrdQue.close
+    # curBar["volumn"] = newOrdQue.vol
+    # if ctx is not None:
+    #     ctx.on_bar(bytes.decode(code), period, curBar)
+    return
+
+def on_hftstra_transaction(id, stdCode, newTrans:POINTER(WTSTransStruct)):
+    engine = theEngine
+    ctx = engine.get_context()
+    newTrans = newTrans.contents
+    # curBar = dict()
+    # if period[0] == 'd':
+    #     curBar["time"] = newOrdQue.date
+    # else:
+    #     curBar["time"] = 1990*100000000 + newOrdQue.time
+    # curBar["bartime"] = curBar["time"]
+    # curBar["open"] = newOrdQue.open
+    # curBar["high"] = newOrdQue.high
+    # curBar["low"] = newOrdQue.low
+    # curBar["close"] = newOrdQue.close
+    # curBar["volumn"] = newOrdQue.vol
+    # if ctx is not None:
+    #     ctx.on_bar(bytes.decode(code), period, curBar)
+    return
+
 '''
 将回调函数转换成C接口识别的函数类型
 ''' 
@@ -225,6 +282,10 @@ cb_stra_bar = CB_STRATEGY_BAR(on_stra_bar)
 cb_stra_get_bar = CB_STRATEGY_GET_BAR(on_stra_get_bar)
 cb_stra_get_tick = CB_STRATEGY_GET_TICK(on_stra_get_tick)
 cb_stra_get_position = CB_STRATEGY_GET_POSITION(on_stra_get_position)
+
+cb_hftstra_ordque = CB_STRATEGY_TICK(on_hftstra_order_queue)
+cb_hftstra_orddtl = CB_STRATEGY_TICK(on_hftstra_order_detail)
+cb_hftstra_trans = CB_STRATEGY_TICK(on_hftstra_transaction)
 
 cb_hftstra_chnl_evt = CB_HFTSTRA_CHNL_EVT(on_hftstra_channel_evt)
 cb_hftstra_order = CB_HFTSTRA_ORD(on_hftstra_order)
@@ -335,7 +396,9 @@ class WtWrapper:
         theEngine = engine
         try:
             self.api.register_evt_callback(cb_engine_event)
-            self.api.register_hft_callbacks(cb_stra_init, cb_stra_tick, cb_stra_bar, cb_hftstra_chnl_evt, cb_hftstra_order, cb_hftstra_trade, cb_hftstra_entrust)
+            self.api.register_hft_callbacks(cb_stra_init, cb_stra_tick, cb_stra_bar, cb_hftstra_chnl_evt, 
+                cb_hftstra_order, cb_hftstra_trade, cb_hftstra_entrust,
+                cb_hftstra_orddtl, cb_hftstra_ordque, cb_hftstra_trans)
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
@@ -819,6 +882,30 @@ class WtWrapper:
         @stdCode    品种代码
         '''
         self.api.hft_sub_ticks(id, bytes(stdCode, encoding = "utf8"))
+
+    def hft_sub_order_queue(self, id:int, stdCode:str):
+        '''
+        订阅实时委托队列数据\n
+        @id         策略ID\n
+        @stdCode    品种代码
+        '''
+        self.api.hft_sub_order_queue(id, bytes(stdCode, encoding = "utf8"))
+
+    def hft_sub_order_detail(self, id:int, stdCode:str):
+        '''
+        订阅逐笔委托数据\n
+        @id         策略ID\n
+        @stdCode    品种代码
+        '''
+        self.api.hft_sub_order_detail(id, bytes(stdCode, encoding = "utf8"))
+
+    def hft_sub_transaction(self, id:int, stdCode:str):
+        '''
+        订阅逐笔成交数据\n
+        @id         策略ID\n
+        @stdCode    品种代码
+        '''
+        self.api.hft_sub_transaction(id, bytes(stdCode, encoding = "utf8"))
 
     def hft_cancel(self, id:int, localid:int):
         '''

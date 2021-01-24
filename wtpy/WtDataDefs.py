@@ -127,12 +127,6 @@ class WtTickData:
     def is_empty(self) -> bool:
         return self.size==0
 
-    def capacity(self) -> int:
-        return self.capacity
-
-    def size(self) -> int:
-        return self.size
-
     def clear(self):
         self.size = 0
         self.ticks = []*self.capacity

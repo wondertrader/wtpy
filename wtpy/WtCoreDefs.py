@@ -60,6 +60,63 @@ class WTSBarStruct(Structure):
                 ("diff", c_int32)]
     _pack_ = 1
 
+class WTSTransStruct(Structure):
+    '''
+    C接口传递的逐笔成交数据结构
+    '''
+    _fields_ = [("exchg", MAX_EXCHANGE_LENGTH),
+                ("code", MAX_INSTRUMENT_LENGTH),
+
+                ("trading_date", c_uint32),
+                ("action_date", c_uint32),
+                ("action_time", c_uint32),
+
+                ("index", c_uint32),
+                ("ttype", c_int32),
+                ("side", c_int32),
+
+                ("price", c_double),
+                ("volumn", c_uint32),
+                ("askorder", c_int32),
+                ("bidorder", c_int32)]
+    _pack_ = 1
+
+class WTSOrdQueStruct(Structure):
+    '''
+    C接口传递的委托队列数据结构
+    '''
+    _fields_ = [("exchg", MAX_EXCHANGE_LENGTH),
+                ("code", MAX_INSTRUMENT_LENGTH),
+
+                ("trading_date", c_uint32),
+                ("action_date", c_uint32),
+                ("action_time", c_uint32),
+
+                ("side", c_int32),
+                ("price", c_double),
+                ("order_items", c_uint32),
+                ("qsize", c_uint32),
+                ("volumns", c_uint32*50)]
+    _pack_ = 1
+
+class WTSOrdDtlStruct(Structure):
+    '''
+    C接口传递的委托明细数据结构
+    '''
+    _fields_ = [("exchg", MAX_EXCHANGE_LENGTH),
+                ("code", MAX_INSTRUMENT_LENGTH),
+
+                ("trading_date", c_uint32),
+                ("action_date", c_uint32),
+                ("action_time", c_uint32),
+
+                ("index", c_uint32),
+                ("side", c_int32),
+                ("price", c_double),
+                ("volumn", c_uint32),
+                ("otype", c_int32)]
+    _pack_ = 1
+
 
 # 回调函数定义
 
@@ -67,16 +124,28 @@ class WTSBarStruct(Structure):
 CB_STRATEGY_INIT = CFUNCTYPE(c_void_p, c_ulong) 
 #策略tick数据推送回调
 CB_STRATEGY_TICK = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTickStruct))
+#策略获取tick数据的单条tick同步回调
+CB_STRATEGY_GET_TICK = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTickStruct), c_bool)
 #策略重算回调(CTA/SEL策略)
 CB_STRATEGY_CALC = CFUNCTYPE(c_void_p, c_ulong)
 #策略订阅的K线闭合事件回调
 CB_STRATEGY_BAR = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_char_p, POINTER(WTSBarStruct))
 #策略获取K线数据的单条K线同步回调
 CB_STRATEGY_GET_BAR = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_char_p, POINTER(WTSBarStruct), c_bool)
-#策略获取tick数据的单条tick同步回调
-CB_STRATEGY_GET_TICK = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTickStruct), c_bool)
 #策略获取全部持仓的同步回调
 CB_STRATEGY_GET_POSITION = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_double, c_bool)
+#策略委托队列推送回调
+CB_STRATEGY_ORDQUE = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdQueStruct))
+#策略获取委托队列数据的单条数据同步回调
+CB_STRATEGY_GET_ORDQUE = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdQueStruct), c_bool)
+#策略委托明细推送回调
+CB_STRATEGY_ORDDTL = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdDtlStruct))
+#策略获取委托明细数据的单条数据同步回调
+CB_STRATEGY_GET_ORDDTL = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdDtlStruct), c_bool)
+#策略成交明细推送回调
+CB_STRATEGY_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct))
+#策略获取成交明细数据的单条数据同步回调
+CB_STRATEGY_GET_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct), c_bool)
 
 #引擎事件回调(交易日开启结束等)
 CB_ENGINE_EVENT = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_ulong)
