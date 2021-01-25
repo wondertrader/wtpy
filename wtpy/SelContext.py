@@ -4,7 +4,7 @@ import os
 import json
 
 from wtpy.wrapper import WtWrapper
-from wtpy.WtDataDefs import WtKlineData, WtTickData
+from wtpy.WtDataDefs import WtKlineData, WtHftData
 
 class SelContext:
     '''
@@ -130,13 +130,13 @@ class SelContext:
 
         return df_bars
 
-    def stra_get_ticks(self, code:str, count:int) -> WtTickData:
+    def stra_get_ticks(self, code:str, count:int) -> WtHftData:
         '''
         获取tick数据
         @code   合约代码
         @count  要拉取的tick数量
         '''
-        self.__bar_cache__[code] = WtTickData(capacity=count)
+        self.__bar_cache__[code] = WtHftData(capacity=count)
         cnt = self.__wrapper__.cta_get_ticks(self.__id__, code, count)
         if cnt == 0:
             return None

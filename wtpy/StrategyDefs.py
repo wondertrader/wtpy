@@ -72,16 +72,39 @@ class BaseHftStrategy:
         '''
         return
 
-
-
     def on_tick(self, context:HftContext, stdCode:str, newTick:dict):
         '''
-        逐笔数据进来时调用\n
-        生产环境中，每笔行情进来就直接调用\n
-        回测环境中，是模拟的逐笔数据\n
+        Tick数据进来时调用\n
         @context    策略运行上下文\n
         @stdCode    合约代码\n
-        @newTick    最新逐笔
+        @newTick    最新Tick
+        '''
+        return
+
+    def on_order_detail(self, context:HftContext, stdCode:str, newOrdQue:dict):
+        '''
+        逐笔委托数据进来时调用\n
+        @context    策略运行上下文\n
+        @stdCode    合约代码\n
+        @newOrdQue  最新逐笔委托
+        '''
+        return
+
+    def on_order_queue(self, context:HftContext, stdCode:str, newOrdQue:dict):
+        '''
+        委托队列数据进来时调用\n
+        @context    策略运行上下文\n
+        @stdCode    合约代码\n
+        @newOrdQue  最新委托队列
+        '''
+        return
+
+    def on_transaction(self, context:HftContext, stdCode:str, newTrans:dict):
+        '''
+        逐笔成交数据进来时调用\n
+        @context    策略运行上下文\n
+        @stdCode    合约代码\n
+        @newTrans   最新逐笔成交
         '''
         return
 

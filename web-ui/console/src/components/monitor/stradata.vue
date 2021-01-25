@@ -129,7 +129,7 @@
                             width="80">
                         </el-table-column>
                         <el-table-column
-                            prop="volumn"
+                            prop="volume"
                             label="数量"
                             width="80">
                         </el-table-column>
@@ -638,7 +638,7 @@ export default {
                             self.$alert("查询持仓出错：" + resObj.message, "查询失败");
                         } else {
                             resObj.positions.forEach((pItem)=>{
-                                pItem.qty = pItem.volumn*(pItem.long?1:-1);
+                                pItem.qty = pItem.volume*(pItem.long?1:-1);
                             })
                             self.positions = resObj.positions;
                         }
