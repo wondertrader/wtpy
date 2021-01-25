@@ -43,7 +43,7 @@ class HftContext:
         ticks = self.__tick_cache__[key]
             
         if curTick is not None:          
-            ticks.append_tick(curTick)
+            ticks.append_item(curTick)
 
     def on_getbars(self, code:str, period:str, curBar:dict, isLast:bool):
         key = "%s#%s" % (code, period)
@@ -54,11 +54,11 @@ class HftContext:
             bars.append_bar(curBar)
 
 
-    def on_tick(self, code:str, newTick:dict):
-        self.__stra_info__.on_tick(self, code, newTick)
+    def on_tick(self, stdCode:str, newTick:dict):
+        self.__stra_info__.on_tick(self, stdCode, newTick)
 
     def on_order_queue(self, stdCode:str, newOrdQue:dict):
-        return
+        self.__stra_info__.on_order_queue(self, stdCode, newOrdQue)
 
     def on_get_order_queue(self, stdCode:str, curOrdQue:dict, isLast:bool):
         if curOrdQue is None:
@@ -69,10 +69,10 @@ class HftContext:
         items = self.__ordque_cache__[key]
             
         if curOrdQue is not None:          
-            items.append_tick(curOrdQue)
+            items.append_item(curOrdQue)
 
     def on_order_detail(self, stdCode:str, newOrdDtl:dict):
-        return
+        self.__stra_info__.on_order_detail(self, stdCode, newOrdDtl)
 
     def on_get_order_detail(self, stdCode:str, curOrdDtl:dict, isLast:bool):
         if curOrdDtl is None:
@@ -83,10 +83,10 @@ class HftContext:
         items = self.__orddtl_cache__[key]
             
         if curOrdDtl is not None:          
-            items.append_tick(curOrdDtl)
+            items.append_item(curOrdDtl)
 
     def on_transaction(self, stdCode:str, newTrans:dict):
-        return
+        self.__stra_info__.on_transaction(self, stdCode, newTrans)
 
     def on_get_transaction(self, stdCode:str, curTrans:dict, isLast:bool):
         if curTrans is None:
@@ -97,7 +97,7 @@ class HftContext:
         items = self.__trans_cache__[key]
             
         if curTrans is not None:          
-            items.append_tick(curTrans)
+            items.append_item(curTrans)
 
     def on_channel_ready(self):
         self.__stra_info__.on_channel_ready(self)

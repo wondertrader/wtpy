@@ -112,31 +112,31 @@ class WtHftData:
         self.capacity:int = capacity
         self.size:int = 0
 
-        self.ticks = [None]*capacity
+        self.items = [None]*capacity
 
-    def append_tick(self, newTick:dict):
+    def append_item(self, newItem:dict):
         pos = self.size
         if pos == self.capacity:
-            self.ticks[:-1] = self.ticks[1:]
+            self.items[:-1] = self.items[1:]
             pos = -1
         else:
             self.size += 1
 
-        self.ticks[pos] = newTick
+        self.items[pos] = newItem
 
     def is_empty(self) -> bool:
         return self.size==0
 
     def clear(self):
         self.size = 0
-        self.ticks = []*self.capacity
+        self.items = []*self.capacity
 
-    def get_tick(self, iLoc:int=-1) -> dict:
+    def get_item(self, iLoc:int=-1) -> dict:
         if self.is_empty():
             return None
 
-        return self.ticks[iLoc]
+        return self.items[iLoc]
 
     def to_df(self) -> DataFrame:
-        ret = DataFrame(self.ticks)
+        ret = DataFrame(self.items)
         return ret
