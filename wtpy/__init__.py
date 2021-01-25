@@ -6,7 +6,7 @@ from .WtEngine import WtEngine
 from .WtBtEngine import WtBtEngine
 from .WtDtEngine import WtDtEngine
 from .WtCoreDefs import WTSTickStruct,WTSBarStruct,EngineType
-from .WtDataDefs import WtKlineData,WtTickData
+from .WtDataDefs import WtKlineData,WtHftData
 from .ExtToolDefs import BaseDataReporter, BaseIndexWriter
 
 from wtpy.wrapper.WtExecApi import WtExecApi

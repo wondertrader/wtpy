@@ -359,7 +359,7 @@ class DataMgr:
                 "direction": cells[2],
                 "offset": cells[3],
                 "price": float(cells[4]),
-                "volumn": float(cells[5]),
+                "volume": float(cells[5]),
                 "tag": cells[6],
                 "fee": 0
             }
@@ -543,7 +543,7 @@ class DataMgr:
 
                 positions = json_data["positions"]
                 for pItem in positions:
-                    if pItem["volumn"] == 0.0:
+                    if pItem["volume"] == 0.0:
                         continue
 
                     for dItem in pItem["details"]:
@@ -568,7 +568,7 @@ class DataMgr:
 
                     positions = json_data["positions"]
                     for pItem in positions:
-                        if pItem["volumn"] == 0.0:
+                        if pItem["volume"] == 0.0:
                             continue
 
                         for dItem in pItem["details"]:
@@ -671,7 +671,7 @@ class DataMgr:
                 "time":int(cells[2]),
                 "code": cells[3],
                 "action": cells[4],
-                "volumn": float(cells[5]),
+                "volume": float(cells[5]),
                 "price": float(cells[6]),
                 "tradeid": cells[7],
                 "orderid": cells[8]

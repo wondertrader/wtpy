@@ -12,14 +12,14 @@ class WtKlineData:
             self.highs = np.zeros(self.size)
             self.lows = np.zeros(self.size)
             self.closes = np.zeros(self.size)
-            self.volumns = np.zeros(self.size)
+            self.volumes = np.zeros(self.size)
         else:
             self.bartimes = None
             self.opens = None
             self.highs = None
             self.lows = None
             self.closes = None
-            self.volumns = None
+            self.volumes = None
 
     def append_bar(self, newBar:dict):
 
@@ -30,7 +30,7 @@ class WtKlineData:
             self.highs[:-1] = self.highs[1:]
             self.lows[:-1] = self.lows[1:]
             self.closes[:-1] = self.closes[1:]
-            self.volumns[:-1] = self.volumns[1:]
+            self.volumes[:-1] = self.volumes[1:]
 
             pos = -1
         else:
@@ -40,7 +40,7 @@ class WtKlineData:
         self.highs[pos] = newBar["high"]
         self.lows[pos] = newBar["low"]
         self.closes[pos] = newBar["close"]
-        self.volumns[pos] = newBar["volumn"]
+        self.volumes[pos] = newBar["volume"]
 
     def is_empty(self) -> bool:
         return self.count==0
@@ -53,7 +53,7 @@ class WtKlineData:
         self.highs:np.ndarray = np.zeros(self.size)
         self.lows:np.ndarray = np.zeros(self.size)
         self.closes:np.ndarray = np.zeros(self.size)
-        self.volumns:np.ndarray = np.zeros(self.size)
+        self.volumes:np.ndarray = np.zeros(self.size)
 
     def get_bar(self, iLoc:int = -1) -> dict:
         if self.is_empty():
@@ -65,7 +65,7 @@ class WtKlineData:
         lastBar["high"] = self.highs[iLoc]
         lastBar["low"] = self.lows[iLoc]
         lastBar["close"] = self.closes[iLoc]
-        lastBar["volumn"] = self.volumns[iLoc]
+        lastBar["volume"] = self.volumes[iLoc]
 
         return lastBar
 
@@ -84,14 +84,14 @@ class WtKlineData:
             ret.highs = self.highs[iStart:iEnd].copy()
             ret.lows = self.lows[iStart:iEnd].copy()
             ret.closes = self.closes[iStart:iEnd].copy()
-            ret.volumns = self.volumns[iStart:iEnd].copy()
+            ret.volumes = self.volumes[iStart:iEnd].copy()
         else:
             ret.bartimes = bartimes
             ret.opens = self.opens[iStart:iEnd]
             ret.highs = self.highs[iStart:iEnd]
             ret.lows = self.lows[iStart:iEnd]
             ret.closes = self.closes[iStart:iEnd]
-            ret.volumns = self.volumns[iStart:iEnd]
+            ret.volumes = self.volumes[iStart:iEnd]
 
         return ret
 
@@ -102,12 +102,12 @@ class WtKlineData:
             "high":self.highs,
             "low":self.lows,
             "close":self.closes,
-            "volumn":self.volumns
+            "volume":self.volumes
         })
         ret.set_index(self.bartimes)
         return ret
 
-class WtTickData:
+class WtHftData:
     def __init__(self, capacity:int):
         self.capacity:int = capacity
         self.size:int = 0

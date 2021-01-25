@@ -1,8 +1,9 @@
 from ctypes import cdll, c_int, c_char_p, c_longlong, c_bool, c_void_p, c_ulong, c_uint, c_uint64, c_double, POINTER
 from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD
+from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
 from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST, CB_ENGINE_EVENT
-from wtpy.WtCoreDefs import WTSTickStruct,WTSBarStruct
+from wtpy.WtCoreDefs import WTSTickStruct,WTSBarStruct,WTSOrdQueStruct,WTSOrdDtlStruct,WTSTransStruct
 import platform
 import os
 import sys
@@ -61,11 +62,11 @@ def on_stra_tick(id, stdCode, newTick:POINTER(WTSTickStruct)):
     tick["askprice"] = list()
     tick["askqty"] = list()
 
-    tick["upper_limit"] = realTick.total_volumn
+    tick["upper_limit"] = realTick.total_volume
     tick["lower_limit"] = realTick.lower_limit
 
-    tick["total_volumn"] = realTick.total_volumn
-    tick["volumn"] = realTick.volumn
+    tick["total_volume"] = realTick.total_volume
+    tick["volume"] = realTick.volume
     tick["total_turnover"] = realTick.total_turnover
     tick["turn_over"] = realTick.turn_over
     tick["open_interest"] = realTick.open_interest
@@ -106,7 +107,7 @@ def on_stra_bar(id, stdCode, period, newBar:POINTER(WTSBarStruct)):
     curBar["high"] = newBar.high
     curBar["low"] = newBar.low
     curBar["close"] = newBar.close
-    curBar["volumn"] = newBar.vol
+    curBar["volume"] = newBar.vol
     if ctx is not None:
         ctx.on_bar(bytes.decode(stdCode), period, curBar)
     return
@@ -142,7 +143,7 @@ def on_stra_get_bar(id, stdCode, period, curBar, isLast):
         bar["high"] = realBar.high
         bar["low"] = realBar.low
         bar["close"] = realBar.close
-        bar["volumn"] = realBar.vol
+        bar["volume"] = realBar.vol
 
     if ctx is not None:
         ctx.on_getbars(stdCode, period, bar, isLast)
@@ -214,61 +215,125 @@ def on_hftstra_entrust(id, localid, stdCode, bSucc, message, userTag):
     ctx.on_entrust(localid, stdCode, bSucc, message, userTag)
 
 def on_hftstra_order_queue(id, stdCode, newOrdQue:POINTER(WTSOrdQueStruct)):
+    stdCode = bytes.decode(stdCode)
     engine = theEngine
-    ctx = engine.get_context()
+    ctx = engine.get_context(id)
     newOrdQue = newOrdQue.contents
-    # curBar = dict()
-    # if period[0] == 'd':
-    #     curBar["time"] = newOrdQue.date
-    # else:
-    #     curBar["time"] = 1990*100000000 + newOrdQue.time
-    # curBar["bartime"] = curBar["time"]
-    # curBar["open"] = newOrdQue.open
-    # curBar["high"] = newOrdQue.high
-    # curBar["low"] = newOrdQue.low
-    # curBar["close"] = newOrdQue.close
-    # curBar["volumn"] = newOrdQue.vol
-    # if ctx is not None:
-    #     ctx.on_bar(bytes.decode(code), period, curBar)
-    return
+    curOrdQue = dict()
+    curOrdQue["time"] = newOrdQue.action_date * 1000000000 + newOrdQue.action_time
+    curOrdQue["side"] = newOrdQue.side
+    curOrdQue["price"] = newOrdQue.price
+    curOrdQue["order_items"] = newOrdQue.order_items
+    curOrdQue["qsize"] = newOrdQue.qsize
+    curOrdQue["volumes"] = list()
 
-def on_hftstra_order_detail(id, stdCode, newOrdDtl:POINTER(WTSOrdDtlStruct)):
+    for i in range(50):
+        if newOrdQue.volumes[i] == 0:
+            break
+        else:
+            curOrdQue["volumes"].append(newOrdQue.volumes[i])
+    
+    if ctx is not None:
+        ctx.on_order_queue(stdCode, curOrdQue)
+
+def on_hftstra_get_order_queue(id, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct), isLast:bool):
     engine = theEngine
-    ctx = engine.get_context()
+    ctx = engine.get_context(id)
+    realOrdQue = None
+    if newOrdQue:
+        realOrdQue = newOrdQue.contents
+    
+    if realOrdQue is not None:
+        curOrdQue = dict()
+        curOrdQue["time"] = realOrdQue.action_date * 1000000000 + realOrdQue.action_time
+        curOrdQue["side"] = realOrdQue.side
+        curOrdQue["price"] = realOrdQue.price
+        curOrdQue["order_items"] = realOrdQue.order_items
+        curOrdQue["qsize"] = realOrdQue.qsize
+        curOrdQue["volumes"] = list()
+
+        for i in range(50):
+            if realOrdQue.volumes[i] == 0:
+                break
+            else:
+                curOrdQue["volumes"].append(realOrdQue.volumes[i])
+        
+        if ctx is not None:
+            ctx.on_get_order_queue(bytes.decode(stdCode), curOrdQue, isLast)
+
+def on_hftstra_order_detail(id, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct)):
+    engine = theEngine
+    ctx = engine.get_context(id)
     newOrdDtl = newOrdDtl.contents
-    # curBar = dict()
-    # if period[0] == 'd':
-    #     curBar["time"] = newOrdQue.date
-    # else:
-    #     curBar["time"] = 1990*100000000 + newOrdQue.time
-    # curBar["bartime"] = curBar["time"]
-    # curBar["open"] = newOrdQue.open
-    # curBar["high"] = newOrdQue.high
-    # curBar["low"] = newOrdQue.low
-    # curBar["close"] = newOrdQue.close
-    # curBar["volumn"] = newOrdQue.vol
-    # if ctx is not None:
-    #     ctx.on_bar(bytes.decode(code), period, curBar)
-    return
+
+    curOrdDtl = dict()
+    curOrdDtl["time"] = newOrdDtl.action_date * 1000000000 + newOrdDtl.action_time
+    curOrdDtl["index"] = newOrdDtl.index
+    curOrdDtl["side"] = newOrdDtl.side
+    curOrdDtl["price"] = newOrdDtl.price
+    curOrdDtl["volume"] = newOrdDtl.volume
+    curOrdDtl["otype"] = newOrdDtl.otype
+    
+    if ctx is not None:
+        ctx.on_order_detail(stdCode, curOrdDtl)
+
+def on_hftstra_get_order_detail(id, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct), isLast:bool):
+    engine = theEngine
+    ctx = engine.get_context(id)
+    realOrdDtl = None
+    if newOrdDtl:
+        realOrdDtl = newOrdDtl.contents
+    
+    if realOrdDtl is not None:
+        curOrdDtl = dict()
+        curOrdDtl["time"] = realOrdDtl.action_date * 1000000000 + realOrdDtl.action_time
+        curOrdDtl["index"] = realOrdDtl.index
+        curOrdDtl["side"] = realOrdDtl.side
+        curOrdDtl["price"] = realOrdDtl.price
+        curOrdDtl["volume"] = realOrdDtl.volume
+        curOrdDtl["otype"] = realOrdDtl.otype
+        
+        if ctx is not None:
+            ctx.on_get_order_detail(bytes.decode(stdCode), curOrdDtl, isLast)
 
 def on_hftstra_transaction(id, stdCode, newTrans:POINTER(WTSTransStruct)):
     engine = theEngine
-    ctx = engine.get_context()
+    ctx = engine.get_context(id)
     newTrans = newTrans.contents
-    # curBar = dict()
-    # if period[0] == 'd':
-    #     curBar["time"] = newOrdQue.date
-    # else:
-    #     curBar["time"] = 1990*100000000 + newOrdQue.time
-    # curBar["bartime"] = curBar["time"]
-    # curBar["open"] = newOrdQue.open
-    # curBar["high"] = newOrdQue.high
-    # curBar["low"] = newOrdQue.low
-    # curBar["close"] = newOrdQue.close
-    # curBar["volumn"] = newOrdQue.vol
-    # if ctx is not None:
-    #     ctx.on_bar(bytes.decode(code), period, curBar)
-    return
+
+    curTrans = dict()
+    curTrans["time"] = newTrans.action_date * 1000000000 + newTrans.action_time
+    curTrans["index"] = newTrans.index
+    curTrans["ttype"] = newTrans.ttype
+    curTrans["side"] = newTrans.side
+    curTrans["price"] = newTrans.price
+    curTrans["volume"] = newTrans.volume
+    curTrans["askorder"] = newTrans.askorder
+    curTrans["bidorder"] = newTrans.bidorder
+    
+    if ctx is not None:
+        ctx.on_transaction(stdCode, curTrans)
+    
+def on_hftstra_get_transaction(id, stdCode:str, newTrans:POINTER(WTSTransStruct), isLast:bool):
+    engine = theEngine
+    ctx = engine.get_context(id)
+    realTrans = None
+    if newTrans:
+        realTrans = newTrans.contents
+    
+    if realTrans is not None:
+        curTrans = dict()
+        curTrans["time"] = realTrans.action_date * 1000000000 + realTrans.action_time
+        curTrans["index"] = realTrans.index
+        curTrans["ttype"] = realTrans.ttype
+        curTrans["side"] = realTrans.side
+        curTrans["price"] = realTrans.price
+        curTrans["volume"] = realTrans.volume
+        curTrans["askorder"] = realTrans.askorder
+        curTrans["bidorder"] = realTrans.bidorder
+        
+        if ctx is not None:
+            ctx.on_get_transaction(bytes.decode(stdCode), curTrans, isLast)
 
 '''
 将回调函数转换成C接口识别的函数类型
@@ -283,9 +348,12 @@ cb_stra_get_bar = CB_STRATEGY_GET_BAR(on_stra_get_bar)
 cb_stra_get_tick = CB_STRATEGY_GET_TICK(on_stra_get_tick)
 cb_stra_get_position = CB_STRATEGY_GET_POSITION(on_stra_get_position)
 
-cb_hftstra_ordque = CB_STRATEGY_TICK(on_hftstra_order_queue)
-cb_hftstra_orddtl = CB_STRATEGY_TICK(on_hftstra_order_detail)
-cb_hftstra_trans = CB_STRATEGY_TICK(on_hftstra_transaction)
+cb_hftstra_ordque = CB_HFTSTRA_ORDQUE(on_hftstra_order_queue)
+cb_hftstra_get_ordque = CB_HFTSTRA_GET_ORDQUE(on_hftstra_order_queue)
+cb_hftstra_orddtl = CB_HFTSTRA_ORDDTL(on_hftstra_order_detail)
+cb_hftstra_get_orddtl = CB_HFTSTRA_GET_ORDDTL(on_hftstra_order_queue)
+cb_hftstra_trans = CB_HFTSTRA_TRANS(on_hftstra_transaction)
+cb_hftstra_get_trans = CB_HFTSTRA_GET_TRANS(on_hftstra_order_queue)
 
 cb_hftstra_chnl_evt = CB_HFTSTRA_CHNL_EVT(on_hftstra_channel_evt)
 cb_hftstra_order = CB_HFTSTRA_ORD(on_hftstra_order)
@@ -792,6 +860,33 @@ class WtWrapper:
         @count  条数\n
         '''
         return self.api.hft_get_ticks(id, bytes(stdCode, encoding = "utf8"), count, cb_stra_get_tick)
+
+    def hft_get_ordque(self, id:int, code:str, count:int):
+        '''
+        读取委托队列\n
+        @id     策略id\n
+        @code   合约代码\n
+        @count  条数\n
+        '''
+        return self.api.hft_get_ordque(id, bytes(code, encoding = "utf8"), count, cb_hftstra_get_ordque)
+
+    def hft_get_orddtl(self, id:int, code:str, count:int):
+        '''
+        读取逐笔委托\n
+        @id     策略id\n
+        @code   合约代码\n
+        @count  条数\n
+        '''
+        return self.api.hft_get_orddtl(id, bytes(code, encoding = "utf8"), count, cb_hftstra_get_orddtl)
+
+    def hft_get_trans(self, id:int, code:str, count:int):
+        '''
+        读取逐笔成交\n
+        @id     策略id\n
+        @code   合约代码\n
+        @count  条数\n
+        '''
+        return self.api.hft_get_trans(id, bytes(code, encoding = "utf8"), count, cb_hftstra_get_trans)
 
     def hft_save_user_data(self, id:int, key:str, val:str):
         '''

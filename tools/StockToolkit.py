@@ -200,7 +200,7 @@ class StockToolkit:
                     isNewFile = False
 
                 f = open(csvpath, 'w')
-                f.write("date, time, open, high, low, close, volumn\n")
+                f.write("date, time, open, high, low, close, volume\n")
 
                 for idx, row in df_bars.iterrows():
                     f.write(datetime.datetime.strptime(str(row["date"]), '%Y-%m-%d').strftime("%Y/%m/%d") + ", ")
@@ -225,7 +225,7 @@ class StockToolkit:
                     isNewFile = False
 
                 f = open(csvpath, 'w')
-                f.write("date, time, open, high, low, close, volumn\n")
+                f.write("date, time, open, high, low, close, volume\n")
 
                 for idx, row in df_bars.iterrows():
                     curDt = datetime.datetime.strptime(str(row["date"]), '%Y-%m-%d %H:%M')
@@ -281,7 +281,7 @@ class StockToolkit:
             else:
                 csvpath = (folder + 'day/%s/%sQ.csv') % (exchg, rawcode[2:])
             f = open(csvpath, 'w+')
-            f.write("date, time, open, high, low, close, volumn, turnover\n")
+            f.write("date, time, open, high, low, close, volume, turnover\n")
 
             for idx in range(1,len(lines)):
                 line = lines[-idx].strip()

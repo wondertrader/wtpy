@@ -109,7 +109,7 @@
                             width="80">
                         </el-table-column>
                         <el-table-column
-                            prop="volumn"
+                            prop="volume"
                             label="数量"
                             width="80">
                         </el-table-column>

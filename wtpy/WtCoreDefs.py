@@ -4,7 +4,7 @@ from ctypes import Structure, c_char, c_int32, c_uint16, c_uint32, c_uint64
 MAX_INSTRUMENT_LENGTH = c_char*32
 MAX_EXCHANGE_LENGTH = c_char*10
 PriceQueueType = c_double*10
-VolumnQueueType = c_uint32*10
+VolumeQueueType = c_uint32*10
 
 class WTSTickStruct(Structure):
     '''
@@ -21,8 +21,8 @@ class WTSTickStruct(Structure):
                 ("upper_limit", c_double),
                 ("lower_limit", c_double),
 
-                ("total_volumn", c_uint32),
-                ("volumn", c_uint32),
+                ("total_volume", c_uint32),
+                ("volume", c_uint32),
                 ("total_turnover", c_double),
                 ("turn_over", c_double),
                 ("open_interest", c_uint32),
@@ -38,8 +38,8 @@ class WTSTickStruct(Structure):
 
                 ("bid_prices", PriceQueueType),
                 ("ask_prices", PriceQueueType),
-                ("bid_qty", VolumnQueueType),
-                ("ask_qty", VolumnQueueType)]
+                ("bid_qty", VolumeQueueType),
+                ("ask_qty", VolumeQueueType)]
     _pack_ = 1
 
 
@@ -76,7 +76,7 @@ class WTSTransStruct(Structure):
                 ("side", c_int32),
 
                 ("price", c_double),
-                ("volumn", c_uint32),
+                ("volume", c_uint32),
                 ("askorder", c_int32),
                 ("bidorder", c_int32)]
     _pack_ = 1
@@ -96,7 +96,7 @@ class WTSOrdQueStruct(Structure):
                 ("price", c_double),
                 ("order_items", c_uint32),
                 ("qsize", c_uint32),
-                ("volumns", c_uint32*50)]
+                ("volumes", c_uint32*50)]
     _pack_ = 1
 
 class WTSOrdDtlStruct(Structure):
@@ -113,7 +113,7 @@ class WTSOrdDtlStruct(Structure):
                 ("index", c_uint32),
                 ("side", c_int32),
                 ("price", c_double),
-                ("volumn", c_uint32),
+                ("volume", c_uint32),
                 ("otype", c_int32)]
     _pack_ = 1
 
@@ -134,18 +134,6 @@ CB_STRATEGY_BAR = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_char_p, POINTER(WTSBa
 CB_STRATEGY_GET_BAR = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_char_p, POINTER(WTSBarStruct), c_bool)
 #策略获取全部持仓的同步回调
 CB_STRATEGY_GET_POSITION = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_double, c_bool)
-#策略委托队列推送回调
-CB_STRATEGY_ORDQUE = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdQueStruct))
-#策略获取委托队列数据的单条数据同步回调
-CB_STRATEGY_GET_ORDQUE = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdQueStruct), c_bool)
-#策略委托明细推送回调
-CB_STRATEGY_ORDDTL = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdDtlStruct))
-#策略获取委托明细数据的单条数据同步回调
-CB_STRATEGY_GET_ORDDTL = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdDtlStruct), c_bool)
-#策略成交明细推送回调
-CB_STRATEGY_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct))
-#策略获取成交明细数据的单条数据同步回调
-CB_STRATEGY_GET_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct), c_bool)
 
 #引擎事件回调(交易日开启结束等)
 CB_ENGINE_EVENT = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_ulong)
@@ -158,6 +146,19 @@ CB_HFTSTRA_ORD = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_doubl
 CB_HFTSTRA_TRD = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_double, c_double, c_char_p)
 #HFT策略下单结果回报
 CB_HFTSTRA_ENTRUST = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_char_p, c_char_p)
+
+#策略委托队列推送回调
+CB_HFTSTRA_ORDQUE = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdQueStruct))
+#策略获取委托队列数据的单条数据同步回调
+CB_HFTSTRA_GET_ORDQUE = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdQueStruct), c_bool)
+#策略委托明细推送回调
+CB_HFTSTRA_ORDDTL = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdDtlStruct))
+#策略获取委托明细数据的单条数据同步回调
+CB_HFTSTRA_GET_ORDDTL = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdDtlStruct), c_bool)
+#策略成交明细推送回调
+CB_HFTSTRA_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct))
+#策略获取成交明细数据的单条数据同步回调
+CB_HFTSTRA_GET_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct), c_bool)
 
 
 EVENT_ENGINE_INIT	= 1     #框架初始化

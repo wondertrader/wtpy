@@ -4,7 +4,7 @@ import os
 import json
 
 from wtpy.wrapper import WtWrapper
-from wtpy.WtDataDefs import WtKlineData, WtTickData
+from wtpy.WtDataDefs import WtKlineData, WtHftData
 
 class HftContext:
     '''
@@ -22,6 +22,9 @@ class HftContext:
         self.__id__ = id                #策略ID
         self.__bar_cache__ = dict()     #K线缓存
         self.__tick_cache__ = dict()    #Tick缓存,每次都重新去拉取,这个只做中转用,不在python里维护副本
+        self.__ordque_cache__ = dict()  #委托队列缓存，用法同__tick_cache__
+        self.__orddtl_cache__ = dict()  #逐笔委托缓存，用法同__tick_cache__
+        self.__trans_cache__ = dict()   #逐笔成交缓存，用法同__tick_cache__
         self.__sname__ = stra.name()    
         self.__engine__ = engine          #交易环境
 
@@ -51,8 +54,50 @@ class HftContext:
             bars.append_bar(curBar)
 
 
-    def on_tick(self, code:str, newTick):
+    def on_tick(self, code:str, newTick:dict):
         self.__stra_info__.on_tick(self, code, newTick)
+
+    def on_order_queue(self, stdCode:str, newOrdQue:dict):
+        return
+
+    def on_get_order_queue(self, stdCode:str, curOrdQue:dict, isLast:bool):
+        if curOrdQue is None:
+            return
+
+        key = stdCode
+
+        items = self.__ordque_cache__[key]
+            
+        if curOrdQue is not None:          
+            items.append_tick(curOrdQue)
+
+    def on_order_detail(self, stdCode:str, newOrdDtl:dict):
+        return
+
+    def on_get_order_detail(self, stdCode:str, curOrdDtl:dict, isLast:bool):
+        if curOrdDtl is None:
+            return
+
+        key = stdCode
+
+        items = self.__orddtl_cache__[key]
+            
+        if curOrdDtl is not None:          
+            items.append_tick(curOrdDtl)
+
+    def on_transaction(self, stdCode:str, newTrans:dict):
+        return
+
+    def on_get_transaction(self, stdCode:str, curTrans:dict, isLast:bool):
+        if curTrans is None:
+            return
+
+        key = stdCode
+
+        items = self.__trans_cache__[key]
+            
+        if curTrans is not None:          
+            items.append_tick(curTrans)
 
     def on_channel_ready(self):
         self.__stra_info__.on_channel_ready(self)
@@ -150,19 +195,61 @@ class HftContext:
 
         return df_bars
 
-    def stra_get_ticks(self, code:str, count:int) -> WtTickData:
+    def stra_get_ticks(self, code:str, count:int) -> WtHftData:
         '''
         获取tick数据
         @code   合约代码
         @count  要拉取的tick数量
         '''
-        self.__tick_cache__[code] = WtTickData(capacity=count)
+        self.__tick_cache__[code] = WtHftData(capacity=count)
         cnt = self.__wrapper__.hft_get_ticks(self.__id__, code, count)
         if cnt == 0:
             return None
         
-        df_ticks = self.__tick_cache__[code]
-        return df_ticks
+        hftData = self.__tick_cache__[code]
+        return hftData
+
+    def stra_get_order_queue(self, code:str, count:int) -> WtHftData:
+        '''
+        获取委托队列数据
+        @code   合约代码
+        @count  要拉取的tick数量
+        '''
+        self.__ordque_cache__[code] = WtHftData(capacity=count)
+        cnt = self.__wrapper__.hft_get_ordque(self.__id__, code, count)
+        if cnt == 0:
+            return None
+        
+        hftData = self.__ordque_cache__[code]
+        return hftData
+
+    def stra_get_order_detail(self, code:str, count:int) -> WtHftData:
+        '''
+        获取逐笔委托数据
+        @code   合约代码
+        @count  要拉取的tick数量
+        '''
+        self.__orddtl_cache__[code] = WtHftData(capacity=count)
+        cnt = self.__wrapper__.hft_get_orddtl(self.__id__, code, count)
+        if cnt == 0:
+            return None
+        
+        hftData = self.__orddtl_cache__[code]
+        return hftData
+
+    def stra_get_transaction(self, code:str, count:int) -> WtHftData:
+        '''
+        获取逐笔成交数据
+        @code   合约代码
+        @count  要拉取的tick数量
+        '''
+        self.__trans_cache__[code] = WtHftData(capacity=count)
+        cnt = self.__wrapper__.hft_get_trans(self.__id__, code, count)
+        if cnt == 0:
+            return None
+        
+        hftData = self.__trans_cache__[code]
+        return hftData
 
     def stra_get_position(self, code:str = ""):
         '''
