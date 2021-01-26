@@ -101,6 +101,12 @@
 ### 0.5.4.1
 * WatchDog模块中修改了一周星期的序列，因为Python从周一到周天标记为0-6，而WonderTrader采用周天到周六为0-6
 
-### 0.5.5
+### 0.6.0
+* C++底层更新到2021/01/26发布的v0.6.0版本
 * CTA策略API新增一个stra_get_tdate，用于获取当前交易日
 * CTA策略API和SEL策略API各新增一个stra_get_all_position，用于获取全部的持仓数据
+* 完善了WtBtWrapper模块中对tick数据的处理
+* 完善了数据辅助模块WtDtHelper
+* 完善了跟C++底层新增的HFT接口的对接
+* 初步完成了跟C++底层新增的股票Level2数据访问接口的对接
+* 将WtDataDefs模块中的WtTickData改成WtHftData，作为高频数据的通用容器
