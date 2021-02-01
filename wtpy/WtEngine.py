@@ -70,7 +70,7 @@ class WtEngine:
         '''
         self.__writer__ = writer
 
-    def write_indicator(self, id, tag, time, data):
+    def write_indicator(self, id:str, tag:str, time:int, data:dict):
         '''
         写入指标数据
         '''
@@ -217,12 +217,12 @@ class WtEngine:
 
         self.__config__["traders"].append(tItem)
 
-    def getSessionByCode(self, code:str) -> SessionInfo:
+    def getSessionByCode(self, stdCode:str) -> SessionInfo:
         '''
         通过合约代码获取交易时间模板\n
-        @code   合约代码，格式如SHFE.rb.HOT
+        @stdCode   合约代码，格式如SHFE.rb.HOT
         '''
-        pid = CodeHelper.stdCodeToStdCommID(code)
+        pid = CodeHelper.stdCodeToStdCommID(stdCode)
         pInfo = self.productMgr.getProductInfo(pid)
         if pInfo is None:
             return None
@@ -236,21 +236,21 @@ class WtEngine:
         '''
         return self.sessionMgr.getSession(sname)
 
-    def getProductInfo(self, code:str) -> ProductInfo:
+    def getProductInfo(self, stdCode:str) -> ProductInfo:
         '''
         获取品种信息\n
-        @code   合约代码，格式如SHFE.rb.HOT
+        @stdCode   合约代码，格式如SHFE.rb.HOT
         '''
-        return self.productMgr.getProductInfo(code)
+        return self.productMgr.getProductInfo(stdCode)
 
-    def getContractInfo(self, code:str) -> ContractInfo:
+    def getContractInfo(self, stdCode:str) -> ContractInfo:
         '''
         获取品种信息\n
-        @code   合约代码，格式如SHFE.rb.HOT
+        @stdCode   合约代码，格式如SHFE.rb.HOT
         '''
-        return self.contractMgr.getContractInfo(code)
+        return self.contractMgr.getContractInfo(stdCode)
 
-    def getAllCodes(self):
+    def getAllCodes(self) -> list:
         '''
         获取全部合约代码
         '''

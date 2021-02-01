@@ -3,16 +3,16 @@ from pandas import DataFrame
 
 class WtKlineData:
     def __init__(self, size:int, bAlloc:bool = True):
-        self.size:int = size
+        self.capacity:int = size
         self.count:int = 0
 
         if bAlloc:
-            self.bartimes = np.zeros(self.size, np.int64)
-            self.opens = np.zeros(self.size)
-            self.highs = np.zeros(self.size)
-            self.lows = np.zeros(self.size)
-            self.closes = np.zeros(self.size)
-            self.volumes = np.zeros(self.size)
+            self.bartimes = np.zeros(self.capacity, np.int64)
+            self.opens = np.zeros(self.capacity)
+            self.highs = np.zeros(self.capacity)
+            self.lows = np.zeros(self.capacity)
+            self.closes = np.zeros(self.capacity)
+            self.volumes = np.zeros(self.capacity)
         else:
             self.bartimes = None
             self.opens = None
@@ -24,7 +24,7 @@ class WtKlineData:
     def append_bar(self, newBar:dict):
 
         pos = self.count
-        if pos == self.size:
+        if pos == self.capacity:
             self.bartimes[:-1] = self.bartimes[1:]
             self.opens[:-1] = self.opens[1:]
             self.highs[:-1] = self.highs[1:]
@@ -48,12 +48,12 @@ class WtKlineData:
     def clear(self):
         self.count = 0
 
-        self.bartimes:np.ndarray = np.zeros(self.size, np.int64)
-        self.opens:np.ndarray = np.zeros(self.size)
-        self.highs:np.ndarray = np.zeros(self.size)
-        self.lows:np.ndarray = np.zeros(self.size)
-        self.closes:np.ndarray = np.zeros(self.size)
-        self.volumes:np.ndarray = np.zeros(self.size)
+        self.bartimes:np.ndarray = np.zeros(self.capacity, np.int64)
+        self.opens:np.ndarray = np.zeros(self.capacity)
+        self.highs:np.ndarray = np.zeros(self.capacity)
+        self.lows:np.ndarray = np.zeros(self.capacity)
+        self.closes:np.ndarray = np.zeros(self.capacity)
+        self.volumes:np.ndarray = np.zeros(self.capacity)
 
     def get_bar(self, iLoc:int = -1) -> dict:
         if self.is_empty():

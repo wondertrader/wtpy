@@ -1,21 +1,10 @@
 from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p
-import platform
+from .PlatformHelper import PlatformHelper as ph
 import os
 
 CB_DTHELPER_LOG = CFUNCTYPE(c_void_p,  c_char_p)
 
-def isPythonX64():
-    ret = platform.architecture()
-    return (ret[0] == "64bit")
-
-
-def isWindows():
-    if "windows" in platform.system().lower():
-        return True
-
-    return False
-
-def on_log_output(message):
+def on_log_output(message:str):
     message = bytes.decode(message, "gbk")
     print(message)
 
@@ -33,8 +22,8 @@ class WtDataHelper:
     # 构造函数，传入动态库名
     def __init__(self):
         paths = os.path.split(__file__)
-        if isWindows():  # windows平台
-            if isPythonX64():
+        if ph.isWindows():  # windows平台
+            if ph.isPythonX64():
                 dllname = "x64/WtDtHelper.dll"
                 a = (paths[:-1] + (dllname,))
                 _path = os.path.join(*a)

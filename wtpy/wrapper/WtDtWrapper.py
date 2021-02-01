@@ -1,16 +1,6 @@
 from ctypes import cdll, c_int, c_char_p, c_longlong, c_bool, c_void_p, c_ulong, c_uint, c_uint64, c_double
-import platform
+from .PlatformHelper import PlatformHelper as ph
 import os
-
-def isPythonX64():
-    ret = platform.architecture()
-    return (ret[0] == "64bit")
-
-def isWindows():
-    if "windows" in platform.system().lower():
-        return True
-
-    return False
 
 # Python对接C接口的库
 class WtDtWrapper:
@@ -25,8 +15,8 @@ class WtDtWrapper:
     # 构造函数，传入动态库名
     def __init__(self):
         paths = os.path.split(__file__)
-        if isWindows(): #windows平台
-            if isPythonX64():
+        if ph.isWindows(): #windows平台
+            if ph.isPythonX64():
                 dllname = "x64/WtDtPorter.dll"
                 a = (paths[:-1] + (dllname,))
                 _path = os.path.join(*a)

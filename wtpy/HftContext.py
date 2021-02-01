@@ -16,7 +16,7 @@ class HftContext:
     3、下单接口（设置目标仓位、直接下单等）,接口格式如：stra_xxx\n
     '''
 
-    def __init__(self, id, stra, wrapper: WtWrapper, engine):
+    def __init__(self, id:int, stra, wrapper: WtWrapper, engine):
         self.__stra_info__ = stra       #策略对象,对象基类BaseStrategy.py
         self.__wrapper__ = wrapper      #底层接口转换器
         self.__id__ = id                #策略ID

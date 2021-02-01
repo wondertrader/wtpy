@@ -43,7 +43,7 @@ class ContractMgr:
                 key = "%s.%s" % (exchg, code)
                 self.__contracts__[key] = cInfo
 
-    def getContractInfo(self, stdCode):
+    def getContractInfo(self, stdCode:str) -> ContractInfo:
         if stdCode[-1] == 'Q':
             stdCode = stdCode[:-1]
         else:
@@ -55,7 +55,7 @@ class ContractMgr:
             
         return self.__contracts__[stdCode]
 
-    def getTotalCodes(self):
+    def getTotalCodes(self) -> list:
         codes = list()
         for code in self.__contracts__:
             codes.append(self.__contracts__[code].stdCode)

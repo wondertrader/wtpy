@@ -4,32 +4,21 @@ from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
 from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST
 from wtpy.WtCoreDefs import WTSTickStruct,WTSBarStruct,WTSOrdQueStruct,WTSOrdDtlStruct,WTSTransStruct
-import platform
+from .PlatformHelper import PlatformHelper as ph
 import os
-import sys
 
 theEngine = None
 
-def isPythonX64():
-    ret = platform.architecture()
-    return (ret[0] == "64bit")
-
-def isWindows():
-    if "windows" in platform.system().lower():
-        return True
-
-    return False
-
 #回调函数
-def on_strategy_init(id):
+def on_strategy_init(id:int):
     engine = theEngine
     ctx = engine.get_context()
     if ctx is not None:
         ctx.on_init()
     return
 
-def on_strategy_tick(id, code, newTick:POINTER(WTSTickStruct)):
-    code = bytes.decode(code)
+def on_strategy_tick(id:int, stdCode:str, newTick:POINTER(WTSTickStruct)):
+    stdCode = bytes.decode(stdCode)
     engine = theEngine
     ctx = engine.get_context()
 
@@ -63,17 +52,17 @@ def on_strategy_tick(id, code, newTick:POINTER(WTSTickStruct)):
             tick["askqty"].append(realTick.ask_qty[i])
 
     if ctx is not None:
-        ctx.on_tick(code, tick)
+        ctx.on_tick(stdCode, tick)
     return
 
-def on_strategy_calc(id):
+def on_strategy_calc(id:int):
     engine = theEngine
     ctx = engine.get_context()
     if ctx is not None:
         ctx.on_calculate()
     return
 
-def on_strategy_bar(id, code, period, newBar:POINTER(WTSBarStruct)):
+def on_strategy_bar(id:int, stdCode:str, period:str, newBar:POINTER(WTSBarStruct)):
     period = bytes.decode(period)
     engine = theEngine
     ctx = engine.get_context()
@@ -90,15 +79,15 @@ def on_strategy_bar(id, code, period, newBar:POINTER(WTSBarStruct)):
     curBar["close"] = newBar.close
     curBar["volume"] = newBar.vol
     if ctx is not None:
-        ctx.on_bar(bytes.decode(code), period, curBar)
+        ctx.on_bar(bytes.decode(stdCode), period, curBar)
     return
 
 
-def on_strategy_get_bar(id, code, period, curBar, isLast):
+def on_strategy_get_bar(id:int, stdCode:str, period:str, curBar:POINTER(WTSBarStruct), isLast:bool):
     '''
     获取K线回调，该回调函数因为是python主动发起的，需要同步执行，所以不走事件推送\n
     @id     策略id\n
-    @code   合约代码\n
+    @stdCode   合约代码\n
     @period K线周期\n
     @curBar 最新一条K线\n
     @isLast 是否是最后一条
@@ -126,14 +115,14 @@ def on_strategy_get_bar(id, code, period, curBar, isLast):
         bar["volume"] = realBar.vol
 
     if ctx is not None:
-        ctx.on_getbars(bytes.decode(code), period, bar, isLast)
+        ctx.on_getbars(bytes.decode(stdCode), period, bar, isLast)
     return
 
-def on_strategy_get_tick(id, code:str, curTick:POINTER(WTSTickStruct), isLast:bool):
+def on_strategy_get_tick(id:int, stdCode:str, curTick:POINTER(WTSTickStruct), isLast:bool):
     '''
     获取Tick回调，该回调函数因为是python主动发起的，需要同步执行，所以不走事件推送\n
     @id         策略id\n
-    @code       合约代码\n
+    @stdCode       合约代码\n
     @curTick    最新一笔Tick\n
     @isLast     是否是最后一条
     '''
@@ -175,16 +164,16 @@ def on_strategy_get_tick(id, code:str, curTick:POINTER(WTSTickStruct), isLast:bo
                 tick["askqty"].append(realTick.ask_qty[i])
 
     if ctx is not None:
-        ctx.on_getticks(bytes.decode(code), tick, isLast)
+        ctx.on_getticks(bytes.decode(stdCode), tick, isLast)
     return
 
-def on_stra_get_position(id, stdCode, qty, isLast):
+def on_stra_get_position(id:int, stdCode:str, qty:float, isLast:bool):
     engine = theEngine
     ctx = engine.get_context()
     if ctx is not None:
         ctx.on_getpositions(bytes.decode(stdCode), qty, isLast)
 
-def on_hftstra_channel_evt(id, trader, evtid):
+def on_hftstra_channel_evt(id:int, trader:str, evtid:int):
     engine = theEngine
     ctx = engine.get_context()
     
@@ -193,21 +182,21 @@ def on_hftstra_channel_evt(id, trader, evtid):
     elif evtid == CHNL_EVENT_LOST:
         ctx.on_channel_lost()
 
-def on_hftstra_order(id, localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag):
+def on_hftstra_order(id:int, localid, stdCode:str, isBuy:bool, totalQty:float, leftQty:float, price:float, isCanceled:bool, userTag:str):
     stdCode = bytes.decode(stdCode)
     userTag = bytes.decode(userTag)
     engine = theEngine
     ctx = engine.get_context()
     ctx.on_order(localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag)
 
-def on_hftstra_trade(id, localid, stdCode, isBuy, qty, price, userTag):
+def on_hftstra_trade(id:int, localid, stdCode:str, isBuy:bool, qty:float, price:float, userTag:str):
     stdCode = bytes.decode(stdCode)
     userTag = bytes.decode(userTag)
     engine = theEngine
     ctx = engine.get_context()
     ctx.on_trade(localid, stdCode, isBuy, qty, price, userTag)
 
-def on_hftstra_entrust(id, localid, stdCode, bSucc, message, userTag):
+def on_hftstra_entrust(id:int, localid, stdCode:str, bSucc:bool, message:str, userTag:str):
     stdCode = bytes.decode(stdCode)
     message = bytes.decode(message, "gbk")
     userTag = bytes.decode(userTag)
@@ -215,7 +204,7 @@ def on_hftstra_entrust(id, localid, stdCode, bSucc, message, userTag):
     ctx = engine.get_context()
     ctx.on_entrust(localid, stdCode, bSucc, message, userTag)
 
-def on_hftstra_order_queue(id, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct)):
+def on_hftstra_order_queue(id:int, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct)):
     stdCode = bytes.decode(stdCode)
     engine = theEngine
     ctx = engine.get_context()
@@ -238,7 +227,7 @@ def on_hftstra_order_queue(id, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct)):
         ctx.on_order_queue(stdCode, curOrdQue)
     return
 
-def on_hftstra_get_order_queue(id, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct), isLast:bool):
+def on_hftstra_get_order_queue(id:int, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct), isLast:bool):
     engine = theEngine
     ctx = engine.get_context()
     realOrdQue = None
@@ -263,7 +252,7 @@ def on_hftstra_get_order_queue(id, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruc
         if ctx is not None:
             ctx.on_get_order_queue(bytes.decode(stdCode), curOrdQue, isLast)
 
-def on_hftstra_order_detail(id, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct)):
+def on_hftstra_order_detail(id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct)):
     engine = theEngine
     ctx = engine.get_context()
     newOrdDtl = newOrdDtl.contents
@@ -279,7 +268,7 @@ def on_hftstra_order_detail(id, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct))
     if ctx is not None:
         ctx.on_order_detail(stdCode, curOrdDtl)
 
-def on_hftstra_get_order_detail(id, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct), isLast:bool):
+def on_hftstra_get_order_detail(id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct), isLast:bool):
     engine = theEngine
     ctx = engine.get_context()
     realOrdDtl = None
@@ -298,7 +287,7 @@ def on_hftstra_get_order_detail(id, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStru
         if ctx is not None:
             ctx.on_get_order_detail(bytes.decode(stdCode), curOrdDtl, isLast)
 
-def on_hftstra_transaction(id, stdCode, newTrans:POINTER(WTSTransStruct)):
+def on_hftstra_transaction(id:int, stdCode:str, newTrans:POINTER(WTSTransStruct)):
     engine = theEngine
     ctx = engine.get_context()
     newTrans = newTrans.contents
@@ -316,7 +305,7 @@ def on_hftstra_transaction(id, stdCode, newTrans:POINTER(WTSTransStruct)):
     if ctx is not None:
         ctx.on_transaction(stdCode, curTrans)
     
-def on_hftstra_get_transaction(id, stdCode:str, newTrans:POINTER(WTSTransStruct), isLast:bool):
+def on_hftstra_get_transaction(id:int, stdCode:str, newTrans:POINTER(WTSTransStruct), isLast:bool):
     engine = theEngine
     ctx = engine.get_context()
     realTrans = None
@@ -373,8 +362,8 @@ class WtBtWrapper:
     # 构造函数，传入动态库名
     def __init__(self):
         paths = os.path.split(__file__)
-        if isWindows(): #windows平台
-            if isPythonX64():
+        if ph.isWindows(): #windows平台
+            if ph.isPythonX64():
                 dllname = "x64/WtBtPorter.dll"
                 a = (paths[:-1] + (dllname,))
                 _path = os.path.join(*a)
@@ -489,7 +478,7 @@ class WtBtWrapper:
     def dump_kline(self, stdCode:str, period:str, filename:str):
         self.api.dump_bars(bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), bytes(filename, encoding = "utf8"))
         
-    def init_cta_mocker(self, name:str):
+    def init_cta_mocker(self, name:str) -> int:
         '''
         创建策略环境\n
         @name      策略名称
@@ -497,7 +486,7 @@ class WtBtWrapper:
         '''
         return self.api.init_cta_mocker(bytes(name, encoding = "utf8") )
 
-    def init_hft_mocker(self, name:str):
+    def init_hft_mocker(self, name:str) -> int:
         '''
         创建策略环境\n
         @name      策略名称
@@ -505,7 +494,7 @@ class WtBtWrapper:
         '''
         return self.api.init_hft_mocker(bytes(name, encoding = "utf8") )
 
-    def init_sel_mocker(self, name:str, date:int, time:int, period:str, trdtpl:str = "CHINA", session:str = "TRADING"):
+    def init_sel_mocker(self, name:str, date:int, time:int, period:str, trdtpl:str = "CHINA", session:str = "TRADING") -> int:
         '''
         创建策略环境\n
         @name      策略名称
@@ -516,79 +505,79 @@ class WtBtWrapper:
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''CTA接口'''
-    def cta_enter_long(self, id:int, code:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
+    def cta_enter_long(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         开多\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @qty    手数，大于等于0\n
         '''
-        self.api.cta_enter_long(id, bytes(code, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
+        self.api.cta_enter_long(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
-    def cta_exit_long(self, id:int, code:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
+    def cta_exit_long(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         平多\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @qty    手数，大于等于0\n
         '''
-        self.api.cta_exit_long(id, bytes(code, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
+        self.api.cta_exit_long(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
-    def cta_enter_short(self, id:int, code:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
+    def cta_enter_short(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         开空\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @qty    手数，大于等于0\n
         '''
-        self.api.cta_enter_short(id, bytes(code, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
+        self.api.cta_enter_short(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
-    def cta_exit_short(self, id:int, code:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
+    def cta_exit_short(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         平空\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @qty    手数，大于等于0\n
         '''
-        self.api.cta_exit_short(id, bytes(code, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
+        self.api.cta_exit_short(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
-    def cta_get_bars(self, id:int, code:str, period:str, count:int, isMain:bool):
+    def cta_get_bars(self, id:int, stdCode:str, period:str, count:int, isMain:bool):
         '''
         读取K线\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @period 周期，如m1/m3/d1等\n
         @count  条数\n
         @isMain 是否主K线
         '''
-        return self.api.cta_get_bars(id, bytes(code, encoding = "utf8"), bytes(period, encoding = "utf8"), count, isMain, cb_strategy_get_bar)
+        return self.api.cta_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, isMain, cb_strategy_get_bar)
 
-    def cta_get_ticks(self, id:int, code:str, count:int):
+    def cta_get_ticks(self, id:int, stdCode:str, count:int):
         '''
         读取Tick\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @count  条数\n
         '''
-        return self.api.cta_get_ticks(id, bytes(code, encoding = "utf8"), count, cb_strategy_get_tick)
+        return self.api.cta_get_ticks(id, bytes(stdCode, encoding = "utf8"), count, cb_strategy_get_tick)
 
-    def cta_get_position_profit(self, id:int, code:str):
+    def cta_get_position_profit(self, id:int, stdCode:str):
         '''
         获取浮动盈亏\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @return 指定合约的浮动盈亏
         '''
-        return self.api.cta_get_position_profit(id, bytes(code, encoding = "utf8"))
+        return self.api.cta_get_position_profit(id, bytes(stdCode, encoding = "utf8"))
 
-    def cta_get_position_avgpx(self, id:int, code:str):
+    def cta_get_position_avgpx(self, id:int, stdCode:str):
         '''
         获取持仓均价\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @return 指定合约的持仓均价
         '''
-        return self.api.cta_get_position_avgpx(id, bytes(code, encoding = "utf8"))
+        return self.api.cta_get_position_avgpx(id, bytes(stdCode, encoding = "utf8"))
 
     def cta_get_all_position(self, id:int):
         '''
@@ -597,31 +586,31 @@ class WtBtWrapper:
         '''
         return self.api.cta_get_all_position(id, cb_stra_get_position)
     
-    def cta_get_position(self, id:int, code:str, usertag:str = ""):
+    def cta_get_position(self, id:int, stdCode:str, usertag:str = ""):
         '''
         获取持仓\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @usertag    进场标记，如果为空则获取该合约全部持仓\n
         @return 指定合约的持仓手数，正为多，负为空
         '''
-        return self.api.cta_get_position(id, bytes(code, encoding = "utf8"), bytes(usertag, encoding = "utf8"))
+        return self.api.cta_get_position(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"))
 
-    def cta_get_price(self, code:str):
+    def cta_get_price(self, stdCode:str):
         '''
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @return 指定合约的最新价格 
         '''
-        return self.api.cta_get_price(bytes(code, encoding = "utf8"))
+        return self.api.cta_get_price(bytes(stdCode, encoding = "utf8"))
 
-    def cta_set_position(self, id:int, code:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
+    def cta_set_position(self, id:int, stdCode:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         设置目标仓位\n
         @id     策略id
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @qty    目标仓位，正为多，负为空
         '''
-        self.api.cta_set_position(id, bytes(code, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
+        self.api.cta_set_position(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
     def cta_get_date(self):
         '''
@@ -637,21 +626,21 @@ class WtBtWrapper:
         '''
         return self.api.cta_get_time()
 
-    def cta_get_first_entertime(self, id:int, code:str):
+    def cta_get_first_entertime(self, id:int, stdCode:str):
         '''
         获取当前持仓的首次进场时间\n
-        @code       合约代码\n
+        @stdCode       合约代码\n
         @return     进场时间，格式如201907260932 
         '''
-        return self.api.cta_get_first_entertime(id, bytes(code, encoding = "utf8"))
+        return self.api.cta_get_first_entertime(id, bytes(stdCode, encoding = "utf8"))
 
-    def cta_get_last_entertime(self, id:int, code:str):
+    def cta_get_last_entertime(self, id:int, stdCode:str):
         '''
         获取当前持仓的最后进场时间\n
-        @code       合约代码\n
+        @stdCode       合约代码\n
         @return     进场时间，格式如201907260932 
         '''
-        return self.api.cta_get_last_entertime(id, bytes(code, encoding = "utf8"))
+        return self.api.cta_get_last_entertime(id, bytes(stdCode, encoding = "utf8"))
 
     def cta_log_text(self, id:int, message:str):
         '''
@@ -661,36 +650,36 @@ class WtBtWrapper:
         '''
         self.api.cta_log_text(id, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
 
-    def cta_get_detail_entertime(self, id:int, code:str, usertag:str):
+    def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str):
         '''
         获取指定标记的持仓的进场时间\n
         @id         策略id\n
-        @code       合约代码\n
+        @stdCode       合约代码\n
         @usertag    进场标记\n
         @return     进场时间，格式如201907260932 
         '''
-        return self.api.cta_get_detail_entertime(id, bytes(code, encoding = "utf8"), bytes(usertag, encoding = "utf8")) 
+        return self.api.cta_get_detail_entertime(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8")) 
 
-    def cta_get_detail_cost(self, id:int, code:str, usertag:str):
+    def cta_get_detail_cost(self, id:int, stdCode:str, usertag:str):
         '''
         获取指定标记的持仓的开仓价\n
         @id         策略id\n
-        @code       合约代码\n
+        @stdCode       合约代码\n
         @usertag    进场标记\n
         @return     开仓价 
         '''
-        return self.api.cta_get_detail_cost(id, bytes(code, encoding = "utf8"), bytes(usertag, encoding = "utf8")) 
+        return self.api.cta_get_detail_cost(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8")) 
 
-    def cta_get_detail_profit(self, id:int, code:str, usertag:str, flag:int):
+    def cta_get_detail_profit(self, id:int, stdCode:str, usertag:str, flag:int):
         '''
         获取指定标记的持仓的盈亏\n
         @id         策略id\n
-        @code       合约代码\n
+        @stdCode       合约代码\n
         @usertag    进场标记\n
         @flag       盈亏记号，0-浮动盈亏，1-最大浮盈，2-最大亏损（负数）
         @return     盈亏 
         '''
-        return self.api.cta_get_detail_profit(id, bytes(code, encoding = "utf8"), bytes(usertag, encoding = "utf8"), flag) 
+        return self.api.cta_get_detail_profit(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"), flag) 
 
     def cta_save_user_data(self, id:int, key:str, val:str):
         '''
@@ -721,24 +710,24 @@ class WtBtWrapper:
     
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''SEL接口'''
-    def sel_get_bars(self, id:int, code:str, period:str, count:int):
+    def sel_get_bars(self, id:int, stdCode:str, period:str, count:int):
         '''
         读取K线\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @period 周期，如m1/m3/d1等\n
         @count  条数
         '''
-        return self.api.sel_get_bars(id, bytes(code, encoding = "utf8"), bytes(period, encoding = "utf8"), count, cb_strategy_get_bar)
+        return self.api.sel_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, cb_strategy_get_bar)
 
-    def sel_get_ticks(self, id:int, code:str, count:int):
+    def sel_get_ticks(self, id:int, stdCode:str, count:int):
         '''
         读取Tick\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @count  条数\n
         '''
-        return self.api.sel_get_ticks(id, bytes(code, encoding = "utf8"), count, cb_strategy_get_tick)
+        return self.api.sel_get_ticks(id, bytes(stdCode, encoding = "utf8"), count, cb_strategy_get_tick)
 
     def sel_save_user_data(self, id:int, key:str, val:str):
         '''
@@ -766,31 +755,31 @@ class WtBtWrapper:
         '''
         return self.api.sel_get_all_position(id, cb_stra_get_position)
 
-    def sel_get_position(self, id:int, code:str, usertag:str = ""):
+    def sel_get_position(self, id:int, stdCode:str, usertag:str = ""):
         '''
         获取持仓\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @usertag    进场标记，如果为空则获取该合约全部持仓\n
         @return 指定合约的持仓手数，正为多，负为空
         '''
-        return self.api.sel_get_position(id, bytes(code, encoding = "utf8"), bytes(usertag, encoding = "utf8"))
+        return self.api.sel_get_position(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"))
 
-    def sel_get_price(self, code:str):
+    def sel_get_price(self, stdCode:str):
         '''
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @return 指定合约的最新价格 
         '''
-        return self.api.sel_get_price(bytes(code, encoding = "utf8"))
+        return self.api.sel_get_price(bytes(stdCode, encoding = "utf8"))
 
-    def sel_set_position(self, id:int, code:str, qty:float, usertag:str = ""):
+    def sel_set_position(self, id:int, stdCode:str, qty:float, usertag:str = ""):
         '''
         设置目标仓位\n
         @id     策略id
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @qty    目标仓位，正为多，负为空
         '''
-        self.api.sel_set_position(id, bytes(code, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"))
+        self.api.sel_set_position(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"))
 
     def sel_get_date(self):
         '''
@@ -824,51 +813,51 @@ class WtBtWrapper:
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''HFT接口'''
-    def hft_get_bars(self, id:int, code:str, period:str, count:int):
+    def hft_get_bars(self, id:int, stdCode:str, period:str, count:int):
         '''
         读取K线\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @period 周期，如m1/m3/d1等\n
         @count  条数
         '''
-        return self.api.hft_get_bars(id, bytes(code, encoding = "utf8"), bytes(period, encoding = "utf8"), count, cb_strategy_get_bar)
+        return self.api.hft_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, cb_strategy_get_bar)
 
-    def hft_get_ticks(self, id:int, code:str, count:int):
+    def hft_get_ticks(self, id:int, stdCode:str, count:int):
         '''
         读取Tick\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @count  条数\n
         '''
-        return self.api.hft_get_ticks(id, bytes(code, encoding = "utf8"), count, cb_strategy_get_tick)
+        return self.api.hft_get_ticks(id, bytes(stdCode, encoding = "utf8"), count, cb_strategy_get_tick)
 
-    def hft_get_ordque(self, id:int, code:str, count:int):
+    def hft_get_ordque(self, id:int, stdCode:str, count:int):
         '''
         读取委托队列\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @count  条数\n
         '''
-        return self.api.hft_get_ordque(id, bytes(code, encoding = "utf8"), count, cb_hftstra_get_ordque)
+        return self.api.hft_get_ordque(id, bytes(stdCode, encoding = "utf8"), count, cb_hftstra_get_ordque)
 
-    def hft_get_orddtl(self, id:int, code:str, count:int):
+    def hft_get_orddtl(self, id:int, stdCode:str, count:int):
         '''
         读取逐笔委托\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @count  条数\n
         '''
-        return self.api.hft_get_orddtl(id, bytes(code, encoding = "utf8"), count, cb_hftstra_get_orddtl)
+        return self.api.hft_get_orddtl(id, bytes(stdCode, encoding = "utf8"), count, cb_hftstra_get_orddtl)
 
-    def hft_get_trans(self, id:int, code:str, count:int):
+    def hft_get_trans(self, id:int, stdCode:str, count:int):
         '''
         读取逐笔成交\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @count  条数\n
         '''
-        return self.api.hft_get_trans(id, bytes(code, encoding = "utf8"), count, cb_hftstra_get_trans)
+        return self.api.hft_get_trans(id, bytes(stdCode, encoding = "utf8"), count, cb_hftstra_get_trans)
 
     def hft_save_user_data(self, id:int, key:str, val:str):
         '''
@@ -889,14 +878,14 @@ class WtBtWrapper:
         ret = self.api.hft_load_userdata(id, bytes(key, encoding = "utf8"), bytes(defVal, encoding = "utf8"))
         return bytes.decode(ret)
 
-    def hft_get_position(self, id:int, code:str):
+    def hft_get_position(self, id:int, stdCode:str):
         '''
         获取持仓\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @return 指定合约的持仓手数，正为多，负为空
         '''
-        return self.api.hft_get_position(id, bytes(code, encoding = "utf8"))
+        return self.api.hft_get_position(id, bytes(stdCode, encoding = "utf8"))
 
     def hft_get_position_profit(self, id:int, stdCode:str):
         '''
@@ -907,21 +896,21 @@ class WtBtWrapper:
         '''
         return self.api.hft_get_position_profit(id, bytes(stdCode, encoding = "utf8"))
 
-    def hft_get_undone(self, id:int, code:str):
+    def hft_get_undone(self, id:int, stdCode:str):
         '''
         获取持仓\n
         @id     策略id\n
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @return 指定合约的持仓手数，正为多，负为空
         '''
-        return self.api.hft_get_undone(id, bytes(code, encoding = "utf8"))
+        return self.api.hft_get_undone(id, bytes(stdCode, encoding = "utf8"))
 
-    def hft_get_price(self, code:str):
+    def hft_get_price(self, stdCode:str):
         '''
-        @code   合约代码\n
+        @stdCode   合约代码\n
         @return 指定合约的最新价格 
         '''
-        return self.api.hft_get_price(bytes(code, encoding = "utf8"))
+        return self.api.hft_get_price(bytes(stdCode, encoding = "utf8"))
 
     def hft_get_date(self):
         '''

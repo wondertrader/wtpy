@@ -16,7 +16,7 @@ class CtaContext:
     3、下单接口（设置目标仓位、直接下单等），接口格式如：stra_xxx\n
     '''
 
-    def __init__(self, id, stra, wrapper: WtWrapper, engine):
+    def __init__(self, id:int, stra, wrapper: WtWrapper, engine):
         self.__stra_info__ = stra   #策略对象，对象基类BaseStrategy.py
         self.__wrapper__ = wrapper  #底层接口转换器
         self.__id__ = id            #策略ID
@@ -26,7 +26,7 @@ class CtaContext:
         self.__engine__ = engine          #交易环境
         self.__pos_cache__ = None
 
-    def write_indicator(self, tag, time, data):
+    def write_indicator(self, tag:str, time:int, data:dict):
         '''
         输出指标数据
         @tag    指标标签
@@ -41,8 +41,8 @@ class CtaContext:
         '''
         self.__stra_info__.on_init(self)
 
-    def on_getticks(self, code:str, curTick:dict, isLast:bool):
-        key = code
+    def on_getticks(self, stdCode:str, curTick:dict, isLast:bool):
+        key = stdCode
 
         ticks = self.__tick_cache__[key]
             
@@ -54,27 +54,27 @@ class CtaContext:
             return
         self.__pos_cache__[stdCode] = qty
 
-    def on_getbars(self, code:str, period:str, curBar:dict, isLast:bool):
-        key = "%s#%s" % (code, period)
+    def on_getbars(self, stdCode:str, period:str, curBar:dict, isLast:bool):
+        key = "%s#%s" % (stdCode, period)
 
         bars = self.__bar_cache__[key]
             
         if curBar is not None:          
             bars.append_bar(curBar)
 
-    def on_tick(self, code:str, newTick):
-        self.__stra_info__.on_tick(self, code, newTick)
+    def on_tick(self, stdCode:str, newTick):
+        self.__stra_info__.on_tick(self, stdCode, newTick)
 
 
-    def on_bar(self, code:str, period:str, newBar:dict):
+    def on_bar(self, stdCode:str, period:str, newBar:dict):
         '''
         K线闭合事件响应
-        @code   品种代码
-        @period K线基础周期
-        @times  周期倍数
-        @newBar 最新K线
+        @stdCode   品种代码
+        @period     K线基础周期
+        @times      周期倍数
+        @newBar     最新K线
         '''        
-        key = "%s#%s" % (code, period)
+        key = "%s#%s" % (stdCode, period)
 
         if key not in self.__bar_cache__:
             return
@@ -82,7 +82,7 @@ class CtaContext:
         try:
             self.__bar_cache__[key].append_bar(newBar)
             self.__bar_cache__[key].closed = True
-            self.__stra_info__.on_bar(self, code, period, newBar)
+            self.__stra_info__.on_bar(self, stdCode, period, newBar)
         except ValueError as ve:
             print(ve)
         else:
@@ -113,21 +113,21 @@ class CtaContext:
         '''
         return self.__wrapper__.cta_get_date()
 
-    def stra_get_position_avgpx(self, code:str = ""):
+    def stra_get_position_avgpx(self, stdCode:str = ""):
         '''
         获取当前持仓均价\n
-        @code   合约代码
+        @stdCode   合约代码
         @return 持仓均价
         '''
-        return self.__wrapper__.cta_get_position_avgpx(self.__id__, code)
+        return self.__wrapper__.cta_get_position_avgpx(self.__id__, stdCode)
 
-    def stra_get_position_profit(self, code:str = ""):
+    def stra_get_position_profit(self, stdCode:str = ""):
         '''
         获取持仓浮动盈亏
-        @code   合约代码，为None时读取全部品种的浮动盈亏
+        @stdCode   合约代码，为None时读取全部品种的浮动盈亏
         @return 浮动盈亏
         '''
-        return self.__wrapper__.cta_get_position_profit(self.__id__, code)
+        return self.__wrapper__.cta_get_position_profit(self.__id__, stdCode)
 
     def stra_get_time(self):
         '''
@@ -136,12 +136,12 @@ class CtaContext:
         '''
         return self.__wrapper__.cta_get_time()
 
-    def stra_get_price(self, code):
+    def stra_get_price(self, stdCode:str):
         '''
         获取最新价格，一般在获取了K线以后再获取该价格
         @return 最新价格
         '''
-        return self.__wrapper__.cta_get_price(code)
+        return self.__wrapper__.cta_get_price(stdCode)
 
     def stra_get_all_position(self):
         '''
@@ -151,22 +151,22 @@ class CtaContext:
         self.__wrapper__.cta_get_all_position(self.__id__)
         return self.__pos_cache__
 
-    def stra_get_bars(self, code:str, period:str, count:int, isMain:bool = False) -> WtKlineData:
+    def stra_get_bars(self, stdCode:str, period:str, count:int, isMain:bool = False) -> WtKlineData:
         '''
         获取历史K线
-        @code   合约代码
+        @stdCode   合约代码
         @period K线周期，如m3/d7
         @count  要拉取的K线条数
         @isMain 是否是主K线
         '''
-        key = "%s#%s" % (code, period)
+        key = "%s#%s" % (stdCode, period)
 
         if key in self.__bar_cache__:
             #这里做一个数据长度处理
             return self.__bar_cache__[key]
 
         self.__bar_cache__[key] = WtKlineData(size=count)
-        cnt =  self.__wrapper__.cta_get_bars(self.__id__, code, period, count, isMain)
+        cnt =  self.__wrapper__.cta_get_bars(self.__id__, stdCode, period, count, isMain)
         if cnt == 0:
             return None
 
@@ -175,102 +175,102 @@ class CtaContext:
 
         return df_bars
 
-    def stra_get_ticks(self, code:str, count:int) -> WtHftData:
+    def stra_get_ticks(self, stdCode:str, count:int) -> WtHftData:
         '''
         获取tick数据
-        @code   合约代码
+        @stdCode   合约代码
         @count  要拉取的tick数量
         '''
-        self.__tick_cache__[code] = WtHftData(capacity=count)
-        cnt = self.__wrapper__.cta_get_ticks(self.__id__, code, count)
+        self.__tick_cache__[stdCode] = WtHftData(capacity=count)
+        cnt = self.__wrapper__.cta_get_ticks(self.__id__, stdCode, count)
         if cnt == 0:
             return None
         
-        df_ticks = self.__tick_cache__[code]
+        df_ticks = self.__tick_cache__[stdCode]
         return df_ticks
 
-    def stra_sub_ticks(self, code:str):
+    def stra_sub_ticks(self, stdCode:str):
         '''
         订阅实时行情\n
         获取K线和tick数据的时候会自动订阅，这里只需要订阅额外要检测的品种即可\n
-        @code   合约代码
+        @stdCode   合约代码
         '''
-        self.__wrapper__.cta_sub_ticks(code)
+        self.__wrapper__.cta_sub_ticks(stdCode)
 
-    def stra_get_position(self, code:str = "", usertag:str = ""):
+    def stra_get_position(self, stdCode:str = "", usertag:str = ""):
         '''
         读取当前仓位\n
-        @code       合约/股票代码\n
+        @stdCode       合约/股票代码\n
         @usertag    入场标记
         @return     正为多仓，负为空仓
         '''
-        return self.__wrapper__.cta_get_position(self.__id__, code, usertag)
+        return self.__wrapper__.cta_get_position(self.__id__, stdCode, usertag)
 
-    def stra_set_position(self, code:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
+    def stra_set_position(self, stdCode:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         设置仓位\n
-        @code   合约/股票代码\n
+        @stdCode   合约/股票代码\n
         @qty    目标仓位，正为多仓，负为空仓\n
         @return 设置结果TRUE/FALSE
         '''
-        self.__wrapper__.cta_set_position(self.__id__, code, qty, usertag, limitprice, stopprice)
+        self.__wrapper__.cta_set_position(self.__id__, stdCode, qty, usertag, limitprice, stopprice)
         
 
-    def stra_enter_long(self, code:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
+    def stra_enter_long(self, stdCode:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         多仓进场，如果有空仓，则平空再开多\n
-        @code   品种代码\n
+        @stdCode   品种代码\n
         @qty    数量\n
         @limitprice 限价，默认为0\n
         @stopprice  止价，默认为0
         '''
-        self.__wrapper__.cta_enter_long(self.__id__, code, qty, usertag, limitprice, stopprice)
+        self.__wrapper__.cta_enter_long(self.__id__, stdCode, qty, usertag, limitprice, stopprice)
 
-    def stra_exit_long(self, code:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
+    def stra_exit_long(self, stdCode:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         多仓出场，如果剩余多仓不够，则全部平掉即可\n
-        @code   品种代码\n
+        @stdCode   品种代码\n
         @qty    数量\n
         @limitprice 限价，默认为0\n
         @stopprice  止价，默认为0
         '''
-        self.__wrapper__.cta_exit_long(self.__id__, code, qty, usertag, limitprice, stopprice)
+        self.__wrapper__.cta_exit_long(self.__id__, stdCode, qty, usertag, limitprice, stopprice)
 
-    def stra_enter_short(self, code:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
+    def stra_enter_short(self, stdCode:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         空仓进场，如果有多仓，则平多再开空\n
-        @code   品种代码\n
+        @stdCode   品种代码\n
         @qty    数量\n
         @limitprice 限价，默认为0\n
         @stopprice  止价，默认为0
         '''
-        self.__wrapper__.cta_enter_short(self.__id__, code, qty, usertag, limitprice, stopprice)
+        self.__wrapper__.cta_enter_short(self.__id__, stdCode, qty, usertag, limitprice, stopprice)
 
-    def stra_exit_short(self, code:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
+    def stra_exit_short(self, stdCode:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         空仓出场，如果剩余空仓不够，则全部平掉即可\n
-        @code   品种代码\n
+        @stdCode   品种代码\n
         @qty    数量\n
         @limitprice 限价，默认为0\n
         @stopprice  止价，默认为0
         '''
-        self.__wrapper__.cta_exit_short(self.__id__, code, qty, usertag, limitprice, stopprice)
+        self.__wrapper__.cta_exit_short(self.__id__, stdCode, qty, usertag, limitprice, stopprice)
 
-    def stra_get_last_entrytime(self, code:str):
+    def stra_get_last_entrytime(self, stdCode:str):
         '''
         获取当前持仓最后一次进场时间\n
-        @code   品种代码\n
+        @stdCode   品种代码\n
         @return 返回最后一次开仓的时间，格式如201903121047
         '''
-        return self.__wrapper__.cta_get_last_entertime(self.__id__, code)
+        return self.__wrapper__.cta_get_last_entertime(self.__id__, stdCode)
 
-    def stra_get_first_entrytime(self, code:str):
+    def stra_get_first_entrytime(self, stdCode:str):
         '''
         获取当前持仓第一次进场时间\n
-        @code   品种代码\n
+        @stdCode   品种代码\n
         @return 返回最后一次开仓的时间，格式如201903121047
         '''
-        return self.__wrapper__.cta_get_first_entertime(self.__id__, code)
+        return self.__wrapper__.cta_get_first_entertime(self.__id__, stdCode)
 
 
     def user_save_data(self, key:str, val):
@@ -294,50 +294,50 @@ class CtaContext:
 
         return vType(ret)
 
-    def stra_get_detail_profit(self, code:str, usertag:str, flag:int = 0):
+    def stra_get_detail_profit(self, stdCode:str, usertag:str, flag:int = 0):
         '''
         获取指定标记的持仓的盈亏
-        @code       合约代码\n
+        @stdCode       合约代码\n
         @usertag    进场标记\n
         @flag       盈亏记号，0-浮动盈亏，1-最大浮盈，2-最大亏损（负数）
         @return     盈亏 
         '''
-        return self.__wrapper__.cta_get_detail_profit(self.__id__, code, usertag, flag)
+        return self.__wrapper__.cta_get_detail_profit(self.__id__, stdCode, usertag, flag)
 
-    def stra_get_detail_cost(self, code:str, usertag:str):
+    def stra_get_detail_cost(self, stdCode:str, usertag:str):
         '''
         获取指定标记的持仓的开仓价
-        @code       合约代码\n
+        @stdCode       合约代码\n
         @usertag    进场标记\n
         @return     开仓价 
         '''
-        return self.__wrapper__.cta_get_detail_cost(self.__id__, code, usertag)
+        return self.__wrapper__.cta_get_detail_cost(self.__id__, stdCode, usertag)
 
-    def stra_get_detail_entertime(self, code:str, usertag:str):
+    def stra_get_detail_entertime(self, stdCode:str, usertag:str):
         '''
         获取指定标记的持仓的进场时间\n
-        @code       合约代码\n
+        @stdCode       合约代码\n
         @usertag    进场标记\n
         @return     进场时间，格式如201907260932 
         '''
-        return self.__wrapper__.cta_get_detail_entertime(self.__id__, code, usertag)
+        return self.__wrapper__.cta_get_detail_entertime(self.__id__, stdCode, usertag)
 
-    def stra_get_comminfo(self, code:str):
+    def stra_get_comminfo(self, stdCode:str):
         '''
         获取品种详情\n
-        @code   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag\n
+        @stdCode   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag\n
         @return 品种信息，结构请参考ProductMgr中的ProductInfo
         '''
         if self.__engine__ is None:
             return None
-        return self.__engine__.getProductInfo(code)
+        return self.__engine__.getProductInfo(stdCode)
 
-    def stra_get_sessinfo(self, code:str):
+    def stra_get_sessinfo(self, stdCode:str):
         '''
         获取交易时段详情\n
-        @code   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag\n
+        @stdCode   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag\n
         @return 品种信息，结构请参考SessionMgr中的SessionInfo
         '''
         if self.__engine__ is None:
             return None
-        return self.__engine__.getSessionByCode(code)
+        return self.__engine__.getSessionByCode(stdCode)

@@ -190,7 +190,7 @@ class SessionMgr:
             self.__sessions__[sid] = sInfo
 
 
-    def getSession(self, sid:int):
+    def getSession(self, sid:str) -> SessionInfo:
         if sid not in self.__sessions__:
             return None
 
