@@ -16,7 +16,7 @@ class SelContext:
     3、下单接口（设置目标仓位、直接下单等），接口格式如：stra_xxx\n
     '''
 
-    def __init__(self, id, stra, wrapper: WtWrapper, engine):
+    def __init__(self, id:int, stra, wrapper: WtWrapper, engine):
         self.__stra_info__ = stra   #策略对象，对象基类BaseStrategy.py
         self.__wrapper__ = wrapper  #底层接口转换器
         self.__id__ = id            #策略ID
@@ -41,8 +41,8 @@ class SelContext:
         '''
         self.__stra_info__.on_init(self)
 
-    def on_getticks(self, code:str, curTick:dict, isLast:bool):
-        key = code
+    def on_getticks(self, stdCode:str, curTick:dict, isLast:bool):
+        key = stdCode
 
         ticks = self.__tick_cache__[key]
             
@@ -54,18 +54,18 @@ class SelContext:
             return
         self.__pos_cache__[stdCode] = qty
 
-    def on_getbars(self, code:str, period:str, curBar:dict, isLast:bool):
-        key = "%s#%s" % (code, period)
+    def on_getbars(self, stdCode:str, period:str, curBar:dict, isLast:bool):
+        key = "%s#%s" % (stdCode, period)
 
         bars = self.__bar_cache__[key]
             
         if curBar is not None:          
             bars.append_bar(curBar)
 
-    def on_tick(self, code:str, newTick):
-        self.__stra_info__.on_tick(self, code, newTick)
+    def on_tick(self, stdCode:str, newTick):
+        self.__stra_info__.on_tick(self, stdCode, newTick)
 
-    def on_bar(self, code:str, period:str, newBar:dict):
+    def on_bar(self, stdCode:str, period:str, newBar:dict):
         pass
 
     def on_calculate(self):
@@ -92,12 +92,12 @@ class SelContext:
         '''
         return self.__wrapper__.sel_get_time()
 
-    def stra_get_price(self, code):
+    def stra_get_price(self, stdCode):
         '''
         获取最新价格，一般在获取了K线以后再获取该价格
         @return 最新价格
         '''
-        return self.__wrapper__.sel_get_price(code)
+        return self.__wrapper__.sel_get_price(stdCode)
 
     def stra_get_all_position(self):
         '''
@@ -107,21 +107,21 @@ class SelContext:
         self.__wrapper__.sel_get_all_position(self.__id__)
         return self.__pos_cache__
 
-    def stra_get_bars(self, code:str, period:str, count:int) -> WtKlineData:
+    def stra_get_bars(self, stdCode:str, period:str, count:int) -> WtKlineData:
         '''
         获取历史K线
-        @code   合约代码
+        @stdCode   合约代码
         @period K线周期，如m3/d7
         @count  要拉取的K线条数
         '''
-        key = "%s#%s" % (code, period)
+        key = "%s#%s" % (stdCode, period)
 
         if key in self.__bar_cache__:
             #这里做一个数据长度处理
             return self.__bar_cache__[key]
 
         self.__bar_cache__[key] = WtKlineData(size=count)
-        cnt =  self.__wrapper__.sel_get_bars(self.__id__, code, period, count)
+        cnt =  self.__wrapper__.sel_get_bars(self.__id__, stdCode, period, count)
         if cnt == 0:
             return None
 
@@ -130,44 +130,44 @@ class SelContext:
 
         return df_bars
 
-    def stra_get_ticks(self, code:str, count:int) -> WtHftData:
+    def stra_get_ticks(self, stdCode:str, count:int) -> WtHftData:
         '''
         获取tick数据
-        @code   合约代码
+        @stdCode   合约代码
         @count  要拉取的tick数量
         '''
-        self.__bar_cache__[code] = WtHftData(capacity=count)
-        cnt = self.__wrapper__.cta_get_ticks(self.__id__, code, count)
+        self.__bar_cache__[stdCode] = WtHftData(capacity=count)
+        cnt = self.__wrapper__.cta_get_ticks(self.__id__, stdCode, count)
         if cnt == 0:
             return None
         
-        df_ticks = self.__tick_cache__[code]
+        df_ticks = self.__tick_cache__[stdCode]
         return df_ticks
 
-    def stra_sub_ticks(self, code:str):
+    def stra_sub_ticks(self, stdCode:str):
         '''
         订阅实时行情\n
-        @code   合约代码
+        @stdCode   合约代码
         '''
-        self.__wrapper__.cta_sub_ticks(code)
+        self.__wrapper__.cta_sub_ticks(stdCode)
 
-    def stra_get_position(self, code:str = "", usertag:str = "") -> float:
+    def stra_get_position(self, stdCode:str = "", usertag:str = "") -> float:
         '''
         读取当前仓位\n
-        @code       合约/股票代码\n
+        @stdCode       合约/股票代码\n
         @usertag    入场标记
         @return     正为多仓，负为空仓
         '''
-        return self.__wrapper__.sel_get_position(self.__id__, code, usertag)
+        return self.__wrapper__.sel_get_position(self.__id__, stdCode, usertag)
 
-    def stra_set_position(self, code:str, qty:float, usertag:str = ""):
+    def stra_set_position(self, stdCode:str, qty:float, usertag:str = ""):
         '''
         设置仓位\n
-        @code   合约/股票代码\n
+        @stdCode   合约/股票代码\n
         @qty    目标仓位，正为多仓，负为空仓\n
         @return 设置结果TRUE/FALSE
         '''
-        self.__wrapper__.sel_set_position(self.__id__, code, qty, usertag)
+        self.__wrapper__.sel_set_position(self.__id__, stdCode, qty, usertag)
         
     def user_save_data(self, key:str, val):
         '''
@@ -190,35 +190,35 @@ class SelContext:
 
         return vType(ret)
 
-    def stra_get_comminfo(self, code:str):
+    def stra_get_comminfo(self, stdCode:str):
         '''
         获取品种详情\n
-        @code   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag\n
+        @stdCode   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag\n
         @return 品种信息，结构请参考ProductMgr中的ProductInfo
         '''
         if self.__engine__ is None:
             return None
-        return self.__engine__.getProductInfo(code)
+        return self.__engine__.getProductInfo(stdCode)
 
-    def stra_get_sessioninfo(self, code:str):
+    def stra_get_sessioninfo(self, stdCode:str):
         '''
         获取品种详情\n
-        @code   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag\n
+        @stdCode   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag\n
         @return 品种信息，结构请参考ProductMgr中的ProductInfo
         '''
         if self.__engine__ is None:
             return None
-        return self.__engine__.getSessionByCode(code)
+        return self.__engine__.getSessionByCode(stdCode)
 
-    def stra_get_contract(self, code:str):
+    def stra_get_contract(self, stdCode:str):
         '''
         获取品种详情\n
-        @code   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag\n
+        @stdCode   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag\n
         @return 品种信息，结构请参考ProductMgr中的ProductInfo
         '''
         if self.__engine__ is None:
             return None
-        return self.__engine__.getContractInfo(code)
+        return self.__engine__.getContractInfo(stdCode)
 
     def stra_get_all_codes(self):
         if self.__engine__ is None:

@@ -6,9 +6,9 @@ from wtpy.StrategyDefs import BaseCtaStrategy, BaseSelStrategy, BaseHftStrategy
 from wtpy.ExtToolDefs import BaseIndexWriter
 from wtpy.WtCoreDefs import EngineType
 
-from .ProductMgr import ProductMgr
-from .SessionMgr import SessionMgr
-from .ContractMgr import ContractMgr
+from .ProductMgr import ProductMgr, ProductInfo
+from .SessionMgr import SessionMgr, SessionInfo
+from .ContractMgr import ContractMgr, ContractInfo
 
 from .CodeHelper import CodeHelper
 
@@ -141,7 +141,7 @@ class WtBtEngine:
         self.__wrapper__.config_backtest(cfgfile, False)
         self.__cfg_commited__ = True
 
-    def getSessionByCode(self, code:str):
+    def getSessionByCode(self, code:str) -> SessionInfo:
         '''
         通过合约代码获取交易时间模板\n
         @code   合约代码，格式如SHFE.rb.HOT
@@ -154,28 +154,28 @@ class WtBtEngine:
 
         return self.sessionMgr.getSession(pInfo.session)
 
-    def getSessionByName(self, sname:str):
+    def getSessionByName(self, sname:str) -> SessionInfo:
         '''
         通过模板名获取交易时间模板\n
         @sname  模板名
         '''
         return self.sessionMgr.getSession(sname)
 
-    def getProductInfo(self, code:str):
+    def getProductInfo(self, code:str) -> ProductInfo:
         '''
         获取品种信息\n
         @code   合约代码，格式如SHFE.rb.HOT
         '''
         return self.productMgr.getProductInfo(code)
 
-    def getContractInfo(self, code:str):
+    def getContractInfo(self, code:str) -> ContractInfo:
         '''
         获取品种信息\n
         @code   合约代码，格式如SHFE.rb.HOT
         '''
         return self.contractMgr.getContractInfo(code)
 
-    def getAllCodes(self):
+    def getAllCodes(self) -> list:
         '''
         获取全部合约代码
         '''

@@ -5,11 +5,11 @@ class BaseCtaStrategy:
     CTA策略基础类，所有的策略都从该类派生\n
     包含了策略的基本开发框架
     '''
-    def __init__(self, name):
+    def __init__(self, name:str):
         self.__name__ = name
         
     
-    def name(self):
+    def name(self) -> str:
         return self.__name__
 
 
@@ -56,11 +56,11 @@ class BaseHftStrategy:
     HFT策略基础类，所有的策略都从该类派生\n
     包含了策略的基本开发框架
     '''
-    def __init__(self, name):
+    def __init__(self, name:str):
         self.__name__ = name
         
     
-    def name(self):
+    def name(self) -> str:
         return self.__name__
 
 
@@ -173,11 +173,11 @@ class BaseSelStrategy:
     选股策略基础类，所有的多因子策略都从该类派生\n
     包含了策略的基本开发框架
     '''
-    def __init__(self, name):
+    def __init__(self, name:str):
         self.__name__ = name
         
     
-    def name(self):
+    def name(self) -> str:
         return self.__name__
 
 

@@ -1,18 +1,8 @@
-import platform
+from .PlatformHelper import PlatformHelper as ph
 import os
-import sys
 import subprocess
 import time
 
-def isPythonX64():
-    ret = platform.architecture()
-    return (ret[0] == "64bit")
-
-def isWindows():
-    if "windows" in platform.system().lower():
-        return True
-
-    return False
 
 class CTPLoader:
 
@@ -23,8 +13,8 @@ class CTPLoader:
 
         paths = os.path.split(__file__)
         exename = ''
-        if isWindows(): #windows平台
-            if isPythonX64():
+        if ph.isWindows(): #windows平台
+            if ph.isPythonX64():
                 exename = "x64/%s.exe" % (filename)
             else:
                 exename = "x86/%s.exe" % (filename)

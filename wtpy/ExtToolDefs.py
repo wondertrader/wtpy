@@ -19,7 +19,7 @@ class BaseIndexWriter:
     def __init__(self):
         return
 
-    def write_indicator(self, id, tag, time, data):
+    def write_indicator(self, id:str, tag:str, time:int, data:dict):
         '''
         将指标数据出\n
         @id     指标ID\n
