@@ -4,7 +4,7 @@ from pandas import DataFrame
 class WtKlineData:
     def __init__(self, size:int, bAlloc:bool = True):
         self.capacity:int = size
-        self.count:int = 0
+        self.size:int = 0
 
         if bAlloc:
             self.bartimes = np.zeros(self.capacity, np.int64)
@@ -23,7 +23,7 @@ class WtKlineData:
 
     def append_bar(self, newBar:dict):
 
-        pos = self.count
+        pos = self.size
         if pos == self.capacity:
             self.bartimes[:-1] = self.bartimes[1:]
             self.opens[:-1] = self.opens[1:]
@@ -34,7 +34,7 @@ class WtKlineData:
 
             pos = -1
         else:
-            self.count += 1
+            self.size += 1
         self.bartimes[pos] = newBar["bartime"]
         self.opens[pos] = newBar["open"]
         self.highs[pos] = newBar["high"]
@@ -43,10 +43,10 @@ class WtKlineData:
         self.volumes[pos] = newBar["volume"]
 
     def is_empty(self) -> bool:
-        return self.count==0
+        return self.size==0
 
     def clear(self):
-        self.count = 0
+        self.size = 0
 
         self.bartimes:np.ndarray = np.zeros(self.capacity, np.int64)
         self.opens:np.ndarray = np.zeros(self.capacity)
@@ -76,7 +76,7 @@ class WtKlineData:
         bartimes = self.bartimes[iStart:iEnd]
         cnt = len(bartimes)
         ret = WtKlineData(cnt, False)
-        ret.count = cnt
+        ret.size = cnt
 
         if bCopy:
             ret.bartimes = bartimes.copy()
