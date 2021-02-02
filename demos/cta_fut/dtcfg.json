@@ -14,7 +14,7 @@
     "parsers":[
         {
             "active":true,
-            "module":"libParserCTP.so",
+            "module":"ParserCTP.dll",
             "front":"tcp://180.168.146.187:10111",
             "broker":"9999",
             "user":"ÄãµÄSIMNOWÕËºÅ",

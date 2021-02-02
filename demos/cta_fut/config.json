@@ -16,7 +16,7 @@
         "fees":"fees.json",
         "riskmon":{
             "active":true,
-            "module":"libWtRiskMonFact.so",
+            "module":"WtRiskMonFact.dll",
             "name":"SimpleRiskMon",
             "calc_span":5,
             "risk_span": 30,
@@ -55,7 +55,7 @@
         {
             "active":true,
             "id":"simnow",
-            "module":"libTraderCTP.so",
+            "module":"TraderCTP.dll",
             "front":"tcp://180.168.146.187:10101",
             "broker":"9999",
             "user":"ÄãµÄSIMNOWÕËºÅ",
@@ -85,7 +85,7 @@
         {
             "active":true,
             "id":"parser1",
-            "module":"libParserUDP.so",
+            "module":"ParserUDP.dll",
             "host":"127.0.0.1",
             "bport":9001,
             "sport":3997,

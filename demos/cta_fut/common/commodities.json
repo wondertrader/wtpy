@@ -209,6 +209,19 @@
 			"precision" : 0,
 			"pricemode" : 0,
 			"pricetick" : 2.0,
+			"session" : "FN2300",
+			"volscale" : 5
+		},
+		"PK" : 
+		{
+			"category" : 1,
+			"covermode" : 0,
+			"exchg" : "CZCE",
+			"holiday" : "CHINA",
+			"name" : "ª®…˙» ",
+			"precision" : 0,
+			"pricemode" : 0,
+			"pricetick" : 2.0,
 			"session" : "",
 			"volscale" : 5
 		},
@@ -540,6 +553,19 @@
 			"session" : "FN2300",
 			"volscale" : 5
 		},
+		"lh" : 
+		{
+			"category" : 1,
+			"covermode" : 0,
+			"exchg" : "DCE",
+			"holiday" : "CHINA",
+			"name" : "…˙÷Ì",
+			"precision" : 0,
+			"pricemode" : 0,
+			"pricetick" : 5.0,
+			"session" : "FD0900",
+			"volscale" : 16
+		},
 		"m" : 
 		{
 			"category" : 1,
@@ -644,7 +670,7 @@
 			"precision" : 0,
 			"pricemode" : 1,
 			"pricetick" : 10.0,
-			"session" : "",
+			"session" : "FN0100",
 			"volscale" : 5
 		},
 		"lu" : 
