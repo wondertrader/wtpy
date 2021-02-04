@@ -264,12 +264,12 @@ class WtEngine:
         id = self.__wrapper__.create_cta_context(strategy.name())
         self.__cta_ctxs__[id] = CtaContext(id, strategy, self.__wrapper__, self)
 
-    def add_hft_strategy(self, strategy:BaseHftStrategy, trader:str):
+    def add_hft_strategy(self, strategy:BaseHftStrategy, trader:str, agent:bool = True):
         '''
         添加HFT策略\n
         @strategy   策略对象
         '''
-        id = self.__wrapper__.create_hft_context(strategy.name(), trader)
+        id = self.__wrapper__.create_hft_context(strategy.name(), trader, agent)
         self.__hft_ctxs__[id] = HftContext(id, strategy, self.__wrapper__, self)
 
     def add_sel_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str):

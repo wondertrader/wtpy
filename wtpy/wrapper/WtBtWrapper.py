@@ -642,6 +642,14 @@ class WtBtWrapper:
         '''
         return self.api.cta_get_last_entertime(id, bytes(stdCode, encoding = "utf8"))
 
+    def cta_get_last_exittime(self, id:int, stdCode:str) -> int:
+        '''
+        获取当前持仓的最后出场时间\n
+        @stdCode    合约代码\n
+        @return     进场时间，格式如201907260932 
+        '''
+        return self.api.cta_get_last_exittime(id, bytes(stdCode, encoding = "utf8"))
+
     def cta_log_text(self, id:int, message:str):
         '''
         日志输出\n
