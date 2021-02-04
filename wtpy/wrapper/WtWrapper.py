@@ -482,13 +482,15 @@ class WtWrapper:
         '''
         return self.api.create_cta_context(bytes(name, encoding = "utf8") )
 
-    def create_hft_context(self, name:str, trader:str) -> int:
+    def create_hft_context(self, name:str, trader:str, agent:bool) -> int:
         '''
         创建策略环境\n
         @name      策略名称
+        @trader    交易通道ID
+        @agent     数据是否托管
         @return    系统内策略ID 
         '''
-        return self.api.create_hft_context(bytes(name, encoding = "utf8"), bytes(trader, encoding = "utf8") )
+        return self.api.create_hft_context(bytes(name, encoding = "utf8"), bytes(trader, encoding = "utf8"), agent)
 
     def create_sel_context(self, name:str, date:int, time:int, period:str, trdtpl:str = 'CHINA', session:str = "TRADING") -> int:
         '''
@@ -656,6 +658,14 @@ class WtWrapper:
         @return     进场时间，格式如201907260932 
         '''
         return self.api.cta_get_last_entertime(id, bytes(stdCode, encoding = "utf8"))
+
+    def cta_get_last_exittime(self, id:int, stdCode:str) -> int:
+        '''
+        获取当前持仓的最后出场时间\n
+        @stdCode    合约代码\n
+        @return     进场时间，格式如201907260932 
+        '''
+        return self.api.cta_get_last_exittime(id, bytes(stdCode, encoding = "utf8"))
 
     def cta_log_text(self, id:int, message:str):
         '''
