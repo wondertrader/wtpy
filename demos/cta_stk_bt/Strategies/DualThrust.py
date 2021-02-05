@@ -93,7 +93,7 @@ class StraDualThrust(BaseCtaStrategy):
 
             if lowpx <= lower_bound and not self.__is_stk__:
                 context.stra_enter_short(code, 1*trdUnit, 'entershort')
-                context.stra_log_text("向下突破%.2f<=%.2f，空仓进场" % (lowpx, lower_bound))
+                context.stra_log_text("向下突破%f<=%f，空仓进场" % (lowpx, lower_bound))
                 return
         elif curPos > 0:
             if lowpx <= lower_bound:
@@ -104,7 +104,7 @@ class StraDualThrust(BaseCtaStrategy):
         else:
             if highpx >= upper_bound and not self.__is_stk__:
                 context.stra_exit_short(code, 1*trdUnit, 'exitshort')
-                context.stra_log_text("向上突破%.2f>=%.2f，空仓出场" % (highpx, upper_bound))
+                context.stra_log_text("向上突破%f>=%f，空仓出场" % (highpx, upper_bound))
                 return
 
 

@@ -1,60 +1,54 @@
 {
-	"SSE" : 
-	{
-		"STK" : 
-		{
-			"category" : 0,
-			"covermode" : 0,
-			"exchg" : "SSE",
-			"holiday" : "CHINA",
-			"name" : "上证股票",
-			"precision" : 2,
-			"pricemode" : 1,
-			"pricetick" : 0.01,
-			"session" : "SD0930",
-			"volscale" : 1
-		},
-		"IDX" : 
-		{
-			"category" : 0,
-			"covermode" : 0,
-			"exchg" : "SSE",
-			"holiday" : "CHINA",
-			"name" : "上证指数",
-			"precision" : 2,
-			"pricemode" : 1,
-			"pricetick" : 0.01,
-			"session" : "SD0930",
-			"volscale" : 1
-		}
-	},
-	"SZSE" : 
-	{
-		"STK" : 
-		{
-			"category" : 0,
-			"covermode" : 0,
-			"exchg" : "SZSE",
-			"holiday" : "CHINA",
-			"name" : "深证股票",
-			"precision" : 2,
-			"pricemode" : 1,
-			"pricetick" : 0.01,
-			"session" : "SD0930",
-			"volscale" : 1
-		},
-		"IDX" : 
-		{
-			"category" : 0,
-			"covermode" : 0,
-			"exchg" : "SZSE",
-			"holiday" : "CHINA",
-			"name" : "深证指数",
-			"precision" : 2,
-			"pricemode" : 1,
-			"pricetick" : 0.01,
-			"session" : "SD0930",
-			"volscale" : 1
-		}
-	}
+    "SSE": {
+        "ETF": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 0,
+            "precision": 3,
+            "pricetick": 0.001,
+            "volscale": 1,
+            "name": "上证ETF",
+            "exchg": "SSE",
+            "session": "SD0930",
+            "holiday": "CHINA"
+        },
+        "STK": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 0,
+            "precision": 2,
+            "pricetick": 0.01,
+            "volscale": 1,
+            "name": "上证A股",
+            "exchg": "SSE",
+            "session": "SD0930",
+            "holiday": "CHINA"
+        }
+    },
+    "SZSE": {
+        "ETF": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 0,
+            "precision": 0,
+            "pricetick": 1.7976931348623157e308,
+            "volscale": 1,
+            "name": "深证ETF",
+            "exchg": "SZSE",
+            "session": "SD0930",
+            "holiday": "CHINA"
+        },
+        "STK": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 0,
+            "precision": 0,
+            "pricetick": 1.7976931348623157e308,
+            "volscale": 1,
+            "name": "深证A股",
+            "exchg": "SZSE",
+            "session": "SD0930",
+            "holiday": "CHINA"
+        }
+    }
 }

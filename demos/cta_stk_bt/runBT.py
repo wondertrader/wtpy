@@ -10,14 +10,14 @@ if __name__ == "__main__":
     engine.configBTStorage(mode="csv", path="./storage/")
     engine.commitBTConfig()
     
-    straInfo = StraDualThrust(name='pydt_SH600000', code="SSE.600000", barCnt=50, period="d1", days=30, k1=0.1, k2=0.1, isForStk=True)
+    straInfo = StraDualThrust(name='pydt_SH510300', code="SSE.510300", barCnt=50, period="m1", days=30, k1=0.1, k2=0.1, isForStk=False)
     engine.set_cta_strategy(straInfo)
 
     engine.run_backtest()
 
     #绩效分析
     analyst = WtBtAnalyst()
-    analyst.add_strategy("pydt_SH600000", folder="./outputs_bt/pydt_SH600000/", init_capital=5000, rf=0.02, annual_trading_days=240)
+    analyst.add_strategy("pydt_SH510300", folder="./outputs_bt/pydt_SH510300/", init_capital=5000, rf=0.02, annual_trading_days=240)
     analyst.run()
 
     kw = input('press any key to exit\n')
