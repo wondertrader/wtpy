@@ -127,6 +127,39 @@ class WtBtEngine:
         if dbcfg is not None:
             self.__config__["replayer"]["db"] = dbcfg
 
+    def setExternalCtaStrategy(self, id:str, module:str, typeName:str, params:dict):
+        '''
+        添加外部的CTA策略
+        '''
+        if "cta" not in self.__config__:
+            self.__config__["cta"] = dict()
+
+        self.__config__["cta"]["module"] = module
+
+        if "strategy" not in self.__config__["cta"]:
+            self.__config__["cta"]["strategy"] = dict()
+
+        self.__config__["cta"]["strategy"]["id"] = id
+        self.__config__["cta"]["strategy"]["name"] = typeName
+        self.__config__["cta"]["strategy"]["params"] = params
+        
+
+    def setExternalHftStrategy(self, id:str, module:str, typeName:str, params:dict):
+        '''
+        添加外部的HFT策略
+        '''
+        if "hft" not in self.__config__:
+            self.__config__["hft"] = dict()
+
+        self.__config__["hft"]["module"] = module
+
+        if "strategy" not in self.__config__["hft"]:
+            self.__config__["hft"]["strategy"] = dict()
+
+        self.__config__["hft"]["strategy"]["id"] = id
+        self.__config__["hft"]["strategy"]["name"] = typeName
+        self.__config__["hft"]["strategy"]["params"] = params
+
 
     def commitBTConfig(self):
         '''

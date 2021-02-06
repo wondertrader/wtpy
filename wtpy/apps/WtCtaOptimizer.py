@@ -95,15 +95,28 @@ class WtCtaOptimizer:
         self.fixed_params[name] = val
         return
     
-    def set_strategy(self, typeName:type, name_prefix:str):
+    def set_strategy(self, typeName:type, namePrefix:str):
         '''
         设置策略\n
 
         @typeName       策略类名\n
-        @name_prefix    命名前缀，用于自动命名用，一般为格式为"前缀_参数1名_参数1值_参数2名_参数2值"
+        @namePrefix     命名前缀，用于自动命名用，一般为格式为"前缀_参数1名_参数1值_参数2名_参数2值"
         '''
         self.strategy_type = typeName
-        self.name_prefix = name_prefix
+        self.name_prefix = namePrefix
+        return
+
+    def set_cpp_strategy(self, straModule:str, typeName:str, namePrefix:str):
+        '''
+        设置cpp策略\n
+
+        @straModule     cpp策略模块
+        @typeName       cpp策略的类型名，格式为"工厂名.类型名"   
+        @namePrefix     命名前缀，用于自动命名用，一般为格式为"前缀_参数1名_参数1值_参数2名_参数2值"   
+        '''
+        self.cpp_stra_module = straModule
+        self.cpp_stra_type = typeName
+        self.name_prefix = namePrefix
         return
 
     def config_backtest_env(self, deps_dir:str, cfgfile:str="configbt.json", storage_type:str="csv", storage_path:str = None, db_config:dict = None):
@@ -270,10 +283,16 @@ class WtCtaOptimizer:
         engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
         engine.configBacktest(self.env_params["start_time"],self.env_params["end_time"])
         engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"], dbcfg=self.env_params["db_config"])
-        engine.commitBTConfig()
 
-        straInfo = self.strategy_type(**params)
-        engine.set_cta_strategy(straInfo)
+        if self.strategy_type is not None:
+            # 配置Python策略
+            engine.commitBTConfig()
+            
+            straInfo = self.strategy_type(**params)
+            engine.set_cta_strategy(straInfo)
+        else:
+            # 配置cpp策略
+            engine.setExternalCtaStrategy(id=name, module=self.cpp_stra_module, typeName= self.cpp_stra_type, params=params)
 
         engine.run_backtest()
         engine.release_backtest()
