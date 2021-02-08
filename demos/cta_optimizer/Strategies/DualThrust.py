@@ -4,7 +4,7 @@ import numpy as np
 
 class StraDualThrust(BaseCtaStrategy):
     
-    def __init__(self, name:str, code:str, barCnt:int, period:str, days:int, k1:float, k2:float, isForStk:bool = False):
+    def __init__(self, name:str, code:str, barCnt:int, period:str, days:int, k1:float, k2:float, isForStk:bool = False, slTicks = 0, spTicks = 0):
         BaseCtaStrategy.__init__(self, name)
 
         self.__days__ = days
@@ -16,6 +16,9 @@ class StraDualThrust(BaseCtaStrategy):
         self.__code__ = code
 
         self.__is_stk__ = isForStk
+
+        self.__stop_loss__ = slTicks
+        self.__stop_prof__ = spTicks
 
     def on_init(self, context:CtaContext):
         code = self.__code__    #品种代码
@@ -29,9 +32,6 @@ class StraDualThrust(BaseCtaStrategy):
         context.stra_get_bars(code, self.__period__, self.__bar_cnt__, isMain = True)
         context.stra_log_text("DualThrust inited")
 
-        #读取存储的数据
-        self.xxx = context.user_load_data('xxx',1)
-
     
     def on_calculate(self, context:CtaContext):
         code = self.__code__    #品种代码
@@ -44,6 +44,10 @@ class StraDualThrust(BaseCtaStrategy):
         theCode = code
         if self.__is_stk__:
             theCode = theCode + "Q"
+
+        #读取当前仓位
+        curPos = context.stra_get_position(code)/trdUnit
+
         df_bars = context.stra_get_bars(theCode, self.__period__, self.__bar_cnt__, isMain = True)
 
         #把策略参数读进来，作为临时变量，方便引用
@@ -55,6 +59,30 @@ class StraDualThrust(BaseCtaStrategy):
         closes = df_bars.closes
         highs = df_bars.highs
         lows = df_bars.lows
+
+        curPx = closes[-1]
+
+        needCut = False
+        cutTag = ""
+        if curPos != 0:
+            opentag = "enterlong" if curPos>0 else "entershort"
+            openpx = context.stra_get_detail_cost(code, opentag)
+            diffPx = (curPx - openpx)*curPos/abs(curPos)
+            if self.__stop_loss__ != 0:
+                if diffPx <= self.__stop_loss__:
+                    needCut = True
+                    cutTag = "cutloss"
+            if self.__stop_prof__ != 0:
+                if diffPx >= self.__stop_prof__:
+                    needCut = True
+                    cutTag = "cutwin"
+
+        if needCut:
+            if curPos > 0:
+                context.stra_exit_long(code, abs(curPos)*trdUnit, cutTag)
+            else:
+                context.stra_exit_short(code, abs(curPos)*trdUnit, cutTag)
+            return
 
         #读取days天之前到上一个交易日位置的数据
         hh = np.amax(highs[-days:-1])
@@ -78,9 +106,6 @@ class StraDualThrust(BaseCtaStrategy):
         #确定上轨和下轨
         upper_bound = openpx + k1* max(hh-lc,hc-ll)
         lower_bound = openpx - k2* max(hh-lc,hc-ll)
-
-        #读取当前仓位
-        curPos = context.stra_get_position(code)/trdUnit
 
         if curPos == 0:
             if highpx >= upper_bound:
