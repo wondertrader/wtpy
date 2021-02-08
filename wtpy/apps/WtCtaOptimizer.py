@@ -62,6 +62,8 @@ class WtCtaOptimizer:
         self.mutable_params = dict()
         self.fixed_params = dict()
         self.env_params = dict()
+
+        self.cpp_stra_module = None
         return
 
     def add_mutable_param(self, name:str, start_val, end_val, step_val, ndigits = 1):
@@ -103,6 +105,19 @@ class WtCtaOptimizer:
         @name_prefix    命名前缀，用于自动命名用，一般为格式为"前缀_参数1名_参数1值_参数2名_参数2值"
         '''
         self.strategy_type = typeName
+        self.name_prefix = name_prefix
+        return
+
+    def set_cpp_strategy(self, module:str, type_name:type, name_prefix:str):
+        '''
+        设置CPP策略\n
+
+        @module         模块文件\n
+        @typeName       策略类名\n
+        @name_prefix    命名前缀，用于自动命名用，一般为格式为"前缀_参数1名_参数1值_参数2名_参数2值"
+        '''
+        self.cpp_stra_module = module
+        self.cpp_stra_type = type_name
         self.name_prefix = name_prefix
         return
 
@@ -163,11 +178,25 @@ class WtCtaOptimizer:
             for name in param_names:
                 cnt = len(param_values[name])
                 curVal = param_values[name][k%cnt]
-                thisGrp[name] = curVal
-                endix += name 
-                endix += "_"
-                endix += str(curVal)
-                endix += "_"
+                tname = type(curVal)
+                if tname.__name__ == "list":
+                    val_str  = ''
+                    for item in curVal:
+                        val_str += str(item)
+                        val_str += "_"
+
+                    val_str = val_str[:-1]
+                    thisGrp[name] = curVal
+                    endix += name 
+                    endix += "_"
+                    endix += val_str
+                    endix += "_"
+                else:
+                    thisGrp[name] = curVal
+                    endix += name 
+                    endix += "_"
+                    endix += str(curVal)
+                    endix += "_"
                 k = math.floor(k / cnt)
 
             endix = endix[:-1]
@@ -270,11 +299,15 @@ class WtCtaOptimizer:
         engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
         engine.configBacktest(self.env_params["start_time"],self.env_params["end_time"])
         engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"], dbcfg=self.env_params["db_config"])
+
+        if self.cpp_stra_module is not None:
+            params.pop("name")
+            engine.setExternalCtaStrategy(name, self.cpp_stra_module, self.cpp_stra_type, params)
+        else:
+            straInfo = self.strategy_type(**params)
+            engine.set_cta_strategy(straInfo)
+
         engine.commitBTConfig()
-
-        straInfo = self.strategy_type(**params)
-        engine.set_cta_strategy(straInfo)
-
         engine.run_backtest()
         engine.release_backtest()
 
