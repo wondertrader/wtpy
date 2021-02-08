@@ -263,3 +263,18 @@ class WtBtEngine:
         @period 周期，一般使用d/m1/m5
         '''
         self.__wrapper__.dump_kline(code, period, filename)
+
+    def setExternalCtaStrategy(self, id:str, module:str, typeName:str, params:dict):
+        '''
+        设置外部的CTA策略
+        '''
+        if "cta" not in self.__config__:
+            self.__config__["cta"] = dict()
+
+        if "strategy" not in self.__config__["cta"]:
+            self.__config__["cta"]["strategy"] = dict()
+
+        self.__config__["cta"]["module"] = module
+        self.__config__["cta"]["strategy"]["name"] = typeName
+        self.__config__["cta"]["strategy"]["id"] = id
+        self.__config__["cta"]["strategy"]["params"] = params
