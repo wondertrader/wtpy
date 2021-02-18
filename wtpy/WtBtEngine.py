@@ -264,17 +264,14 @@ class WtBtEngine:
         '''
         self.__wrapper__.dump_kline(code, period, filename)
 
-    def setExternalCtaStrategy(self, id:str, module:str, typeName:str, params:dict):
-        '''
-        设置外部的CTA策略
-        '''
-        if "cta" not in self.__config__:
-            self.__config__["cta"] = dict()
+    def on_init(self):
+        return
 
-        if "strategy" not in self.__config__["cta"]:
-            self.__config__["cta"]["strategy"] = dict()
+    def on_schedule(self, date:int, time:int, taskid:int = 0):
+        return
 
-        self.__config__["cta"]["module"] = module
-        self.__config__["cta"]["strategy"]["name"] = typeName
-        self.__config__["cta"]["strategy"]["id"] = id
-        self.__config__["cta"]["strategy"]["params"] = params
+    def on_session_begin(self, date:int):
+        return
+
+    def on_session_end(self, date:int):
+        return
