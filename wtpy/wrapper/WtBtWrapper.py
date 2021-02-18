@@ -2,12 +2,25 @@ from ctypes import cdll, c_int, c_char_p, c_longlong, c_bool, c_void_p, c_ulong,
 from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
-from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST
+from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST, CB_ENGINE_EVENT
+from wtpy.WtCoreDefs import EVENT_ENGINE_INIT, EVENT_SESSION_BEGIN, EVENT_SESSION_END, EVENT_ENGINE_SCHDL
 from wtpy.WtCoreDefs import WTSTickStruct,WTSBarStruct,WTSOrdQueStruct,WTSOrdDtlStruct,WTSTransStruct
 from .PlatformHelper import PlatformHelper as ph
 import os
 
 theEngine = None
+
+def on_engine_event(evtid:int, evtDate:int, evtTime:int):
+    engine = theEngine
+    if evtid == EVENT_ENGINE_INIT:
+        engine.on_init()
+    elif evtid == EVENT_ENGINE_SCHDL:
+        engine.on_schedule(evtDate, evtTime)
+    elif evtid == EVENT_SESSION_BEGIN:
+        engine.on_session_begin(evtDate)
+    elif evtid == EVENT_SESSION_END:
+        engine.on_session_end(evtDate)
+    return
 
 #回调函数
 def on_strategy_init(id:int):
