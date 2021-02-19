@@ -17,9 +17,6 @@ Vue.config.productionTip = false;
 
 Vue.use(ElementUI);
 
-import JsonViewer from 'vue-json-viewer'
-Vue.use(JsonViewer)
-
 Vue.use(new VueSocketIO({
     debug: false,
     // 服务器端地址

@@ -60,33 +60,37 @@
                         </el-table-column>
                         <el-table-column
                             label="浮盈"
-                            width="80">
+                            width="100">
                             <template slot-scope="scope">
-                                <span :class="scope.row.profit>=0?'text-danger':'text-success'">{{scope.row.profit.toFixed(2)}}</span>
+                                <span :class="scope.row.profit>=0?'text-danger':'text-success'">{{scope.row.profit.toFixed(1)}}</span>
                             </template>
                         </el-table-column>
                         <el-table-column
-                            prop="opentime"
                             label="开仓时间"
                             width="120">
+                            <template slot-scope="scope">
+                                <span>{{fmtTime(scope.row.opentime)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
-                            prop="price"
                             label="开仓价格"
                             width="100">
+                            <template slot-scope="scope">
+                                <span>{{fmtPrice(scope.row.price)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             label="最大浮盈"
                             width="100">
                             <template slot-scope="scope">
-                                <span class="text-danger">{{scope.row.maxprofit.toFixed(2)}}</span>
+                                <span class="text-danger">{{scope.row.maxprofit.toFixed(1)}}</span>
                             </template>
                         </el-table-column>
                         <el-table-column
                             label="最大浮亏"
                             width="100">
                             <template slot-scope="scope">
-                                <span class="text-success">{{scope.row.maxloss.toFixed(2)}}</span>
+                                <span class="text-success">{{scope.row.maxloss.toFixed(1)}}</span>
                             </template>
                         </el-table-column>
                         <el-table-column
@@ -112,9 +116,11 @@
                             width="120">
                         </el-table-column>
                         <el-table-column
-                            prop="time"
                             label="时间"
                             width="120">
+                            <template slot-scope="scope">
+                                <span>{{fmtTime(scope.row.time)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             label="动作"
@@ -124,9 +130,11 @@
                             </template>
                         </el-table-column>
                         <el-table-column
-                            prop="price"
                             label="价格"
                             width="80">
+                            <template slot-scope="scope">
+                                <span>{{fmtPrice(scope.row.price)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="volume"
@@ -164,14 +172,18 @@
                             </template>
                         </el-table-column>
                         <el-table-column
-                            prop="sigprice"
                             label="触发价格"
                             width="100">
+                            <template slot-scope="scope">
+                                <span>{{fmtPrice(scope.row.sigprice)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
-                            prop="gentime"
                             label="触发时间"
-                            width="160">
+                            width="180">
+                            <template slot-scope="scope">
+                                <span>{{fmtTime(scope.row.gentime, true)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="tag"
@@ -203,24 +215,32 @@
                             </template>
                         </el-table-column>
                         <el-table-column
-                            prop="opentime"
                             label="开仓时间"
                             width="120">
+                            <template slot-scope="scope">
+                                <span>{{fmtTime(scope.row.opentime)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
-                            prop="openprice"
                             label="开仓价格"
                             width="80">
+                            <template slot-scope="scope">
+                                <span>{{fmtPrice(scope.row.openprice)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
-                            prop="closetime"
                             label="平仓时间"
                             width="120">
+                            <template slot-scope="scope">
+                                <span>{{fmtTime(scope.row.closetime)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
-                            prop="closeprice"
                             label="平仓价格"
                             width="80">
+                            <template slot-scope="scope">
+                                <span>{{fmtPrice(scope.row.closeprice)}}</span>
+                            </template>
                         </el-table-column>
                         <el-table-column
                             prop="qty"
@@ -260,9 +280,11 @@
                                     width="120">
                                 </el-table-column>
                                 <el-table-column
-                                    prop="date"
                                     label="日期"
                                     width="120">
+                                    <template slot-scope="scope">
+                                        <span>{{fmtDate(scope.row.date)}}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column
                                     label="平仓盈亏"
@@ -397,6 +419,33 @@ export default {
         },
         formatAmount: function(row,col){
             return row[col.property].toFixed(2);
+        },
+        fmtPrice:function(val){
+            let ret = val.toFixed(4);
+            let idx=0;
+            for(; idx < ret.length; idx++){
+                if(ret[ret.length-1-idx] != '0')
+                    break;
+            }
+            if(ret[ret.length-1-idx] == ".")
+                idx ++;
+
+            let len = ret.length-idx;
+            return ret.substr(0, len);
+        },
+        fmtTime:function(val, bSignal){
+            bSignal = bSignal || false;
+            if(!bSignal){
+                let ret = val + "";
+                return ret.substr(2,2) + "." + ret.substr(4,2) + "." + ret.substr(6,2) + " " + ret.substr(8,2) + ":" + ret.substr(10,2);
+            } else {
+                let ret = val + "";
+                return ret.substr(2,2) + "." + ret.substr(4,2) + "." + ret.substr(6,2) + " " + ret.substr(8,2) + ":" + ret.substr(10,2)+ ":" + ret.substr(12,2)+ "," + ret.substr(14,3);
+            }
+        },
+        fmtDate:function(val){
+            let ret = val + "";
+            return ret.substr(0,4) + "." + ret.substr(4,2) + "." + ret.substr(6,2);
         },
         fmtProfit:function(val){
             if(val > 0)

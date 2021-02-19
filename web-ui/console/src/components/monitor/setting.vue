@@ -1,18 +1,12 @@
 <template>
     <div style="height:100%;width:100%;display:flex;flex-direction:column;" v-loading="loading">
         <div style="flex:1;overflow:auto;border: 1px solid #DCDFE6;border-radius:4px;">
-            <json-viewer
-                :value="setting"
-                :expand-depth=5
-                copyable
-                v-show="!edit"
-                class="setting">
-            </json-viewer>
-            <textarea
-                v-show="edit"
+            <codemirror
+                ref="mycode"
                 v-model="setting_s"
-                class="setting el-textarea__inner">
-            </textarea>
+                :options="cmOptions"
+                style="height:100%;">
+            </codemirror>
         </div>
         <div style="flex:0;min-height:32px; margin-top:8px;">
             <el-button size="mini" style="float:right;" v-show="!edit" @click="onClickEdit()">
@@ -29,6 +23,11 @@
 </template>
 
 <script>
+import {codemirror } from 'vue-codemirror'
+import 'codemirror/lib/codemirror.css'
+import "codemirror/mode/javascript/javascript.js";
+import 'codemirror/addon/lint/json-lint'
+
 export default {
     name: 'setting',
     props:{
@@ -39,20 +38,27 @@ export default {
             }
         }
     },
+    components:{
+        codemirror
+    },
     data () {
         return {
             setting_s:"",
             setting:{},
             edit: false,
-            loading: false
+            loading: false,
+            cmOptions:{
+                mode: 'text/x-python',
+                gutters: ['CodeMirror-lint-markers'],
+                lineNumbers: true, //是否显示行号
+                readOnly:true
+            }
         }
     },
     watch:{
         groupid: function(newVal, oldVal){
             newVal = newVal || "";
             oldVal = oldVal || "";
-
-            console.log(oldVal, newVal);
 
             if(newVal.length == 0 || newVal == oldVal)
                 return;
@@ -67,11 +73,12 @@ export default {
             this.loading = true;                
             setTimeout(()=>{
                 self.$api.getGroupCfg(self.groupid, (resObj)=>{
-                    console.log(resObj);
                     if(resObj.result < 0){
                         self.$alert(resObj.message);
                     } else {
                         self.setting = resObj.config;
+                        self.setting_s = JSON.stringify(self.setting, null, 2);
+                        self.cmOptions.readOnly = true;
                     }
                     self.loading = false;
                 });
@@ -79,7 +86,8 @@ export default {
         },
         onClickEdit: function(){
             this.setting_s = JSON.stringify(this.setting, null, 2);
-            this.edit=true;
+            this.cmOptions.readOnly = false;
+            this.edit = true;
         },
         onClickCommit: function(){
             let config = null;
@@ -92,7 +100,7 @@ export default {
 
             this.loading = true;
             this.$api.commitGroupCfg(this.groupid, config, (resObj)=>{
-                if(resObj < 0){
+                if(resObj.result < 0){
                     this.$message.error("组合配置提交失败:" + resObj.message);
                 } else {
                     this.$message({
@@ -102,6 +110,7 @@ export default {
                     this.setting = config;
                 }
                 this.edit = false;
+                this.cmOptions.readOnly = true;
                 this.loading = false;
             });
         }
@@ -110,9 +119,15 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-.setting{
-    height: 100%;
-    width: 100%;
+<style>
+.CodeMirror {
+	width: 100%;
+    height: 100% !important;
+    min-height: 500px;
+}
+
+.CodeMirror-scroll {
+	overflow-y: hidden;
+	overflow-x: auto;
 }
 </style>
