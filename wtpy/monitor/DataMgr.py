@@ -5,6 +5,20 @@ import hashlib
 import datetime
 from .WtLogger import WtLogger
 
+def backup_file(filename):
+    if not os.path.exists(filename):
+        return
+
+    items = filename.split(".")
+    ext = items[-1]
+    prefix = ".".join(items[:-1])
+
+    now = datetime.datetime.now()
+    timetag = now.strftime("%Y%m%d_%H%M%S")
+    target = prefix + "_" + timetag + "." + ext
+    import shutil
+    shutil.copy(filename, target)
+
 class DataMgr:
 
     def __init__(self, datafile:str="mondata.db", logger:WtLogger=None):
@@ -197,8 +211,34 @@ class DataMgr:
             grpInfo = self.__config__["groups"][grpid]
             filepath = "./config.json"
             filepath = os.path.join(grpInfo["path"], filepath)
+            backup_file(filepath)
             f = open(filepath, "w")
             f.write(json.dumps(config, indent=4))
+            f.close()
+            return True
+
+    def get_group_entry(self, grpid:str):
+        if grpid not in self.__config__["groups"]:
+            return "{}"
+        else:
+            grpInfo = self.__config__["groups"][grpid]
+            filepath = "./run.py"
+            filepath = os.path.join(grpInfo["path"], filepath)
+            f = open(filepath, "r", encoding="utf-8")
+            content = f.read()
+            f.close()
+            return content
+
+    def set_group_entry(self, grpid:str, content:str):
+        if grpid not in self.__config__["groups"]:
+            return False
+        else:
+            grpInfo = self.__config__["groups"][grpid]
+            filepath = "./run.py"
+            filepath = os.path.join(grpInfo["path"], filepath)
+            backup_file(filepath)
+            f = open(filepath, "w", encoding="utf-8")
+            f.write(content)
             f.close()
             return True
 
@@ -543,12 +583,16 @@ class DataMgr:
 
                 positions = json_data["positions"]
                 for pItem in positions:
-                    if pItem["volume"] == 0.0:
+                    tag = "volumn" if "volume" not in pItem else "volume"
+                    if pItem[tag] == 0.0:
                         continue
 
                     for dItem in pItem["details"]:
                         dItem["code"] = pItem["code"]
                         dItem["strategy"] = straid
+                        if "volumn" in dItem:
+                            dItem["volume"] = dItem["volumn"]
+                            dItem.pop("volumn")
                         ret.append(dItem)
             except:
                 pass
@@ -568,12 +612,16 @@ class DataMgr:
 
                     positions = json_data["positions"]
                     for pItem in positions:
-                        if pItem["volume"] == 0.0:
+                        tag = "volumn" if "volume" not in pItem else "volume"
+                        if pItem[tag] == 0.0:
                             continue
 
                         for dItem in pItem["details"]:
                             dItem["code"] = pItem["code"]
                             dItem["strategy"] = straid
+                            if "volumn" in dItem:
+                                dItem["volume"] = dItem["volumn"]
+                                dItem.pop("volumn")
                             ret.append(dItem)
                 except:
                     pass

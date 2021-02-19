@@ -538,7 +538,7 @@ class WtMonSvr(WatcherSink, EventSink):
                 return pack_rsp(usrInfo)
 
             grpid = get_param(json_data, "groupid")
-            config = get_param(json_data, "config")
+            config = get_param(json_data, key="config", type=dict)
             if not self.__data_mgr__.has_group(grpid):
                 ret = {
                     "result":-1,
@@ -546,8 +546,67 @@ class WtMonSvr(WatcherSink, EventSink):
                 }
             else:
                 try:
-                    config = json.loads(config)
+
                     self.__data_mgr__.set_group_cfg(grpid, config)
+                    ret = {
+                        "result":0,
+                        "message":"Ok"
+                    }
+                except:
+                    ret = {
+                        "result":-1,
+                        "message":"配置解析失败"
+                    }
+
+            return pack_rsp(ret)
+
+        # 查询组合入口
+        @app.route("/mgr/qrygrpentry", methods=["POST"])
+        def qry_group_entry():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            grpid = get_param(json_data, "groupid")
+            if not self.__data_mgr__.has_group(grpid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"Ok",
+                    "content":self.__data_mgr__.get_group_entry(grpid)
+                }
+
+            return pack_rsp(ret)
+
+        # 提交组合入口
+        @app.route("/mgr/cmtgrpentry", methods=["POST"])
+        def cmd_commit_group_entry():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            grpid = get_param(json_data, "groupid")
+            content = get_param(json_data, "content")
+            if not self.__data_mgr__.has_group(grpid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                try:
+                    self.__data_mgr__.set_group_entry(grpid, content)
                     ret = {
                         "result":0,
                         "message":"Ok"
