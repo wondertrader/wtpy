@@ -231,6 +231,45 @@ export default function () {
 			}, 'json');
 	};
 
+    self.getGroupEntry = function(grpid, cb){
+		let reqInfo = {
+			groupid: grpid
+		}
+
+		$.post("/mgr/qrygrpentry",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+	self.commitGroupEntry = function(grpid, content, cb){
+		let reqInfo = {
+			groupid: grpid,
+			content: content
+		}
+
+		$.post("/mgr/cmtgrpentry",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
 	self.getLogs = function(grpid, logtype, cb){
 		if(typeof(logtype) == 'function'){
 			cb = logtype;

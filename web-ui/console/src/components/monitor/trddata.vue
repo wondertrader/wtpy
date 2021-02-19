@@ -106,7 +106,8 @@
                         <el-table-column
                             prop="price"
                             label="价格"
-                            width="80">
+                            width="80"
+                            :formatter="formatPrice">
                         </el-table-column>
                         <el-table-column
                             prop="volume"
@@ -162,7 +163,8 @@
                         <el-table-column
                             prop="price"
                             label="价格"
-                            width="80">
+                            width="80"
+                            :formatter="formatPrice">
                         </el-table-column>
                         <el-table-column
                             prop="total"
@@ -270,6 +272,20 @@ export default {
             let dt = new Date();
             dt.setTime(time);
             return dt.format("yyyy/MM/dd hh:mm:ss");
+        },
+        fmtPrice:function(row,col){
+            let val = row[col.property];
+            let ret = val.toFixed(4);
+            let idx=0;
+            for(; idx < ret.length; idx++){
+                if(ret[ret.length-1-idx] != '0')
+                    break;
+            }
+            if(ret[ret.length-1-idx] == ".")
+                idx ++;
+
+            let len = ret.length-idx;
+            return ret.substr(0, len);
         },
         queryData: function(){
             var self = this;

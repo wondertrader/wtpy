@@ -36,12 +36,15 @@
                             </el-tab-pane>
                             <el-tab-pane label="组合配置" name="setting">
                             </el-tab-pane>
+                            <el-tab-pane label="执行入口" name="entry">
+                            </el-tab-pane>
                         </el-tabs>
                     </div>
                     <div style="flex:1;margin:2px;overflow:auto;">
                         <StrategyData v-show="selData=='sdata'" :groupid="groupid"/>
                         <ChannelData v-show="selData=='tdata'" :groupid="groupid"/>
                         <Setting v-show="selData=='setting'" :groupid="groupid"/>
+                        <Entry v-show="selData=='entry'" :groupid="groupid"/>
                     </div>
                 </div>
             </el-col>
@@ -53,10 +56,11 @@
 import StrategyData from './stradata'
 import ChannelData from './trddata'
 import Setting from './setting'
+import Entry from './entry'
 export default {
     name: 'empty',
     components: {
-        StrategyData, ChannelData, Setting
+        StrategyData, ChannelData, Setting, Entry
     },
     computed: {
         groupid(){
