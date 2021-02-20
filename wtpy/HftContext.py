@@ -34,6 +34,22 @@ class HftContext:
         '''
         self.__stra_info__.on_init(self)
 
+    def on_session_begin(self, curTDate:int):
+        '''
+        交易日开始事件\n
+
+        @curTDate   交易日，格式为20210220
+        '''
+        self.__stra_info__.on_session_begin(self, curTDate)
+
+    def on_session_end(self, curTDate:int):
+        '''
+        交易日结束事件\n
+
+        @curTDate   交易日，格式为20210220
+        '''
+        self.__stra_info__.on_session_end(self, curTDate)
+
     def on_getticks(self, code:str, curTick:dict, isLast:bool):
         if curTick is None:
             return

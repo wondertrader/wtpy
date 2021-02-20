@@ -21,6 +21,21 @@ class BaseCtaStrategy:
         '''
         return
 
+    def on_session_begin(self, context:CtaContext, curTDate:int):
+        '''
+        交易日开始事件\n
+
+        @curTDate   交易日，格式为20210220
+        '''
+        return
+
+    def on_session_end(self, context:CtaContext, curTDate:int):
+        '''
+        交易日结束事件\n
+
+        @curTDate   交易日，格式为20210220
+        '''
+        return
     
     def on_calculate(self, context:CtaContext):
         '''
@@ -69,6 +84,22 @@ class BaseHftStrategy:
         策略初始化，启动的时候调用\n
         用于加载自定义数据\n
         @context    策略运行上下文
+        '''
+        return
+    
+    def on_session_begin(self, context:HftContext, curTDate:int):
+        '''
+        交易日开始事件\n
+
+        @curTDate   交易日，格式为20210220
+        '''
+        return
+
+    def on_session_end(self, context:HftContext, curTDate:int):
+        '''
+        交易日结束事件\n
+
+        @curTDate   交易日，格式为20210220
         '''
         return
 
@@ -188,7 +219,22 @@ class BaseSelStrategy:
         @context    策略运行上下文
         '''
         return
+    
+    def on_session_begin(self, context:SelContext, curTDate:int):
+        '''
+        交易日开始事件\n
 
+        @curTDate   交易日，格式为20210220
+        '''
+        return
+
+    def on_session_end(self, context:SelContext, curTDate:int):
+        '''
+        交易日结束事件\n
+
+        @curTDate   交易日，格式为20210220
+        '''
+        return
     
     def on_calculate(self, context:SelContext):
         '''
