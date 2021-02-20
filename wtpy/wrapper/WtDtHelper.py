@@ -2,6 +2,7 @@ from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct
 from .PlatformHelper import PlatformHelper as ph
 import os
+import copy
 
 CB_DTHELPER_LOG = CFUNCTYPE(c_void_p,  c_char_p)
 CB_DTHELPER_TICK = CFUNCTYPE(c_void_p,  POINTER(WTSTickStruct), c_bool)
@@ -22,7 +23,7 @@ def on_read_tick(curTick:POINTER(WTSTickStruct), isLast:bool):
     if realTick is None:
         return
     
-    tick_cache.append(realTick)
+    tick_cache.append(copy.copy(realTick))
 
 bar_cache = list()
 def on_read_bar(curBar:POINTER(WTSBarStruct), isLast:bool):
@@ -35,7 +36,7 @@ def on_read_bar(curBar:POINTER(WTSBarStruct), isLast:bool):
     if realBar is None:
         return
     
-    bar_cache.append(realBar)
+    bar_cache.append(copy.copy(realBar))
 
 cb_dthelper_log = CB_DTHELPER_LOG(on_log_output)
 cb_read_tick = CB_DTHELPER_TICK(on_read_tick)
