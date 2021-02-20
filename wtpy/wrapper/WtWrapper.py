@@ -1,6 +1,6 @@
 from ctypes import cdll, c_int, c_char_p, c_longlong, c_bool, c_void_p, c_ulong, c_uint, c_uint64, c_double, POINTER
 from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
-from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD
+from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
 from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST, CB_ENGINE_EVENT
 from wtpy.WtCoreDefs import EVENT_ENGINE_INIT, EVENT_SESSION_BEGIN, EVENT_SESSION_END, EVENT_ENGINE_SCHDL
@@ -29,6 +29,16 @@ def on_stra_init(id:int):
     ctx = engine.get_context(id)
     if ctx is not None:
         ctx.on_init()
+    return
+
+def on_session_event(id:int, udate:int, isBegin:bool):
+    engine = theEngine
+    ctx = engine.get_context(id)
+    if ctx is not None:
+        if isBegin:
+            ctx.on_session_begin(udate)
+        else:
+            ctx.on_session_end(udate)
     return
 
 def on_stra_tick(id:int, stdCode:str, newTick:POINTER(WTSTickStruct)):
@@ -334,6 +344,8 @@ cb_stra_get_bar = CB_STRATEGY_GET_BAR(on_stra_get_bar)
 cb_stra_get_tick = CB_STRATEGY_GET_TICK(on_stra_get_tick)
 cb_stra_get_position = CB_STRATEGY_GET_POSITION(on_stra_get_position)
 
+cb_session_event = CB_SESSION_EVENT(on_session_event)
+
 cb_hftstra_ordque = CB_HFTSTRA_ORDQUE(on_hftstra_order_queue)
 cb_hftstra_get_ordque = CB_HFTSTRA_GET_ORDQUE(on_hftstra_order_queue)
 cb_hftstra_orddtl = CB_HFTSTRA_ORDDTL(on_hftstra_order_detail)
@@ -435,7 +447,7 @@ class WtWrapper:
         theEngine = engine
         try:
             self.api.register_evt_callback(cb_engine_event)
-            self.api.register_cta_callbacks(cb_stra_init, cb_stra_tick, cb_stra_calc, cb_stra_bar)
+            self.api.register_cta_callbacks(cb_stra_init, cb_stra_tick, cb_stra_calc, cb_stra_bar, cb_session_event)
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
@@ -452,7 +464,7 @@ class WtWrapper:
             self.api.register_evt_callback(cb_engine_event)
             self.api.register_hft_callbacks(cb_stra_init, cb_stra_tick, cb_stra_bar, cb_hftstra_chnl_evt, 
                 cb_hftstra_order, cb_hftstra_trade, cb_hftstra_entrust,
-                cb_hftstra_orddtl, cb_hftstra_ordque, cb_hftstra_trans)
+                cb_hftstra_orddtl, cb_hftstra_ordque, cb_hftstra_trans, cb_session_event)
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
@@ -467,7 +479,7 @@ class WtWrapper:
         theEngine = engine
         try:
             self.api.register_evt_callback(cb_engine_event)
-            self.api.register_sel_callbacks(cb_stra_init, cb_stra_tick, cb_stra_calc, cb_stra_bar)
+            self.api.register_sel_callbacks(cb_stra_init, cb_stra_tick, cb_stra_calc, cb_stra_bar, cb_session_event)
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
