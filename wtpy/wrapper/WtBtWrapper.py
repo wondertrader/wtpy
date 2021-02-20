@@ -477,10 +477,10 @@ class WtBtWrapper:
         global theEngine
         theEngine = engine
         try:
+            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
             self.api.register_hft_callbacks(cb_strategy_init, cb_strategy_tick, cb_strategy_bar, 
                 cb_hftstra_chnl_evt, cb_hftstra_order, cb_hftstra_trade, cb_hftstra_entrust,
                 cb_hftstra_orddtl, cb_hftstra_ordque, cb_hftstra_trans, cb_session_event)
-            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
 
