@@ -37,9 +37,6 @@ class BaseDataHelper:
     def dmpBarsToFile(self, folder:str, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
         pass
 
-    def dmpCodeListToDB(self, dbHelper:DBHelper, hasIndex:bool=True, hasStock:bool=True):
-        pass
-
     def dmpAdjFactorsToDB(self, dbHelper:DBHelper, codes:list):
         pass
 

@@ -4,17 +4,30 @@ from datetime import datetime
 import json
 import os
 
-def transCodes(codes:list) -> list:
-    ret = list()
-    for code in codes:
-        items = code.split(".")
-        exchg = items[0]
-        if exchg == "SSE":
-            ret.append(items[1] + ".SH")
+def transCode(stdCode:str) -> str:
+    items = stdCode.split(".")
+    exchg = items[0]
+    if exchg == "SSE":
+        exchg = "SH"
+    elif exchg == "SZSE":
+        exchg = "SZ"
+    
+    if exchg in ['SH','SZ']:
+        rawCode = ''
+        if len(items) > 2:
+            rawCode = items[2]
         else:
-            ret.append(items[1] + ".SZ")
+            rawCode = items[1]
+    else:
+        # 期货合约代码，格式为DCE.a.2018
+        rawCode = ''
+        if exchg == "CZCE":
+            rawCode = items[1] + items[2][1:]
+        else:
+            rawCode = ''.join(items[1:])
+    return rawCode.upper() + "." + exchg
 
-    return ret
+    
 
 class DHTushare(BaseDataHelper):
 
@@ -27,7 +40,7 @@ class DHTushare(BaseDataHelper):
         if self.isAuthed:
             return
 
-        self.api = ts.pro_api(kwargs)
+        self.api = ts.pro_api(**kwargs)
         self.isAuthed = True
 
     def unauth(self):
@@ -60,7 +73,7 @@ class DHTushare(BaseDataHelper):
 
         if hasIndex:
             #上证指数列表
-            df_stocks = self.__pro__.index_basic(market='SSE')
+            df_stocks = self.api.index_basic(market='SSE')
             for idx, row in df_stocks.iterrows():
                 code = row["ts_code"]
                 rawcode = code[:6]
@@ -77,7 +90,7 @@ class DHTushare(BaseDataHelper):
                 stocks[sInfo["exchg"]][code] = sInfo
 
             #深证指数列表
-            df_stocks = self.__pro__.index_basic(market='SZSE')
+            df_stocks = self.api.index_basic(market='SZSE')
             for idx, row in df_stocks.iterrows():
                 code = row["ts_code"]
                 rawcode = code[:6]
@@ -99,85 +112,101 @@ class DHTushare(BaseDataHelper):
 
 
     def dmpAdjFactorsToFile(self, codes:list, filename:str):
-        codes = transCodes(codes)
         stocks = {
             "SSE":{},
             "SZSE":{}
         }
-        for code in codes:
-            exchg = code[:2]
-            if exchg == 'sh':
-                exchg = 'SSE'
-            else:
-                exchg = 'SZSE'
+        for stdCode in codes:
+            ts_code = transCode(stdCode)
+            exchg = stdCode.split(".")[0]
+            code = stdCode[-6:]
 
-            stocks[exchg][code[3:]] = list()
-            rs = bs.query_adjust_factor(code=code, start_date="1990-01-01")
-    
-            while (rs.error_code == '0') & rs.next():
-                items = rs.get_row_data()
-                date = int(items[1].replace("-",""))
-                factor = float(items[4])
-                stocks[exchg][code[3:]].append({
+            stocks[exchg][code] = list()
+            df_factors = self.api.adj_factor(ts_code=ts_code)
+
+            items = list()
+            for idx, row in df_factors.iterrows():
+                date = row["trade_date"]
+                factor = row["adj_factor"]
+                items.append({
                     "date": date,
                     "factor": factor
                 })
+
+            items.reverse()
+            pre_factor = 0
+            for item in items:
+                if item["factor"] != pre_factor:
+                    stocks[exchg][code].append(item)
+                    pre_factor = item["factor"]
+
         f = open(filename, 'w+')
         f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
         f.close()
 
     def dmpBarsToFile(self, folder:str, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
-        codes = transCodes(codes)
-
         if start_date is None:
             start_date = datetime(year=1990, month=1, day=1)
         
         if end_date is None:
             end_date = datetime.now()
 
-        start_date = start_date.strftime("%Y-%m-%d")
-        end_date = end_date.strftime("%Y-%m-%d")
-
         freq = ''
         isDay = False
         filetag = ''
-        fields = ""
         if period == 'day':
-            freq = 'd'
+            freq = 'D'
             isDay = True
             filetag = 'd'
-            fields = "date,open,high,low,close,volume,amount"
         elif period == "min5":
-            freq = '5'
+            freq = '5min'
             filetag = 'm5'
-            fields = "date,time,open,high,low,close,volume,amount"
+        elif period == "min1":
+            freq = '1min'
+            filetag = 'm1'
         else:
-            raise Exception("Baostock has only bars of frequency day and min5")
+            raise Exception("Unrecognized period")
 
-        for code in codes:
-            exchg = code[:2]
-            if exchg == 'sh':
-                exchg = 'SSE'
-            else:
-                exchg = 'SZSE'
+        if isDay:
+            start_date = start_date.strftime("%Y%m%d")
+            end_date = end_date.strftime("%Y%m%d")
+        else:
+            start_date = start_date.strftime("%Y-%m-%d") + " 09:00:00"
+            end_date = end_date.strftime("%Y-%m-%d") + " 15:15:00"
 
+        for stdCode in codes:
+            ts_code = transCode(stdCode)
+            exchg = stdCode.split(".")[0]
+            code = stdCode[-6:]
+            asset_type = "E"
+            if (exchg == 'SSE' and code[0] == '0') | (exchg == 'SZSE' and code[:3] == '399'):
+                    asset_type =  "I"
+            elif exchg not in ['SSE','SZSE']:
+                asset_type = "FT"
+                
             
-            rs = bs.query_history_k_data_plus(code=code, fields=fields, start_date=start_date, end_date=end_date, frequency=freq)
+            df_bars = ts.pro_bar(api=self.api, ts_code=ts_code, start_date=start_date, end_date=end_date, freq=freq)
+            df_bars = df_bars.iloc[::-1]
             content = "date,time,open,high,low,close,volume,turnover\n"
-            if rs.error_code != '0':
-                print("Error occured while reading bars of %s" % (code))
-                continue
-
-            while rs.next():
-                items = rs.get_row_data().copy()
+            for idx, row in df_bars.iterrows():
+                trade_date = row["trade_date"]
                 if isDay:
-                    items.insert(1, "0")
+                    date = trade_date + ''
+                    time = '0'
                 else:
-                    time = items[1][-9:-3]
-                    items[1] = time[:2]+":"+time[2:4]+":"+time[4:]
+                    date = trade_date.split(' ')[0]
+                    time = trade_date.split(' ')[1]
+                o = str(row["open"])
+                h = str(row["high"])
+                l = str(row["low"])
+                c = str(row["close"])
+                v = str(row["vol"]*100)
+                t = str(row["amount"]*100)
+                items = [date, time, o, h, l, c, v, t]
+
                 content += ",".join(items) + "\n"
 
-            filename = "%s.%s_%s.csv" % (exchg, code[3:], filetag)
+            filename = "%s.%s_%s.csv" % (exchg, code, filetag)
             filepath = os.path.join(folder, filename)
             f = open(filepath, "w", encoding="utf-8")
             f.write(content)
@@ -187,93 +216,108 @@ class DHTushare(BaseDataHelper):
         raise Exception("Baostock has not code list api")
 
     def dmpAdjFactorsToDB(self, dbHelper:DBHelper, codes:list):
-        codes = transCodes(codes)
         stocks = {
             "SSE":{},
             "SZSE":{}
         }
-        for code in codes:
-            exchg = code[:2]
-            if exchg == 'sh':
-                exchg = 'SSE'
-            else:
-                exchg = 'SZSE'
 
-            stocks[exchg][code[3:]] = list()
-            rs = bs.query_adjust_factor(code=code, start_date="1990-01-01")
-    
-            while (rs.error_code == '0') & rs.next():
-                items = rs.get_row_data()
-                date = int(items[1].replace("-",""))
-                factor = float(items[4])
-                stocks[exchg][code[3:]].append({
-                    "date": date,
+        for stdCode in codes:
+            ts_code = transCode(stdCode)
+            exchg = stdCode.split(".")[0]
+            code = stdCode[-6:]
+
+            stocks[exchg][code] = list()
+            df_factors = self.api.adj_factor(ts_code=ts_code)
+
+            items = list()
+            for idx, row in df_factors.iterrows():
+                date = row["trade_date"]
+                factor = row["adj_factor"]
+                items.append({
+                    "date": int(date),
                     "factor": factor
                 })
+
+            items.reverse()
+            pre_factor = 0
+            for item in items:
+                if item["factor"] != pre_factor:
+                    stocks[exchg][code].append(item)
+                    pre_factor = item["factor"]
+
         dbHelper.writeFactors(stocks)
 
     def dmpBarsToDB(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
-        codes = transCodes(codes)
-
         if start_date is None:
             start_date = datetime(year=1990, month=1, day=1)
         
         if end_date is None:
             end_date = datetime.now()
 
-        start_date = start_date.strftime("%Y-%m-%d")
-        end_date = end_date.strftime("%Y-%m-%d")
-
         freq = ''
         isDay = False
-        fields = ""
+        filetag = ''
         if period == 'day':
-            freq = 'd'
+            freq = 'D'
             isDay = True
-            fields = "date,open,high,low,close,volume,amount"
+            filetag = 'd'
         elif period == "min5":
-            freq = '5'
-            fields = "date,time,open,high,low,close,volume,amount"
+            freq = '5min'
+            filetag = 'm5'
+        elif period == "min1":
+            freq = '1min'
+            filetag = 'm1'
         else:
-            raise Exception("Baostock has only bars of frequency day and min5")
+            raise Exception("Unrecognized period")
 
-        for code in codes:
-            exchg = code[:2]
-            if exchg == 'sh':
-                exchg = 'SSE'
-            else:
-                exchg = 'SZSE'
+        if isDay:
+            start_date = start_date.strftime("%Y%m%d")
+            end_date = end_date.strftime("%Y%m%d")
+        else:
+            start_date = start_date.strftime("%Y-%m-%d") + " 09:00:00"
+            end_date = end_date.strftime("%Y-%m-%d") + " 15:15:00"
 
-            rs = bs.query_history_k_data_plus(code=code, fields=fields, start_date=start_date, end_date=end_date, frequency=freq)
+        for stdCode in codes:
+            ts_code = transCode(stdCode)
+            exchg = stdCode.split(".")[0]
+            code = stdCode[-6:]
+            asset_type = "E"
+            if (exchg == 'SSE' and code[0] == '0') | (exchg == 'SZSE' and code[:3] == '399'):
+                    asset_type =  "I"
+            elif exchg not in ['SSE','SZSE']:
+                asset_type = "FT"
+                
+            df_bars = ts.pro_bar(api=self.api, ts_code=ts_code, start_date=start_date, end_date=end_date, freq=freq)
             bars = []
-            while (rs.error_code == '0') & rs.next():
-                items = rs.get_row_data()
+            for idx, row in df_bars.iterrows():
+                trade_date = row["trade_date"]                
                 if isDay:
                     bars.append({
                         "exchange":exchg,
-                        "code":code[3:],
-                        "date": int(items[0].replace("-","")),
+                        "code": code,
+                        "date": int(trade_date),
                         "time": 0,
-                        "open": float(items[1]),
-                        "high": float(items[2]),
-                        "low": float(items[3]),
-                        "close": float(items[4]),
-                        "volume": float(items[5]),
-                        "turnover": float(items[6])
+                        "open": row["open"],
+                        "high": row["high"],
+                        "low": row["low"],
+                        "close": row["close"],
+                        "volume": row["vol"]*100,
+                        "turnover": row["amount"]*100
                     })
                 else:
-                    time = int(items[1][-9:-5])
+                    date = int(trade_date.split(' ')[0].replace("-"))
+                    time = int(trade_date.split(' ')[1].replace(":")[:4])
                     bars.append({
                         "exchange":exchg,
-                        "code":code[3:],
-                        "date": int(items[0].replace("-","")),
+                        "code":code,
+                        "date": date,
                         "time": time,
-                        "open": float(items[2]),
-                        "high": float(items[3]),
-                        "low": float(items[4]),
-                        "close": float(items[5]),
-                        "volume": float(items[6]),
-                        "turnover": float(items[7])
+                        "open": row["open"],
+                        "high": row["high"],
+                        "low": row["low"],
+                        "close": row["close"],
+                        "volume": row["vol"]*100,
+                        "turnover": row["amount"]*100
                     })
 
             dbHelper.writeBars(bars, period)
