@@ -1,3 +1,4 @@
+from datetime import datetime
 
 class DBHelper:
 
@@ -33,14 +34,14 @@ class BaseDataHelper:
     def dmpAdjFactorsToFile(self, codes:list, filename:str):
         pass
 
-    def dmpBarsToFile(self, folder:str, codes:list, start_date=None, end_date=None, period:str="day"):
+    def dmpBarsToFile(self, folder:str, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
         pass
 
     def dmpCodeListToDB(self, dbHelper:DBHelper, hasIndex:bool=True, hasStock:bool=True):
         pass
 
-    def dmpAdjFactorsToDB(self, codes:list, dbHelper:DBHelper):
+    def dmpAdjFactorsToDB(self, dbHelper:DBHelper, codes:list):
         pass
 
-    def dmpBarsToDB(self, dbHelper:DBHelper, codes:list, start_date=None, end_date=None, period:str="day"):
+    def dmpBarsToDB(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
         pass
