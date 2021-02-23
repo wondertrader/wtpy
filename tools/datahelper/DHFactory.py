@@ -1,5 +1,6 @@
 from tools.datahelper.DHDefs import BaseDataHelper
 from tools.datahelper.DHBaostock import DHBaostock
+from tools.datahelper.DHTushare import DHTushare
 
 class DHFactory:
     
@@ -8,3 +9,5 @@ class DHFactory:
         name = name.lower()
         if name == "baostock":
             return DHBaostock()
+        elif name == "tushare":
+            return DHTushare()

@@ -121,9 +121,6 @@ class DHBaostock(BaseDataHelper):
             f.write(content)
             f.close()
 
-    def dmpCodeListToDB(self, dbHelper:DBHelper, hasIndex:bool=True, hasStock:bool=True):
-        raise Exception("Baostock has not code list api")
-
     def dmpAdjFactorsToDB(self, dbHelper:DBHelper, codes:list):
         codes = transCodes(codes)
         stocks = {
