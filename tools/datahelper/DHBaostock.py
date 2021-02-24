@@ -29,10 +29,6 @@ class DHBaostock(BaseDataHelper):
         bs.login()
         self.isAuthed = True
 
-    def unauth(self):
-        bs.logout()
-        self.isAuthed = False
-
     def dmpCodeListToFile(self, filename:str, hasIndex:bool=True, hasStock:bool=True):
         raise Exception("Baostock has not code list api")
 
