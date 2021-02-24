@@ -25,9 +25,6 @@ class BaseDataHelper:
     def auth(self, **kwargs):
         pass
 
-    def unauth(self):
-        pass
-
     def dmpCodeListToFile(self, filename:str, hasIndex:bool=True, hasStock:bool=True):
         pass
 

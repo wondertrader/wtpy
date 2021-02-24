@@ -34,17 +34,19 @@ class DHTushare(BaseDataHelper):
     def __init__(self):
         BaseDataHelper.__init__(self)
         self.api = None
+        self.use_pro = True
         return
 
     def auth(self, **kwargs):
         if self.isAuthed:
             return
 
+        if "use_pro" in kwargs:
+            self.use_pro = kwargs["use_pro"]
+            kwargs.pop("use_pro")
+
         self.api = ts.pro_api(**kwargs)
         self.isAuthed = True
-
-    def unauth(self):
-        self.isAuthed = False
 
     def dmpCodeListToFile(self, filename:str, hasIndex:bool=True, hasStock:bool=True):
         stocks = {
@@ -144,7 +146,7 @@ class DHTushare(BaseDataHelper):
         f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
         f.close()
 
-    def dmpBarsToFile(self, folder:str, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
+    def __dmp_bars_to_file_from_pro__(self, folder:str, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
         if start_date is None:
             start_date = datetime(year=1990, month=1, day=1)
         
@@ -185,17 +187,18 @@ class DHTushare(BaseDataHelper):
                 asset_type = "FT"
                 
             
-            df_bars = ts.pro_bar(api=self.api, ts_code=ts_code, start_date=start_date, end_date=end_date, freq=freq)
+            df_bars = ts.pro_bar(api=self.api, ts_code=ts_code, start_date=start_date, end_date=end_date, freq=freq, asset=asset_type)
             df_bars = df_bars.iloc[::-1]
             content = "date,time,open,high,low,close,volume,turnover\n"
             for idx, row in df_bars.iterrows():
-                trade_date = row["trade_date"]
                 if isDay:
+                    trade_date = row["trade_date"]
                     date = trade_date + ''
                     time = '0'
                 else:
-                    date = trade_date.split(' ')[0]
-                    time = trade_date.split(' ')[1]
+                    trade_time = row["trade_time"]
+                    date = trade_time.split(' ')[0]
+                    time = trade_time.split(' ')[1]
                 o = str(row["open"])
                 h = str(row["high"])
                 l = str(row["low"])
@@ -212,8 +215,65 @@ class DHTushare(BaseDataHelper):
             f.write(content)
             f.close()
 
-    def dmpCodeListToDB(self, dbHelper:DBHelper, hasIndex:bool=True, hasStock:bool=True):
-        raise Exception("Baostock has not code list api")
+    def __dmp_bars_to_file_from_old__(self, folder:str, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
+        if start_date is None:
+            start_date = datetime(year=1990, month=1, day=1)
+        
+        if end_date is None:
+            end_date = datetime.now()
+
+        freq = ''
+        isDay = False
+        filetag = ''
+        if period == 'day':
+            freq = 'D'
+            isDay = True
+            filetag = 'd'
+        elif period == "min5":
+            freq = '5'
+            filetag = 'm5'
+        else:
+            raise Exception("Unrecognized period")
+
+        start_date = start_date.strftime("%Y-%m-%d")
+        end_date = end_date.strftime("%Y-%m-%d")
+
+        for stdCode in codes:
+            exchg = stdCode.split(".")[0]
+            code = stdCode[-6:]
+            if (exchg == 'SSE' and code[0] == '0') | (exchg == 'SZSE' and code[:3] == '399'):
+                raise Exception("Old api only supports stocks")
+            
+            df_bars = ts.get_k_data(code, start=start_date, end=end_date, ktype=freq)
+            content = "date,time,open,high,low,close,volume\n"
+            for idx, row in df_bars.iterrows():
+                if isDay:
+                    date = row["date"]
+                    time = '0'
+                else:
+                    trade_time = row["date"]
+                    date = trade_time.split(' ')[0]
+                    time = trade_time.split(' ')[1] + ":00"
+                o = str(row["open"])
+                h = str(row["high"])
+                l = str(row["low"])
+                c = str(row["close"])
+                v = str(row["volume"])
+                items = [date, time, o, h, l, c, v]
+
+                content += ",".join(items) + "\n"
+
+            filename = "%s.%s_%s.csv" % (exchg, code, filetag)
+            filepath = os.path.join(folder, filename)
+            f = open(filepath, "w", encoding="utf-8")
+            f.write(content)
+            f.close()
+
+    def dmpBarsToFile(self, folder:str, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
+        if self.use_pro:
+            self.__dmp_bars_to_file_from_pro__(folder=folder, codes=codes, start_date=start_date, end_date=end_date, period=period)
+        else:
+            self.__dmp_bars_to_file_from_old__(folder=folder, codes=codes, start_date=start_date, end_date=end_date, period=period)
 
     def dmpAdjFactorsToDB(self, dbHelper:DBHelper, codes:list):
         stocks = {
@@ -247,7 +307,7 @@ class DHTushare(BaseDataHelper):
 
         dbHelper.writeFactors(stocks)
 
-    def dmpBarsToDB(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
+    def __dmp_bars_to_db_from_pro__(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
         if start_date is None:
             start_date = datetime(year=1990, month=1, day=1)
         
@@ -287,11 +347,11 @@ class DHTushare(BaseDataHelper):
             elif exchg not in ['SSE','SZSE']:
                 asset_type = "FT"
                 
-            df_bars = ts.pro_bar(api=self.api, ts_code=ts_code, start_date=start_date, end_date=end_date, freq=freq)
+            df_bars = ts.pro_bar(api=self.api, ts_code=ts_code, start_date=start_date, end_date=end_date, freq=freq, asset=asset_type)
             bars = []
-            for idx, row in df_bars.iterrows():
-                trade_date = row["trade_date"]                
+            for idx, row in df_bars.iterrows():          
                 if isDay:
+                    trade_date = row["trade_date"]
                     bars.append({
                         "exchange":exchg,
                         "code": code,
@@ -305,8 +365,9 @@ class DHTushare(BaseDataHelper):
                         "turnover": row["amount"]*100
                     })
                 else:
-                    date = int(trade_date.split(' ')[0].replace("-"))
-                    time = int(trade_date.split(' ')[1].replace(":")[:4])
+                    trade_time = row["trade_time"]
+                    date = int(trade_time.split(' ')[0].replace("-",""))
+                    time = int(trade_time.split(' ')[1].replace(":","")[:4])
                     bars.append({
                         "exchange":exchg,
                         "code":code,
@@ -321,3 +382,69 @@ class DHTushare(BaseDataHelper):
                     })
 
             dbHelper.writeBars(bars, period)
+
+    def __dmp_bars_to_db_from_old__(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
+        if start_date is None:
+            start_date = datetime(year=1990, month=1, day=1)
+        
+        if end_date is None:
+            end_date = datetime.now()
+
+        freq = ''
+        isDay = False
+        if period == 'day':
+            freq = 'D'
+            isDay = True
+        elif period == "min5":
+            freq = '5'
+        else:
+            raise Exception("Unrecognized period")
+
+        start_date = start_date.strftime("%Y-%m-%d")
+        end_date = end_date.strftime("%Y-%m-%d")
+
+        for stdCode in codes:
+            exchg = stdCode.split(".")[0]
+            code = stdCode[-6:]
+            if (exchg == 'SSE' and code[0] == '0') | (exchg == 'SZSE' and code[:3] == '399'):
+                raise Exception("Old api only supports stocks")
+            
+            df_bars = ts.get_k_data(code, start=start_date, end=end_date, ktype=freq)
+            bars = []
+            for idx, row in df_bars.iterrows():          
+                if isDay:
+                    trade_date = row["date"]
+                    bars.append({
+                        "exchange":exchg,
+                        "code": code,
+                        "date": int(trade_date.replace('-','')),
+                        "time": 0,
+                        "open": row["open"],
+                        "high": row["high"],
+                        "low": row["low"],
+                        "close": row["close"],
+                        "volume": row["volume"]
+                    })
+                else:
+                    trade_time = row["date"]
+                    date = int(trade_time.split(' ')[0].replace("-",""))
+                    time = int(trade_time.split(' ')[1].replace(":",""))
+                    bars.append({
+                        "exchange":exchg,
+                        "code":code,
+                        "date": date,
+                        "time": time,
+                        "open": row["open"],
+                        "high": row["high"],
+                        "low": row["low"],
+                        "close": row["close"],
+                        "volume": row["volume"]
+                    })
+
+            dbHelper.writeBars(bars, period)
+
+    def dmpBarsToDB(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
+        if self.use_pro:
+            self.__dmp_bars_to_db_from_pro__(dbHelper=dbHelper, codes=codes, start_date=start_date, end_date=end_date, period=period)
+        else:
+            self.__dmp_bars_to_db_from_old__(dbHelper=dbHelper, codes=codes, start_date=start_date, end_date=end_date, period=period)
