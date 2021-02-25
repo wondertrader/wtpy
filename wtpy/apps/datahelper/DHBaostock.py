@@ -1,4 +1,4 @@
-from tools.datahelper.DHDefs import BaseDataHelper, DBHelper
+from wtpy.apps.datahelper.DHDefs import BaseDataHelper, DBHelper
 import baostock as bs
 from datetime import datetime
 import json
