@@ -7,6 +7,10 @@ class DHFactory:
     
     @staticmethod
     def createHelper(name:str) -> BaseDataHelper:
+        '''
+        创建数据辅助模块\n
+        @name   模块名称，目前支持的有tushare、baostock、rqdata
+        '''
         name = name.lower()
         if name == "baostock":
             return DHBaostock()
