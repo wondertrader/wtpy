@@ -4,30 +4,36 @@ from datetime import datetime
 import json
 import os
 
-def transCodes(codes:list) -> list:
-    ret = list()
-    for code in codes:
-        items = code.split(".")
-        exchg = items[0]
-        if exchg == "SSE":
-            ret.append("sh."+items[1])
-        else:
-            ret.append("sz."+items[1])
+def exchgStdToRQ(exchg:str) -> str:
+    if exchg == 'SSE':
+        return "XSHG"
+    elif exchg == 'SZSE':
+        return "XSHE"
+    else:
+        return exchg
 
-    return ret
+def exchgRQToStd(exchg:str) -> str:
+    if exchg == 'XSHG':
+        return "SSE"
+    elif exchg == 'XSHE':
+        return "SZSE"
+    else:
+        return exchg
 
 class DHRqData(BaseDataHelper):
 
     def __init__(self):
         BaseDataHelper.__init__(self)
+        print("Rqdata helper has been created.")
         return
 
     def auth(self, **kwargs):
         if self.isAuthed:
             return
 
-        rq.init(username='18616633529', password='wuzhi2020')
+        rq.init(**kwargs)
         self.isAuthed = True
+        print("Rqdata has been authorized.")
 
     def dmpCodeListToFile(self, filename:str, hasIndex:bool=True, hasStock:bool=True):
         stocks = {
@@ -37,6 +43,7 @@ class DHRqData(BaseDataHelper):
         
         #个股列表
         if hasStock:
+            print("Fetching stock list...")
             df_stocks = rq.all_instruments(type='CS', market="cn")
             for idx, row in df_stocks.iterrows():
                 rawcode = row["order_book_id"][:6]
@@ -55,6 +62,7 @@ class DHRqData(BaseDataHelper):
 
         if hasIndex:
             #上证指数列表
+            print("Fetching index list...")
             df_stocks = rq.all_instruments(type='INDX', market="cn")
             for idx, row in df_stocks.iterrows():
                 rawcode = row["order_book_id"][:6]
@@ -71,25 +79,28 @@ class DHRqData(BaseDataHelper):
                 
                 stocks[sInfo["exchg"]][rawcode] = sInfo
 
+        print("Writing code list into file %s..." % (filename))
         f = open(filename, 'w')
         f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
         f.close()
 
     def dmpAdjFactorsToFile(self, codes:list, filename:str):
-        codes = transCodes(codes)
         stocks = {
             "SSE":{},
             "SZSE":{}
         }
-        for code in codes:
-            exchg = code[:2]
-            if exchg == 'sh':
-                exchg = 'SSE'
-            else:
-                exchg = 'SZSE'
+
+        count = 0
+        length = len(codes)
+        for stdCode in codes:
+            exchg = stdCode.split(".")[0]
+            code = stdCode[-6:]
+            count += 1
+            rq_code = code + "." + exchgStdToRQ(exchg)
 
             stocks[exchg][code[3:]] = list()
-            rs = bs.query_adjust_factor(code=code, start_date="1990-01-01")
+            print("Fetching adjust factors of %s(%d/%s)..." % (code, count, length))
+            rs = rq.get_ex_factor(order_book_ids=rq_code, start_date="1990-01-01")
     
             while (rs.error_code == '0') & rs.next():
                 items = rs.get_row_data()
@@ -99,6 +110,8 @@ class DHRqData(BaseDataHelper):
                     "date": date,
                     "factor": factor
                 })
+        
+        print("Writing adjust factors into file %s..." % (filename))
         f = open(filename, 'w+')
         f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
         f.close()

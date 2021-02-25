@@ -18,3 +18,5 @@ class DHFactory:
             return DHTushare()
         elif name == "rqdata":
             return DHRqData()
+        else:
+            raise Exception("Cannot recognize helper with name %s" % (name))

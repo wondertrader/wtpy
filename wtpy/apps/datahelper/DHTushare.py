@@ -35,6 +35,8 @@ class DHTushare(BaseDataHelper):
         BaseDataHelper.__init__(self)
         self.api = None
         self.use_pro = True
+
+        print("Tushare helper has been created.")
         return
 
     def auth(self, **kwargs):
@@ -47,6 +49,7 @@ class DHTushare(BaseDataHelper):
 
         self.api = ts.pro_api(**kwargs)
         self.isAuthed = True
+        print("Tushare has been authorized, use_pro is %s." % ("enabled" if self.use_pro else "disabled"))
 
     def dmpCodeListToFile(self, filename:str, hasIndex:bool=True, hasStock:bool=True):
         stocks = {
@@ -56,6 +59,7 @@ class DHTushare(BaseDataHelper):
         
         #个股列表
         if hasStock:
+            print("Fetching stock list...")
             df_stocks = self.api.stock_basic(exchange='', list_status='L', fields='ts_code,symbol,name,area,industry,list_date')
             for idx, row in df_stocks.iterrows():
                 code = row["ts_code"]
@@ -75,6 +79,7 @@ class DHTushare(BaseDataHelper):
 
         if hasIndex:
             #上证指数列表
+            print("Fetching index list of SSE...")
             df_stocks = self.api.index_basic(market='SSE')
             for idx, row in df_stocks.iterrows():
                 code = row["ts_code"]
@@ -92,6 +97,7 @@ class DHTushare(BaseDataHelper):
                 stocks[sInfo["exchg"]][code] = sInfo
 
             #深证指数列表
+            print("Fetching index list of SZSE...")
             df_stocks = self.api.index_basic(market='SZSE')
             for idx, row in df_stocks.iterrows():
                 code = row["ts_code"]
@@ -108,6 +114,7 @@ class DHTushare(BaseDataHelper):
                 
                 stocks[sInfo["exchg"]][code] = sInfo
 
+        print("Writing code list into file %s..." % (filename))
         f = open(filename, 'w')
         f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
         f.close()
@@ -118,11 +125,16 @@ class DHTushare(BaseDataHelper):
             "SSE":{},
             "SZSE":{}
         }
+
+        count = 0
+        length = len(codes)
         for stdCode in codes:
             ts_code = transCode(stdCode)
             exchg = stdCode.split(".")[0]
             code = stdCode[-6:]
+            count += 1
 
+            print("Fetching adjust factors of %s(%d/%s)..." % (stdCode, count, length))
             stocks[exchg][code] = list()
             df_factors = self.api.adj_factor(ts_code=ts_code)
 
@@ -142,6 +154,7 @@ class DHTushare(BaseDataHelper):
                     stocks[exchg][code].append(item)
                     pre_factor = item["factor"]
 
+        print("Writing adjust factors into file %s..." % (filename))
         f = open(filename, 'w+')
         f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
         f.close()
@@ -176,6 +189,8 @@ class DHTushare(BaseDataHelper):
             start_date = start_date.strftime("%Y-%m-%d") + " 09:00:00"
             end_date = end_date.strftime("%Y-%m-%d") + " 15:15:00"
 
+        count = 0
+        length = len(codes)
         for stdCode in codes:
             ts_code = transCode(stdCode)
             exchg = stdCode.split(".")[0]
@@ -185,8 +200,9 @@ class DHTushare(BaseDataHelper):
                     asset_type =  "I"
             elif exchg not in ['SSE','SZSE']:
                 asset_type = "FT"
-                
+            count += 1
             
+            print("Fetching %s bars of %s(%d/%s)..." % (period, code, count, length))
             df_bars = ts.pro_bar(api=self.api, ts_code=ts_code, start_date=start_date, end_date=end_date, freq=freq, asset=asset_type)
             df_bars = df_bars.iloc[::-1]
             content = "date,time,open,high,low,close,volume,turnover\n"
@@ -211,6 +227,7 @@ class DHTushare(BaseDataHelper):
 
             filename = "%s.%s_%s.csv" % (exchg, code, filetag)
             filepath = os.path.join(folder, filename)
+            print("Writing bars into file %s..." % (filepath))
             f = open(filepath, "w", encoding="utf-8")
             f.write(content)
             f.close()
@@ -238,12 +255,16 @@ class DHTushare(BaseDataHelper):
         start_date = start_date.strftime("%Y-%m-%d")
         end_date = end_date.strftime("%Y-%m-%d")
 
+        count = 0
+        length = len(codes)
         for stdCode in codes:
             exchg = stdCode.split(".")[0]
             code = stdCode[-6:]
+            count += 1
             if (exchg == 'SSE' and code[0] == '0') | (exchg == 'SZSE' and code[:3] == '399'):
                 raise Exception("Old api only supports stocks")
             
+            print("Fetching %s bars of %s(%d/%s)..." % (period, code, count, length))
             df_bars = ts.get_k_data(code, start=start_date, end=end_date, ktype=freq)
             content = "date,time,open,high,low,close,volume\n"
             for idx, row in df_bars.iterrows():
@@ -265,6 +286,7 @@ class DHTushare(BaseDataHelper):
 
             filename = "%s.%s_%s.csv" % (exchg, code, filetag)
             filepath = os.path.join(folder, filename)
+            print("Writing bars into file %s..." % (filepath))
             f = open(filepath, "w", encoding="utf-8")
             f.write(content)
             f.close()
@@ -281,11 +303,15 @@ class DHTushare(BaseDataHelper):
             "SZSE":{}
         }
 
+        count = 0
+        length = len(codes)
         for stdCode in codes:
             ts_code = transCode(stdCode)
             exchg = stdCode.split(".")[0]
             code = stdCode[-6:]
+            count += 1
 
+            print("Fetching adjust factors of %s(%d/%s)..." % (stdCode, count, length))
             stocks[exchg][code] = list()
             df_factors = self.api.adj_factor(ts_code=ts_code)
 
@@ -305,6 +331,7 @@ class DHTushare(BaseDataHelper):
                     stocks[exchg][code].append(item)
                     pre_factor = item["factor"]
 
+        print("Writing adjust factors into database...")
         dbHelper.writeFactors(stocks)
 
     def __dmp_bars_to_db_from_pro__(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
@@ -337,6 +364,8 @@ class DHTushare(BaseDataHelper):
             start_date = start_date.strftime("%Y-%m-%d") + " 09:00:00"
             end_date = end_date.strftime("%Y-%m-%d") + " 15:15:00"
 
+        count = 0
+        length = len(codes)
         for stdCode in codes:
             ts_code = transCode(stdCode)
             exchg = stdCode.split(".")[0]
@@ -346,7 +375,9 @@ class DHTushare(BaseDataHelper):
                     asset_type =  "I"
             elif exchg not in ['SSE','SZSE']:
                 asset_type = "FT"
-                
+            count += 1
+            
+            print("Fetching %s bars of %s(%d/%s)..." % (period, code, count, length))
             df_bars = ts.pro_bar(api=self.api, ts_code=ts_code, start_date=start_date, end_date=end_date, freq=freq, asset=asset_type)
             bars = []
             for idx, row in df_bars.iterrows():          
@@ -381,6 +412,7 @@ class DHTushare(BaseDataHelper):
                         "turnover": row["amount"]*100
                     })
 
+            print("Writing bars into database...")
             dbHelper.writeBars(bars, period)
 
     def __dmp_bars_to_db_from_old__(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
@@ -403,12 +435,16 @@ class DHTushare(BaseDataHelper):
         start_date = start_date.strftime("%Y-%m-%d")
         end_date = end_date.strftime("%Y-%m-%d")
 
+        count = 0
+        length = len(codes)
         for stdCode in codes:
             exchg = stdCode.split(".")[0]
             code = stdCode[-6:]
             if (exchg == 'SSE' and code[0] == '0') | (exchg == 'SZSE' and code[:3] == '399'):
                 raise Exception("Old api only supports stocks")
+            count += 1
             
+            print("Fetching %s bars of %s(%d/%s)..." % (period, code, count, length))
             df_bars = ts.get_k_data(code, start=start_date, end=end_date, ktype=freq)
             bars = []
             for idx, row in df_bars.iterrows():          
@@ -441,6 +477,7 @@ class DHTushare(BaseDataHelper):
                         "volume": row["volume"]
                     })
 
+            print("Writing bars into database...")
             dbHelper.writeBars(bars, period)
 
     def dmpBarsToDB(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
