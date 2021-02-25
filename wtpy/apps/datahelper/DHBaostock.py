@@ -20,6 +20,7 @@ class DHBaostock(BaseDataHelper):
 
     def __init__(self):
         BaseDataHelper.__init__(self)
+        print("Baostock helper has been created.")
         return
 
     def auth(self, **kwargs):
@@ -28,6 +29,7 @@ class DHBaostock(BaseDataHelper):
 
         bs.login()
         self.isAuthed = True
+        print("Baostock has been authorized.")
 
     def dmpCodeListToFile(self, filename:str, hasIndex:bool=True, hasStock:bool=True):
         raise Exception("Baostock has not code list api")
@@ -38,17 +40,25 @@ class DHBaostock(BaseDataHelper):
             "SSE":{},
             "SZSE":{}
         }
+        count = 0
+        length = len(codes)
         for code in codes:
             exchg = code[:2]
             if exchg == 'sh':
                 exchg = 'SSE'
             else:
                 exchg = 'SZSE'
+            count += 1
 
             stocks[exchg][code[3:]] = list()
+            print("Fetching adjust factors of %s(%d/%s)..." % (code, count, length))
             rs = bs.query_adjust_factor(code=code, start_date="1990-01-01")
+
+            if rs.error_code == '0':
+                print("Error occured: %s" % (rs.error_msg))
+                continue
     
-            while (rs.error_code == '0') & rs.next():
+            while rs.next():
                 items = rs.get_row_data()
                 date = int(items[1].replace("-",""))
                 factor = float(items[4])
@@ -56,6 +66,8 @@ class DHBaostock(BaseDataHelper):
                     "date": date,
                     "factor": factor
                 })
+        
+        print("Writing adjust factors into file %s..." % (filename))
         f = open(filename, 'w+')
         f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
         f.close()
@@ -88,18 +100,21 @@ class DHBaostock(BaseDataHelper):
         else:
             raise Exception("Baostock has only bars of frequency day and min5")
 
+        count = 0
+        length = len(codes)
         for code in codes:
             exchg = code[:2]
             if exchg == 'sh':
                 exchg = 'SSE'
             else:
                 exchg = 'SZSE'
-
+            count += 1
             
+            print("Fetching %s bars of %s(%d/%s)..." % (period, code, count, length))
             rs = bs.query_history_k_data_plus(code=code, fields=fields, start_date=start_date, end_date=end_date, frequency=freq)
             content = "date,time,open,high,low,close,volume,turnover\n"
             if rs.error_code != '0':
-                print("Error occured while reading bars of %s" % (code))
+                print("Error occured: %s" % (rs.error_msg))
                 continue
 
             while rs.next():
@@ -113,6 +128,7 @@ class DHBaostock(BaseDataHelper):
 
             filename = "%s.%s_%s.csv" % (exchg, code[3:], filetag)
             filepath = os.path.join(folder, filename)
+            print("Writing bars into file %s..." % (filepath))
             f = open(filepath, "w", encoding="utf-8")
             f.write(content)
             f.close()
@@ -123,17 +139,26 @@ class DHBaostock(BaseDataHelper):
             "SSE":{},
             "SZSE":{}
         }
+
+        count = 0
+        length = len(codes)
         for code in codes:
             exchg = code[:2]
             if exchg == 'sh':
                 exchg = 'SSE'
             else:
                 exchg = 'SZSE'
-
+            count += 1
+            
+            print("Fetching adjust factors of %s(%d/%s)..." % (code, count, length))
             stocks[exchg][code[3:]] = list()
             rs = bs.query_adjust_factor(code=code, start_date="1990-01-01")
+
+            if rs.error_code == '0':
+                print("Error occured: %s" % (rs.error_msg))
+                continue
     
-            while (rs.error_code == '0') & rs.next():
+            while rs.next():
                 items = rs.get_row_data()
                 date = int(items[1].replace("-",""))
                 factor = float(items[4])
@@ -141,6 +166,8 @@ class DHBaostock(BaseDataHelper):
                     "date": date,
                     "factor": factor
                 })
+        
+        print("Writing adjust factors into database...")
         dbHelper.writeFactors(stocks)
 
     def dmpBarsToDB(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
@@ -168,13 +195,17 @@ class DHBaostock(BaseDataHelper):
         else:
             raise Exception("Baostock has only bars of frequency day and min5")
 
+        count = 0
+        length = len(codes)
         for code in codes:
             exchg = code[:2]
             if exchg == 'sh':
                 exchg = 'SSE'
             else:
                 exchg = 'SZSE'
-
+            count += 1
+            
+            print("Fetching %s bars of %s(%d/%s)..." % (period, code, count, length))
             rs = bs.query_history_k_data_plus(code=code, fields=fields, start_date=start_date, end_date=end_date, frequency=freq)
             bars = []
             while (rs.error_code == '0') & rs.next():
@@ -207,4 +238,5 @@ class DHBaostock(BaseDataHelper):
                         "turnover": float(items[7])
                     })
 
+            print("Writing bars into database...")
             dbHelper.writeBars(bars, period)
