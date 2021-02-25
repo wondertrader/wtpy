@@ -1,7 +1,7 @@
-from tools.datahelper.DHDefs import BaseDataHelper
-from tools.datahelper.DHBaostock import DHBaostock
-from tools.datahelper.DHTushare import DHTushare
-from tools.datahelper.DHRqData import DHRqData
+from wtpy.apps.datahelper.DHDefs import BaseDataHelper
+from wtpy.apps.datahelper.DHBaostock import DHBaostock
+from wtpy.apps.datahelper.DHTushare import DHTushare
+from wtpy.apps.datahelper.DHRqData import DHRqData
 
 class DHFactory:
     
