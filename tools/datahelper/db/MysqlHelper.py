@@ -1,6 +1,7 @@
 from tools.datahelper.DHDefs import DBHelper
 import pymysql
 import math
+import os
 
 class MysqlHelper(DBHelper):
     def __init__(self, host:str, user:str, pwd:str, dbname:str, port:int=3306):
@@ -23,6 +24,24 @@ class MysqlHelper(DBHelper):
             self.conn = pymysql.connect(**self.params)
 
         return self.conn 
+
+    def initDB(self):
+        paths = os.path.split(__file__)
+        a = (paths[:-1] + ('initdb_mysql.sql',))
+        _path = os.path.join(*a)
+        f = open(_path, "r", encoding="UTF-8")
+        content = f.read()
+        f.close()
+        conn = self.__get_conn__()
+        cursor = conn.cursor()
+        items = content.split(";")
+        for item in items:
+            item = item.strip()
+            if len(item) == 0:
+                continue
+            cursor.execute(item+";")
+        conn.commit()
+        cursor.close()
 
     def writeBars(self, bars:list, period="day"):
         count = 0
