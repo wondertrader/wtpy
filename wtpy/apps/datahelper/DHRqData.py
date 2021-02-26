@@ -1,6 +1,6 @@
 from wtpy.apps.datahelper.DHDefs import BaseDataHelper, DBHelper
 import rqdatac as rq
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 
@@ -19,6 +19,25 @@ def exchgRQToStd(exchg:str) -> str:
         return "SZSE"
     else:
         return exchg
+
+def stdCodeToRQ(stdCode:str):
+    items = stdCode.split(".")
+    exchg = exchgStdToRQ(items[0])
+    if len(items) == 2:
+        # 简单股票代码，格式如SSE.600000
+        return items[1] + "." + exchg
+    elif items[1] in ["IDX","ETF","STK","OPT"]:
+        # 标准股票代码，格式如SSE.IDX.000001
+        return items[2] + "." + exchg
+    elif len(items) == 3:
+        # 标准期货代码，格式如CFFEX.IF.2103
+        if items[2] != 'HOT':
+            return ''.join(items[1:])
+        else:
+            return items[1] + "88"
+
+    
+
 
 class DHRqData(BaseDataHelper):
 
@@ -98,16 +117,16 @@ class DHRqData(BaseDataHelper):
             count += 1
             rq_code = code + "." + exchgStdToRQ(exchg)
 
-            stocks[exchg][code[3:]] = list()
+            stocks[exchg][code] = list()
             print("Fetching adjust factors of %s(%d/%s)..." % (code, count, length))
-            rs = rq.get_ex_factor(order_book_ids=rq_code, start_date="1990-01-01")
+            df_factors = rq.get_ex_factor(order_book_ids=rq_code, start_date="1990-01-01")
     
-            while (rs.error_code == '0') & rs.next():
-                items = rs.get_row_data()
-                date = int(items[1].replace("-",""))
-                factor = float(items[4])
-                stocks[exchg][code[3:]].append({
-                    "date": date,
+            for idx, row in df_factors.iterrows():
+                date = row['announcement_date'].to_pydatetime()
+                date = date + timedelta(days=1)
+                factor = float(row['ex_cum_factor'])
+                stocks[exchg][code].append({
+                    "date": int(date.strftime("%Y%m%d")),
                     "factor": factor
                 })
         
@@ -117,150 +136,160 @@ class DHRqData(BaseDataHelper):
         f.close()
 
     def dmpBarsToFile(self, folder:str, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
-        codes = transCodes(codes)
-
         if start_date is None:
             start_date = datetime(year=1990, month=1, day=1)
         
         if end_date is None:
             end_date = datetime.now()
 
-        start_date = start_date.strftime("%Y-%m-%d")
-        end_date = end_date.strftime("%Y-%m-%d")
-
         freq = ''
         isDay = False
         filetag = ''
-        fields = ""
         if period == 'day':
-            freq = 'd'
+            freq = '1d'
             isDay = True
             filetag = 'd'
-            fields = "date,open,high,low,close,volume,amount"
         elif period == "min5":
-            freq = '5'
+            freq = '5m'
             filetag = 'm5'
-            fields = "date,time,open,high,low,close,volume,amount"
+        elif period == "min1":
+            freq = '1m'
+            filetag = 'm1'
         else:
-            raise Exception("Baostock has only bars of frequency day and min5")
-
-        for code in codes:
-            exchg = code[:2]
-            if exchg == 'sh':
-                exchg = 'SSE'
-            else:
-                exchg = 'SZSE'
-
+            raise Exception("Unrecognized period")
+        
+        count = 0
+        length = len(codes)
+        for stdCode in codes:
+            count += 1
+            rq_code = stdCodeToRQ(stdCode)
             
-            rs = bs.query_history_k_data_plus(code=code, fields=fields, start_date=start_date, end_date=end_date, frequency=freq)
+            print("Fetching %s bars of %s(%d/%s)..." % (period, stdCode, count, length))
+            df_bars = rq.get_price(order_book_ids = rq_code,start_date=start_date, end_date=end_date,frequency=freq,adjust_type='none',expect_df=True)
             content = "date,time,open,high,low,close,volume,turnover\n"
-            if rs.error_code != '0':
-                print("Error occured while reading bars of %s" % (code))
-                continue
-
-            while rs.next():
-                items = rs.get_row_data().copy()
+            total_nums = len(df_bars)
+            cur_num = 0
+            for idx, row in df_bars.iterrows():
+                trade_date = row.name[1].to_pydatetime()
+                date = trade_date.strftime("%Y-%m-%d")
                 if isDay:
-                    items.insert(1, "0")
+                    time = '0'
                 else:
-                    time = items[1][-9:-3]
-                    items[1] = time[:2]+":"+time[2:4]+":"+time[4:]
+                    time = trade_date.strftime("%H:%M:%S")
+                o = str(row["open"])
+                h = str(row["high"])
+                l = str(row["low"])
+                c = str(row["close"])
+                v = str(row["volume"])
+                t = str(row["total_turnover"])
+                items = [date, time, o, h, l, c, v, t]
+
                 content += ",".join(items) + "\n"
 
-            filename = "%s.%s_%s.csv" % (exchg, code[3:], filetag)
+                cur_num += 1
+                if cur_num % 500 == 0:
+                    print("Processing bars %d/%d..." % (cur_num, total_nums))
+
+            filename = "%s_%s.csv" % (stdCode, filetag)
             filepath = os.path.join(folder, filename)
+            print("Writing bars into file %s..." % (filepath))
             f = open(filepath, "w", encoding="utf-8")
             f.write(content)
             f.close()
 
     def dmpAdjFactorsToDB(self, dbHelper:DBHelper, codes:list):
-        codes = transCodes(codes)
         stocks = {
             "SSE":{},
             "SZSE":{}
         }
-        for code in codes:
-            exchg = code[:2]
-            if exchg == 'sh':
-                exchg = 'SSE'
-            else:
-                exchg = 'SZSE'
 
-            stocks[exchg][code[3:]] = list()
-            rs = bs.query_adjust_factor(code=code, start_date="1990-01-01")
+        count = 0
+        length = len(codes)
+        for stdCode in codes:
+            exchg = stdCode.split(".")[0]
+            code = stdCode[-6:]
+            count += 1
+            rq_code = code + "." + exchgStdToRQ(exchg)
+
+            stocks[exchg][code] = list()
+            print("Fetching adjust factors of %s(%d/%s)..." % (code, count, length))
+            df_factors = rq.get_ex_factor(order_book_ids=rq_code, start_date="1990-01-01")
     
-            while (rs.error_code == '0') & rs.next():
-                items = rs.get_row_data()
-                date = int(items[1].replace("-",""))
-                factor = float(items[4])
-                stocks[exchg][code[3:]].append({
-                    "date": date,
+            for idx, row in df_factors.iterrows():
+                date = row['announcement_date'].to_pydatetime()
+                date = date + timedelta(days=1)
+                factor = float(row['ex_cum_factor'])
+                stocks[exchg][code].append({
+                    "date": int(date.strftime("%Y%m%d")),
                     "factor": factor
                 })
+        
+        print("Writing adjust factors into database...")
         dbHelper.writeFactors(stocks)
 
     def dmpBarsToDB(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
-        codes = transCodes(codes)
-
         if start_date is None:
             start_date = datetime(year=1990, month=1, day=1)
         
         if end_date is None:
             end_date = datetime.now()
 
-        start_date = start_date.strftime("%Y-%m-%d")
-        end_date = end_date.strftime("%Y-%m-%d")
-
         freq = ''
         isDay = False
-        fields = ""
         if period == 'day':
-            freq = 'd'
+            freq = '1d'
             isDay = True
-            fields = "date,open,high,low,close,volume,amount"
         elif period == "min5":
-            freq = '5'
-            fields = "date,time,open,high,low,close,volume,amount"
+            freq = '5m'
+        elif period == "min1":
+            freq = '1m'
         else:
-            raise Exception("Baostock has only bars of frequency day and min5")
-
-        for code in codes:
-            exchg = code[:2]
-            if exchg == 'sh':
-                exchg = 'SSE'
-            else:
-                exchg = 'SZSE'
-
-            rs = bs.query_history_k_data_plus(code=code, fields=fields, start_date=start_date, end_date=end_date, frequency=freq)
-            bars = []
-            while (rs.error_code == '0') & rs.next():
-                items = rs.get_row_data()
+            raise Exception("Unrecognized period")
+        
+        count = 0
+        length = len(codes)
+        for stdCode in codes:
+            items = stdCode.split(".")
+            exchg = items[0]
+            code = stdCode[(len(exchg)+1):]
+            rq_code = stdCodeToRQ(stdCode)
+            count += 1
+            
+            print("Fetching %s bars of %s(%d/%s)..." % (period, stdCode, count, length))
+            df_bars = rq.get_price(order_book_ids = rq_code,start_date=start_date, end_date=end_date,frequency=freq,adjust_type='none',expect_df=True)
+            bars = list()
+            total_nums = len(df_bars)
+            cur_num = 0
+            for idx, row in df_bars.iterrows():
+                trade_date = row.name[1].to_pydatetime()
+                date = int(trade_date.strftime("%Y%m%d"))
                 if isDay:
-                    bars.append({
-                        "exchange":exchg,
-                        "code":code[3:],
-                        "date": int(items[0].replace("-","")),
-                        "time": 0,
-                        "open": float(items[1]),
-                        "high": float(items[2]),
-                        "low": float(items[3]),
-                        "close": float(items[4]),
-                        "volume": float(items[5]),
-                        "turnover": float(items[6])
-                    })
+                    time = 0
                 else:
-                    time = int(items[1][-9:-5])
-                    bars.append({
-                        "exchange":exchg,
-                        "code":code[3:],
-                        "date": int(items[0].replace("-","")),
-                        "time": time,
-                        "open": float(items[2]),
-                        "high": float(items[3]),
-                        "low": float(items[4]),
-                        "close": float(items[5]),
-                        "volume": float(items[6]),
-                        "turnover": float(items[7])
-                    })
+                    time = int(trade_date.strftime("%H%M"))
+                curBar = {
+                    "exchange":exchg,
+                    "code": code,
+                    "date": date,
+                    "time": time,
+                    "open": row["open"],
+                    "high": row["open"],
+                    "low": row["open"],
+                    "close": row["open"],
+                    "volume": row["volume"],
+                    "turnover": row["total_turnover"]
+                }
 
+                if "settlement" in row:
+                    curBar["settle"] = row["settlement"]
+
+                if "open_interest" in row:
+                    curBar["interest"] = row["open_interest"]
+
+                bars.append(curBar)
+                cur_num += 1
+                if cur_num % 500 == 0:
+                    print("Processing bars %d/%d..." % (cur_num, total_nums))
+
+            print("Writing bars into database...")
             dbHelper.writeBars(bars, period)
