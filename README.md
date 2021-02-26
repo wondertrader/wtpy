@@ -110,3 +110,18 @@
 * 完善了跟C++底层新增的HFT接口的对接
 * 初步完成了跟C++底层新增的股票Level2数据访问接口的对接
 * 将WtDataDefs模块中的WtTickData改成WtHftData，作为高频数据的通用容器
+
+### 0.6.1
+* C++底层更新到2021/02/26发布的v0.6.1版本
+* 统一封装了一个PlatformHelper模块，用于确定操作系统的各种信息
+* 将绝大部分的函数参数和返回值都增加了类型，方便调用的时候查看
+* 将K线容器类的成员变量做了修改，size->capacity，count->size，便于用户理解
+* WtDtHelper模块新增两个接口read_dsb_ticks和read_dsb_bars，同步调用C++底层WtDtHelper模块的同名接口，用于直接读取dsb文件
+* CTA策略新增一个stra_get_last_exittime用于获取上一个出场信号
+* WtBeEngine和WtCtaOptimizer两个模块都增加了对C++策略的支持
+* 回测框架增加对session开始和结束事件的响应接口
+* 监控服务：增加了查看和修改入口脚本的接口/qrygrpentry、/cmtgrpentry
+* web-ui：去掉vue-json-viewer库，改用codemirror，用于展示和编辑代码
+* web-ui：控制台新增入口代码修改的组件，用于修改组合盘下的run.py入口文件
+* web-ui：优化了一些展示的细节
+* wtpy.apps下添加了一个datahelper子模块，该模块的主要作用就是将不同数据源的数据按照WonderTrader支持的格式保存起来
