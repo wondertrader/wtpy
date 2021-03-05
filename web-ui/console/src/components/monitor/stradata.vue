@@ -40,16 +40,20 @@
                         border
                         stripe
                         :data="positions"
+                        :summary-method="getPosSum"
+                        show-summary
                         class="table">
                         <el-table-column
                             prop="strategy"
                             label="策略"
-                            width="120">
+                            width="120"
+                            sortable>
                         </el-table-column>
                         <el-table-column
                             prop="code"
                             label="品种"
-                            width="120">
+                            width="120"
+                            sortable>
                         </el-table-column>
                         <el-table-column
                             label="数量"
@@ -60,7 +64,8 @@
                         </el-table-column>
                         <el-table-column
                             label="浮盈"
-                            width="100">
+                            width="100"
+                            sortable>
                             <template slot-scope="scope">
                                 <span :class="scope.row.profit>=0?'text-danger':'text-success'">{{scope.row.profit.toFixed(1)}}</span>
                             </template>
@@ -95,7 +100,8 @@
                         </el-table-column>
                         <el-table-column
                             prop="opentag"
-                            label="标记">
+                            label="标记"
+                            sortable>
                         </el-table-column>
                     </el-table>
                 </div>
@@ -113,7 +119,8 @@
                         <el-table-column
                             prop="code"
                             label="品种"
-                            width="120">
+                            width="120"
+                            sortable>
                         </el-table-column>
                         <el-table-column
                             label="时间"
@@ -143,7 +150,8 @@
                         </el-table-column>
                         <el-table-column
                             prop="tag"
-                            label="标记">
+                            label="标记"
+                            sortable>
                         </el-table-column>
                     </el-table>
                 </div>
@@ -161,7 +169,8 @@
                         <el-table-column
                             prop="code"
                             label="品种"
-                            width="120">
+                            width="120"
+                            sortable>
                         </el-table-column>
                         <el-table-column
                             prop="target"
@@ -187,7 +196,8 @@
                         </el-table-column>
                         <el-table-column
                             prop="tag"
-                            label="标记">
+                            label="标记"
+                            sortable>
                         </el-table-column>
                     </el-table>
                 </div>
@@ -195,6 +205,8 @@
                     <el-table
                         border
                         stripe
+                        :summary-method="getRndSum"
+                        show-summary
                         :data="rounds"
                         class="table">
                         <el-table-column
@@ -205,7 +217,8 @@
                         <el-table-column
                             prop="code"
                             label="品种"
-                            width="120">
+                            width="120"
+                            sortable>
                         </el-table-column>
                         <el-table-column
                             label="方向"
@@ -257,12 +270,14 @@
                         <el-table-column
                             prop="entertag"
                             label="进场标记"
-                            width="100">
+                            width="100"
+                            sortable>
                         </el-table-column>
                         <el-table-column
                             prop="exittag"
                             label="出场标记"
-                            width="100">
+                            width="100"
+                            sortable>
                         </el-table-column>
                     </el-table>
                 </div>
@@ -403,6 +418,101 @@ export default {
         }
     },
     methods: {
+        getPosSum: function(param){
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+                if (index != 0 && index != 1 && index != 2 && index != 3) {
+                    sums[index] = '';
+                    return;
+                } else if (index == 0){
+                    sums[index] = '总计';
+                    return;
+                } else if (index == 1){
+                    sums[index] = data.length + "笔";
+                } else if (index == 2){
+                    const values = data.map(item => Number(item.qty));
+                    if (!values.every(value => isNaN(value))) {
+                        sums[index] = values.reduce((prev, curr) => {
+                            const value = Number(curr);
+                            if (!isNaN(value)) {
+                                return prev + Math.abs(curr);
+                            } else {
+                                return prev;
+                            }
+                            }, 0) + '手';
+                    } else {
+                        sums[index] = 'N/A';
+                    }
+                } else if (index == 3){
+                    const values = data.map(item => Number(item.profit));
+                    if (!values.every(value => isNaN(value))) {
+                        sums[index] = values.reduce((prev, curr) => {
+                            const value = Number(curr);
+                            if (!isNaN(value)) {
+                                return prev + curr;
+                            } else {
+                                return prev;
+                            }
+                            }, 0).toFixed(1);
+                    } else {
+                        sums[index] = 'N/A';
+                    }
+                }
+                
+            });
+
+            return sums;
+        },
+        getRndSum: function(param){
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+                if (index != 5 && index != 6 && index != 7 && index != 8) {
+                    sums[index] = '';
+                    return;
+                } else if (index == 5){
+                    sums[index] = '总计';
+                    return;
+                } else if (index == 6){
+                    sums[index] = data.length + "笔";
+                    return;
+                }
+
+                if(index == 7){
+                    const values = data.map(item => Number(item.qty));
+                    if (!values.every(value => isNaN(value))) {
+                        sums[index] = values.reduce((prev, curr) => {
+                            const value = Number(curr);
+                            if (!isNaN(value)) {
+                                return prev + curr;
+                            } else {
+                                return prev;
+                            }
+                            }, 0) + '手';
+                    } else {
+                        sums[index] = 'N/A';
+                    }
+                } else if(index == 8) {
+                    const values = data.map(item => Number(item.profit));
+                    if (!values.every(value => isNaN(value))) {
+                        sums[index] = values.reduce((prev, curr) => {
+                            const value = Number(curr);
+                            if (!isNaN(value)) {
+                                return prev + curr;
+                            } else {
+                                return prev;
+                            }
+                            }, 0).toFixed(1);
+                    } else {
+                        sums[index] = 'N/A';
+                    }
+                }
+                
+            });
+
+            return sums;
+        },
         handleCatChange: function(tab, event){
             if(this.selCat == tab.name)
                 return;
