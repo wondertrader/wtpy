@@ -41,7 +41,8 @@
                         <el-table-column
                             prop="code"
                             label="品种"
-                            width="120">
+                            width="120"
+                            sortable>
                         </el-table-column>
                         <el-table-column
                             prop="long"
@@ -83,12 +84,14 @@
                         <el-table-column
                             prop="code"
                             label="品种"
-                            width="120">
+                            width="120"
+                            sortable>
                         </el-table-column>
                         <el-table-column
                             prop="time"
                             label="时间"
                             width="150"
+                            sortable
                             :formatter="formatTime">
                         </el-table-column>
                         <el-table-column
@@ -107,7 +110,7 @@
                             prop="price"
                             label="价格"
                             width="80"
-                            :formatter="formatPrice">
+                            :formatter="fmtPrice">
                         </el-table-column>
                         <el-table-column
                             prop="volume"
@@ -140,12 +143,14 @@
                         <el-table-column
                             prop="code"
                             label="品种"
-                            width="120">
+                            width="120"
+                            sortable>
                         </el-table-column>
                         <el-table-column
                             prop="time"
                             label="委托时间"
                             width="150"
+                            sortable
                             :formatter="formatTime">
                         </el-table-column>
                         <el-table-column
@@ -164,7 +169,7 @@
                             prop="price"
                             label="价格"
                             width="80"
-                            :formatter="formatPrice">
+                            :formatter="fmtPrice">
                         </el-table-column>
                         <el-table-column
                             prop="total"
