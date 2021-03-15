@@ -1,5 +1,5 @@
 from wtpy import WtEngine, EngineType
-from Strategies.HftStraDemo import HftStraDemo
+from strategies.HftStraDemo import HftStraDemo
 
 if __name__ == "__main__":
     #创建一个运行环境，并加入策略
