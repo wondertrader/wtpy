@@ -452,7 +452,7 @@ class WtWrapper:
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "Wt交易框架已初始化完成，框架版本号：%s" % (self.ver))
+        self.write_log(102, "WonderTrader CTA production framework initialzied，version：%s" % (self.ver))
 
     def initialize_hft(self, engine, logCfg:str = "logcfg.json", isFile:bool = True):
         '''
@@ -469,7 +469,7 @@ class WtWrapper:
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "Wt交易框架已初始化完成，框架版本号：%s" % (self.ver))
+        self.write_log(102, "WonderTrader HFT production framework initialzied，version：%s" % (self.ver))
 
     def initialize_sel(self, engine, logCfg:str = "logcfg.json", isFile:bool = True):
         '''
@@ -484,7 +484,7 @@ class WtWrapper:
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "Wt交易框架已初始化完成，框架版本号：%s" % (self.ver))
+        self.write_log(102, "WonderTrader SEL production framework initialzied，version：%s" % (self.ver))
 
     def create_cta_context(self, name:str) -> int:
         '''

@@ -468,7 +468,7 @@ class WtBtWrapper:
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "Wt回测框架已初始化完成，框架版本号：%s" % (self.ver))
+        self.write_log(102, "WonderTrader CTA backtest framework initialzied，version：%s" % (self.ver))
 
     def initialize_hft(self, engine, logCfg:str = "logcfgbt.json", isFile:bool = True):
         '''
@@ -484,7 +484,7 @@ class WtBtWrapper:
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "Wt回测框架已初始化完成，框架版本号：%s" % (self.ver))
+        self.write_log(102, "WonderTrader HFT backtest framework initialzied，version：%s" % (self.ver))
 
     def initialize_sel(self, engine, logCfg:str = "logcfgbt.json", isFile:bool = True):
         '''
@@ -498,7 +498,7 @@ class WtBtWrapper:
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "Wt回测框架已初始化完成，框架版本号：%s" % (self.ver))
+        self.write_log(102, "WonderTrader SEL backtest framework initialzied，version：%s" % (self.ver))
 
     def dump_kline(self, stdCode:str, period:str, filename:str):
         self.api.dump_bars(bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), bytes(filename, encoding = "utf8"))
