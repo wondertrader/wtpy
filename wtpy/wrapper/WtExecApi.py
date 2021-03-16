@@ -47,7 +47,7 @@ class WtExecApi:
         C接口初始化
         '''
         self.api.init_exec(bytes(logCfg, encoding = "utf8"), isFile)
-        self.write_log(102, "Wt独立执行器已初始化完成，基础框架版本号：%s" % (self.ver))
+        self.write_log(102, "WonderTrader independent execution framework initialzied，version：%s" % (self.ver))
 
     def set_position(self, stdCode:str, target:float):
         self.api.set_position(bytes(stdCode, encoding = "utf8"), target)

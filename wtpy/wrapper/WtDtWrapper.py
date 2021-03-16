@@ -57,4 +57,4 @@ class WtDtWrapper:
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "Wt数据组件已初始化完成，组件版本号：%s" % (self.ver))
+        self.write_log(102, "WonderTrader datakit initialzied，version：%s" % (self.ver))
