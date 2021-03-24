@@ -59,7 +59,7 @@ class AppInfo:
         self._id = appConf["id"]
         self._check_span = appConf["span"]
         self._guard = appConf["guard"]
-        self._redirect = appConf["redirect"]
+        self._redirect = False #appConf["redirect"]
         self._schedule = appConf["schedule"]["active"]
         self._weekflag = appConf["schedule"]["weekflag"]
 
@@ -76,7 +76,7 @@ class AppInfo:
         self.__info__ = appConf
         self._check_span = appConf["span"]
         self._guard = appConf["guard"]
-        self._redirect = appConf["redirect"]
+        self._redirect = False #appConf["redirect"]
         self._schedule = appConf["schedule"]["active"]
         self._weekflag = appConf["schedule"]["weekflag"]
         self._ticks = 0
@@ -90,7 +90,7 @@ class AppInfo:
         return ret
     
     def __run_subproc__(self):
-        redirect = self.__info__["redirect"]
+        redirect = self._redirect
         if redirect:
             self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
                             cwd=self.__info__["folder"],
