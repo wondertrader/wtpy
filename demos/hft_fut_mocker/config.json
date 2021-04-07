@@ -1,0 +1,84 @@
+{
+    "basefiles":{
+        "session":"./common/sessions.json",
+        "commodity":"./common/commodities.json",
+        "contract":"./common/contracts.json",
+        "holiday":"./common/holidays.json",
+        "hot":"./common/hots.json"
+    },
+    "env":{
+        "name":"hft",
+        "mode": "product",
+        "product":{
+            "session":"TRADING"
+        },
+        "filters":"filters.json",
+        "fees":"fees.json",
+        "riskmon":{
+            "active":false,
+            "module":"WtRiskMonFact.dll",
+            "name":"SimpleRiskMon",
+            "calc_span":5,
+            "risk_span": 30,
+            "risk_scale": 0.3,
+            "basic_ratio": 101,
+            "inner_day_fd":20.0,
+            "inner_day_active":true,
+            "multi_day_fd":60.0,
+            "multi_day_active":false,
+            "base_amount": 5000000
+        }
+    },
+    "data":{
+        "store":{
+            "path":"./FUT_Data/"
+        }
+    },
+    "executers":[
+        {
+            "active":false,
+			"local": true,
+            "id":"exe3",
+            "scale": 1,
+			"poolsize":2,
+            "policy":
+            {
+                "default":{
+                    "name":"WtExeFact.WtSimpExeUnit",
+                    "offset": 1,
+                    "expire": 5,
+                    "pricemode": 0
+                }
+            },
+            "trader":"simnow"
+        }
+    ],
+    "traders":[
+        {
+            "active":true,
+            "id":"mocker",
+            "module":"TraderMocker.dll",
+            "front":"mocker://localhost",
+            "mockerid":9999,
+            "span":100,
+            "newpx":true,
+            "maxqty":100,
+            "minqty":1,
+            "user":"mocker9999",
+            "udp_port":9001,
+            "savedata":true
+        }
+    ],
+    "parsers":[
+        {
+            "active":true,
+            "id":"parser1",
+            "module":"ParserUDP.dll",
+            "host":"127.0.0.1",
+            "bport":9001,
+            "sport":3997,
+            "filter":""
+        }
+    ],
+    "bspolicy":"actpolicy.json"
+}
