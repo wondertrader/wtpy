@@ -6,10 +6,10 @@
         "holiday":"./common/holidays.json"
     },
     "writer":{
-        "path":"./FUT_Data",
-        "savelog":true,
-        "async":true,
-        "groupsize":100
+        "path":"./FUT_Data/",
+        "savelog":false,
+        "async":false,
+        "groupsize":20
     },
     "parsers":[
         {
@@ -17,8 +17,8 @@
             "module":"ParserCTP.dll",
             "front":"tcp://180.168.146.187:10111",
             "broker":"9999",
-            "user":"ä½ çš„SIMNOWè´¦å·",
-            "pass":"ä½ çš„SIMNOWå¯†ç ",
+            "user":"ÄãµÄSIMNOWÕËºÅ",
+            "pass":"ÄãµÄSIMNOWÃÜÂë",
 			"code":"CFFEX.IF2005,SHFE.au2012"
         }
     ],
