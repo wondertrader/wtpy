@@ -4,18 +4,155 @@ import numpy as np
 import math
 import xlsxwriter
 
+from wtpy.apps.btanalyst.performance_of_strategy import performance_summary
+from wtpy.apps.btanalyst.ratio_calculation import ratio_calculate
+from wtpy.apps.btanalyst.time_analysis import time_analysis
+
+from wtpy.apps.btanalyst.continue_trading_analysis import average_profit, continue_trading_analysis, extreme_trading
+from wtpy.apps.btanalyst.trading_analysis import __ayalyze_result__
+from wtpy.apps.btanalyst.trading_analysis import sum_closes_data
+
 def fmtNAN(val, defVal = 0):
     if math.isnan(val):
         return defVal
 
     return val
 
+def trading_analyze(excelwriter, df_closes, df_funds):
+
+    res = average_profit(df_closes)
+    rr = res.get('连续盈利次数')
+    df = pd.DataFrame([rr]).T
+    df.columns = ['连续次数']
+    df = df.reset_index()
+
+    every_series_profit = res.get('每个序列平均收益')
+    every_series_profit = every_series_profit.reset_index()
+    df['index'] = df['index'].apply(lambda x: int(x))
+    every_series_profit['index'] = every_series_profit['index'].apply(lambda x: int(x))
+    f_result = df.merge(every_series_profit)
+    f_result = f_result.sort_values('index')
+    f_result.columns = ['连续次数', '出现次数', '每个序列平均收益']
+
+    rr_2 = res.get('连续亏损次数')
+    df_2 = pd.DataFrame([rr_2]).T
+    df_2.columns = ['连续次数']
+    df_2 = df_2.reset_index()
+
+    every_series_loss = res.get('每个序列平均亏损')
+    every_series_loss = every_series_loss.reset_index()
+    df_2['index'] = df_2['index'].apply(lambda x: int(x))
+    every_series_loss['index'] = every_series_loss['index'].apply(lambda x: int(x))
+    f_2_result = df_2.merge(every_series_loss)
+    f_2_result = f_2_result.sort_values('index')
+    f_2_result.columns = ['连续次数', '出现次数', '每个序列平均亏损']
+
+    ssaa = 1000
+    # 连续交易系列分析
+    s = continue_trading_analysis(df_closes, ssaa)
+    # 极端交易
+    ss = extreme_trading(df_closes)
+    extre_pro = ss.get('单笔净利 +1倍标准差')
+    extre_los = ss.get('单笔盈利 - 标准差')
+    data1 = df_closes[df_closes['profit'].apply(lambda x: x > extre_pro)]
+    data2 = df_closes[df_closes['profit'].apply(lambda x: x < extre_los)]
+    ss_1 = extreme_trading(data1)
+    ss_2 = extreme_trading(data2)
+    ss_1 = pd.DataFrame([ss_1]).T
+    ss_2 = pd.DataFrame([ss_2]).T
+    sss = pd.concat([ss_1, ss_2], axis=1)
+    ss = pd.DataFrame([ss]).T
+    sss = pd.concat([ss, sss], axis=1)
+    sss.columns = ['总计', '极端盈利', '极端亏损']
+
+    s = pd.DataFrame([s]).T
+    s.columns = ['']
+    s.to_excel(excelwriter, sheet_name='交易分析')
+    sss.to_excel(excelwriter, sheet_name='交易分析', startrow=10)
+    f_result.to_excel(excelwriter, sheet_name='交易分析', startrow=20)
+    f_2_result.to_excel(excelwriter, sheet_name='交易分析', startrow=30)
+    #
+    trade_s = __ayalyze_result__(df_closes, df_funds)
+
+    data_1 = df_closes[df_closes['direct'].apply(lambda x: 'LONG' in x)]
+    trade_s_long = __ayalyze_result__(data_1, df_funds)
+
+    data_2 = df_closes[df_closes['direct'].apply(lambda x: 'SHORT' in x)]
+
+    trade_s_short = __ayalyze_result__(data_2, df_funds)
+    trade_s = trade_s.merge(trade_s_long, how='inner', on='index')
+    trade_s = trade_s.merge(trade_s_short,how='inner', on='index')
+
+    trade_s.columns =['', '所有交易', '多头', '空头']
+    trade_s.to_excel(excelwriter, sheet_name='交易分析', startrow=45)
+
+    res = sum_closes_data(df_closes)
+    res.to_excel(excelwriter, sheet_name='周期分析')
+
+
+def strategy_analyze(excelwriter, df_closes, df_trades, init_capital):
+    data1_open = df_trades[df_trades['action'].apply(lambda x: 'OPEN' in x)].reset_index()
+    data1_open = data1_open.drop(columns=['index'])
+    data1_close = df_trades[df_trades['action'].apply(lambda x: 'CLOSE' in x)].reset_index()
+    data1_close = data1_close.drop(columns=['index'])
+    data1_close = data1_close.rename(columns={'code': 'code_1', 'time': 'time_1', 'direct': 'direct_1',
+                                              'action': 'action_1', 'price': 'price_1', 'qty': 'qty_1', 'tag': 'tag_1',
+                                              'fee': 'fee_1'})
+
+    new_data = pd.concat([data1_open, data1_close], axis=1)
+    new_data = new_data.dropna()
+    new_data = new_data.drop(columns=['code_1', 'qty_1'])
+
+    # 计算开仓平仓手续费
+    new_data['transaction_fee'] = new_data['fee'] + new_data['fee_1']
+    clean_data = new_data[['time', 'transaction_fee']]
+    clean_data = clean_data.rename(columns={'time': 'opentime'})
+
+    # 合并数据
+    after_merge = pd.merge(df_closes, clean_data, how='inner', on='opentime')
+
+    data_long = df_closes[df_closes['direct'].apply(lambda x:'LONG' in x )].reset_index()
+    after_merge_long = after_merge[after_merge['direct'].apply(lambda x: 'LONG' in x)].reset_index()
+    data_short = df_closes[df_closes['direct'].apply(lambda x: 'SHORT' in x)].reset_index()
+    after_merge_short = after_merge[after_merge['direct'].apply(lambda x: 'SHORT' in x)].reset_index()
+    result1 = performance_summary(df_closes, after_merge, init_capital)
+
+    result1_2 = performance_summary(data_long, after_merge_long, init_capital)
+
+    result1_3 = performance_summary(data_short,after_merge_short, init_capital)
+    result2 = ratio_calculate(df_closes, after_merge)
+    result3 = time_analysis(df_closes)
+
+    result1 = pd.DataFrame(pd.Series(result1), columns=['所有交易'])
+    result1 = result1.reset_index().rename(columns={'index': '策略绩效概要'})
+
+    result1_2 = pd.DataFrame(pd.Series(result1_2), columns=['多头交易'])
+    result1_2 = result1_2.reset_index().rename(columns={'index': '策略绩效概要'})
+
+    result1_3 = pd.DataFrame(pd.Series(result1_3), columns=['空头交易'])
+    result1_3 = result1_3.reset_index().rename(columns={'index': '策略绩效概要'})
+
+    result1 = result1.merge(result1_2,how='inner',on='策略绩效概要')
+    result1 = result1.merge(result1_3,how='inner',on='策略绩效概要')
+
+    result2 = pd.DataFrame(pd.Series(result2), columns=[''])
+    result2 = result2.reset_index().rename(columns={'index': '绩效比率'})
+
+    result3 = pd.DataFrame(pd.Series(result3), columns=[''])
+    result3 = result3.reset_index().rename(columns={'index': '时间分析'})
+
+    # excelwriter = pd.ExcelWriter('test.xlsx')
+
+    result1.to_excel(excelwriter, sheet_name='策略分析')
+    result2.to_excel(excelwriter, sheet_name='策略分析', startrow=20)
+    result3.to_excel(excelwriter, sheet_name='策略分析', startrow=35)
+    # excelwriter.save()
+
 class WtBtAnalyst:
 
     def __init__(self):
         self.__strategies__ = dict()
         return
-
 
     def add_strategy(self,  sname:str, folder:str, init_capital:float, rf:float=0.02, annual_trading_days:int = 240):
         self.__strategies__[sname] = {
@@ -24,6 +161,27 @@ class WtBtAnalyst:
             "rf":rf,
             "atd":annual_trading_days
         }
+
+    def run_new(self):
+        if len(self.__strategies__.keys()) == 0:
+            raise Exception("strategies is empty")
+
+        for sname in self.__strategies__:
+            sInfo = self.__strategies__[sname]
+            folder = sInfo["folder"]
+            print("start PnL analyzing for strategy %s……" % (sname))
+
+            df_funds = pd.read_csv(folder + "funds.csv")
+            df_closes = pd.read_csv(folder + "closes.csv")
+            df_trades = pd.read_csv(folder + "trades.csv")
+
+            writer = pd.ExcelWriter('Strategy[%s]_PnLAnalyzing_%s_%s.xlsx' % (sname, df_funds['date'][0], df_funds['date'].iloc[-1]))
+            init_capital = sInfo["cap"]
+            strategy_analyze(writer, df_closes, df_trades, init_capital)
+            trading_analyze(writer, df_closes, df_funds)
+            writer.save()
+
+            print("PnL analyzing of strategy %s done" % (sname))
 
 
     def run(self):
@@ -280,7 +438,5 @@ class WtBtAnalyst:
             workbook.close()
 
             print("PnL analyzing of strategy %s done" % (sname))
-
-            
 
         
