@@ -81,7 +81,7 @@ def on_stra_tick(id:int, stdCode:str, newTick:POINTER(WTSTickStruct)):
         ctx.on_tick(bytes.decode(stdCode), tick)
     return
 
-def on_stra_calc(id:int):
+def on_stra_calc(id:int, curDate:int, curTime:int):
     engine = theEngine
     ctx = engine.get_context(id)
     if ctx is not None:

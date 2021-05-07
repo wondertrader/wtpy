@@ -127,7 +127,7 @@ CB_STRATEGY_TICK = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTickStruct)
 #策略获取tick数据的单条tick同步回调
 CB_STRATEGY_GET_TICK = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTickStruct), c_bool)
 #策略重算回调(CTA/SEL策略)
-CB_STRATEGY_CALC = CFUNCTYPE(c_void_p, c_ulong)
+CB_STRATEGY_CALC = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_ulong)
 #策略订阅的K线闭合事件回调
 CB_STRATEGY_BAR = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_char_p, POINTER(WTSBarStruct))
 #策略获取K线数据的单条K线同步回调

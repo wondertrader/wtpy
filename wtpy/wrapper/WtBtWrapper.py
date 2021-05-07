@@ -78,7 +78,7 @@ def on_strategy_tick(id:int, stdCode:str, newTick:POINTER(WTSTickStruct)):
         ctx.on_tick(stdCode, tick)
     return
 
-def on_strategy_calc(id:int):
+def on_strategy_calc(id:int, curDate:int, curTime:int):
     engine = theEngine
     ctx = engine.get_context()
     if ctx is not None:
