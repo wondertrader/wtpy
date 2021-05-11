@@ -238,7 +238,7 @@ class WtBtEngine:
         ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session)
         self.__context__ = SelContext(ctxid, strategy, self.__wrapper__, self)
 
-    def get_context(self):
+    def get_context(self, id:int):
         return self.__context__
 
     def run_backtest(self):
