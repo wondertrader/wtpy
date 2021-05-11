@@ -86,7 +86,7 @@ class StraDualThrust(BaseCtaStrategy):
         # 向外输出指标
         context.write_indicator(tag=self.__period__, time=int(now), data={
             "highpx":highpx,
-            "lowpx": lowpx，
+            "lowpx": lowpx,
             "upper_bound":upper_bound,
             "lower_bound":lower_bound,
             "current_position": curPos

@@ -1,4 +1,4 @@
-from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER
+from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_int
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct
 from wtpy.wrapper.PlatformHelper import PlatformHelper as ph
 from copy import copy
@@ -8,19 +8,20 @@ CB_DTHELPER_LOG = CFUNCTYPE(c_void_p,  c_char_p)
 CB_DTHELPER_TICK = CFUNCTYPE(c_void_p,  POINTER(WTSTickStruct), c_bool)
 CB_DTHELPER_BAR = CFUNCTYPE(c_void_p,  POINTER(WTSBarStruct), c_bool)
 
+CB_DTHELPER_BAR_GETTER = CFUNCTYPE(c_bool, POINTER(WTSBarStruct), c_int)
+CB_DTHELPER_TICK_GETTER = CFUNCTYPE(c_bool, POINTER(WTSTickStruct), c_int)
+
 def on_log_output(message:str):
     message = bytes.decode(message, 'gbk')
     print(message)
 
 class TickList(list):
     def on_read_tick(self, curTick:POINTER(WTSTickStruct), isLast:bool):
-        # todo 这个判断需要放在c++中才可以释放gil
         if curTick:
             self.append(copy(curTick.contents))
 
 class BarList(list):
     def on_read_bar(self, curBar:POINTER(WTSBarStruct), isLast:bool):
-        # todo 这个判断需要放在c++中才可以释放gil
         if curBar:
             self.append(copy(curBar.contents))
 
@@ -105,3 +106,24 @@ class WtDataHelper:
             return None
         else:
             return bar_cache
+
+    def trans_bars(self, barFile:str, getter, count:int, period:str) -> bool:
+        '''
+        将K线转储到dsb文件中\n
+        @barFile    要存储的文件路径\n
+        @getter     获取bar的回调函数\n
+        @count      一共要写入的数据条数\n
+        @period     周期，m1/m5/d
+        '''
+        cb = CB_DTHELPER_BAR_GETTER(getter)
+        return self.api.trans_bars(bytes(barFile, encoding="utf8"), cb, count, bytes(period, encoding="utf8"), cb_dthelper_log)
+
+    def trans_ticks(self, tickFile:str, getter, count:int) -> bool:
+        '''
+        将Tick数据转储到dsb文件中\n
+        @tickFile   要存储的文件路径\n
+        @getter     获取tick的回调函数\n
+        @count      一共要写入的数据条数
+        '''
+        cb = CB_DTHELPER_TICK_GETTER(getter)
+        return self.api.trans_ticks(bytes(tickFile, encoding="utf8"), cb, count, cb_dthelper_log)
