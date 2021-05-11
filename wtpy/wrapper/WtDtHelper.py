@@ -17,13 +17,11 @@ def on_log_output(message:str):
 
 class TickList(list):
     def on_read_tick(self, curTick:POINTER(WTSTickStruct), isLast:bool):
-        if curTick:
-            self.append(copy(curTick.contents))
+        self.append(copy(curTick.contents))
 
 class BarList(list):
     def on_read_bar(self, curBar:POINTER(WTSBarStruct), isLast:bool):
-        if curBar:
-            self.append(copy(curBar.contents))
+        self.append(copy(curBar.contents))
 
 cb_dthelper_log = CB_DTHELPER_LOG(on_log_output)
 
