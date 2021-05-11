@@ -483,10 +483,12 @@ class WtBtWrapper:
         global theEngine
         theEngine = engine
         try:
+            # 回测不需要 self.api.register_evt_callback(cb_engine_event)
             self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
             self.api.register_hft_callbacks(cb_stra_init, cb_stra_tick, cb_stra_bar, 
                 cb_hftstra_chnl_evt, cb_hftstra_order, cb_hftstra_trade, cb_hftstra_entrust,
                 cb_hftstra_orddtl, cb_hftstra_ordque, cb_hftstra_trans, cb_session_event)
+            # 回测不需要 self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
 
@@ -499,114 +501,86 @@ class WtBtWrapper:
         global theEngine
         theEngine = engine
         try:
+            # 回测不需要 self.api.register_evt_callback(cb_engine_event)
             self.api.register_sel_callbacks(cb_stra_init, cb_stra_tick, cb_stra_calc, cb_stra_bar, cb_session_event)
             self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
+            # 回测不需要 self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
 
         self.write_log(102, "WonderTrader SEL backtest framework initialzied，version：%s" % (self.ver))
 
-    def dump_kline(self, stdCode:str, period:str, filename:str):
-        self.api.dump_bars(bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), bytes(filename, encoding = "utf8"))
-        
-    def init_cta_mocker(self, name:str) -> int:
-        '''
-        创建策略环境\n
-        @name      策略名称
-        @return    系统内策略ID 
-        '''
-        return self.api.init_cta_mocker(bytes(name, encoding = "utf8") )
-
-    def init_hft_mocker(self, name:str) -> int:
-        '''
-        创建策略环境\n
-        @name      策略名称
-        @return    系统内策略ID 
-        '''
-        return self.api.init_hft_mocker(bytes(name, encoding = "utf8") )
-
-    def init_sel_mocker(self, name:str, date:int, time:int, period:str, trdtpl:str = "CHINA", session:str = "TRADING") -> int:
-        '''
-        创建策略环境\n
-        @name      策略名称
-        @return    系统内策略ID 
-        '''
-        return self.api.init_sel_mocker(bytes(name, encoding = "utf8"), date, time, 
-            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"))
-
-    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    '''CTA接口'''
     def cta_enter_long(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         开多\n
-        @id     策略id\n
-        @stdCode   合约代码\n
-        @qty    手数，大于等于0\n
+        @id         策略id\n
+        @stdCode    合约代码\n
+        @qty        手数，大于等于0\n
         '''
         self.api.cta_enter_long(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
     def cta_exit_long(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         平多\n
-        @id     策略id\n
-        @stdCode   合约代码\n
-        @qty    手数，大于等于0\n
+        @id         策略id\n
+        @stdCode    合约代码\n
+        @qty        手数，大于等于0\n
         '''
         self.api.cta_exit_long(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
     def cta_enter_short(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         开空\n
-        @id     策略id\n
-        @stdCode   合约代码\n
-        @qty    手数，大于等于0\n
+        @id         策略id\n
+        @stdCode    合约代码\n
+        @qty        手数，大于等于0\n
         '''
         self.api.cta_enter_short(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
     def cta_exit_short(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         平空\n
-        @id     策略id\n
-        @stdCode   合约代码\n
-        @qty    手数，大于等于0\n
+        @id         策略id\n
+        @stdCode    合约代码\n
+        @qty        手数，大于等于0\n
         '''
         self.api.cta_exit_short(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
     def cta_get_bars(self, id:int, stdCode:str, period:str, count:int, isMain:bool):
         '''
         读取K线\n
-        @id     策略id\n
-        @stdCode   合约代码\n
-        @period 周期，如m1/m3/d1等\n
-        @count  条数\n
-        @isMain 是否主K线
+        @id         策略id\n
+        @stdCode    合约代码\n
+        @period     周期，如m1/m3/d1等\n
+        @count      条数\n
+        @isMain     是否主K线
         '''
         return self.api.cta_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, isMain, cb_stra_get_bar)
 
     def cta_get_ticks(self, id:int, stdCode:str, count:int):
         '''
         读取Tick\n
-        @id     策略id\n
-        @stdCode   合约代码\n
-        @count  条数\n
+        @id         策略id\n
+        @stdCode    合约代码\n
+        @count      条数\n
         '''
         return self.api.cta_get_ticks(id, bytes(stdCode, encoding = "utf8"), count, cb_stra_get_tick)
 
     def cta_get_position_profit(self, id:int, stdCode:str):
         '''
         获取浮动盈亏\n
-        @id     策略id\n
-        @stdCode   合约代码\n
-        @return 指定合约的浮动盈亏
+        @id         策略id\n
+        @stdCode    合约代码\n
+        @return     指定合约的浮动盈亏
         '''
         return self.api.cta_get_position_profit(id, bytes(stdCode, encoding = "utf8"))
 
     def cta_get_position_avgpx(self, id:int, stdCode:str):
         '''
         获取持仓均价\n
-        @id     策略id\n
-        @stdCode   合约代码\n
-        @return 指定合约的持仓均价
+        @id         策略id\n
+        @stdCode    合约代码\n
+        @return     指定合约的持仓均价
         '''
         return self.api.cta_get_position_avgpx(id, bytes(stdCode, encoding = "utf8"))
 
@@ -621,7 +595,7 @@ class WtBtWrapper:
         '''
         获取持仓\n
         @id     策略id\n
-        @stdCode   合约代码\n
+        @stdCode    合约代码\n
         @usertag    进场标记，如果为空则获取该合约全部持仓\n
         @return 指定合约的持仓手数，正为多，负为空
         '''
@@ -630,45 +604,52 @@ class WtBtWrapper:
     def cta_get_price(self, stdCode:str):
         '''
         @stdCode   合约代码\n
-        @return 指定合约的最新价格 
+        @return     指定合约的最新价格 
         '''
         return self.api.cta_get_price(bytes(stdCode, encoding = "utf8"))
 
     def cta_set_position(self, id:int, stdCode:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         设置目标仓位\n
-        @id     策略id
-        @stdCode   合约代码\n
-        @qty    目标仓位，正为多，负为空
+        @id         策略id
+        @stdCode    合约代码\n
+        @qty        目标仓位，正为多，负为空
         '''
         self.api.cta_set_position(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
-    def cta_get_date(self):
+    def cta_get_tdate(self) -> int:
+        '''
+        获取当前交易日\n
+        @return    当前交易日
+        '''
+        return self.api.cta_get_tdate()
+
+    def cta_get_date(self) -> int:
         '''
         获取当前日期\n
         @return    当前日期 
         '''
         return self.api.cta_get_date()
 
-    def cta_get_time(self):
+    def cta_get_time(self) -> int:
         '''
         获取当前时间\n
         @return    当前时间 
         '''
         return self.api.cta_get_time()
 
-    def cta_get_first_entertime(self, id:int, stdCode:str):
+    def cta_get_first_entertime(self, id:int, stdCode:str) -> int:
         '''
         获取当前持仓的首次进场时间\n
-        @stdCode       合约代码\n
+        @stdCode    合约代码\n
         @return     进场时间，格式如201907260932 
         '''
         return self.api.cta_get_first_entertime(id, bytes(stdCode, encoding = "utf8"))
 
-    def cta_get_last_entertime(self, id:int, stdCode:str):
+    def cta_get_last_entertime(self, id:int, stdCode:str) -> int:
         '''
         获取当前持仓的最后进场时间\n
-        @stdCode       合约代码\n
+        @stdCode    合约代码\n
         @return     进场时间，格式如201907260932 
         '''
         return self.api.cta_get_last_entertime(id, bytes(stdCode, encoding = "utf8"))
@@ -689,21 +670,21 @@ class WtBtWrapper:
         '''
         self.api.cta_log_text(id, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
 
-    def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str):
+    def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
         '''
         获取指定标记的持仓的进场时间\n
         @id         策略id\n
-        @stdCode       合约代码\n
+        @stdCode    合约代码\n
         @usertag    进场标记\n
         @return     进场时间，格式如201907260932 
         '''
         return self.api.cta_get_detail_entertime(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8")) 
 
-    def cta_get_detail_cost(self, id:int, stdCode:str, usertag:str):
+    def cta_get_detail_cost(self, id:int, stdCode:str, usertag:str) -> float:
         '''
         获取指定标记的持仓的开仓价\n
         @id         策略id\n
-        @stdCode       合约代码\n
+        @stdCode    合约代码\n
         @usertag    进场标记\n
         @return     开仓价 
         '''
@@ -715,7 +696,7 @@ class WtBtWrapper:
         @id         策略id\n
         @stdCode       合约代码\n
         @usertag    进场标记\n
-        @flag       盈亏记号，0-浮动盈亏，1-最大浮盈，2-最大亏损（负数）
+        @flag       盈亏记号，0-浮动盈亏，1-最大浮盈，2-最大亏损（负数）\n
         @return     盈亏 
         '''
         return self.api.cta_get_detail_profit(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"), flag) 
@@ -724,7 +705,7 @@ class WtBtWrapper:
         '''
         保存用户数据\n
         @id         策略id\n
-        @key        数据名
+        @key        数据名\n
         @val        数据值
         '''
         self.api.cta_save_userdata(id, bytes(key, encoding = "utf8"), bytes(val, encoding = "utf8"))
@@ -733,7 +714,7 @@ class WtBtWrapper:
         '''
         加载用户数据\n
         @id         策略id\n
-        @key        数据名
+        @key        数据名\n
         @defVal     默认值
         '''
         ret = self.api.cta_load_userdata(id, bytes(key, encoding = "utf8"), bytes(defVal, encoding = "utf8"))
@@ -772,7 +753,7 @@ class WtBtWrapper:
         '''
         保存用户数据\n
         @id         策略id\n
-        @key        数据名
+        @key        数据名\n
         @val        数据值
         '''
         self.api.sel_save_userdata(id, bytes(key, encoding = "utf8"), bytes(val, encoding = "utf8"))
@@ -781,7 +762,7 @@ class WtBtWrapper:
         '''
         加载用户数据\n
         @id         策略id\n
-        @key        数据名
+        @key        数据名\n
         @defVal     默认值
         '''
         ret = self.api.sel_load_userdata(id, bytes(key, encoding = "utf8"), bytes(defVal, encoding = "utf8"))
@@ -874,27 +855,27 @@ class WtBtWrapper:
     def hft_get_ordque(self, id:int, stdCode:str, count:int):
         '''
         读取委托队列\n
-        @id     策略id\n
+        @id        策略id\n
         @stdCode   合约代码\n
-        @count  条数\n
+        @count     条数\n
         '''
         return self.api.hft_get_ordque(id, bytes(stdCode, encoding = "utf8"), count, cb_hftstra_get_ordque)
 
     def hft_get_orddtl(self, id:int, stdCode:str, count:int):
         '''
         读取逐笔委托\n
-        @id     策略id\n
+        @id        策略id\n
         @stdCode   合约代码\n
-        @count  条数\n
+        @count     条数\n
         '''
         return self.api.hft_get_orddtl(id, bytes(stdCode, encoding = "utf8"), count, cb_hftstra_get_orddtl)
 
     def hft_get_trans(self, id:int, stdCode:str, count:int):
         '''
         读取逐笔成交\n
-        @id     策略id\n
+        @id        策略id\n
         @stdCode   合约代码\n
-        @count  条数\n
+        @count     条数\n
         '''
         return self.api.hft_get_trans(id, bytes(stdCode, encoding = "utf8"), count, cb_hftstra_get_trans)
 
@@ -902,7 +883,7 @@ class WtBtWrapper:
         '''
         保存用户数据\n
         @id         策略id\n
-        @key        数据名
+        @key        数据名\n
         @val        数据值
         '''
         self.api.hft_save_userdata(id, bytes(key, encoding = "utf8"), bytes(val, encoding = "utf8"))
@@ -911,7 +892,7 @@ class WtBtWrapper:
         '''
         加载用户数据\n
         @id         策略id\n
-        @key        数据名
+        @key        数据名\n
         @defVal     默认值
         '''
         ret = self.api.hft_load_userdata(id, bytes(key, encoding = "utf8"), bytes(defVal, encoding = "utf8"))
@@ -1027,7 +1008,8 @@ class WtBtWrapper:
         @stdCode    品种代码\n
         @isBuy      买入or卖出
         '''
-        return self.api.hft_cancel_all(id, bytes(stdCode, encoding = "utf8"), isBuy)
+        ret = self.api.hft_cancel_all(id, bytes(stdCode, encoding = "utf8"), isBuy)
+        return bytes.decode(ret)
 
     def hft_buy(self, id:int, stdCode:str, price:float, qty:float, userTag:str):
         '''
@@ -1037,8 +1019,8 @@ class WtBtWrapper:
         @price      买入价格, 0为市价\n
         @qty        买入数量
         '''
-        idstr = self.api.hft_buy(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
-        return bytes.decode(idstr)
+        ret = self.api.hft_buy(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
+        return bytes.decode(ret)
 
     def hft_sell(self, id:int, stdCode:str, price:float, qty:float, userTag:str):
         '''
@@ -1048,5 +1030,35 @@ class WtBtWrapper:
         @price      卖出价格, 0为市价\n
         @qty        卖出数量
         '''
-        idstr = self.api.hft_sell(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
-        return bytes.decode(idstr)
+        ret = self.api.hft_sell(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
+        return bytes.decode(ret)
+
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    '''本地撮合接口'''
+    def init_cta_mocker(self, name:str) -> int:
+        '''
+        创建策略环境\n
+        @name      策略名称
+        @return    系统内策略ID 
+        '''
+        return self.api.init_cta_mocker(bytes(name, encoding = "utf8") )
+
+    def init_hft_mocker(self, name:str) -> int:
+        '''
+        创建策略环境\n
+        @name      策略名称
+        @return    系统内策略ID 
+        '''
+        return self.api.init_hft_mocker(bytes(name, encoding = "utf8") )
+
+    def init_sel_mocker(self, name:str, date:int, time:int, period:str, trdtpl:str = "CHINA", session:str = "TRADING") -> int:
+        '''
+        创建策略环境\n
+        @name      策略名称
+        @return    系统内策略ID 
+        '''
+        return self.api.init_sel_mocker(bytes(name, encoding = "utf8"), date, time, 
+            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"))
+
+    def dump_kline(self, stdCode:str, period:str, filename:str):
+        self.api.dump_bars(bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), bytes(filename, encoding = "utf8"))
