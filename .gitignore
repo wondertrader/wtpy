@@ -17,8 +17,8 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.xlsx
-*/BtLogs
-*/Logs
-*/outputs_bt
+BtLogs
+Logs
+outputs_bt
 bin
 FUT_Data
