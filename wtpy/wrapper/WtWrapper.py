@@ -10,7 +10,6 @@ import os
 
 theEngine = None
 
-
 def on_engine_event(evtid:int, evtDate:int, evtTime:int):
     engine = theEngine
     if evtid == EVENT_ENGINE_INIT:
@@ -125,7 +124,6 @@ def on_stra_get_bar(id:int, stdCode:str, period:str, curBar:POINTER(WTSBarStruct
         realBar = curBar.contents
 
     period = bytes.decode(period)
-    stdCode = bytes.decode(stdCode)
 
     bar = None
     if realBar is not None:
@@ -142,7 +140,7 @@ def on_stra_get_bar(id:int, stdCode:str, period:str, curBar:POINTER(WTSBarStruct
         bar["volume"] = realBar.vol
 
     if ctx is not None:
-        ctx.on_getbars(stdCode, period, bar, isLast)
+        ctx.on_getbars(bytes.decode(stdCode), period, bar, isLast)
     return
 
 def on_stra_get_tick(id:int, stdCode:str, curTick:POINTER(WTSTickStruct), isLast:bool):
@@ -168,6 +166,27 @@ def on_stra_get_tick(id:int, stdCode:str, curTick:POINTER(WTSTickStruct), isLast
         tick["high"] = realTick.high
         tick["low"] = realTick.low
         tick["price"] = realTick.price
+
+        tick["bidprice"] = list()
+        tick["bidqty"] = list()
+        tick["askprice"] = list()
+        tick["askqty"] = list()
+        
+        tick["total_volume"] = realTick.total_volume
+        tick["volume"] = realTick.volume
+        tick["total_turnover"] = realTick.total_turnover
+        tick["turn_over"] = realTick.turn_over
+        tick["open_interest"] = realTick.open_interest
+        tick["diff_interest"] = realTick.diff_interest
+
+        for i in range(10):
+            if realTick.bid_qty[i] != 0:
+                tick["bidprice"].append(realTick.bid_prices[i])
+                tick["bidqty"].append(realTick.bid_qty[i])
+
+            if realTick.ask_qty[i] != 0:
+                tick["askprice"].append(realTick.ask_prices[i])
+                tick["askqty"].append(realTick.ask_qty[i])
 
     if ctx is not None:
         ctx.on_getticks(bytes.decode(stdCode), tick, isLast)
@@ -204,7 +223,7 @@ def on_hftstra_trade(id:int, localid:int, stdCode:str, isBuy:bool, qty:float, pr
 
 def on_hftstra_entrust(id:int, localid:int, stdCode:str, bSucc:bool, message:str, userTag:str):
     stdCode = bytes.decode(stdCode)
-    message = bytes.decode(message)
+    message = bytes.decode(message, "gbk")
     userTag = bytes.decode(userTag)
     engine = theEngine
     ctx = engine.get_context(id)
@@ -292,7 +311,7 @@ def on_hftstra_get_order_detail(id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtl
         if ctx is not None:
             ctx.on_get_order_detail(bytes.decode(stdCode), curOrdDtl, isLast)
 
-def on_hftstra_transaction(id:int, stdCode, newTrans:POINTER(WTSTransStruct)):
+def on_hftstra_transaction(id:int, stdCode:str, newTrans:POINTER(WTSTransStruct)):
     engine = theEngine
     ctx = engine.get_context(id)
     newTrans = newTrans.contents
@@ -387,6 +406,7 @@ class WtWrapper:
             a = (paths[:-1] + (dllname,))
             _path = os.path.join(*a)
             self.api = cdll.LoadLibrary(_path)
+
         self.api.get_version.restype = c_char_p
         self.api.cta_get_last_entertime.restype = c_uint64
         self.api.cta_get_first_entertime.restype = c_uint64
@@ -427,17 +447,19 @@ class WtWrapper:
         self.api.hft_sell.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
         self.api.hft_cancel_all.restype = c_char_p
 
+    def write_log(self, level, message:str, catName:str = ""):
+        self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
+
+    ### 实盘和回测有差异 ###
     def run(self):
         self.api.run_porter(True)
 
     def release(self):
         self.api.release_porter()
 
-    def write_log(self, level, message:str, catName:str = ""):
-        self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
-
     def config(self, cfgfile:str = 'config.json', isFile:bool = True):
         self.api.config_porter(bytes(cfgfile, encoding = "utf8"), isFile)
+    ### 实盘和回测有差异 ###
 
     def initialize_cta(self, engine, logCfg:str = "logcfg.json", isFile:bool = True):
         '''
