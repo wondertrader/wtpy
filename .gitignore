@@ -16,3 +16,9 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+*.xlsx
+*/BtLogs
+*/Logs
+*/outputs_bt
+bin
+FUT_Data
