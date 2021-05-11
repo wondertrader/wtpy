@@ -81,14 +81,21 @@ class StraDualThrust(BaseCtaStrategy):
 
         #读取当前仓位
         curPos = context.stra_get_position(code)/trdUnit
+        now = context.stra_get_date()*10000 + timePx%10000
+        
+        # 向外输出指标
+        context.write_indicator(tag=self.__period__, time=int(now), data={
+            "highpx":highpx,
+            "lowpx": lowpx，
+            "upper_bound":upper_bound,
+            "lower_bound":lower_bound,
+            "current_position": curPos
+        })
 
         if curPos == 0:
             if highpx >= upper_bound:
                 context.stra_enter_long(code, 1*trdUnit, 'enterlong')
-                # context.stra_log_text("向上突破%.2f>=%.2f，多仓进场" % (highpx, upper_bound))
-                #修改并保存
-                self.xxx = 1
-                context.user_save_data('xxx', self.xxx)
+                context.stra_log_text("向上突破%.2f>=%.2f，多仓进场" % (highpx, upper_bound))
                 return
 
             if lowpx <= lower_bound and not self.__is_stk__:
