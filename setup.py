@@ -124,7 +124,8 @@ setup(
         "*.map",
         "*.css",
         "*.woff",
-        "*.ttf"
+        "*.ttf",
+        "*.exe"
     ]},
     extras_require=EXTRAS,
     include_package_data=True,
