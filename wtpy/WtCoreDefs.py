@@ -182,3 +182,18 @@ class EngineType(Enum):
     ET_SEL = 1001
 
         
+'''
+Parser外接实现
+'''
+EVENT_PARSER_INIT		= 1;	#Parser初始化
+EVENT_PARSER_CONNECT	= 2;	#Parser连接
+EVENT_PARSER_DISCONNECT = 3;	#Parser断开连接
+EVENT_PARSER_RELEASE	= 4;	#Parser释放
+CB_PARSER_EVENT = CFUNCTYPE(c_void_p, c_ulong, c_char_p)
+CB_PARSER_SUBCMD = CFUNCTYPE(c_void_p, c_char_p, c_char_p, c_bool)
+
+'''
+Executer外接实现
+'''
+CB_EXECUTER_INIT = CFUNCTYPE(c_void_p, c_char_p)
+CB_EXECUTER_CMD = CFUNCTYPE(c_void_p, c_char_p, c_char_p, c_double)

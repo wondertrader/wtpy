@@ -1,5 +1,5 @@
 from ctypes import cdll, c_int, c_char_p, c_longlong, c_bool, c_void_p, c_ulong, c_uint, c_uint64, c_double, POINTER
-from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
+from wtpy.WtCoreDefs import CB_EXECUTER_CMD, CB_EXECUTER_INIT, CB_PARSER_EVENT, CB_PARSER_SUBCMD, CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION, EVENT_PARSER_CONNECT, EVENT_PARSER_DISCONNECT, EVENT_PARSER_INIT, EVENT_PARSER_RELEASE
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
 from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST, CB_ENGINE_EVENT
@@ -350,6 +350,50 @@ def on_hftstra_get_transaction(id:int, stdCode:str, newTrans:POINTER(WTSTransStr
         if ctx is not None:
             ctx.on_get_transaction(bytes.decode(stdCode), curTrans, isLast)
 
+def on_parser_event(evtId:int, id:str):
+    id = bytes.decode(id)
+    engine = theEngine
+    parser = engine.get_extended_parser(id)
+    if parser is None:
+        return
+    
+    if evtId == EVENT_PARSER_INIT:
+        parser.init(engine)
+    elif evtId == EVENT_PARSER_CONNECT:
+        parser.connect()
+    elif evtId == EVENT_PARSER_DISCONNECT:
+        parser.disconnect()
+    elif evtId == EVENT_PARSER_RELEASE:
+        parser.release()
+
+def on_parser_sub(id:str, fullCode:str, isForSub:bool):
+    id = bytes.decode(id)
+    engine = theEngine
+    parser = engine.get_extended_parser(id)
+    if parser is None:
+        return
+    fullCode = bytes.decode(fullCode)
+    if isForSub:
+        parser.subscribe(fullCode)
+    else:
+        parser.unsubscribe(fullCode)
+
+def on_executer_init(id:str):
+    engine = theEngine
+    executer = engine.get_extended_executer(id)
+    if executer is None:
+        return
+
+    executer.init()
+
+def on_executer_cmd(id:str, stdCode:str, targetPos:float):
+    engine = theEngine
+    executer = engine.get_extended_executer(id)
+    if executer is None:
+        return
+
+    executer.set_position(stdCode, targetPos)
+
 '''
 将回调函数转换成C接口识别的函数类型
 ''' 
@@ -376,6 +420,11 @@ cb_hftstra_chnl_evt = CB_HFTSTRA_CHNL_EVT(on_hftstra_channel_evt)
 cb_hftstra_order = CB_HFTSTRA_ORD(on_hftstra_order)
 cb_hftstra_trade = CB_HFTSTRA_TRD(on_hftstra_trade)
 cb_hftstra_entrust = CB_HFTSTRA_ENTRUST(on_hftstra_entrust)
+
+cb_parser_event = CB_PARSER_EVENT(on_parser_event)
+cb_parser_subcmd = CB_PARSER_SUBCMD(on_parser_sub)
+cb_executer_cmd = CB_EXECUTER_CMD(on_executer_cmd)
+cb_executer_init = CB_EXECUTER_INIT(on_executer_init)
 
 # Python对接C接口的库
 class WtWrapper:
@@ -447,6 +496,9 @@ class WtWrapper:
         self.api.hft_sell.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
         self.api.hft_cancel_all.restype = c_char_p
 
+        self.api.create_ext_parser.restype = c_bool
+        self.api.create_ext_parser.argtypes = [c_char_p]
+
     def write_log(self, level, message:str, catName:str = ""):
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
 
@@ -459,8 +511,21 @@ class WtWrapper:
 
     def config(self, cfgfile:str = 'config.json', isFile:bool = True):
         self.api.config_porter(bytes(cfgfile, encoding = "utf8"), isFile)
-    ### 实盘和回测有差异 ###
 
+    def create_extended_parser(self, id:str) -> bool:
+        return self.api.create_ext_parser(bytes(id, encoding = "utf8"))
+
+    def create_extended_executer(self, id:str) -> bool:
+        return self.api.create_ext_executer(bytes(id, encoding = "utf8"))
+
+    def push_quote_from_exetended_parser(self, id:str, newTick:POINTER(WTSTickStruct), bNeedSlice:bool = True):
+        return self.api.parser_push_quote(bytes(id, encoding = "utf8"), newTick, bNeedSlice)
+
+    def register_extended_module_callbacks(self,):
+        self.api.register_parser_callbacks(cb_parser_event, cb_parser_subcmd)
+        self.api.register_exec_callbacks(cb_executer_init, cb_executer_cmd)
+
+    ### 实盘和回测有差异 ###
     def initialize_cta(self, engine, logCfg:str = "logcfg.json", isFile:bool = True):
         '''
         C接口初始化
@@ -471,6 +536,7 @@ class WtWrapper:
             self.api.register_evt_callback(cb_engine_event)
             self.api.register_cta_callbacks(cb_stra_init, cb_stra_tick, cb_stra_calc, cb_stra_bar, cb_session_event)
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
+            self.register_extended_module_callbacks()
         except OSError as oe:
             print(oe)
 
@@ -505,6 +571,7 @@ class WtWrapper:
             self.api.register_sel_callbacks(cb_stra_init, cb_stra_tick, cb_stra_calc, cb_stra_bar, cb_session_event)
             # 实盘不需要 self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
+            self.register_extended_module_callbacks()
         except OSError as oe:
             print(oe)
 
@@ -1073,3 +1140,5 @@ class WtWrapper:
 
     def reg_exe_factories(self, factFolder:str):
         return self.api.reg_exe_factories(bytes(factFolder, encoding = "utf8") )
+
+    
