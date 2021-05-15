@@ -9,7 +9,7 @@ class CTPLoader:
     def __init__(self, folder:str="./", isMini:bool = False):
         self.folder = folder
 
-        filename = "CTPLoader" if isMini else "MiniLoader"
+        filename = "MiniLoader" if isMini else "CTPLoader"
 
         paths = os.path.split(__file__)
         exename = ''
