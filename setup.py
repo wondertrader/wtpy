@@ -18,7 +18,7 @@ URL = 'https://github.com/wondertrader/wondertrader'
 EMAIL = 'silencesword@foxmail.com'
 AUTHOR = 'Wesley Liu'
 REQUIRES_PYTHON = '>=3.5.0'
-VERSION = '0.6.3'
+VERSION = '0.6.4'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
@@ -116,16 +116,7 @@ setup(
     # },
     install_requires=REQUIRED,
     package_data={"": [
-        "*.dll",
-        "*.so",
-        "*.ico",
-        "*.html",
-        "*.js",
-        "*.map",
-        "*.css",
-        "*.woff",
-        "*.ttf",
-        "*.exe"
+        "*"
     ]},
     extras_require=EXTRAS,
     include_package_data=True,
