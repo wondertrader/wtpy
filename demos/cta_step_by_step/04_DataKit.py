@@ -3,6 +3,7 @@
 # 3、程序自动生成Common/commodities.json  Common/contracts.json
 # 4、请注意simnow只能在开盘时间运行
 # todo:  statemonitor.json 硬编码无法移到配置文件目录中，等群主发功
+# todo： 不支持 code:"CFFEX.T.HOT"或 code:"CFFEX.T"，等群主发功
 
 from wtpy import WtDtEngine
 
