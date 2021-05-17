@@ -567,7 +567,7 @@ def do_trading_analyze(df_closes, df_funds):
         max_consecutive_wins = max(max_consecutive_wins, consecutive_wins)
         max_consecutive_loses = max(max_consecutive_loses, consecutive_loses)
 
-    summary = df_wins
+    summary = df_wins.copy()
 
     summary["交易总数量"] = totaltimes
     summary["盈利交易次数"] = wintimes
