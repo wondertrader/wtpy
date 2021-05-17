@@ -24,3 +24,6 @@ bin
 FUT_Data
 DtLogs
 ParserCTPFlow
+*.con
+*.dmb
+*.dsb
