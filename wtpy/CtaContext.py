@@ -111,9 +111,9 @@ class CtaContext:
     def stra_log_text(self, message:str):
         '''
         输出日志
-        @message    消息内容\n
+        @message    消息内容，最大242字符\n
         '''
-        self.__wrapper__.cta_log_text(self.__id__, message)
+        self.__wrapper__.cta_log_text(self.__id__, message[:242])
 
     def stra_get_tdate(self):
         '''
@@ -211,7 +211,7 @@ class CtaContext:
         获取K线和tick数据的时候会自动订阅，这里只需要订阅额外要检测的品种即可\n
         @stdCode   合约代码
         '''
-        self.__wrapper__.cta_sub_ticks(stdCode)
+        self.__wrapper__.cta_sub_ticks(self.__id__, stdCode)
 
     def stra_get_position(self, stdCode:str = "", usertag:str = ""):
         '''
