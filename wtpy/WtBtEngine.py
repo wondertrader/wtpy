@@ -214,12 +214,12 @@ class WtBtEngine:
         '''
         return self.contractMgr.getTotalCodes()
 
-    def set_cta_strategy(self, strategy:BaseCtaStrategy):
+    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0):
         '''
         添加策略\n
         @strategy   策略对象
         '''
-        ctxid = self.__wrapper__.init_cta_mocker(strategy.name())
+        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage)
         self.__context__ = CtaContext(ctxid, strategy, self.__wrapper__, self)
 
     def set_hft_strategy(self, strategy:BaseHftStrategy):
@@ -230,12 +230,12 @@ class WtBtEngine:
         ctxid = self.__wrapper__.init_hft_mocker(strategy.name())
         self.__context__ = HftContext(ctxid, strategy, self.__wrapper__, self)
 
-    def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING"):
+    def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING", slippage:int = 0):
         '''
         添加策略\n
         @strategy   策略对象
         '''
-        ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session)
+        ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session, slippage)
         self.__context__ = SelContext(ctxid, strategy, self.__wrapper__, self)
 
     def get_context(self, id:int):
