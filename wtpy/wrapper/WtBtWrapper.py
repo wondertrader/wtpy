@@ -601,6 +601,15 @@ class WtBtWrapper:
         '''
         return self.api.cta_get_position(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"))
 
+    def cta_get_fund_data(self, id:int, flag:int):
+        '''
+        获取资金数据\n
+        @id     策略id\n
+        @flag   0-动态权益，1-总平仓盈亏，2-总浮动盈亏，3-总手续费\n
+        @return 资金数据
+        '''
+        return self.api.cta_get_fund_data(id, flag)
+
     def cta_get_price(self, stdCode:str):
         '''
         @stdCode   合约代码\n
@@ -1035,13 +1044,13 @@ class WtBtWrapper:
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''本地撮合接口'''
-    def init_cta_mocker(self, name:str) -> int:
+    def init_cta_mocker(self, name:str, slippage:int = 0) -> int:
         '''
         创建策略环境\n
         @name      策略名称
         @return    系统内策略ID 
         '''
-        return self.api.init_cta_mocker(bytes(name, encoding = "utf8") )
+        return self.api.init_cta_mocker(bytes(name, encoding = "utf8"), slippage)
 
     def init_hft_mocker(self, name:str) -> int:
         '''
@@ -1051,14 +1060,14 @@ class WtBtWrapper:
         '''
         return self.api.init_hft_mocker(bytes(name, encoding = "utf8") )
 
-    def init_sel_mocker(self, name:str, date:int, time:int, period:str, trdtpl:str = "CHINA", session:str = "TRADING") -> int:
+    def init_sel_mocker(self, name:str, date:int, time:int, period:str, trdtpl:str = "CHINA", session:str = "TRADING", slippage:int = 0) -> int:
         '''
         创建策略环境\n
         @name      策略名称
         @return    系统内策略ID 
         '''
         return self.api.init_sel_mocker(bytes(name, encoding = "utf8"), date, time, 
-            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"))
+            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"), slippage)
 
     def dump_kline(self, stdCode:str, period:str, filename:str):
         self.api.dump_bars(bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), bytes(filename, encoding = "utf8"))
