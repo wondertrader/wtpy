@@ -1263,7 +1263,7 @@ class WtBtAnalyst:
             "atd":annual_trading_days
         }
 
-    def run_new(self):
+    def run_new(self, outFileName:str = ''):
         if len(self.__strategies__.keys()) == 0:
             raise Exception("strategies is empty")
 
@@ -1276,7 +1276,10 @@ class WtBtAnalyst:
             df_closes = pd.read_csv(folder + "closes.csv")
             df_trades = pd.read_csv(folder + "trades.csv")
 
-            workbook = Workbook('Strategy[%s]_PnLAnalyzing_%s_%s.xlsx' % (sname, df_funds['date'][0], df_funds['date'].iloc[-1]))
+            if len(outFileName) == 0:
+                outFileName = 'Strategy[%s]_PnLAnalyzing_%s_%s.xlsx' % (sname, df_funds['date'][0], df_funds['date'].iloc[-1])
+
+            workbook = Workbook(outFileName)
             init_capital = sInfo["cap"]
             annual_days = sInfo["atd"]
             rf = sInfo["rf"]
@@ -1290,7 +1293,7 @@ class WtBtAnalyst:
             print("PnL analyzing of strategy %s done" % (sname))
 
 
-    def run(self):
+    def run(self, outFileName:str = ''):
         if len(self.__strategies__.keys()) == 0:
             raise Exception("strategies is empty")
 
@@ -1305,8 +1308,10 @@ class WtBtAnalyst:
             init_capital = sInfo["cap"]
             annual_days = sInfo["atd"]
             rf = sInfo["rf"]
-
-            workbook = Workbook('Strategy[%s]_PnLAnalyzing_%s_%s.xlsx' % (sname, df_funds['date'][0], df_funds['date'].iloc[-1]))
+            
+            if len(outFileName) == 0:
+                outFileName = 'Strategy[%s]_PnLAnalyzing_%s_%s.xlsx' % (sname, df_funds['date'][0], df_funds['date'].iloc[-1])
+            workbook = Workbook(outFileName)
             funds_analyze(workbook, df_funds, capital=init_capital, rf=rf, period=annual_days)
             workbook.close()
 
