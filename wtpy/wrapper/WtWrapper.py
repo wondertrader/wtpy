@@ -526,7 +526,7 @@ class WtWrapper:
         self.api.register_exec_callbacks(cb_executer_init, cb_executer_cmd)
 
     ### 实盘和回测有差异 ###
-    def initialize_cta(self, engine, logCfg:str = "logcfg.json", isFile:bool = True):
+    def initialize_cta(self, engine, logCfg:str = "logcfg.json", isFile:bool = True, genDir:str = 'generated'):
         '''
         C接口初始化
         '''
@@ -535,14 +535,14 @@ class WtWrapper:
         try:
             self.api.register_evt_callback(cb_engine_event)
             self.api.register_cta_callbacks(cb_stra_init, cb_stra_tick, cb_stra_calc, cb_stra_bar, cb_session_event)
-            self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
+            self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile, bytes(genDir, encoding = "utf8"))
             self.register_extended_module_callbacks()
         except OSError as oe:
             print(oe)
 
         self.write_log(102, "WonderTrader CTA production framework initialzied，version：%s" % (self.ver))
 
-    def initialize_hft(self, engine, logCfg:str = "logcfg.json", isFile:bool = True):
+    def initialize_hft(self, engine, logCfg:str = "logcfg.json", isFile:bool = True, genDir:str = 'generated'):
         '''
         C接口初始化
         '''
@@ -554,13 +554,13 @@ class WtWrapper:
             self.api.register_hft_callbacks(cb_stra_init, cb_stra_tick, cb_stra_bar, 
                 cb_hftstra_chnl_evt, cb_hftstra_order, cb_hftstra_trade, cb_hftstra_entrust,
                 cb_hftstra_orddtl, cb_hftstra_ordque, cb_hftstra_trans, cb_session_event)
-            self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
+            self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile, bytes(genDir, encoding = "utf8"))
         except OSError as oe:
             print(oe)
 
         self.write_log(102, "WonderTrader HFT production framework initialzied，version：%s" % (self.ver))
 
-    def initialize_sel(self, engine, logCfg:str = "logcfg.json", isFile:bool = True):
+    def initialize_sel(self, engine, logCfg:str = "logcfg.json", isFile:bool = True, genDir:str = 'generated'):
         '''
         C接口初始化
         '''
@@ -570,7 +570,7 @@ class WtWrapper:
             self.api.register_evt_callback(cb_engine_event)
             self.api.register_sel_callbacks(cb_stra_init, cb_stra_tick, cb_stra_calc, cb_stra_bar, cb_session_event)
             # 实盘不需要 self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
-            self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
+            self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile, bytes(genDir, encoding = "utf8"))
             self.register_extended_module_callbacks()
         except OSError as oe:
             print(oe)
