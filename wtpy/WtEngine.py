@@ -27,7 +27,7 @@ def singleton(cls):
 @singleton
 class WtEngine:
 
-    def __init__(self, eType:EngineType):
+    def __init__(self, eType:EngineType, logCfg:str = "logCfg.json", genDir:str = "generated"):
         self.__wrapper__ = WtWrapper()  #api接口转换器
         self.__cta_ctxs__ = dict()      #CTA策略ctx映射表
         self.__sel_ctxs__ = dict()      #SEL策略ctx映射表
@@ -43,11 +43,11 @@ class WtEngine:
 
         self.__engine_type = eType
         if eType == EngineType.ET_CTA:
-            self.__wrapper__.initialize_cta(self)   #初始化api接口
+            self.__wrapper__.initialize_cta(self, logCfg=logCfg, isFile=True, genDir=genDir)
         elif eType == EngineType.ET_HFT:
-            self.__wrapper__.initialize_hft(self)
+            self.__wrapper__.initialize_hft(self, logCfg=logCfg, isFile=True, genDir=genDir)
         elif eType == EngineType.ET_SEL:
-            self.__wrapper__.initialize_sel(self)   #初始化api接口
+            self.__wrapper__.initialize_sel(self, logCfg=logCfg, isFile=True, genDir=genDir)
 
     def __check_config__(self):
         '''
