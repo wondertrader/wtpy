@@ -1,0 +1,13 @@
+{
+    "parsers":[
+        {
+            "active":true,
+            "module":"ParserCTP",
+            "front":"tcp://180.168.146.187:10111",
+            "broker":"9999",
+            "user":"你的SIMNOW账号",
+            "pass":"你的SIMNOW密码",
+            "code":""
+        }
+    ]
+}
