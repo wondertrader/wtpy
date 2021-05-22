@@ -1,11 +1,13 @@
 代码重要
 * 获得主力合约的下一个合约
+* python需要读取当天dmb行情的接口
+* wtbtengine在多进程同时启动时可能存在文件抢占影响多线程调优
 * ~~获取收盘时间有bug~~
 * ~~强烈需要 before_market_start after_market_end之类的on event方法~~
 * ~~暴露设置滑点的方法~~
 * ~~on_calculate里通过Context获得“当前权益”~~
 * ~~生产和回测的数据存放目录结构统一文件名统一，csv生成dsb的时候按照目录结构和文件名~~
-* 整个目录csv的转化成结构话dsb目前没有太好办法，只能通过模拟一个回测
+* ~~整个目录csv的转化成结构话dsb目前没有太好办法，只能通过模拟一个回测~~
 * datakit的配置文件中code有问题，顺便支持 code:"CFFEX.T.HOT"或 code:"CFFEX.T" 类似的配置
 * ~~"module":"WtRiskMonFact.dll" 类似配置改为 "module":"WtRiskMonFact"，自动判断dll或so以便兼容linux和win~~
 * ~~CSV转BIN需要支持hold字段~~
@@ -24,6 +26,7 @@
 * filter的配置
 * riskmon及相关module的配置
 * actpolicy的配置
+* 关于策略、通道 净头寸的细节说明
 
 建议
 * ~~收盘作业能否维护主力合约映射更新，已经通过其他方式实现~~
