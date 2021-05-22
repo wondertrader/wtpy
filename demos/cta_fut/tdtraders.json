@@ -1,0 +1,32 @@
+{
+    "traders":[
+        {
+            "active":true,
+            "id":"simnow",
+            "module":"TraderCTP",
+            "front":"tcp://180.168.146.187:10101",
+            "broker":"9999",
+            "user":"你的SIMNOW账号",
+            "pass":"你的SIMNOW密码",
+            "appid":"simnow_client_test",
+            "authcode":"0000000000000000",
+            "quick":true,
+            "riskmon":
+            {
+                "active":true,
+                "policy":
+                {
+                    "default":
+                    {
+                        "order_times_boundary": 20,
+                        "order_stat_timespan": 10,
+                        
+                        "cancel_times_boundary": 20,
+                        "cancel_stat_timespan": 10,
+                        "cancel_total_limits": 470
+                    }
+                }
+            }
+        }
+    ]
+}

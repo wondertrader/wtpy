@@ -11,17 +11,8 @@
         "async":true,
         "groupsize":100
     },
-    "parsers":[
-        {
-            "active":true,
-            "module":"ParserCTP.dll",
-            "front":"tcp://180.168.146.187:10111",
-            "broker":"9999",
-            "user":"ÄãµÄSIMNOWÕËºÅ",
-            "pass":"ÄãµÄSIMNOWÃÜÂë",
-            "code":""
-        }
-    ],
+    "parsers":"mdparsers.json",
+    "statemonitor":"statemonitor.json",
     "broadcaster":{
         "active":true,
         "bport":3997,
