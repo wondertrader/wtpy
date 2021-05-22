@@ -45,7 +45,7 @@
             "volscale": 10000,
             "name": "10ÄêÕ®",
             "exchg": "CFFEX",
-            "session": "FD0915",
+            "session": "SD0930",
             "holiday": "CHINA"
         },
         "TF": {
@@ -57,7 +57,7 @@
             "volscale": 10000,
             "name": "5ÄêÕ®",
             "exchg": "CFFEX",
-            "session": "FD0915",
+            "session": "SD0930",
             "holiday": "CHINA"
         },
         "TS": {
@@ -69,7 +69,7 @@
             "volscale": 20000,
             "name": "2ÄêÕ®",
             "exchg": "CFFEX",
-            "session": "FD0915",
+            "session": "SD0930",
             "holiday": "CHINA"
         }
     },

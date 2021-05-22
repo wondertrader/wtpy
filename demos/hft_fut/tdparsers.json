@@ -1,0 +1,23 @@
+{
+    "parsers":[
+        {
+            "active":false,
+            "id":"parser2",
+            "module":"ParserUDP.dll",
+            "host":"127.0.0.1",
+            "bport":9001,
+            "sport":3997,
+            "filter":""
+        },
+        {
+			"id":"parser0",
+            "active":true,
+            "module":"ParserCTP.dll",
+            "front":"tcp://180.168.146.187:10111",
+            "broker":"9999",
+            "user":"你的SIMNOW账号",
+            "pass":"你的SIMNOW密码",
+            "code":"CFFEX.IF2008"
+        }
+    ]
+}
