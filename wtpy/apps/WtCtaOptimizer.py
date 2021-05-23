@@ -1,3 +1,4 @@
+from json import encoder
 import multiprocessing
 import time
 import threading
@@ -261,24 +262,24 @@ class WtCtaOptimizer:
             max_consecutive_loses = max(max_consecutive_loses, consecutive_loses)
 
         summary = params.copy()
-        summary["Total Trades"] = totaltimes
-        summary["Winning Trades"] = wintimes
-        summary["Losing Trades"] = losetimes
-        summary["Gross Profit"] = float(winamout)
-        summary["Gross Loss"] = float(loseamount)
-        summary["Net Profit"] = float(trdnetprofit)
-        summary["% Profitable"] = winrate*100
-        summary["Avg Trade"] = avgprof
-        summary["Avg Winning Trade"] = avgprof_win
-        summary["Avg Losing Trade"] = avgprof_lose
-        summary["Win/Loss Ratio"] = winloseratio
-        summary["Max Consecutive Winners"] = max_consecutive_wins
-        summary["Max Consecutive Losers"] = max_consecutive_loses
-        summary["Avg Bars in Winner"] = avg_bars_in_winner
-        summary["Avg Bars in Loser"] = avg_bars_in_loser
-        summary["Return on Account"] = accnetprofit/totaltimes
+        summary["总交易次数"] = totaltimes
+        summary["盈利次数"] = wintimes
+        summary["亏损次数"] = losetimes
+        summary["毛盈利"] = float(winamout)
+        summary["毛亏损"] = float(loseamount)
+        summary["交易净盈亏"] = float(trdnetprofit)
+        summary["胜率"] = winrate*100
+        summary["单次平均盈亏"] = avgprof
+        summary["单次盈利均值"] = avgprof_win
+        summary["单次亏损均值"] = avgprof_lose
+        summary["单次盈亏均值比"] = winloseratio
+        summary["最大连续盈利次数"] = max_consecutive_wins
+        summary["最大连续亏损次数"] = max_consecutive_loses
+        summary["平均盈利周期"] = avg_bars_in_winner
+        summary["平均亏损周期"] = avg_bars_in_loser
+        summary["平均账户收益率"] = accnetprofit/totaltimes
 
-        f = open(folder+"summary.json", "w")
+        f = open(folder+"summary.json", mode="w")
         f.write(json.dumps(obj=summary, indent=4))
         f.close()
 
@@ -381,7 +382,7 @@ class WtCtaOptimizer:
 
         df_summary = df(total_summary)
         df_summary = df_summary.drop(labels=["name"], axis='columns')
-        df_summary.to_csv(out_summary_file)
+        df_summary.to_csv(out_summary_file, encoding='utf-8-sig')
 
     def analyze(self, out_marker_file:str = "strategies.json", out_summary_file:str = "total_summary.csv"):
         #开始汇总回测结果
