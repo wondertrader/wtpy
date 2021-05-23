@@ -2,6 +2,7 @@
 代码重要,获得主力合约的下一个合约,,
 ,wtbtengine在多进程同时启动时可能存在文件抢占影响多线程调优,,
 ,python需要读取当天dmb行情的接口,,
+,WtCtaOptimizer支持多个回测时间区间比如（2016-2018/2017-2010/）,,
 ,暴露设置滑点的方法,√,"set_cta_strategy(stra,slippage=1)"
 ,获取收盘时间有bug,√,
 ,强烈需要 before_market_start after_market_end之类的on event方法,√,on_session_begin和on_session_end
