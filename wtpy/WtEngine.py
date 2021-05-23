@@ -26,8 +26,18 @@ def singleton(cls):
 
 @singleton
 class WtEngine:
+    '''
+    实盘交易引擎
+    '''
 
-    def __init__(self, eType:EngineType, logCfg:str = "logCfg.json", genDir:str = "generated"):
+    def __init__(self, eType:EngineType, logCfg:str = "logCfg.json", genDir:str = "generated", bDumpCfg:bool = False):
+        '''
+        WtEngine构造函数\n
+        @eType  引擎类型：EngineType.ET_CTA、EngineType.ET_HFT、EngineType.ET_SEL\n
+        @logCfg 日志配置文件\n
+        @genDir 数据输出目录\n
+        @bDumpCfg   是否保存最终配置文件
+        '''
         self.__wrapper__ = WtWrapper()  #api接口转换器
         self.__cta_ctxs__ = dict()      #CTA策略ctx映射表
         self.__sel_ctxs__ = dict()      #SEL策略ctx映射表
@@ -40,6 +50,8 @@ class WtEngine:
 
         self.__ext_parsers__ = dict()   #外接的行情接入模块
         self.__ext_executers__ = dict() #外接的执行器
+
+        self.__dump_config__ = bDumpCfg #是否保存最终配置
 
         self.__engine_type = eType
         if eType == EngineType.ET_CTA:
@@ -192,13 +204,14 @@ class WtEngine:
         if self.__cfg_commited__:
             return
 
-        cfgfile = "config_run.json"
-        f = open(cfgfile, "w")
-        f.write(json.dumps(self.__config__, indent=4, sort_keys=True))
-        f.close()
-        self.__wrapper__.config(cfgfile)
-        os.remove(cfgfile)
+        cfgfile = json.dumps(self.__config__, indent=4, sort_keys=True)
+        self.__wrapper__.config(cfgfile, False)
         self.__cfg_commited__ = True
+
+        if self.__dump_config__:
+            f = open("config_run.json", 'w')
+            f.write(cfgfile)
+            f.close()
 
     def regCtaStraFactories(self, factFolder:str):
         '''
