@@ -11,6 +11,7 @@ import pandas as pd
 from pandas import DataFrame as df
 
 from wtpy import WtBtEngine,EngineType
+from wtpy.apps import WtBtAnalyst
 
 def fmtNAN(val, defVal = 0):
     if math.isnan(val):
@@ -410,5 +411,11 @@ class WtCtaOptimizer:
         df_summary = df(total_summary)
         df_summary = df_summary.drop(labels=["name"], axis='columns')
         df_summary.to_csv(out_summary_file)
+
+    def analyzer(self, out_marker_file:str = "strategies.json", init_capital=500000, rf=0.02, annual_trading_days=240):
+        for straname in json.load(open(out_marker_file, mode='r')).keys():
+            analyst = WtBtAnalyst()
+            analyst.add_strategy(straname, folder="./outputs_bt/%s/"%straname, init_capital=init_capital, rf=rf, annual_trading_days=annual_trading_days)
+            analyst.run()
 
                 
