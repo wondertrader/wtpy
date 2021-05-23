@@ -27,13 +27,15 @@ def singleton(cls):
 @singleton
 class WtBtEngine:
 
-    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True):
+    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False):
         self.__wrapper__ = WtBtWrapper()  #api接口转换器
         self.__context__ = None      #策略ctx映射表
         self.__config__ = dict()        #框架配置项
         self.__cfg_commited__ = False   #配置是否已提交
 
         self.__idx_writer__ = None  #指标输出模块
+
+        self.__dump_config__ = bDumpCfg #是否保存最终配置
 
         if eType == eType.ET_CTA:
             self.__wrapper__.initialize_cta(self, logCfg, isFile)   #初始化CTA环境
@@ -173,6 +175,11 @@ class WtBtEngine:
         cfgfile = json.dumps(self.__config__, indent=4, sort_keys=True)
         self.__wrapper__.config_backtest(cfgfile, False)
         self.__cfg_commited__ = True
+
+        if self.__dump_config__:
+            f = open("config_run.json", 'w')
+            f.write(cfgfile)
+            f.close()
 
     def getSessionByCode(self, code:str) -> SessionInfo:
         '''
