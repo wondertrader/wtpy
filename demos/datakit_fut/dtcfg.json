@@ -6,31 +6,22 @@
         "holiday":"./common/holidays.json"
     },
     "writer":{
-        "path":"./FUT_Data/",
-        "savelog":false,
-        "async":false,
-        "groupsize":20
+        "path":"./FUT_Data",
+        "savelog":true,
+        "async":true,
+        "groupsize":100
     },
-    "parsers":[
-        {
-            "active":true,
-            "module":"ParserCTP.dll",
-            "front":"tcp://180.168.146.187:10111",
-            "broker":"9999",
-            "user":"ÄãµÄSIMNOWÕËºÅ",
-            "pass":"ÄãµÄSIMNOWÃÜÂë",
-			"code":"CFFEX.IF2005,SHFE.au2012"
-        }
-    ],
+    "parsers":"mdparsers.json",
+    "statemonitor":"statemonitor.json",
     "broadcaster":{
         "active":true,
         "bport":3997,
         "broadcast":[
-			{
-				"host":"255.255.255.255",
-				"port":9001,
-				"type":2
-			}
+            {
+                "host":"255.255.255.255",
+                "port":9001,
+                "type":2
+            }
         ],
         "multicast_":[
             {

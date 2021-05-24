@@ -50,11 +50,11 @@ class SessionInfo:
         if len(self.sections) == 0:
             return 0
 
-        opentm = self.sections[-1].stime
+        closetm = self.sections[-1].etime
         if not bOffset:
-            return self.originalTime(opentm)
+            return self.originalTime(closetm)
         else:
-            return opentm
+            return closetm
 
     def getTradingMins(self):
         if len(self.sections) == 0:

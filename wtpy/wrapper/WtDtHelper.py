@@ -1,46 +1,29 @@
-from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER
+from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_int
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct
-from .PlatformHelper import PlatformHelper as ph
+from wtpy.wrapper.PlatformHelper import PlatformHelper as ph
+from copy import copy
 import os
-import copy
 
 CB_DTHELPER_LOG = CFUNCTYPE(c_void_p,  c_char_p)
 CB_DTHELPER_TICK = CFUNCTYPE(c_void_p,  POINTER(WTSTickStruct), c_bool)
 CB_DTHELPER_BAR = CFUNCTYPE(c_void_p,  POINTER(WTSBarStruct), c_bool)
 
+CB_DTHELPER_BAR_GETTER = CFUNCTYPE(c_bool, POINTER(WTSBarStruct), c_int)
+CB_DTHELPER_TICK_GETTER = CFUNCTYPE(c_bool, POINTER(WTSTickStruct), c_int)
+
 def on_log_output(message:str):
-    message = bytes.decode(message, "gbk")
+    message = bytes.decode(message, 'gbk')
     print(message)
 
-tick_cache = list()
-def on_read_tick(curTick:POINTER(WTSTickStruct), isLast:bool):
-    global tick_cache
-    
-    realTick = None
-    if curTick:
-        realTick = curTick.contents
+class TickList(list):
+    def on_read_tick(self, curTick:POINTER(WTSTickStruct), isLast:bool):
+        self.append(copy(curTick.contents))
 
-    if realTick is None:
-        return
-    
-    tick_cache.append(copy.copy(realTick))
-
-bar_cache = list()
-def on_read_bar(curBar:POINTER(WTSBarStruct), isLast:bool):
-    global bar_cache
-    
-    realBar = None
-    if curBar:
-        realBar = curBar.contents
-
-    if realBar is None:
-        return
-    
-    bar_cache.append(copy.copy(realBar))
+class BarList(list):
+    def on_read_bar(self, curBar:POINTER(WTSBarStruct), isLast:bool):
+        self.append(copy(curBar.contents))
 
 cb_dthelper_log = CB_DTHELPER_LOG(on_log_output)
-cb_read_tick = CB_DTHELPER_TICK(on_read_tick)
-cb_read_bar = CB_DTHELPER_BAR(on_read_bar)
 
 class WtDataHelper:
     '''
@@ -104,10 +87,8 @@ class WtDataHelper:
         @tickFile   .dsb的tick数据文件\n
         @return     WTSTickStruct的list
         '''
-        global tick_cache
-        tick_cache = list()
-        cnt = self.api.read_dsb_ticks(bytes(tickFile, encoding="utf8"), cb_read_tick, cb_dthelper_log)
-        if cnt == 0:
+        tick_cache = TickList()
+        if 0 == self.api.read_dsb_ticks(bytes(tickFile, encoding="utf8"), CB_DTHELPER_TICK(tick_cache.on_read_tick), cb_dthelper_log):
             return None
         else:
             return tick_cache
@@ -118,10 +99,29 @@ class WtDataHelper:
         @tickFile   .dsb的K线数据文件\n
         @return     WTSBarStruct的list
         '''
-        global bar_cache
-        bar_cache = list()
-        cnt = self.api.read_dsb_bars(bytes(barFile, encoding="utf8"), cb_read_bar, cb_dthelper_log)
-        if cnt == 0:
+        bar_cache = BarList()
+        if 0 == self.api.read_dsb_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), cb_dthelper_log):
             return None
         else:
             return bar_cache
+
+    def trans_bars(self, barFile:str, getter, count:int, period:str) -> bool:
+        '''
+        将K线转储到dsb文件中\n
+        @barFile    要存储的文件路径\n
+        @getter     获取bar的回调函数\n
+        @count      一共要写入的数据条数\n
+        @period     周期，m1/m5/d
+        '''
+        cb = CB_DTHELPER_BAR_GETTER(getter)
+        return self.api.trans_bars(bytes(barFile, encoding="utf8"), cb, count, bytes(period, encoding="utf8"), cb_dthelper_log)
+
+    def trans_ticks(self, tickFile:str, getter, count:int) -> bool:
+        '''
+        将Tick数据转储到dsb文件中\n
+        @tickFile   要存储的文件路径\n
+        @getter     获取tick的回调函数\n
+        @count      一共要写入的数据条数
+        '''
+        cb = CB_DTHELPER_TICK_GETTER(getter)
+        return self.api.trans_ticks(bytes(tickFile, encoding="utf8"), cb, count, cb_dthelper_log)

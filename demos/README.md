@@ -2,15 +2,22 @@
 
 Python下的demo目前大概罗列了6个，主要是演示不同环境下不同组件的使用<br>
 提供了一个示例策略，DualThrust，股票和期货都用这个策略
-+ cta_fut_bt  期货回测demo
-+ cta_stk_bt  股票回测demo
-+ datakit_fut   期货数据组件demo
-+ datakit_stk   股票数据组件demo
-+ cta_fut   期货实盘demo，配置的是SIMNOW通道
-+ cta_stk   股票实盘demo，配置的是XTP的仿真通道
-+ hft_fut   期货高频实盘demo
-+ sel_fut_bt    期货SEL引擎回测demo
-+ cta_optimizer CTA策略优化器demo
++ cta_arbitrage_bt  期货套利回测demo
++ cta_fut           期货CTA实盘demo，配置的是SIMNOW通道
++ cta_fut_bt        期货回测demo
++ cta_optimizer     CTA策略优化器demo
++ cta_step_by_step  CTA策略开箱即用demo，by安东尼Q不了
++ cta_stk           股票CTA实盘demo，配置的是XTP的仿真通道
++ cta_stk_bt        股票回测demo
++ ctp_loader        合约加载器demo
++ datakit_fut       期货数据组件demo
++ datakit_stk       股票数据组件demo
++ hft_fut           期货高频实盘demo
++ hft_fut_bt        期货高频回测demo
++ hft_fut_mocker    期货高频本地仿真demo
++ sel_fut_bt        期货SEL引擎回测demo
++ test_datahelper   数据辅助模块demo
++ test_extmodules   python外接行情和执行模块demo
 
 # 如何使用这些demo
 + 首先确认本地安装的是 *Python3.6* 以上的版本，32位、64位都可以，wtpy子框架会根据Python的版本自动选择对应的底层

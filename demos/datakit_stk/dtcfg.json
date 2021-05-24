@@ -11,21 +11,8 @@
         "async":true,
         "groupsize":20
     },
-    "parsers":[
-        {
-            "active":true,
-            "module":"ParserXTP.dll",
-            "host":"120.27.164.138",
-            "port":"6002",
-            "user":"你的XTP仿真账号",
-            "pass":"你的XTP仿真密码",
-			"protocol":1,
-			"clientid":1,
-			"hbinterval":15,
-			"buffsize":128,
-			"code":"SSE.000001,SSE.600009,SSE.600036,SSE.600276,SZSE.000001"
-        }
-    ],
+    "parsers":"mdparsers.json",
+    "statemonitor":"statemonitor.json",
     "broadcaster":{
         "active":true,
         "bport":3997,

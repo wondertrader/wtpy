@@ -1,0 +1,57 @@
+{
+    "basefiles":{
+        "session":"./common/sessions.json",
+        "commodity":"./common/commodities.json",
+        "contract":"./common/contracts.json",
+        "holiday":"./common/holidays.json",
+        "hot":"./common/hots.json"
+    },
+    "env":{
+        "name":"cta",
+        "mode": "product",
+        "product":{
+            "session":"TRADING"
+        },
+        "filters":"filters.json",
+        "fees":"fees.json",
+        "riskmon":{
+            "active":true,
+            "module":"WtRiskMonFact.dll",
+            "name":"SimpleRiskMon",
+            "calc_span":5,
+            "risk_span": 30,
+            "risk_scale": 0.3,
+            "basic_ratio": 101,
+            "inner_day_fd":20.0,
+            "inner_day_active":true,
+            "multi_day_fd":60.0,
+            "multi_day_active":false,
+            "base_amount": 5000000
+        }
+    },
+    "data":{
+        "store":{
+            "path":"./FUT_Data/"
+        }
+    },
+    "executers":[
+        {
+            "active":false,
+            "id":"exec",
+            "scale": 1,
+            "policy":
+            {
+                "default":{
+                    "name":"WtExeFact.WtSimpExeUnit",
+                    "offset": 1,
+                    "expire": 5,
+                    "pricemode": 0
+                }
+            },
+            "trader":"simnow"
+        }
+    ],
+    "traders":"tdtraders.json",
+    "parsers":"tdparsers.json",
+    "bspolicy":"actpolicy.json"
+}

@@ -134,3 +134,13 @@
 ### 0.6.3
 * C++底层更新到2021/04/14发布的v0.6.3版本
 * 绩效分析工具WtBtAnalyst功能大幅度扩展
+
+### 0.6.4
+* C++底层更新到2021/05/24发布的v0.6.4版本
+* WtDtHelper中调用优化，去掉了global
+* 修正了一些底层接口调用时参数对应不上的问题
+* WtDtHelper新增了直接从python里向C++底层喂历史数据的接口trans_bars和trans_ticks
+* 新增了一些demo
+* 针对C++底层进行适配：1、CTA增加一个stra_get_fund_data接口，2、回测引擎，支持设置slippage
+* WtEngine构造函数提供指定数据输出目录的genDir参数，以及日志配置文件的logCfg参数
+* 其他代码级的优化和完善

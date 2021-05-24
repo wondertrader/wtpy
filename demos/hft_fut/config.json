@@ -34,56 +34,7 @@
             "trader":"simnow"
         }
     ],
-    "traders":[
-        {
-            "active":true,
-            "id":"simnow",
-            "module":"TraderCTP.dll",
-            "front":"tcp://180.168.146.187:10101",
-            "broker":"9999",
-            "user":"ÄãµÄSIMNOWÕËºÅ",
-            "pass":"ÄãµÄSIMNOWÃÜÂë",
-            "appid":"simnow_client_test",
-            "authcode":"0000000000000000",
-            "quick": true,
-			"riskmon":
-			{
-				"active":true,
-				"policy":
-				{
-					"default":
-					{
-						"order_times_boundary": 20,
-						"order_stat_timespan": 10,
-						
-						"cancel_times_boundary": 20,
-						"cancel_stat_timespan": 10,
-						"cancel_total_limits": 470
-					}
-				}
-			}
-        }
-    ],
-    "parsers":[
-        {
-            "active":false,
-            "id":"parser2",
-            "module":"ParserUDP.dll",
-            "host":"127.0.0.1",
-            "bport":9001,
-            "sport":3997,
-            "filter":""
-        },
-        {
-			"id":"parser0",
-            "active":true,
-            "module":"ParserCTP.dll",
-            "front":"tcp://180.168.146.187:10111",
-            "broker":"9999",
-            "user":"ÄãµÄSIMNOWÕËºÅ",
-            "pass":"ÄãµÄSIMNOWÃÜÂë",
-            "code":"CFFEX.IF2008"
-        }
-    ],
+    "traders":"tdtraders.json",
+    "parsers":"tdparsers.json",
     "bspolicy":"actpolicy.json"
 }

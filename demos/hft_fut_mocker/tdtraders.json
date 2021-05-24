@@ -1,0 +1,18 @@
+{
+    "traders":[
+        {
+            "active":true,
+            "id":"mocker",
+            "module":"TraderMocker.dll",
+            "front":"mocker://localhost",
+            "mockerid":9999,
+            "span":100,
+            "newpx":true,
+            "maxqty":100,
+            "minqty":1,
+            "user":"mocker9999",
+            "udp_port":9001,
+            "savedata":true
+        }
+    ]
+}

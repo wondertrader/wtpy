@@ -1,0 +1,35 @@
+{
+    "basefiles":{
+        "session":"./Common/sessions.json",
+        "commodity":"./Common/commodities.json",
+        "contract":"./Common/contracts.json",
+        "holiday":"./Common/holidays.json"
+    },
+    "writer":{
+        "path":"./Storage/",
+        "savelog":false,
+        "async":false,
+        "groupsize":1000
+    },
+    "parsers":[
+        {
+            "active":true,
+            "module":"ParserCTP.dll",
+            "front":"tcp://180.168.146.187:10111",
+            "broker":"9999",
+            "user":"yourusername",
+            "pass":"yourpassword"
+        }
+    ],
+    "broadcaster":{
+        "active":true,
+        "bport":3997,
+        "broadcast":[
+			{
+				"host":"255.255.255.255",
+				"port":9001,
+				"type":2
+			}
+        ]
+    }
+}
