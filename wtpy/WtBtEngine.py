@@ -27,13 +27,15 @@ def singleton(cls):
 @singleton
 class WtBtEngine:
 
-    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True):
+    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False):
         self.__wrapper__ = WtBtWrapper()  #api接口转换器
         self.__context__ = None      #策略ctx映射表
         self.__config__ = dict()        #框架配置项
         self.__cfg_commited__ = False   #配置是否已提交
 
         self.__idx_writer__ = None  #指标输出模块
+
+        self.__dump_config__ = bDumpCfg #是否保存最终配置
 
         if eType == eType.ET_CTA:
             self.__wrapper__.initialize_cta(self, logCfg, isFile)   #初始化CTA环境
@@ -174,6 +176,11 @@ class WtBtEngine:
         self.__wrapper__.config_backtest(cfgfile, False)
         self.__cfg_commited__ = True
 
+        if self.__dump_config__:
+            f = open("config_run.json", 'w')
+            f.write(cfgfile)
+            f.close()
+
     def getSessionByCode(self, code:str) -> SessionInfo:
         '''
         通过合约代码获取交易时间模板\n
@@ -214,12 +221,12 @@ class WtBtEngine:
         '''
         return self.contractMgr.getTotalCodes()
 
-    def set_cta_strategy(self, strategy:BaseCtaStrategy):
+    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0):
         '''
         添加策略\n
         @strategy   策略对象
         '''
-        ctxid = self.__wrapper__.init_cta_mocker(strategy.name())
+        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage)
         self.__context__ = CtaContext(ctxid, strategy, self.__wrapper__, self)
 
     def set_hft_strategy(self, strategy:BaseHftStrategy):
@@ -230,15 +237,15 @@ class WtBtEngine:
         ctxid = self.__wrapper__.init_hft_mocker(strategy.name())
         self.__context__ = HftContext(ctxid, strategy, self.__wrapper__, self)
 
-    def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING"):
+    def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING", slippage:int = 0):
         '''
         添加策略\n
         @strategy   策略对象
         '''
-        ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session)
+        ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session, slippage)
         self.__context__ = SelContext(ctxid, strategy, self.__wrapper__, self)
 
-    def get_context(self):
+    def get_context(self, id:int):
         return self.__context__
 
     def run_backtest(self):

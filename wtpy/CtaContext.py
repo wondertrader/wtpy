@@ -111,9 +111,9 @@ class CtaContext:
     def stra_log_text(self, message:str):
         '''
         输出日志
-        @message    消息内容\n
+        @message    消息内容，最大242字符\n
         '''
-        self.__wrapper__.cta_log_text(self.__id__, message)
+        self.__wrapper__.cta_log_text(self.__id__, message[:242])
 
     def stra_get_tdate(self):
         '''
@@ -129,7 +129,7 @@ class CtaContext:
         '''
         return self.__wrapper__.cta_get_date()
 
-    def stra_get_position_avgpx(self, stdCode:str = ""):
+    def stra_get_position_avgpx(self, stdCode:str = "") -> float:
         '''
         获取当前持仓均价\n
         @stdCode   合约代码
@@ -137,13 +137,21 @@ class CtaContext:
         '''
         return self.__wrapper__.cta_get_position_avgpx(self.__id__, stdCode)
 
-    def stra_get_position_profit(self, stdCode:str = ""):
+    def stra_get_position_profit(self, stdCode:str = "") -> float:
         '''
         获取持仓浮动盈亏
         @stdCode   合约代码，为None时读取全部品种的浮动盈亏
         @return 浮动盈亏
         '''
         return self.__wrapper__.cta_get_position_profit(self.__id__, stdCode)
+
+    def stra_get_fund_data(self, flag:int = 0) -> float:
+        '''
+        获取资金数据\n
+        @flag   0-动态权益，1-总平仓盈亏，2-总浮动盈亏，3-总手续费\n
+        @return 资金数据
+        '''
+        return self.__wrapper__.cta_get_fund_data(self.__id__, flag)
 
     def stra_get_time(self):
         '''
@@ -211,7 +219,7 @@ class CtaContext:
         获取K线和tick数据的时候会自动订阅，这里只需要订阅额外要检测的品种即可\n
         @stdCode   合约代码
         '''
-        self.__wrapper__.cta_sub_ticks(stdCode)
+        self.__wrapper__.cta_sub_ticks(self.__id__, stdCode)
 
     def stra_get_position(self, stdCode:str = "", usertag:str = ""):
         '''
