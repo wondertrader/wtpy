@@ -342,6 +342,9 @@ class HftContext:
         @isBuy      买入or卖出
         '''
         idstr = self.__wrapper__.hft_cancel_all(self.__id__, stdCode, isBuy)
+        if len(idstr) == 0:
+            return list()
+
         ids = idstr.split(",")
         localids = list()
         for localid in ids:
@@ -357,6 +360,9 @@ class HftContext:
         @qty        买入数量
         '''
         idstr = self.__wrapper__.hft_buy(self.__id__, stdCode, price, qty, userTag)
+        if len(idstr) == 0:
+            return list()
+            
         ids = idstr.split(",")
         localids = list()
         for localid in ids:
@@ -372,6 +378,9 @@ class HftContext:
         @qty        卖出数量
         '''
         idstr = self.__wrapper__.hft_sell(self.__id__, stdCode, price, qty, userTag)
+        if len(idstr) == 0:
+            return list()
+            
         ids = idstr.split(",")
         localids = list()
         for localid in ids:
