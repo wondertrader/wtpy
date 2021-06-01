@@ -1,4 +1,4 @@
-from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_int
+from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_int, c_uint
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct
 from wtpy.wrapper.PlatformHelper import PlatformHelper as ph
 from copy import copy
@@ -7,6 +7,8 @@ import os
 CB_DTHELPER_LOG = CFUNCTYPE(c_void_p,  c_char_p)
 CB_DTHELPER_TICK = CFUNCTYPE(c_void_p,  POINTER(WTSTickStruct), c_bool)
 CB_DTHELPER_BAR = CFUNCTYPE(c_void_p,  POINTER(WTSBarStruct), c_bool)
+
+CB_DTHELPER_COUNT = CFUNCTYPE(c_void_p,  c_uint)
 
 CB_DTHELPER_BAR_GETTER = CFUNCTYPE(c_bool, POINTER(WTSBarStruct), c_int)
 CB_DTHELPER_TICK_GETTER = CFUNCTYPE(c_bool, POINTER(WTSTickStruct), c_int)
@@ -19,9 +21,15 @@ class TickList(list):
     def on_read_tick(self, curTick:POINTER(WTSTickStruct), isLast:bool):
         self.append(copy(curTick.contents))
 
+    def on_data_count(self, dataCnt:int):
+        pass
+
 class BarList(list):
     def on_read_bar(self, curBar:POINTER(WTSBarStruct), isLast:bool):
         self.append(copy(curBar.contents))
+
+    def on_data_count(self, dataCnt:int):
+        pass
 
 cb_dthelper_log = CB_DTHELPER_LOG(on_log_output)
 
@@ -88,7 +96,7 @@ class WtDataHelper:
         @return     WTSTickStruct的list
         '''
         tick_cache = TickList()
-        if 0 == self.api.read_dsb_ticks(bytes(tickFile, encoding="utf8"), CB_DTHELPER_TICK(tick_cache.on_read_tick), cb_dthelper_log):
+        if 0 == self.api.read_dsb_ticks(bytes(tickFile, encoding="utf8"), CB_DTHELPER_TICK(tick_cache.on_read_tick), CB_DTHELPER_COUNT(tick_cache.on_data_count), cb_dthelper_log):
             return None
         else:
             return tick_cache
@@ -100,7 +108,31 @@ class WtDataHelper:
         @return     WTSBarStruct的list
         '''
         bar_cache = BarList()
-        if 0 == self.api.read_dsb_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), cb_dthelper_log):
+        if 0 == self.api.read_dsb_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), CB_DTHELPER_COUNT(bar_cache.on_data_count), cb_dthelper_log):
+            return None
+        else:
+            return bar_cache
+
+    def read_dmb_ticks(self, tickFile: str) -> list:
+        '''
+        读取.dmb格式的tick数据\n
+        @tickFile   .dmb的tick数据文件\n
+        @return     WTSTickStruct的list
+        '''
+        tick_cache = TickList()
+        if 0 == self.api.read_dmb_ticks(bytes(tickFile, encoding="utf8"), CB_DTHELPER_TICK(tick_cache.on_read_tick), CB_DTHELPER_COUNT(tick_cache.on_data_count), cb_dthelper_log):
+            return None
+        else:
+            return tick_cache
+
+    def read_dmb_bars(self, barFile: str) -> list:
+        '''
+        读取.dmb格式的K线数据\n
+        @tickFile   .dmb的K线数据文件\n
+        @return     WTSBarStruct的list
+        '''
+        bar_cache = BarList()
+        if 0 == self.api.read_dmb_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), CB_DTHELPER_COUNT(bar_cache.on_data_count), cb_dthelper_log):
             return None
         else:
             return bar_cache
