@@ -26,6 +26,8 @@ class CtaContext:
         self.__engine__ = engine          #交易环境
         self.__pos_cache__ = None
 
+        self.is_backtest = self.__engine__.is_backtest
+
     def write_indicator(self, tag:str, time:int, data:dict):
         '''
         输出指标数据
