@@ -21,6 +21,7 @@ def exchgRQToStd(exchg:str) -> str:
         return exchg
 
 def stdCodeToRQ(stdCode:str):
+    stdCode = stdCode.upper()
     items = stdCode.split(".")
     exchg = exchgStdToRQ(items[0])
     if len(items) == 2:
