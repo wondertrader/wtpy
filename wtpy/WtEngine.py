@@ -38,6 +38,8 @@ class WtEngine:
         @genDir 数据输出目录\n
         @bDumpCfg   是否保存最终配置文件
         '''
+        self.is_backtest = False
+
         self.__wrapper__ = WtWrapper()  #api接口转换器
         self.__cta_ctxs__ = dict()      #CTA策略ctx映射表
         self.__sel_ctxs__ = dict()      #SEL策略ctx映射表

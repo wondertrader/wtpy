@@ -28,6 +28,8 @@ def singleton(cls):
 class WtBtEngine:
 
     def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False):
+        self.is_backtest = True
+
         self.__wrapper__ = WtBtWrapper()  #api接口转换器
         self.__context__ = None      #策略ctx映射表
         self.__config__ = dict()        #框架配置项

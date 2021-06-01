@@ -28,6 +28,8 @@ class HftContext:
         self.__sname__ = stra.name()    
         self.__engine__ = engine          #交易环境
 
+        self.is_backtest = self.__engine__.is_backtest
+
     def on_init(self):
         '''
         初始化,一般用于系统启动的时候
