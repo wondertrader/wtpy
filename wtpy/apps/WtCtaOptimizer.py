@@ -147,13 +147,15 @@ class WtCtaOptimizer:
 
     def config_backtest_time(self, start_time:int, end_time:int):
         '''
-        配置回测时间\n
+        配置回测时间，可多次调用配置多个回测时间区间\n
 
         @start_time 开始时间，精确到分钟，格式如201909100930\n
         @end_time   结束时间，精确到分钟，格式如201909100930
         '''
-        self.env_params["start_time"] = start_time
-        self.env_params["end_time"] = end_time
+        if "time_ranges" not in self.env_params:
+            self.env_params["time_ranges"] = []
+
+        self.env_params["time_ranges"].append([start_time,end_time])
 
     def __gen_tasks__(self, markerfile:str = "strategies.json"):
         '''
@@ -173,39 +175,46 @@ class WtCtaOptimizer:
         #再生成最终每一组的参数dict
         param_groups = list()
         stra_names = dict()
-        for i in range(total_groups):
-            k = i
-            thisGrp = self.fixed_params.copy()  #复制固定参数
-            endix = ''
-            for name in param_names:
-                cnt = len(param_values[name])
-                curVal = param_values[name][k%cnt]
-                tname = type(curVal)
-                if tname.__name__ == "list":
-                    val_str  = ''
-                    for item in curVal:
-                        val_str += str(item)
-                        val_str += "_"
+        time_ranges = self.env_params["time_ranges"]
+        for time_range in time_ranges:
+            start_time = time_range[0]
+            end_time = time_range[1]
+            for i in range(total_groups):
+                k = i
+                thisGrp = self.fixed_params.copy()  #复制固定参数
+                endix = ''
+                for name in param_names:
+                    cnt = len(param_values[name])
+                    curVal = param_values[name][k%cnt]
+                    tname = type(curVal)
+                    if tname.__name__ == "list":
+                        val_str  = ''
+                        for item in curVal:
+                            val_str += str(item)
+                            val_str += "_"
 
-                    val_str = val_str[:-1]
-                    thisGrp[name] = curVal
-                    endix += name 
-                    endix += "_"
-                    endix += val_str
-                    endix += "_"
-                else:
-                    thisGrp[name] = curVal
-                    endix += name 
-                    endix += "_"
-                    endix += str(curVal)
-                    endix += "_"
-                k = math.floor(k / cnt)
+                        val_str = val_str[:-1]
+                        thisGrp[name] = curVal
+                        endix += name 
+                        endix += "_"
+                        endix += val_str
+                        endix += "_"
+                    else:
+                        thisGrp[name] = curVal
+                        endix += name 
+                        endix += "_"
+                        endix += str(curVal)
+                        endix += "_"
+                    k = math.floor(k / cnt)
 
-            endix = endix[:-1]
-            straName = self.name_prefix + endix
-            thisGrp["name"] = straName
-            stra_names[straName] = thisGrp
-            param_groups.append(thisGrp)
+                endix = endix[:-1]
+                straName = self.name_prefix + endix
+                straName += "_%d_%d" % (start_time, end_time)
+                thisGrp["name"] = straName
+                thisGrp["start_time"] = start_time
+                thisGrp["end_time"] = end_time
+                stra_names[straName] = thisGrp
+                param_groups.append(thisGrp)
         
         # 将每一组参数和对应的策略ID落地到文件中，方便后续的分析
         f = open(markerfile, "w")
@@ -299,7 +308,7 @@ class WtCtaOptimizer:
         content = content.replace("$NAME$", name)
         engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
         engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
-        engine.configBacktest(self.env_params["start_time"],self.env_params["end_time"])
+        engine.configBacktest(params["start_time"], params["end_time"])
         engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"], dbcfg=self.env_params["db_config"])
 
         if self.cpp_stra_module is not None:
