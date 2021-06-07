@@ -476,12 +476,15 @@ class WtWrapper:
         self.api.cta_get_position_avgpx.restype = c_double
         self.api.cta_get_detail_cost.restype = c_double
         self.api.cta_get_detail_profit.restype = c_double
+        self.api.cta_get_price.restype = c_double
+        self.api.cta_get_fund_data.restype = c_double
 
         self.api.sel_save_userdata.argtypes = [c_ulong, c_char_p, c_char_p]
         self.api.sel_load_userdata.argtypes = [c_ulong, c_char_p, c_char_p]
         self.api.sel_load_userdata.restype = c_char_p
         self.api.sel_get_position.restype = c_double
         self.api.sel_set_position.argtypes = [c_ulong, c_char_p, c_double, c_char_p]
+        self.api.sel_get_price.restype = c_double
 
         self.api.hft_save_userdata.argtypes = [c_ulong, c_char_p, c_char_p]
         self.api.hft_load_userdata.argtypes = [c_ulong, c_char_p, c_char_p]
@@ -489,6 +492,7 @@ class WtWrapper:
         self.api.hft_get_position.restype = c_double
         self.api.hft_get_position_profit.restype = c_double
         self.api.hft_get_undone.restype = c_double
+        self.api.hft_get_price.restype = c_double
 
         self.api.hft_buy.restype = c_char_p
         self.api.hft_buy.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
@@ -668,7 +672,7 @@ class WtWrapper:
         '''
         return self.api.cta_get_position(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"))
 
-    def cta_get_fund_data(self, id:int, flag:int):
+    def cta_get_fund_data(self, id:int, flag:int) -> float:
         '''
         获取资金数据\n
         @id     策略id\n
@@ -677,7 +681,7 @@ class WtWrapper:
         '''
         return self.api.cta_get_fund_data(id, flag)
 
-    def cta_get_price(self, stdCode:str):
+    def cta_get_price(self, stdCode:str) -> float:
         '''
         @stdCode   合约代码\n
         @return     指定合约的最新价格 
