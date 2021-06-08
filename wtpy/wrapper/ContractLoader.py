@@ -41,6 +41,7 @@ class ContractLoader:
     def __init__(self, lType:LoaderType = LoaderType.LT_CTP):
         print(getModuleName(lType))
         self.api = cdll.LoadLibrary(getModuleName(lType))
+        self.api.run.argtypes = [ c_char_p]
 
-    def start(self):
-        self.api.run()
+    def start(self, cfgfile:str = 'config.ini'):
+        self.api.run(bytes(cfgfile, encoding = "utf8"))
