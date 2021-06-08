@@ -1,6 +1,6 @@
 from .PlatformHelper import PlatformHelper as ph
 import os
-from ctypes import cdll
+from ctypes import cdll,c_char_p
 
 from enum import Enum
 class LoaderType(Enum):
