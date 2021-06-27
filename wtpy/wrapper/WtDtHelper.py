@@ -1,5 +1,6 @@
 from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_int, c_uint
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct
+from wtpy.SessionMgr import SessionInfo
 from wtpy.wrapper.PlatformHelper import PlatformHelper as ph
 from copy import copy
 import os
@@ -89,7 +90,7 @@ class WtDataHelper:
         '''
         self.api.trans_csv_bars(bytes(csvFolder, encoding="utf8"), bytes(binFolder, encoding="utf8"), bytes(period, encoding="utf8"), cb_dthelper_log)
 
-    def read_dsb_ticks(self, tickFile: str) -> list:
+    def read_dsb_ticks(self, tickFile: str) -> TickList:
         '''
         读取.dsb格式的tick数据\n
         @tickFile   .dsb的tick数据文件\n
@@ -101,7 +102,7 @@ class WtDataHelper:
         else:
             return tick_cache
 
-    def read_dsb_bars(self, barFile: str) -> list:
+    def read_dsb_bars(self, barFile: str) -> BarList:
         '''
         读取.dsb格式的K线数据\n
         @tickFile   .dsb的K线数据文件\n
@@ -113,7 +114,7 @@ class WtDataHelper:
         else:
             return bar_cache
 
-    def read_dmb_ticks(self, tickFile: str) -> list:
+    def read_dmb_ticks(self, tickFile: str) -> TickList:
         '''
         读取.dmb格式的tick数据\n
         @tickFile   .dmb的tick数据文件\n
@@ -125,7 +126,7 @@ class WtDataHelper:
         else:
             return tick_cache
 
-    def read_dmb_bars(self, barFile: str) -> list:
+    def read_dmb_bars(self, barFile: str) -> BarList:
         '''
         读取.dmb格式的K线数据\n
         @tickFile   .dmb的K线数据文件\n
@@ -157,3 +158,20 @@ class WtDataHelper:
         '''
         cb = CB_DTHELPER_TICK_GETTER(getter)
         return self.api.trans_ticks(bytes(tickFile, encoding="utf8"), cb, count, cb_dthelper_log)
+
+    def resample_bars(self, barFile:str, period:str, times:int, fromTime:int, endTime:int, sessInfo:SessionInfo) -> BarList:
+        '''
+        重采样K线\n
+        @barFile    dsb格式的K线数据文件\n
+        @period     基础K线周期，m1/m5/d\n
+        @times      重采样倍数，如利用m1生成m3数据时，times为3\n
+        @fromTime   开始时间，日线数据格式yyyymmdd，分钟线数据为格式为yyyymmddHHMMSS\n
+        @endTime    结束时间，日线数据格式yyyymmdd，分钟线数据为格式为yyyymmddHHMMSS\n
+        @sessInfo   交易时间模板
+        '''
+        bar_cache = BarList()
+        if 0 == self.api.resample_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), CB_DTHELPER_COUNT(bar_cache.on_data_count), 
+                fromTime, endTime, bytes(period,'utf8'), times, sessInfo.toString(), cb_dthelper_log):
+            return None
+        else:
+            return bar_cache
