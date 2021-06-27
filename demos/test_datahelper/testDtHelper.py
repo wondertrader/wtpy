@@ -1,6 +1,7 @@
 from wtpy.wrapper import WtDataHelper
 from wtpy.WtCoreDefs import WTSBarStruct, WTSTickStruct
 from ctypes import POINTER
+from wtpy.SessionMgr import SessionMgr
 
 def strToDate(strDate:str) -> int:
     items = strDate.split("/")
@@ -57,10 +58,17 @@ class CsvReader:
 
 dtHelper = WtDataHelper()
 # 转储分钟线
-reader = CsvReader("./CFFEX.IC.HOT_m1.csv", isMin=True)
-dtHelper.trans_bars(barFile="./test_m1.dsb", getter=reader.get_bar, count=len(reader.lines), period="m1")
+# reader = CsvReader("./CFFEX.IC.HOT_m1.csv", isMin=True)
+# dtHelper.trans_bars(barFile="./test_m1.dsb", getter=reader.get_bar, count=len(reader.lines), period="m1")
 
 # 转储日线
 # reader = CsvReader("./CFFEX.IC.HOT_d.csv", isMin=False)
 # dtHelper.trans_bars(barFile="./test_d.dsb", getter=reader.get_bar, count=len(reader.lines), period="d")
-    
+
+
+# 测试重采样
+sessMgr = SessionMgr()
+sessMgr.load("sessions.json")
+sInfo = sessMgr.getSession("SD0930")
+ret = dtHelper.resample_bars("IC2009.dsb",'m1',5,202001010931,202009181500,sInfo)
+print(ret)
