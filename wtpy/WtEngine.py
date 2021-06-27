@@ -30,7 +30,7 @@ class WtEngine:
     实盘交易引擎
     '''
 
-    def __init__(self, eType:EngineType, logCfg:str = "logCfg.json", genDir:str = "generated", bDumpCfg:bool = False):
+    def __init__(self, eType:EngineType, logCfg:str = "logcfg.json", genDir:str = "generated", bDumpCfg:bool = False):
         '''
         WtEngine构造函数\n
         @eType  引擎类型：EngineType.ET_CTA、EngineType.ET_HFT、EngineType.ET_SEL\n
