@@ -12,10 +12,10 @@ module.exports = {
         assetsPublicPath: '/',
         proxyTable: {
             '/':{
-                target:'http://console.wonderwiz.cn:8099'
+                target:'http://127.0.0.1:8099'
             },
             '/mgr':{
-                target:'http://console.wonderwiz.cn:8099'
+                target:'http://127.0.0.1:8099'
             }
         },
 

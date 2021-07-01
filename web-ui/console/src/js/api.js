@@ -250,6 +250,66 @@ export default function () {
 			}, 'json');
 	};
 
+    self.getGroupDir = function(grpid, cb){
+		let reqInfo = {
+			groupid: grpid
+		}
+
+		$.post("/mgr/qrygrpdir",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.getGroupFile = function(grpid, path, cb){
+		let reqInfo = {
+			groupid: grpid,
+            path: path
+		}
+
+		$.post("/mgr/qrygrpfile",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.commitGroupFile = function(grpid, path, content, cb){
+		let reqInfo = {
+			groupid: grpid,
+            path: path,
+            content:content
+		}
+
+		$.post("/mgr/cmtgrpfile",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
 	self.commitGroupEntry = function(grpid, content, cb){
 		let reqInfo = {
 			groupid: grpid,
