@@ -34,6 +34,8 @@
                             </el-tab-pane>
                             <el-tab-pane label="交易数据" name="tdata">
                             </el-tab-pane>
+                            <el-tab-pane label="文件管理" name="editor">
+                            </el-tab-pane>
                             <el-tab-pane label="组合配置" name="setting">
                             </el-tab-pane>
                             <el-tab-pane label="执行入口" name="entry">
@@ -43,6 +45,7 @@
                     <div style="flex:1;margin:2px;overflow:auto;">
                         <StrategyData v-show="selData=='sdata'" :groupid="groupid"/>
                         <ChannelData v-show="selData=='tdata'" :groupid="groupid"/>
+                        <Editor v-show="selData=='editor'" :groupid="groupid"/>
                         <Setting v-show="selData=='setting'" :groupid="groupid"/>
                         <Entry v-show="selData=='entry'" :groupid="groupid"/>
                     </div>
@@ -57,10 +60,11 @@ import StrategyData from './stradata'
 import ChannelData from './trddata'
 import Setting from './setting'
 import Entry from './entry'
+import Editor from './editor'
 export default {
     name: 'empty',
     components: {
-        StrategyData, ChannelData, Setting, Entry
+        StrategyData, ChannelData, Setting, Entry, Editor
     },
     computed: {
         groupid(){
