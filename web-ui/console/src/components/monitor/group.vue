@@ -34,20 +34,20 @@
                             </el-tab-pane>
                             <el-tab-pane label="交易数据" name="tdata">
                             </el-tab-pane>
-                            <el-tab-pane label="文件管理" name="editor">
+                            <el-tab-pane label="文件管理" name="editor" v-if="isAdmin">
                             </el-tab-pane>
-                            <el-tab-pane label="组合配置" name="setting">
+                            <el-tab-pane label="组合配置" name="setting" v-if="isAdmin">
                             </el-tab-pane>
-                            <el-tab-pane label="执行入口" name="entry">
+                            <el-tab-pane label="执行入口" name="entry" v-if="isAdmin">
                             </el-tab-pane>
                         </el-tabs>
                     </div>
                     <div style="flex:1;margin:2px;overflow:auto;">
                         <StrategyData v-show="selData=='sdata'" :groupid="groupid"/>
                         <ChannelData v-show="selData=='tdata'" :groupid="groupid"/>
-                        <Editor v-show="selData=='editor'" :groupid="groupid"/>
-                        <Setting v-show="selData=='setting'" :groupid="groupid"/>
-                        <Entry v-show="selData=='entry'" :groupid="groupid"/>
+                        <Editor v-show="selData=='editor'" :groupid="groupid" v-if="isAdmin"/>
+                        <Setting v-show="selData=='setting'" :groupid="groupid" v-if="isAdmin"/>
+                        <Entry v-show="selData=='entry'" :groupid="groupid" v-if="isAdmin"/>
                     </div>
                 </div>
             </el-col>
@@ -56,6 +56,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import StrategyData from './stradata'
 import ChannelData from './trddata'
 import Setting from './setting'
@@ -67,6 +68,16 @@ export default {
         StrategyData, ChannelData, Setting, Entry, Editor
     },
     computed: {
+        ...mapGetters([
+            'cache'
+        ]),
+        isAdmin(){
+            let uInfo = this.cache.userinfo;
+            if(uInfo)
+                return (uInfo.role == 'admin' || uInfo.role == 'superman');
+            else
+                return false;        
+        },
         groupid(){
             if(this.groupinfo == null)
                 return "";

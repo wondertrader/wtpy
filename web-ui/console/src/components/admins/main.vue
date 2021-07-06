@@ -160,10 +160,10 @@
                 </el-col>
                 <el-col :span="18">
                     <el-tooltip effect="dark" content="拥有全部的管理权限" placement="top-start">
-                        <el-radio v-model="curUser.role" label="admin" disabled>管理员</el-radio>
+                        <el-radio v-model="curUser.role" label="admin">管理员</el-radio>
                     </el-tooltip>
-                    <el-tooltip effect="dark" content="只有查看权限" placement="top-start">
-                        <el-radio v-model="curUser.role" label="user" disabled>用户</el-radio>
+                    <el-tooltip effect="dark" content="拥有风控权限" placement="top-start">
+                        <el-radio v-model="curUser.role" label="risker">风控员</el-radio>
                     </el-tooltip>
                 </el-col>
             </el-row>

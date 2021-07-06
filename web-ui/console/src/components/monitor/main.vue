@@ -21,7 +21,7 @@
                         <el-tooltip class="item" effect="dark" content="查看策略组合的基本信息" placement="top-start" v-show="selectedIdx!=''">
                             <el-button type="primary" icon="el-icon-magic-stick" size="mini" @click="handleViewGrop" plain>查看</el-button>
                         </el-tooltip>
-                        <el-tooltip class="item" effect="dark" content="配置策略组合的自动调度" placement="top-start" v-show="selectedIdx!=''">
+                        <el-tooltip class="item" effect="dark" content="配置策略组合的自动调度" placement="top-start" v-show="selectedIdx!=''" v-if="isAdmin">
                             <el-button type="primary" icon="el-icon-time" size="mini" @click="handleClickSchedule" plain>调度</el-button>
                         </el-tooltip>
                         <el-divider direction="vertical"></el-divider>
@@ -175,13 +175,21 @@ export default {
     name: 'monitor',
     computed: {
         ...mapGetters([
-            'folders'
+            'folders',
+            'cache'
         ]),
         grpname(){
             if(this.curGroup == null)
                 return "组合基本信息";
             else
                 return this.curGroup.name;
+        },
+        isAdmin(){
+            let uInfo = this.cache.userinfo;
+            if(uInfo)
+                return (uInfo.role == 'admin' || uInfo.role == 'superman');
+            else
+                return false;        
         }
     },
     components: {

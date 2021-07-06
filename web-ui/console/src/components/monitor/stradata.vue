@@ -13,7 +13,7 @@
                             </el-tab-pane>
                             <el-tab-pane label="回合明细" name="rnd">
                             </el-tab-pane>
-                            <el-tab-pane label="每日绩效" name="fnd">
+                            <el-tab-pane label="每日绩效" name="fnd" v-if="isAdmin">
                             </el-tab-pane>
                         </el-tabs>
                     </div>
@@ -281,7 +281,7 @@
                         </el-table-column>
                     </el-table>
                 </div>
-                <div style="height:100%;display:flex;flex-direction:column;"  v-show="selCat=='fnd'" v-loading="loading.fund">
+                <div style="height:100%;display:flex;flex-direction:column;"  v-show="selCat=='fnd'" v-loading="loading.fund"  v-if="isAdmin">
                     <div style="flex:1;width:100%;overflow:auto;height:50%;border-bottom:1px solid #E4E7ED;">
                         <div style="max-height:100%;">
                             <el-table
@@ -330,7 +330,7 @@
                             </el-table>
                         </div>
                     </div>
-                    <div style="flex:1;width:100%;overflow:auto;display:flex;flex-direction:column;">
+                    <div style="flex:1;width:100%;overflow:auto;display:flex;flex-direction:column;margin:4px;">
                         <div style="height:40px;display:inline-block;flex:0;margin:4px;">
                             <el-row>
                                 <el-col :span="2" style="margin-top:2px;">
@@ -357,6 +357,7 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 export default {
     name: 'stradata',
     props:{
@@ -365,6 +366,18 @@ export default {
             default(){
                 return "";
             }
+        }
+    },
+    computed:{
+        ...mapGetters([
+            'cache'
+        ]),
+        isAdmin(){
+            let uInfo = this.cache.userinfo;
+            if(uInfo)
+                return (uInfo.role == 'admin' || uInfo.role == 'superman');
+            else
+                return false;        
         }
     },
     components: {
