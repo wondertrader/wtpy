@@ -144,8 +144,14 @@ class DataMgr:
             self.__db_conn__.commit()
 
     def __check_cache__(self, grpid, grpInfo):
+        now = datetime.datetime.now()
         if grpid not in self.__grp_cache__:
             self.__grp_cache__[grpid] = dict()
+        else:
+            cache_time = self.__grp_cache__[grpid]["cachetime"]
+            td = now - cache_time
+            if td.total_seconds() >= 60:# 上次缓存时间超过60s，则重新读取
+                self.__grp_cache__[grpid] = dict()
 
         if "strategies" not in self.__grp_cache__[grpid]:
             filepath = "./generated/marker.json"
@@ -171,6 +177,7 @@ class DataMgr:
                     } 
             self.__grp_cache__[grpid]["strategies"].sort()
             self.__grp_cache__[grpid]["channels"].sort()
+            self.__grp_cache__[grpid]["cachetime"] = now
 
     def get_groups(self, tpfilter:str=''):
         ret = []
@@ -377,15 +384,17 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["trades"] = list()
                 self.__grp_cache__[grpid]["trades"][straid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["trades"][straid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["trades"]) == 0:
-            lines = lines[1:]
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
@@ -408,6 +417,7 @@ class DataMgr:
                 tItem["fee"] = float(cells[7])
 
             trdCache["trades"].append(tItem)
+            trdCache["lastrow"] += 1
         
         return trdCache["trades"][-limit:]
 
@@ -431,15 +441,18 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["funds"] = list()
                 self.__grp_cache__[grpid]["funds"][straid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["funds"][straid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["funds"]) == 0:
-            lines = lines[1:]
+
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
@@ -459,6 +472,7 @@ class DataMgr:
                 tItem["fee"] = float(cells[4])
 
             trdCache["funds"].append(tItem)
+            trdCache["lastrow"] += 1
         
         return trdCache["funds"]
 
@@ -482,15 +496,18 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["signals"] = list()
                 self.__grp_cache__[grpid]["signals"][straid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["signals"][straid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["signals"]) == 0:
-            lines = lines[1:]
+
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
@@ -505,7 +522,8 @@ class DataMgr:
             }
 
             trdCache["signals"].append(tItem)
-        
+
+        trdCache["lastrow"] += len(lines)        
         return trdCache["signals"][-limit:]
 
     def get_rounds(self, grpid:str, straid:str, limit:int = 200):
@@ -528,15 +546,17 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["rounds"] = list()
                 self.__grp_cache__[grpid]["rounds"][straid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["rounds"][straid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["rounds"]) == 0:
-            lines = lines[1:]
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
@@ -556,6 +576,7 @@ class DataMgr:
             }
 
             trdCache["rounds"].append(tItem)
+        trdCache["lastrow"] += len(lines)
         
         return trdCache["rounds"][-limit:]
 
@@ -649,15 +670,18 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["corders"] = list()
                 self.__grp_cache__[grpid]["corders"][chnlid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["corders"][chnlid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["corders"]) == 0:
-            lines = lines[1:]
+
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
@@ -700,15 +724,18 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["ctrades"] = list()
                 self.__grp_cache__[grpid]["ctrades"][chnlid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["ctrades"][chnlid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["ctrades"]) == 0:
-            lines = lines[1:]
+
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
