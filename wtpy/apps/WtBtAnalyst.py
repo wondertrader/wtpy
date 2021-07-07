@@ -181,6 +181,11 @@ def continue_trading_analysis(data, x_value) -> dict:
 
     return result
 
+def nomalize_val(val):
+    if math.isnan(val):
+        return 0
+    else:
+        return val
 
 def extreme_trading(data, time_of_std=1):
     '''
@@ -205,11 +210,11 @@ def extreme_trading(data, time_of_std=1):
     extreme_num = len(extreme_result)
 
     # 极端交易盈亏 1 Std. Deviation of Avg. Trade
-    extreme_profit = extreme_result['profit'].sum()
+    extreme_profit = 0 if extreme_num==0 else extreme_result['profit'].sum()
 
-    result = {'1 Std. Deviation of Avg. Trade': std,
-              '单笔净利 +1倍标准差': sin_profit_plstd,
-              '单笔盈利 - 标准差': sin_profit_mistd,
+    result = {'1 Std. Deviation of Avg. Trade': nomalize_val(std),
+              '单笔净利 +1倍标准差': nomalize_val(sin_profit_plstd),
+              '单笔盈利 - 标准差': nomalize_val(sin_profit_mistd),
               '极端交易数量': extreme_num,
               '极端交易盈亏': extreme_profit
               }
