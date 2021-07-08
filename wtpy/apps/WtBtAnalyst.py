@@ -95,7 +95,7 @@ class Calculate():
 
     # 年化收益率
     def get_annual_return(self):
-        annual_return = (1 + self.ret.sum()) ** (self.period / self.trade) - 1
+        annual_return = 0 if self.trade==0 else ((1 + self.ret.sum()) ** (self.period / self.trade) - 1)
         return annual_return
 
     # 月化收益率
@@ -450,33 +450,32 @@ def performance_summary(input_data, input_data1, capital = 500000, rf = 0.00, pe
     factors = Calculate(ret, mar, rf, period, trade)
     # 毛利
     profit = input_data[input_data['profit'].apply(lambda x: x >= 0)]
-    total_profit = profit['profit'].sum()
+    total_profit = 0 if len(profit)==0 else profit['profit'].sum()
     # 毛损
     loss = input_data[input_data['profit'].apply(lambda x: x < 0)]
-    total_loss = loss['profit'].sum()
+    total_loss = 0 if len(loss)==0 else loss['profit'].sum()
     # 净利
     net_profit = total_profit + total_loss
-    input_data1['adjust_profit'] = input_data1['profit'] - input_data1['transaction_fee']
+    input_data1['adjust_profit'] = (input_data1['profit'] - input_data1['transaction_fee']) if len(input_data1)>0 else 0
     # 调整毛利
     adjust_profit = input_data1[input_data1['adjust_profit'].apply(lambda x: x >= 0)]
-    total_adjust_profit = adjust_profit['adjust_profit'].sum()
+    total_adjust_profit = 0 if len(adjust_profit)==0 else adjust_profit['adjust_profit'].sum()
     # 调整毛损
     adjust_loss = input_data1[input_data1['adjust_profit'].apply((lambda x: x < 0))]
-    total_adjust_loss = adjust_loss['adjust_profit'].sum()
+    total_adjust_loss = 0 if len(adjust_loss)==0 else adjust_loss['adjust_profit'].sum()
     # 调整净利
     adjust_net_profit = total_adjust_profit + total_adjust_loss
     # 盈利因子
-    profit_factor = np.abs(total_profit / total_loss)
+    profit_factor = 0 if total_loss==0 else np.abs(total_profit / total_loss)
     # 调整盈利因子
-    adjust_profit_factor = np.abs(total_adjust_profit / total_adjust_loss)
+    adjust_profit_factor = 0 if total_adjust_loss == 0 else np.abs(total_adjust_profit / total_adjust_loss)
     # 最大持有合约数量
     max_holding_number = 1
     # 已付手续费
-    paid_trading_fee = input_data1['transaction_fee'].sum()
+    paid_trading_fee = input_data1['transaction_fee'].sum() if len(input_data1)>0 else 0
     # 单笔最大亏损
     single_loss = input_data[input_data['profit'].apply(lambda x: x < 0)]
-    single_loss = single_loss['profit']
-    single_largest_loss = abs(single_loss.min())
+    single_largest_loss = 0 if len(single_loss)==0 else abs(single_loss['profit'].min())
     # 平仓交易最大亏损
     trading_loss = single_largest_loss
     # 平仓交易最大亏损比
@@ -505,7 +504,6 @@ def performance_summary(input_data, input_data1, capital = 500000, rf = 0.00, pe
               '年化收益率': annual_ret,
               '月化收益率': monthly_return,
               '月平均收益': monthly_average_return}
-
     return result
 
 def do_trading_analyze(df_closes, df_funds):
@@ -528,10 +526,10 @@ def do_trading_analyze(df_closes, df_funds):
     loseamount = df_loses["profit"].sum()  # 毛亏损
     trdnetprofit = winamout + loseamount  # 交易净盈亏
     accnetprofit = trdnetprofit - total_fee  # 账户净盈亏
-    winrate = wintimes / totaltimes if totaltimes > 0 else 0  # 胜率
-    avgprof = trdnetprofit / totaltimes if totaltimes > 0 else 0  # 单次平均盈亏
-    avgprof_win = winamout / wintimes if wintimes > 0 else 0  # 单次盈利均值
-    avgprof_lose = loseamount / losetimes if losetimes > 0 else 0  # 单次亏损均值
+    winrate = (wintimes / totaltimes) if totaltimes > 0 else 0  # 胜率
+    avgprof = (trdnetprofit / totaltimes) if totaltimes > 0 else 0  # 单次平均盈亏
+    avgprof_win = (winamout / wintimes) if wintimes > 0 else 0  # 单次盈利均值
+    avgprof_lose = (loseamount / losetimes) if losetimes > 0 else 0  # 单次亏损均值
     winloseratio = abs(avgprof_win / avgprof_lose) if avgprof_lose != 0 else "N/A"  # 单次盈亏均值比
 
     # 单笔最大盈利交易
@@ -539,17 +537,17 @@ def do_trading_analyze(df_closes, df_funds):
     # 单笔最大亏损交易
     largest_loss = df_loses['profit'].min()
     # 交易的平均持仓K线根数
-    avgtrd_hold_bar = ((df_closes['closebarno'] - df_closes['openbarno']).sum()) / totaltimes
+    avgtrd_hold_bar = 0 if totaltimes==0 else ((df_closes['closebarno'] - df_closes['openbarno']).sum()) / totaltimes
     # 平均空仓K线根数
     avb = (df_closes['openbarno'].shift(-1) - df_closes['closebarno']).dropna()
-    avgemphold_bar = avb.sum() / len(df_closes)
+    avgemphold_bar = 0 if len(df_closes)==0 else avb.sum() / len(df_closes)
 
     # 两笔盈利交易之间的平均空仓K线根数
     win_holdbar_situ = (df_wins['openbarno'].shift(-1) - df_wins['closebarno']).dropna()
-    winempty_avgholdbar = win_holdbar_situ.sum() / len(df_wins)
+    winempty_avgholdbar = 0 if len(df_wins)==0 else win_holdbar_situ.sum() / len(df_wins)
     # 两笔亏损交易之间的偶平均空仓K线根数
     loss_holdbar_situ = (df_loses['openbarno'].shift(-1) - df_loses['closebarno']).dropna()
-    lossempty_avgholdbar = loss_holdbar_situ.sum() / len(df_loses)
+    lossempty_avgholdbar = 0 if len(df_loses)==0 else loss_holdbar_situ.sum() / len(df_loses)
 
     max_consecutive_wins = 0  # 最大连续盈利次数
     max_consecutive_loses = 0  # 最大连续亏损次数
@@ -572,7 +570,7 @@ def do_trading_analyze(df_closes, df_funds):
         max_consecutive_wins = max(max_consecutive_wins, consecutive_wins)
         max_consecutive_loses = max(max_consecutive_loses, consecutive_loses)
 
-    summary = df_wins.copy()
+    summary = dict()
 
     summary["交易总数量"] = totaltimes
     summary["盈利交易次数"] = wintimes
@@ -589,17 +587,13 @@ def do_trading_analyze(df_closes, df_funds):
     summary["最大连续亏损次数"] = max_consecutive_loses
     summary["盈利交易的平均持仓K线根数"] = avg_bars_in_winner
     summary["亏损交易的平均持仓K线根数"] = avg_bars_in_loser
-    summary["账户净盈亏"] = accnetprofit / totaltimes
+    summary["账户净盈亏"] = 0 if totaltimes==0 else accnetprofit / totaltimes
     summary['单笔最大盈利交易'] = largest_profit
     summary['单笔最大亏损交易'] = largest_loss
     summary['交易的平均持仓K线根数'] = avgtrd_hold_bar
     summary['平均空仓K线根数'] = avgemphold_bar
     summary['两笔盈利交易之间的平均空仓K线根数'] = winempty_avgholdbar
     summary['两笔亏损交易之间的平均空仓K线根数'] = lossempty_avgholdbar
-    summary = summary.drop(columns=['code', 'direct', 'opentime', 'openprice', 'closetime', 'closeprice', 'maxloss',
-                                    'qty', 'profit', 'totalprofit', 'entertag', 'exittag', 'openbarno', 'closebarno', 'maxprofit'])
-
-    summary = summary.iloc[0, :]
     summary = pd.DataFrame([summary]).T
     summary = summary.reset_index()
     return summary
@@ -688,6 +682,7 @@ def trading_analyze(workbook:Workbook, df_closes, df_funds, capital = 500000):
     trade_s = trade_s.merge(trade_s_long, how='inner', on='index')
     trade_s = trade_s.merge(trade_s_short,how='inner', on='index')
     trade_s.columns =['类别', '所有交易', '多头', '空头']
+    trade_s.fillna(value=0, inplace=True)
 
     worksheet.write_row('A1', ['总体交易分析'], title_format)
     worksheet.write_row('B3', ['所有交易','多头交易','空头交易'], index_format)
@@ -900,7 +895,7 @@ def strategy_analyze(workbook:Workbook, df_closes, df_trades, capital, rf = 0.0,
         'align':        'right',  # 水平居中
         'valign':       'vcenter'  # 垂直居中
     })
-
+    result1.fillna(value=0, inplace=True)
     worksheet.write_row('A1', ['策略绩效概要'], title_format)    
     worksheet.write_row('B3', ['所有交易','多头交易','空头交易'], index_format)
     worksheet.write_column('A4', result1['策略绩效概要'], index_format)
@@ -1018,10 +1013,12 @@ def output_closes(workbook:Workbook, df_closes:df, capital = 500000):
     worksheet.write_column('C4', df_closes['direct'], value_format)
     worksheet.write_column('D4', df_closes['entrytime'], time_format)
     worksheet.write_column('E4', df_closes['openprice'], value_format)
-    worksheet.write_column('F4', df_closes['entertag'], value_format)
+    ay = df_closes['entertag'].apply(lambda x: '' if math.isnan(x) else x)
+    worksheet.write_column('F4', ay, value_format)
     worksheet.write_column('G4', df_closes['exittime'], time_format)
     worksheet.write_column('H4', df_closes['closeprice'], value_format)
-    worksheet.write_column('I4', df_closes['exittag'], value_format)
+    ay = df_closes['exittag'].apply(lambda x: '' if math.isnan(x) else x)
+    worksheet.write_column('I4', ay, value_format)
 
     worksheet.write_column('J4', df_closes['profit'], value_format)
     worksheet.write_column('K4', df_closes['profit_ratio'], value_format)
