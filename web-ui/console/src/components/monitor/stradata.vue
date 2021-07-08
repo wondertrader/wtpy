@@ -19,17 +19,28 @@
                     </div>
                     <div style="flex:1;border-bottom:2px solid #E4E7ED;margin-top: 4px;">
                         <div style="float:right">
-                            <el-button type="primary" icon="el-icon-refresh" size="mini" plain @click="queryData()">刷新</el-button>
-                            <el-select v-model="strafilter" placeholder="请选择" size="mini" @change="onStraSwitch">
-                                <el-option label="全部策略" value="all" v-show="selCat=='pos'">
-                                    <i class="el-icon-collection"/>
-                                    <span>全部策略</span>
-                                </el-option>
-                                <el-option :label="sid" :value="sid" :key="sid" v-for="sid in strategies">
-                                    <i class="el-icon-tickets"/>
-                                    <span>{{sid}}</span>
-                                </el-option>
-                            </el-select>
+                            <el-row>
+                                <el-col :span="4">
+                                    <el-tooltip class="item" effect="dark" content="每隔30秒刷新一次" placement="top">
+                                        <el-checkbox v-model="autoData" style="float:right;margin-top:6px;" @change="handleCheckAutoData">自动刷新</el-checkbox>
+                                    </el-tooltip>
+                                </el-col>
+                                <el-col :offset="1" :span="12">
+                                    <el-select v-model="strafilter" placeholder="请选择" size="mini" @change="onStraSwitch">
+                                        <el-option label="全部策略" value="all" v-show="selCat=='pos'">
+                                            <i class="el-icon-collection"/>
+                                            <span>全部策略</span>
+                                        </el-option>
+                                        <el-option :label="sid" :value="sid" :key="sid" v-for="sid in strategies">
+                                            <i class="el-icon-tickets"/>
+                                            <span>{{sid}}</span>
+                                        </el-option>
+                                    </el-select>
+                                </el-col>
+                                <el-col :span="4">
+                                    <el-button type="primary" icon="el-icon-refresh" size="mini" plain @click="queryData()">刷新</el-button>
+                                </el-col>
+                            </el-row>
                         </div>
                     </div> 
                 </div>
@@ -352,6 +363,9 @@
                     </div>
                 </div>
             </el-main>
+            <el-footer style="height:20px;">
+                <span style="font-size:12px;color:gray;">数据刷新时间: {{refreshTime}}</span>
+            </el-footer>
         </el-container>
     </div>    
 </template>
@@ -410,7 +424,8 @@ export default {
     },
     data () {
         return {
-            selCat:"pos",
+            autoData: false,
+            selCat: "pos",
             strafilter:"",
             strategies:[],
             loading:{
@@ -427,10 +442,14 @@ export default {
             rounds:[],
             strategies:[],
             funds:[],
-            nvChart:null
+            nvChart:null,
+            refreshTime:new Date().format('yyyy.MM.dd hh:mm:ss')
         }
     },
     methods: {
+        handleCheckAutoData: function(val){
+            this.resetDataInterval();
+        },
         getPosSum: function(param){
             const { columns, data } = param;
             const sums = [];
@@ -730,7 +749,21 @@ export default {
 
             this.nvChart.setOption(options);
         },
-        queryData: function(){
+        resetDataInterval: function(){
+            if(this.autoLog){
+                if(this.logInterval != 0){
+                    clearInterval(this.logInterval);
+                }
+
+                this.logInterval = setInterval(()=>{
+                    this.queryData();
+                }, 30000);
+            } else if(this.logInterval != 0){
+                clearInterval(this.logInterval);
+            }
+        },
+        queryData: function(needReset){
+            needReset = needReset || false;
             let self = this;
             let curCat = this.selCat;
             let groupid = this.groupid || "";
