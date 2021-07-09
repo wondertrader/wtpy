@@ -42,7 +42,7 @@ class DataMgr:
             grpInfo["path"] = row[3]
             grpInfo["info"] = row[4]
             grpInfo["gtype"] = row[5]
-            grpInfo["datmod"] = row[6]
+            grpInfo["datmod"] = 'mannual'
             grpInfo["env"] = row[7]
             self.__config__["groups"][grpInfo["id"]] = grpInfo
 
@@ -791,6 +791,48 @@ class DataMgr:
             pass
 
         f.close()
+        return ret
+
+    def get_channel_funds(self, grpid:str, chnlid:str):
+        if self.__config__ is None:
+            return []
+
+        if "groups" not in self.__config__:
+            return []
+
+        if grpid not in self.__config__["groups"]:
+            return []
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+            
+        ret = dict()
+        channels = list()
+        if chnlid != '':
+            channels.append(chnlid)
+        else:
+            channels = self.__grp_cache__[grpid]["channels"].keys()
+
+        for cid in channels:
+            if chnlid not in self.__grp_cache__[grpid]["channels"]:
+                return []
+            
+            filepath = "./generated/traders/%s/rtdata.json" % (cid)
+            filepath = os.path.join(grpInfo["path"], filepath)
+            if not os.path.exists(filepath):
+                return []
+            
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                json_data = json.loads(content)
+
+                funds = json_data["funds"]
+                ret[cid] = funds
+            except:
+                pass
+
+            f.close()
         return ret
 
     def get_actions(self, sdate, edate):

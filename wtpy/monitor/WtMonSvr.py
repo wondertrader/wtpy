@@ -1091,6 +1091,34 @@ class WtMonSvr(WatcherSink, EventSink):
 
             return pack_rsp(ret)
 
+        # 查询通道资金
+        @app.route("/mgr/qrychnlfund", methods=["POST"])
+        def qry_channel_funds():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+            cid = get_param(json_data, "channelid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "funds": self.__data_mgr__.get_channel_funds(gid, cid)
+                }
+
+            return pack_rsp(ret)
+
         # 查询用户列表
         @app.route("/mgr/qryusers", methods=["POST"])
         def qry_users():
