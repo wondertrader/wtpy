@@ -16,7 +16,7 @@
                                     </el-tooltip>
                                 </el-col>
                                 <el-col :offset="1" :span="12">
-                                    <el-button type="primary" style="" icon="el-icon-refresh" size="mini" plain v-show="!isLogAuto" @click="handleClickQryLog()">刷新</el-button>
+                                    <el-button type="primary" style="" icon="el-icon-refresh" size="mini" plain @click="handleClickQryLog()">刷新</el-button>
                                 </el-col>
                             </el-row>                          
                         </div> 
@@ -24,7 +24,7 @@
                     <div style="flex:1;margin:10px 4px;" v-loading="logOnway">
                         <textarea readonly="readonly" ref="logs" autocomplete="off" placeholder="这里是日志内容" class="el-textarea__inner" :value="logs"></textarea>
                     </div>
-                    <div style="flex:0;align-items:right;">
+                    <div style="flex:0 24px;align-items:right;">
                         <span style="font-size:12px;color:gray;">日志刷新时间: {{logTime}}</span>
                     </div>
                 </div>

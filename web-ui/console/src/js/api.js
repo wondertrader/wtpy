@@ -439,9 +439,9 @@ export default function () {
 	};
 
 	self.getTrades = function(gid, sid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(sid) == 'function'){
+			cb = sid;
+			sid = "";
 		}
 
 		let reqInfo = {
@@ -465,9 +465,9 @@ export default function () {
 	};
 
 	self.getSignals = function(gid, sid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(sid) == 'function'){
+			cb = sid;
+			sid = "";
 		}
 
 		let reqInfo = {
@@ -491,9 +491,9 @@ export default function () {
 	};
 
 	self.getRounds = function(gid, sid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(sid) == 'function'){
+			cb = sid;
+			sid = "";
 		}
 
 		let reqInfo = {
@@ -517,9 +517,9 @@ export default function () {
 	};
 
 	self.getPositions = function(gid, sid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(sid) == 'function'){
+			cb = sid;
+			sid = "";
 		}
 
 		let reqInfo = {
@@ -543,9 +543,9 @@ export default function () {
 	};
 
 	self.getFunds = function(gid, sid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(sid) == 'function'){
+			cb = sid;
+			sid = "";
 		}
 
 		let reqInfo = {
@@ -569,9 +569,9 @@ export default function () {
 	};
 
 	self.getChnlOrders = function(gid, cid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(cid) == 'function'){
+			cb = cid;
+			cid = "";
 		}
 
 		let reqInfo = {
@@ -595,9 +595,9 @@ export default function () {
 	};
 
 	self.getChnlTrades = function(gid, cid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(cid) == 'function'){
+			cb = cid;
+			cid = "";
 		}
 
 		let reqInfo = {
@@ -621,9 +621,9 @@ export default function () {
 	};
 
 	self.getChnlPositions = function(gid, cid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(cid) == 'function'){
+			cb = cid;
+			cid = "";
 		}
 
 		let reqInfo = {
@@ -633,6 +633,32 @@ export default function () {
 
 
 		$.post("/mgr/qrychnlpos",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.getChnlFunds = function(gid, cid, cb){
+		if(typeof(cid) == 'function'){
+			cb = cid;
+			cid = "";
+		}
+
+		let reqInfo = {
+			groupid: gid,
+			channelid:cid
+		};
+
+
+		$.post("/mgr/qrychnlfund",
 			JSON.stringify(reqInfo),
 			function (data, textStatus) {
 				if (textStatus != 'success') {

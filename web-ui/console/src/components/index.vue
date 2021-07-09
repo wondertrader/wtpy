@@ -106,7 +106,7 @@
                     <div style="flex:1;">
                     </div>
                     <div style="flex:0;margin-top:4px; min-width:150px;">
-                        <i class="el-icon-connection" style="color:dark-green;padding-right:8px;"></i><a>推送通道已连接</a>
+                        <i class="el-icon-connection" style="color:green;padding-right:8px;"></i><a>推送通道已连接</a>
                     </div>  
                 </el-footer>
             </el-container>

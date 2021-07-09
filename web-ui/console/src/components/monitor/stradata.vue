@@ -45,7 +45,7 @@
                     </div> 
                 </div>
             </el-header>
-            <el-main style="overflow:auto;">
+            <el-main style="overflow:auto;border-bottom: 1px solid #E4E7ED;">
                 <div style="max-height:100%;overflow:auto;" v-show="selCat=='pos'" v-loading="loading.position">
                     <el-table
                         border
@@ -97,14 +97,16 @@
                         </el-table-column>
                         <el-table-column
                             label="最大浮盈"
-                            width="100">
+                            width="120"
+                            sortable>
                             <template slot-scope="scope">
                                 <span class="text-danger">{{scope.row.maxprofit.toFixed(1)}}</span>
                             </template>
                         </el-table-column>
                         <el-table-column
                             label="最大浮亏"
-                            width="100">
+                            width="120"
+                            sortable>
                             <template slot-scope="scope">
                                 <span class="text-success">{{scope.row.maxloss.toFixed(1)}}</span>
                             </template>
@@ -121,6 +123,8 @@
                         border
                         stripe
                         :data="trades"
+                        :summary-method="getTrdSum"
+                        show-summary
                         class="table">
                         <el-table-column
                             prop="strategy"
@@ -171,6 +175,8 @@
                         border
                         stripe
                         :data="signals"
+                        :summary-method="getSigSum"
+                        show-summary
                         class="table">
                         <el-table-column
                             prop="strategy"
@@ -281,14 +287,12 @@
                         <el-table-column
                             prop="entertag"
                             label="进场标记"
-                            width="100"
-                            sortable>
+                            width="100">
                         </el-table-column>
                         <el-table-column
                             prop="exittag"
                             label="出场标记"
-                            width="100"
-                            sortable>
+                            width="100">
                         </el-table-column>
                     </el-table>
                 </div>
@@ -363,8 +367,8 @@
                     </div>
                 </div>
             </el-main>
-            <el-footer style="height:20px;">
-                <span style="font-size:12px;color:gray;">数据刷新时间: {{refreshTime}}</span>
+            <el-footer style="height:24px;">
+                <span style="font-size:12px;color:gray;line-height:24px;">数据刷新时间: {{refreshTime}}</span>
             </el-footer>
         </el-container>
     </div>    
@@ -424,7 +428,6 @@ export default {
     },
     data () {
         return {
-            autoData: false,
             selCat: "pos",
             strafilter:"",
             strategies:[],
@@ -443,12 +446,75 @@ export default {
             strategies:[],
             funds:[],
             nvChart:null,
+            autoData: false,
+            dataInterval: 0,
             refreshTime:new Date().format('yyyy.MM.dd hh:mm:ss')
         }
     },
     methods: {
         handleCheckAutoData: function(val){
             this.resetDataInterval();
+        },
+        resetDataInterval: function(){
+            if(this.autoData){
+                if(this.dataInterval != 0){
+                    clearInterval(this.dataInterval);
+                }
+
+                this.dataInterval = setInterval(()=>{
+                    this.queryData();
+                }, 30000);
+            } else if(this.dataInterval != 0){
+                clearInterval(this.dataInterval);
+            }
+        },
+        getTrdSum: function(param){
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+                if (index < 3 || index > 5) {
+                    sums[index] = '';
+                    return;
+                } else if (index == 3){
+                    sums[index] = '总计';
+                    return;
+                } else if (index == 4){
+                    sums[index] = data.length + "笔";
+                } else if (index == 5){
+                    const values = data.map(item => Number(item.volume));
+                    if (!values.every(value => isNaN(value))) {
+                        sums[index] = values.reduce((prev, curr) => {
+                            const value = Number(curr);
+                            if (!isNaN(value)) {
+                                return prev + curr;
+                            } else {
+                                return prev;
+                            }
+                            }, 0) + '手';
+                    } else {
+                        sums[index] = 'N/A';
+                    }
+                }                
+            });
+
+            return sums;
+        },
+        getSigSum: function(param){
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+                if (index > 1) {
+                    sums[index] = '';
+                    return;
+                } else if (index == 0){
+                    sums[index] = '总计';
+                    return;
+                } else if (index == 1){
+                    sums[index] = data.length + "笔";
+                }                
+            });
+
+            return sums;
         },
         getPosSum: function(param){
             const { columns, data } = param;
@@ -749,19 +815,6 @@ export default {
 
             this.nvChart.setOption(options);
         },
-        resetDataInterval: function(){
-            if(this.autoLog){
-                if(this.logInterval != 0){
-                    clearInterval(this.logInterval);
-                }
-
-                this.logInterval = setInterval(()=>{
-                    this.queryData();
-                }, 30000);
-            } else if(this.logInterval != 0){
-                clearInterval(this.logInterval);
-            }
-        },
         queryData: function(needReset){
             needReset = needReset || false;
             let self = this;
@@ -805,6 +858,9 @@ export default {
                         }
 
                         self.loading.trade = false;
+                        self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
+                        if(needReset)
+                            self.resetDataInterval();
                     });
                 }, 300);                
             } else if(curCat == "sig"){
@@ -819,6 +875,9 @@ export default {
                         }
 
                         self.loading.signal = false;
+                        self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
+                        if(needReset)
+                            self.resetDataInterval();
                     });
                 }, 300);   
             } else if(curCat == "rnd"){
@@ -833,6 +892,9 @@ export default {
                         }
 
                         self.loading.round = false;
+                        self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
+                        if(needReset)
+                            self.resetDataInterval();
                     });
                 }, 300);   
             } else if(curCat == "pos"){
@@ -849,6 +911,9 @@ export default {
                         }
 
                         self.loading.position = false;
+                        self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
+                        if(needReset)
+                            self.resetDataInterval();
                     });
                 }, 300);   
             } else if(curCat == "fnd"){
@@ -863,6 +928,9 @@ export default {
                             self.paintChart();
                         }
                         self.loading.fund = false;
+                        self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
+                        if(needReset)
+                            self.resetDataInterval();
                     });
                 }, 300);   
             }
