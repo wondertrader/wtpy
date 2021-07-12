@@ -147,11 +147,20 @@ class DataMgr:
         now = datetime.datetime.now()
         if grpid not in self.__grp_cache__:
             self.__grp_cache__[grpid] = dict()
+            self.__grp_cache__[grpid]["cachetime"] = None
         else:
             cache_time = self.__grp_cache__[grpid]["cachetime"]
-            td = now - cache_time
-            if td.total_seconds() >= 60:# 上次缓存时间超过60s，则重新读取
+            bNeedReset = False
+            if cache_time is None:
+                bNeedReset = True
+            else:
+                td = now - cache_time
+                if td.total_seconds() >= 60:# 上次缓存时间超过60s，则重新读取
+                    bNeedReset = True
+
+            if bNeedReset:
                 self.__grp_cache__[grpid] = dict()
+                self.__grp_cache__[grpid]["cachetime"] = None
 
         if "strategies" not in self.__grp_cache__[grpid]:
             filepath = "./generated/marker.json"
@@ -808,19 +817,20 @@ class DataMgr:
             
         ret = dict()
         channels = list()
-        if chnlid != '':
+        if chnlid != 'all':
             channels.append(chnlid)
         else:
-            channels = self.__grp_cache__[grpid]["channels"].keys()
+            channels = self.__grp_cache__[grpid]["channels"]
+            print(channels)
 
         for cid in channels:
-            if chnlid not in self.__grp_cache__[grpid]["channels"]:
-                return []
+            if cid not in self.__grp_cache__[grpid]["channels"]:
+                continue
             
             filepath = "./generated/traders/%s/rtdata.json" % (cid)
             filepath = os.path.join(grpInfo["path"], filepath)
             if not os.path.exists(filepath):
-                return []
+                continue
             
             f = open(filepath, "r")
             try:
@@ -833,6 +843,7 @@ class DataMgr:
                 pass
 
             f.close()
+        print(ret)
         return ret
 
     def get_actions(self, sdate, edate):
