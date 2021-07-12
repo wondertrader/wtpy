@@ -1013,11 +1013,11 @@ def output_closes(workbook:Workbook, df_closes:df, capital = 500000):
     worksheet.write_column('C4', df_closes['direct'], value_format)
     worksheet.write_column('D4', df_closes['entrytime'], time_format)
     worksheet.write_column('E4', df_closes['openprice'], value_format)
-    ay = df_closes['entertag'].apply(lambda x: '' if math.isnan(x) else x)
+    ay = df_closes['entertag'].apply(lambda x: x if type(x)==str else '' if math.isnan(x) else x)
     worksheet.write_column('F4', ay, value_format)
     worksheet.write_column('G4', df_closes['exittime'], time_format)
     worksheet.write_column('H4', df_closes['closeprice'], value_format)
-    ay = df_closes['exittag'].apply(lambda x: '' if math.isnan(x) else x)
+    ay = df_closes['exittag'].apply(lambda x: x if type(x)==str else '' if math.isnan(x) else x)
     worksheet.write_column('I4', ay, value_format)
 
     worksheet.write_column('J4', df_closes['profit'], value_format)
