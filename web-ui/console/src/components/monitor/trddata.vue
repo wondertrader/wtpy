@@ -25,7 +25,7 @@
                                 </el-col>
                                 <el-col :offset="1" :span="12">
                                     <el-select v-model="chnlfilter" placeholder="请选择" size="mini" @change="onChnlSwitch">
-                                        <el-option label="全部通道" value="all" v-show="selCat=='fnd'">
+                                        <el-option label="全部通道" value="all" v-show="showAllChannels(selCat)">
                                             <i class="el-icon-tickets"/>
                                             <span>全部通道</span>
                                         </el-option>
@@ -334,7 +334,13 @@ export default {
                         this.$alert(resObj.message);
                     } else {
                         this.channels = resObj.channels;
-                        this.chnlfilter = this.channels[0];
+                        
+                        let needShowAll = this.showAllChannels(this.selCat);
+
+                        if( !needShowAll && this.chnlfilter=='all')
+                            this.chnlfilter = this.channels[0];
+                        else if(needShowAll)
+                            this.chnlfilter = 'all';
 
                         setTimeout(()=>{
                             this.queryData();
@@ -347,7 +353,7 @@ export default {
     data () {
         return {
             selCat:"pos",
-            chnlfilter:"",
+            chnlfilter:"all",
             channels:[],
             loading:{
                 trade: false,
@@ -365,6 +371,11 @@ export default {
         }
     },
     methods: {
+        showAllChannels: function(catid){
+            if(catid == 'fnd' || catid == 'pos')
+                return true;
+            return false;
+        },
         getPosSum: function(param){
             const { columns, data } = param;
             const sums = [];
@@ -650,6 +661,13 @@ export default {
                 return;
 
             this.selCat = tab.name;
+
+            let needShowAll = this.showAllChannels(this.selCat);
+
+            if( !needShowAll && this.chnlfilter=='all')
+                this.chnlfilter = this.channels[0];
+            else if(needShowAll)
+                this.chnlfilter = 'all';
 
             this.queryData();
         },

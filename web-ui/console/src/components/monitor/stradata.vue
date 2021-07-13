@@ -418,7 +418,11 @@ export default {
                         this.$alert(resObj.message);
                     } else {
                         this.strategies = resObj.strategies;
-                        this.strafilter = this.strategies[0];
+
+                        if(this.selCat!='pos' && this.strafilter=='all')
+                            this.strafilter = this.strategies[0];
+                        else if(this.selCat=='pos')
+                            this.strafilter = 'all';
 
                         this.queryData();
                     }
@@ -429,7 +433,7 @@ export default {
     data () {
         return {
             selCat: "pos",
-            strafilter:"",
+            strafilter:"all",
             strategies:[],
             loading:{
                 trade: false,
@@ -617,8 +621,10 @@ export default {
 
             this.selCat = tab.name;
 
-            if(this.selCat != 'pos' && this.strafilter=='all')
+            if(this.selCat!='pos' && this.strafilter=='all')
                 this.strafilter = this.strategies[0];
+            else if(this.selCat=='pos')
+                this.strafilter = 'all';
 
             this.queryData();
         },
@@ -937,7 +943,15 @@ export default {
         }
     },
     mounted(){
-        
+        window.onresize = function(){
+            if (!self.zooming) {
+                self.zooming = true
+                setTimeout(function () {
+                    if(self.myChart) self.nvChart.resize();
+                    self.zooming = false;
+                }, 300);
+            }
+        };
     }
 }
 </script>
