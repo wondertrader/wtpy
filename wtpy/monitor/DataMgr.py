@@ -862,8 +862,134 @@ class DataMgr:
             ret.append(aInfo)
 
         return ret
+
+    def get_group_funds(self, grpid:str):
+        if grpid not in self.__config__["groups"]:
+            return []
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+
+        if "grpfunds" not in self.__grp_cache__[grpid]:
+            self.__grp_cache__[grpid]["grpfunds"] = dict()
         
+        filepath = "./generated/portfolio/funds.csv"
+        filepath = os.path.join(grpInfo["path"], filepath)
+        if not os.path.exists(filepath):
+            return []
+        else:
+            trdCache = dict()
+            trdCache["file"] = filepath
+            trdCache["lastrow"] = 0
+            trdCache["funds"] = list()
+            self.__grp_cache__[grpid]["grpfunds"]["cache"] = trdCache
 
+        trdCache = self.__grp_cache__[grpid]["grpfunds"]['cache']
 
-            
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
+        for line in lines:
+            cells = line.split(",")
+
+            tItem = {
+                "date": int(cells[0]),
+                "predynbalance": float(cells[1]),
+                "prebalance": float(cells[2]),
+                "balance": float(cells[3]),
+                "closeprofit": float(cells[4]),
+                "dynprofit": float(cells[5]),
+                "fee": float(cells[6]),
+                "maxdynbalance": float(cells[7]),
+                "maxtime": float(cells[8]),
+                "mindynbalance": float(cells[9]),
+                "mintime": float(cells[10]),
+                "mdmaxbalance": float(cells[11]),
+                "mdmaxdate": float(cells[12]),
+                "mdminbalance": float(cells[13]),
+                "mdmindate": float(cells[14])
+            }
+
+            trdCache["funds"].append(tItem)
+            trdCache["lastrow"] += 1
+        
+        return trdCache["funds"]
+
+    def get_group_positions(self, grpid:str):
+        if grpid not in self.__config__["groups"]:
+            return []
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+        
+        filepath = "./generated/portfolio/datas.json"
+        filepath = os.path.join(grpInfo["path"], filepath)
+        if not os.path.exists(filepath):
+            return []
+        else:
+            ret = list()
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                json_data = json.loads(content)
+
+                positions = json_data["positions"]
+                for pItem in positions:
+                    if pItem["volume"] == 0:
+                        continue
+
+                    for dItem in pItem["details"]:
+                        dItem["code"] = pItem["code"]
+                        ret.append(dItem)
+            except:
+                pass
+
+            f.close()
+            return ret
+
+    def get_group_performances(self, grpid:str):
+        if grpid not in self.__config__["groups"]:
+            return {}
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+        
+        filepath = "./generated/portfolio/datas.json" 
+        filepath = os.path.join(grpInfo["path"], filepath)
+        if not os.path.exists(filepath):
+            return {}
+        else:
+            perf = dict()
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                json_data = json.loads(content)
+
+                positions = json_data["positions"]
+                for pItem in positions:
+                    code = pItem['code']
+                    ay = code.split(".")
+                    pid = code
+                    if len(ay) > 2:
+                        if ay[1] not in ['IDX','STK','ETF']:
+                            pid = ay[0] + "." + ay[1]
+                        else:
+                            pid = ay[0] + "." + ay[2]
+
+                    if pid not in perf:
+                        perf[pid] = {
+                            'closeprofit':0,
+                            'dynprofit':0
+                        }
+
+                    perf[pid]['closeprofit'] += pItem['closeprofit']
+                    perf[pid]['dynprofit'] += pItem['dynprofit']
+                    
+            except:
+                pass
+
+            f.close()
+            return perf

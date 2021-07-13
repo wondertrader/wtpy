@@ -1358,6 +1358,89 @@ class WtMonSvr(WatcherSink, EventSink):
                     }
 
             return pack_rsp(ret)
+
+        # 查询组合持仓
+        @app.route("/mgr/qryportpos", methods=["POST"])
+        def qry_group_positions():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "positions": self.__data_mgr__.get_group_positions(gid)
+                }
+                    
+
+            return pack_rsp(ret)
+        
+        # 查询组合资金
+        @app.route("/mgr/qryportfunds", methods=["POST"])
+        def qry_group_funds():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "funds": self.__data_mgr__.get_group_funds(gid)
+                }
+                    
+
+            return pack_rsp(ret)
+
+        # 查询组合绩效分析
+        @app.route("/mgr/qryportperfs", methods=["POST"])
+        def qry_group_perfs():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "performance": self.__data_mgr__.get_group_performances(gid)
+                }
+                    
+            return pack_rsp(ret)
             
     
     def __run_impl__(self, port:int, host:str):
