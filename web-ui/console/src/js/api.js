@@ -857,4 +857,64 @@ export default function () {
 				}
 			}, 'json');
 	};
+
+    self.getPortPositions = function(gid, cb){
+		let reqInfo = {
+			groupid: gid
+		};
+
+
+		$.post("/mgr/qryportpos",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.getPortFunds = function(gid, cb){
+		let reqInfo = {
+			groupid: gid
+		};
+
+
+		$.post("/mgr/qryportfunds",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.getPortPerfs = function(gid, cb){
+		let reqInfo = {
+			groupid: gid
+		};
+
+
+		$.post("/mgr/qryportperfs",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
 };
