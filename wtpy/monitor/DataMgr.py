@@ -179,13 +179,20 @@ class DataMgr:
                         "channels":marker["channels"]
                     } 
 
+                    if "executers" in marker:
+                        self.__grp_cache__[grpid]["executers"] = marker["executers"]
+                    else:
+                        self.__grp_cache__[grpid]["executers"] = []
+
                 except:
                     self.__grp_cache__[grpid] = {
                         "strategies":[],
-                        "channels":[]
+                        "channels":[],
+                        "executers":[]
                     } 
             self.__grp_cache__[grpid]["strategies"].sort()
             self.__grp_cache__[grpid]["channels"].sort()
+            self.__grp_cache__[grpid]["executers"].sort()
             self.__grp_cache__[grpid]["cachetime"] = now
 
     def get_groups(self, tpfilter:str=''):
@@ -993,3 +1000,90 @@ class DataMgr:
 
             f.close()
             return perf
+
+    def get_group_filters(self, grpid:str):
+        if grpid not in self.__config__["groups"]:
+            return {}
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+        
+        filepath = os.path.join(grpInfo["path"], 'filters.json')
+        if not os.path.exists(filepath):
+            return {}
+        else:
+            gpCache = self.__grp_cache__[grpid]
+            filters = dict()
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                filters = json.loads(content)
+
+                if "channel_filters" not in filters:
+                    filters["channel_filters"] = dict()
+                if "strategy_filters" not in filters:
+                    filters["strategy_filters"] = dict()
+                if "code_filters" not in filters:
+                    filters["code_filters"] = dict()
+
+                for sid in gpCache["strategies"]:
+                    if sid not in filters['strategy_filters']:
+                        filters['strategy_filters'][sid] = False
+                
+                for eid in gpCache["executers"]:
+                    if eid not in filters['channel_filters']:
+                        filters['channel_filters'][eid] = False
+
+                for id in filters['strategy_filters'].keys():
+                    filters['strategy_filters'][id] = True
+
+                for id in filters['code_filters'].keys():
+                    filters['code_filters'][id] = True
+
+                for id in filters['channel_filters'].keys():
+                    filters['channel_filters'][id] = True
+            except:
+                pass
+
+            f.close()
+            return filters
+
+    def set_group_filters(self, grpid:str, filters:dict):
+        if grpid not in self.__config__["groups"]:
+            return False
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+
+        realfilters = {
+            "strategy_filters":{},
+            "code_filters":{},
+            "channel_filters":{}
+        }
+
+        if "strategy_filters" in filters:
+            for sid in filters["strategy_filters"]:
+                if filters["strategy_filters"][sid]:
+                    realfilters["strategy_filters"][sid] = {
+                        "action":"redirect",
+                        "target":0
+                    }
+
+        if "code_filters" in filters:
+            for sid in filters["code_filters"]:
+                if filters["code_filters"][sid]:
+                    realfilters["code_filters"][sid] = {
+                        "action":"redirect",
+                        "target":0
+                    }
+
+        if "channel_filters" in filters:
+            realfilters["channel_filters"] = filters["channel_filters"]
+        
+        filepath = os.path.join(grpInfo["path"], 'filters.json')
+        backup_file(filepath)
+        f = open(filepath, "w")
+        f.write(json.dumps(realfilters, indent=4))
+        f.close()
+        return True
+            
