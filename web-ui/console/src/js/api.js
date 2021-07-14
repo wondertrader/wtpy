@@ -917,4 +917,45 @@ export default function () {
 				}
 			}, 'json');
 	};
+
+    self.getPortFilters = function(gid, cb){
+		let reqInfo = {
+			groupid: gid
+		};
+
+
+		$.post("/mgr/qryportfilters",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.commitPortFilters = function(gid, filters, cb){
+		let reqInfo = {
+			groupid: gid,
+            filters: filters
+		};
+
+
+		$.post("/mgr/cmtgrpfilters",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
 };
