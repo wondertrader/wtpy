@@ -1035,13 +1035,12 @@ class DataMgr:
                         filters['channel_filters'][eid] = False
 
                 for id in filters['strategy_filters'].keys():
-                    filters['strategy_filters'][id] = True
+                    if type(filters['strategy_filters'][id]) != bool:
+                        filters['strategy_filters'][id] = True
 
                 for id in filters['code_filters'].keys():
-                    filters['code_filters'][id] = True
-
-                for id in filters['channel_filters'].keys():
-                    filters['channel_filters'][id] = True
+                    if type(filters['code_filters'][id]) != bool:
+                        filters['code_filters'][id] = True
             except:
                 pass
 
