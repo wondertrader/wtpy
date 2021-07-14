@@ -92,11 +92,11 @@
                                 <div slot="header">
                                     <span class="filter">策略过滤器</span>
                                     <el-button style="float: right; margin-left:1px;" 
-                                        type="success" size="mini" plain 
-                                        @click="checkAllFilters('strategy_filters',true)">一键启用</el-button>
+                                        type="danger" size="mini" plain 
+                                        @click="checkAllFilters('strategy_filters',true)">一键过滤</el-button>
                                     <el-button style="float: right; margin-right:1px;" 
-                                        type="danger" size="mini" plain
-                                        @click="checkAllFilters('strategy_filters',false)">一键停用</el-button>
+                                        type="success" size="mini" plain
+                                        @click="checkAllFilters('strategy_filters',false)">一键通过</el-button>
                                 </div>
                                 <el-row v-for="val,id in filters['strategy_filters']" :key="id" class="filter-row">
                                     <el-col :span="12">
@@ -117,11 +117,11 @@
                                 <div slot="header">
                                     <span class="filter">代码过滤器</span>
                                     <el-button style="float: right; margin-left:1px;" 
-                                        type="success" size="mini" plain
-                                        @click="checkAllFilters('code_filters',true)">一键启用</el-button>
-                                    <el-button style="float: right; margin-right:1px;" 
                                         type="danger" size="mini" plain
-                                        @click="checkAllFilters('code_filters',false)">一键停用</el-button>
+                                        @click="checkAllFilters('code_filters',true)">一键过滤</el-button>
+                                    <el-button style="float: right; margin-right:1px;" 
+                                        type="success" size="mini" plain
+                                        @click="checkAllFilters('code_filters',false)">一键通过</el-button>
                                 </div>
                                 <el-row v-for="val,id in filters['code_filters']" :key="id" class="filter-row">
                                     <el-col :span="10" style="margin-top:4px;">
@@ -149,11 +149,11 @@
                                 <div slot="header">
                                     <span class="filter">通道过滤器</span>
                                     <el-button style="float: right; margin-left:1px;" 
-                                        type="success" size="mini" plain
-                                        @click="checkAllFilters('channel_filters',true)">一键启用</el-button>
-                                    <el-button style="float: right; margin-right:1px;" 
                                         type="danger" size="mini" plain
-                                        @click="checkAllFilters('channel_filters',false)">一键停用</el-button>
+                                        @click="checkAllFilters('channel_filters',true)">一键过滤</el-button>
+                                    <el-button style="float: right; margin-right:1px;" 
+                                        type="success" size="mini" plain
+                                        @click="checkAllFilters('channel_filters',false)">一键通过</el-button>
                                 </div>
                                 <el-row v-for="val,id in filters['channel_filters']" :key="id" class="filter-row">
                                     <el-col :span="12">
