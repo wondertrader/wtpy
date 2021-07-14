@@ -17,7 +17,7 @@
                         <div style="float:right">
                             <el-row>
                                 <el-col :offset="7" :span="4">
-                                    <el-tooltip class="item" effect="dark" content="每隔30秒刷新一次" placement="top">
+                                    <el-tooltip class="item" effect="dark" content="每隔30秒刷新一次" placement="top" v-show="selCat=='pos'">
                                         <el-checkbox v-model="autoData" style="float:right;margin-top:6px;" @change="handleCheckAutoData">自动刷新</el-checkbox>
                                     </el-tooltip>
                                 </el-col>
@@ -32,7 +32,7 @@
             <el-main style="overflow:auto;border-bottom:1px solid #E4E7ED;">
                 <div style="height:100%;display:flex;flex-direction:row;" v-show="selCat=='pos'" v-loading="loading.position" >
                     <div style="flex:1;height:100%;overflow:auto;border-right:1px solid #E4E7ED;width:100%;">
-                        <div style="max-height:100%;">
+                        <div style="height:100%;">
                             <el-table
                                 border
                                 stripe
@@ -85,50 +85,99 @@
                         </div>
                     </div>
                 </div>
-                <div style="max-height:100%;overflow:auto;"  v-show="selCat=='rsk'" v-loading="loading.risk">
-                    <el-table
-                        border
-                        stripe
-                        class="table">
-                        <el-table-column
-                            prop="strategy"
-                            label="策略"
-                            width="120">
-                        </el-table-column>
-                        <el-table-column
-                            prop="code"
-                            label="品种"
-                            width="120"
-                            sortable>
-                        </el-table-column>
-                        <el-table-column
-                            prop="target"
-                            label="目标数量"
-                            width="80">
-                            <template slot-scope="scope">
-                                <span :class="fmtProfit(scope.row.target)">{{scope.row.target}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            label="触发价格"
-                            width="100">
-                            <template slot-scope="scope">
-                                <span>{{fmtPrice(scope.row.sigprice)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            label="触发时间"
-                            width="180">
-                            <template slot-scope="scope">
-                                <span>{{fmtTime(scope.row.gentime, true)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            prop="tag"
-                            label="标记"
-                            sortable>
-                        </el-table-column>
-                    </el-table>
+                <div style="height:100%;overflow:auto;"  v-show="selCat=='rsk'" v-loading="loading.risk">
+                    <div style="height:100%;display:flex;flex-direction:column;">
+                        <div style="flex:1;display:flex;flex-direction:row;">
+                            <el-card class="filter-pane">
+                                <div slot="header">
+                                    <span class="filter">策略过滤器</span>
+                                    <el-button style="float: right; margin-left:1px;" 
+                                        type="success" size="mini" plain 
+                                        @click="checkAllFilters('strategy_filters',true)">一键启用</el-button>
+                                    <el-button style="float: right; margin-right:1px;" 
+                                        type="danger" size="mini" plain
+                                        @click="checkAllFilters('strategy_filters',false)">一键停用</el-button>
+                                </div>
+                                <el-row v-for="val,id in filters['strategy_filters']" :key="id" class="filter-row">
+                                    <el-col :span="12">
+                                        <i class="el-icon-cpu"/><span class="filter-strategy">{{id}}</span>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <el-switch
+                                            v-model="filters['strategy_filters'][id]"
+                                            active-text="过滤"
+                                            inactive-text="通过"
+                                            inactive-color="#13ce66"
+                                            active-color="#ff4949">
+                                        </el-switch>
+                                    </el-col>
+                                </el-row>
+                            </el-card>
+                            <el-card class="filter-pane">
+                                <div slot="header">
+                                    <span class="filter">代码过滤器</span>
+                                    <el-button style="float: right; margin-left:1px;" 
+                                        type="success" size="mini" plain
+                                        @click="checkAllFilters('code_filters',true)">一键启用</el-button>
+                                    <el-button style="float: right; margin-right:1px;" 
+                                        type="danger" size="mini" plain
+                                        @click="checkAllFilters('code_filters',false)">一键停用</el-button>
+                                </div>
+                                <el-row v-for="val,id in filters['code_filters']" :key="id" class="filter-row">
+                                    <el-col :span="10" style="margin-top:4px;">
+                                        <i class="el-icon-collection"/><span class="filter-code">{{id}}</span>
+                                    </el-col>
+                                    <el-col :span="10" style="margin-top:4px;">
+                                        <el-switch
+                                            v-model="filters['code_filters'][id]"
+                                            active-text="过滤"
+                                            inactive-text="通过"
+                                            inactive-color="#13ce66"
+                                            active-color="#ff4949"
+                                            style="float:right;">
+                                        </el-switch>
+                                    </el-col>
+                                    <el-col :span="4">
+                                        <el-button size="mini" circle icon="el-icon-delete" style="float:right;" @click="onDelCodeFilter(id)"></el-button>
+                                    </el-col>
+                                </el-row>
+                                <el-row class="filter-row">
+                                    <el-button style="width:100%;" type="primary" plain @click="onAddCodeFilter()" icon="el-icon-plus"></el-button>
+                                </el-row>
+                            </el-card>
+                            <el-card class="filter-pane">
+                                <div slot="header">
+                                    <span class="filter">通道过滤器</span>
+                                    <el-button style="float: right; margin-left:1px;" 
+                                        type="success" size="mini" plain
+                                        @click="checkAllFilters('channel_filters',true)">一键启用</el-button>
+                                    <el-button style="float: right; margin-right:1px;" 
+                                        type="danger" size="mini" plain
+                                        @click="checkAllFilters('channel_filters',false)">一键停用</el-button>
+                                </div>
+                                <el-row v-for="val,id in filters['channel_filters']" :key="id" class="filter-row">
+                                    <el-col :span="12">
+                                        <i class="el-icon-link"/><span class="filter-channel">{{id}}</span>
+                                    </el-col>
+                                    <el-col :span="12">
+                                        <el-switch
+                                            v-model="filters['channel_filters'][id]"
+                                            active-text="过滤"
+                                            inactive-text="通过"
+                                            inactive-color="#13ce66"
+                                            active-color="#ff4949">
+                                        </el-switch>
+                                    </el-col>
+                                </el-row>
+                            </el-card>
+                        </div>
+                        <div style="flex:0 28px; margin:2px 0;">
+                            <span style="font-size:12px;color:gray;line-height:24px;">
+                                当过滤器生效时，相关的信号都会被过滤掉！修改完过滤器，一定要记得<strong>提交</strong>！提交以后会在<strong>1分钟内</strong>生效！
+                            </span>
+                            <el-button type="danger" icon="el-icon-finished" style="float:right;" @click="onCommitFilters()">提交</el-button>
+                        </div>
+                    </div>
                 </div>
                 <div style="height:100%;display:flex;flex-direction:column;"  v-show="selCat=='fnd'" v-loading="loading.fund"  v-if="isAdmin">
                     <div style="height:40px;display:inline-block;flex:0;margin:4px;">
@@ -304,7 +353,8 @@ export default {
                 }
 
                 this.dataInterval = setInterval(()=>{
-                    this.queryData();
+                    if(this.selCat == 'pos')
+                        this.queryData();
                 }, 30000);
             } else if(this.dataInterval != 0){
                 clearInterval(this.dataInterval);
@@ -569,6 +619,8 @@ export default {
             this.nvChart.setOption(options);
         },
         paintPie: function(){
+            if(!this.isAdmin)
+                return;
             let self = this;
             if(this.pieChart == null) 
                 this.pieChart = this.$echarts.init(document.getElementById('pie'));
@@ -636,6 +688,62 @@ export default {
                 }
             });
         },
+        checkAllFilters: function(fid, bCheck){
+            for(let id in this.filters[fid]){
+                this.filters[fid][id] = bCheck;
+            }
+        },
+        onAddCodeFilter: function(){
+            let self = this;
+            self.$prompt('请输出品种代码，格式如CFFEX.IF', '新增代码过滤器', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消'
+            }).then(({ value }) => {
+                if(self.filters["code_filters"][value] != undefined){
+                    self.$alert("该品种代码已存在");
+                    return true;
+                } else {
+                    self.filters["code_filters"][value] = true;
+                    self.$forceUpdate();
+                }
+            }).catch(() => {
+                         
+            });
+        },
+        onDelCodeFilter: function(code){
+            let self = this;
+            this.$confirm('确定要删除该代码过滤器吗?', '删除代码过滤器', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                delete self.filters["code_filters"][code];
+                self.$forceUpdate();
+            }).catch(() => {
+                         
+            });
+        },
+        onCommitFilters: function(){
+            let self = this;
+            this.$confirm('确定要提交最新的过滤器配置吗?', '提交过滤器', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                let groupid = this.groupid || "";
+                self.$api.commitPortFilters(groupid, self.filters, (resObj)=>{
+                    if(resObj.result < 0){
+                        self.$alert("提交过滤器出错：" + resObj.message, "提交失败");
+                    } else {
+                        this.$notify({
+                            message: "过滤器提交成功"
+                        });
+                    }
+                });
+            }).catch(() => {
+                         
+            });
+        },
         queryData: function(needReset){
             needReset = needReset || false;
             let self = this;
@@ -684,11 +792,29 @@ export default {
                             self.funds = resObj.funds;                            
                             self.funds.reverse();
                             
-
                             self.paintChart();
                         }
-                        console.log(self.funds);
                         self.loading.fund = false;
+                        self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
+                        if(needReset)
+                            self.resetDataInterval();
+                    });
+                }, 300);   
+            } else if(curCat == "rsk"){
+                self.loading.risk = true;
+                setTimeout(()=>{
+                    let capital = parseInt(self.capital);
+                    this.$api.getPortFilters(groupid, (resObj)=>{
+                        if (resObj.result < 0) {
+                            self.$alert("查询过滤器出错：" + resObj.message, "查询失败");
+                        } else {
+                            resObj.filters["strategy_filters"] = resObj.filters["strategy_filters"] || {};
+                            resObj.filters["code_filters"] = resObj.filters["code_filters"] || {};
+                            resObj.filters["channel_filters"] = resObj.filters["channel_filters"] || {};
+
+                            self.filters = resObj.filters;
+                        }
+                        self.loading.risk = false;
                         self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
                         if(needReset)
                             self.resetDataInterval();
@@ -709,8 +835,6 @@ export default {
                 }, 300);
             }
         };
-    },
-    activated(){
     }
 }
 </script>
@@ -726,7 +850,39 @@ export default {
     height:100%;
 }
 
-.el-select{
-    width: 120px;
+.filter{
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.filter-row{
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.filter-strategy{
+    padding-left: 4px;
+}
+
+.filter-code{
+    padding-left: 4px;
+}
+
+.filter-channel{
+    padding-left: 4px;
+}
+
+.filter-pane{
+    flex:1;
+    margin:2px;
+}
+
+.delete-btn{
+    float:right;
+    color:#ff4949;
+}
+
+.delete-btn i{
+    color:#ff4949;
 }
 </style>
