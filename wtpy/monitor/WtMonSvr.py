@@ -1441,6 +1441,66 @@ class WtMonSvr(WatcherSink, EventSink):
                 }
                     
             return pack_rsp(ret)
+
+        # 查询组合过滤器
+        @app.route("/mgr/qryportfilters", methods=["POST"])
+        def qry_group_filters():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "filters": self.__data_mgr__.get_group_filters(gid)
+                }
+                    
+            return pack_rsp(ret)
+
+        # 提交组合过滤器
+        @app.route("/mgr/cmtgrpfilters", methods=["POST"])
+        def cmd_commit_group_filters():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            grpid = get_param(json_data, "groupid")
+            filters = get_param(json_data, "filters", type=dict)
+            if not self.__data_mgr__.has_group(grpid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                try:
+                    self.__data_mgr__.set_group_filters(grpid, filters)
+                    ret = {
+                        "result":0,
+                        "message":"Ok"
+                    }
+                except:
+                    ret = {
+                        "result":-1,
+                        "message":"过滤器保存失败"
+                    }
+
+            return pack_rsp(ret)
             
     
     def __run_impl__(self, port:int, host:str):
