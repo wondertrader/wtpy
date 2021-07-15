@@ -107,7 +107,7 @@ export default {
             let self = this;
             self.$api.getGroupDir(self.groupid, (resObj)=>{
                 if(resObj.result < 0){
-                    this.$alert(resObj.message);
+                    self.$notify.error('获取组合目录结构失败：' + resObj.message);
                 } else {
                     this.folders = [resObj.tree];
                 }
@@ -127,7 +127,7 @@ export default {
                 this.curFile = data;
                 this.$api.getGroupFile(this.groupid, data.path, (resObj)=>{
                     if(resObj.result < 0){
-                        self.$alert(resObj.message);
+                        self.$notify.error('获取文件内容失败' + resObj.message);
                     } else {
                         self.content_s = resObj.content;
 

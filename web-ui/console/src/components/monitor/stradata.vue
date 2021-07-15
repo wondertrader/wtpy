@@ -415,7 +415,7 @@ export default {
                 this.$api.getStrategies(newVal, (resObj)=>{
                     //console.log(resObj);
                     if(resObj.result < 0){
-                        this.$alert(resObj.message);
+                        this.$notify.error('获取策略列表出错：' + resObj.message);
                     } else {
                         this.strategies = resObj.strategies;
 
@@ -843,7 +843,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getTrades(groupid, straid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询成交出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询成交出错：" + resObj.message);
                         } else {
                             resObj.trades.forEach((tItem)=>{
                                 let action = "";
@@ -874,7 +874,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getSignals(groupid, straid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询信号出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询信号出错：" + resObj.message);
                         } else {
                             self.signals = resObj.signals;
                             self.signals.reverse();
@@ -891,7 +891,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getRounds(groupid, straid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询回合出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询回合出错：" + resObj.message);
                         } else {
                             self.rounds = resObj.rounds;
                             self.rounds.reverse();
@@ -908,7 +908,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getPositions(groupid, straid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询持仓出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询持仓出错：" + resObj.message);
                         } else {
                             resObj.positions.forEach((pItem)=>{
                                 pItem.qty = pItem.volume*(pItem.long?1:-1);
@@ -927,7 +927,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getFunds(groupid, straid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询绩效出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询绩效出错：" + resObj.message);
                         } else {
                             self.funds = resObj.funds;                            
                             self.funds.reverse();

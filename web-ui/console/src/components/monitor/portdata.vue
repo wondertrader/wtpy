@@ -32,7 +32,7 @@
             <el-main style="overflow:auto;border-bottom:1px solid #E4E7ED;">
                 <div style="height:100%;display:flex;flex-direction:row;" v-show="selCat=='pos'" v-loading="loading.position" >
                     <div style="flex:1;height:100%;overflow:auto;border-right:1px solid #E4E7ED;width:100%;">
-                        <div style="height:100%;">
+                        <div>
                             <el-table
                                 border
                                 stripe
@@ -88,88 +88,100 @@
                 <div style="height:100%;overflow:auto;"  v-show="selCat=='rsk'" v-loading="loading.risk">
                     <div style="height:100%;display:flex;flex-direction:column;">
                         <div style="flex:1;display:flex;flex-direction:row;">
-                            <el-card class="filter-pane">
-                                <div slot="header">
-                                    <span class="filter">策略过滤器</span>
-                                    <el-button style="float: right; margin-left:1px;" 
-                                        type="danger" size="mini" plain 
-                                        @click="checkAllFilters('strategy_filters',true)">一键过滤</el-button>
-                                    <el-button style="float: right; margin-right:1px;" 
-                                        type="success" size="mini" plain
-                                        @click="checkAllFilters('strategy_filters',false)">一键通过</el-button>
+                            <div class="filter-pane el-card is-always-shadow">
+                                <div style="height:100%;display:flex;flex-direction:column;">
+                                    <div style="flex:0 1 44px;padding: 18px 20px;border-bottom: 1px solid #EBEEF5;box-sizing: border-box;">
+                                        <span class="filter">策略过滤器</span>
+                                        <el-button style="float: right; margin-left:1px;" 
+                                            type="danger" size="mini" plain 
+                                            @click="checkAllFilters('strategy_filters',true)">一键过滤</el-button>
+                                        <el-button style="float: right; margin-right:1px;" 
+                                            type="success" size="mini" plain
+                                            @click="checkAllFilters('strategy_filters',false)">一键通过</el-button>
+                                    </div>
+                                    <div style="flex:1 0 0; overflow:auto;padding:20px;">
+                                        <el-row v-for="val,id in filters['strategy_filters']" :key="id" class="filter-row">
+                                            <el-col :span="12">
+                                                <i class="el-icon-cpu"/><span class="filter-strategy">{{id}}</span>
+                                            </el-col>
+                                            <el-col :span="12">
+                                                <el-switch
+                                                    v-model="filters['strategy_filters'][id]"
+                                                    active-text="过滤"
+                                                    inactive-text="通过"
+                                                    inactive-color="#13ce66"
+                                                    active-color="#ff4949">
+                                                </el-switch>
+                                            </el-col>
+                                        </el-row>
+                                    </div>
                                 </div>
-                                <el-row v-for="val,id in filters['strategy_filters']" :key="id" class="filter-row">
-                                    <el-col :span="12">
-                                        <i class="el-icon-cpu"/><span class="filter-strategy">{{id}}</span>
-                                    </el-col>
-                                    <el-col :span="12">
-                                        <el-switch
-                                            v-model="filters['strategy_filters'][id]"
-                                            active-text="过滤"
-                                            inactive-text="通过"
-                                            inactive-color="#13ce66"
-                                            active-color="#ff4949">
-                                        </el-switch>
-                                    </el-col>
-                                </el-row>
-                            </el-card>
-                            <el-card class="filter-pane">
-                                <div slot="header">
-                                    <span class="filter">代码过滤器</span>
-                                    <el-button style="float: right; margin-left:1px;" 
-                                        type="danger" size="mini" plain
-                                        @click="checkAllFilters('code_filters',true)">一键过滤</el-button>
-                                    <el-button style="float: right; margin-right:1px;" 
-                                        type="success" size="mini" plain
-                                        @click="checkAllFilters('code_filters',false)">一键通过</el-button>
+                            </div>
+                            <div class="filter-pane el-card is-always-shadow">
+                                <div style="height:100%;display:flex;flex-direction:column;">
+                                    <div style="flex:0 1 44px;padding: 18px 20px;border-bottom: 1px solid #EBEEF5;box-sizing: border-box;">
+                                        <span class="filter">代码过滤器</span>
+                                        <el-button style="float: right; margin-left:1px;" 
+                                            type="danger" size="mini" plain
+                                            @click="checkAllFilters('code_filters',true)">一键过滤</el-button>
+                                        <el-button style="float: right; margin-right:1px;" 
+                                            type="success" size="mini" plain
+                                            @click="checkAllFilters('code_filters',false)">一键通过</el-button>
+                                    </div>
+                                    <div style="flex:1 0 0; overflow:auto;padding:20px;">
+                                        <el-row v-for="val,id in filters['code_filters']" :key="id" class="filter-row">
+                                            <el-col :span="10" style="margin-top:4px;">
+                                                <i class="el-icon-collection"/><span class="filter-code">{{id}}</span>
+                                            </el-col>
+                                            <el-col :span="10" style="margin-top:4px;">
+                                                <el-switch
+                                                    v-model="filters['code_filters'][id]"
+                                                    active-text="过滤"
+                                                    inactive-text="通过"
+                                                    inactive-color="#13ce66"
+                                                    active-color="#ff4949"
+                                                    style="float:right;">
+                                                </el-switch>
+                                            </el-col>
+                                            <el-col :span="4">
+                                                <el-button size="mini" circle icon="el-icon-delete" style="float:right;" @click="onDelCodeFilter(id)"></el-button>
+                                            </el-col>
+                                        </el-row>
+                                        <el-row class="filter-row">
+                                            <el-button style="width:100%;" type="primary" plain @click="onAddCodeFilter()" icon="el-icon-plus"></el-button>
+                                        </el-row>
+                                    </div>
                                 </div>
-                                <el-row v-for="val,id in filters['code_filters']" :key="id" class="filter-row">
-                                    <el-col :span="10" style="margin-top:4px;">
-                                        <i class="el-icon-collection"/><span class="filter-code">{{id}}</span>
-                                    </el-col>
-                                    <el-col :span="10" style="margin-top:4px;">
-                                        <el-switch
-                                            v-model="filters['code_filters'][id]"
-                                            active-text="过滤"
-                                            inactive-text="通过"
-                                            inactive-color="#13ce66"
-                                            active-color="#ff4949"
-                                            style="float:right;">
-                                        </el-switch>
-                                    </el-col>
-                                    <el-col :span="4">
-                                        <el-button size="mini" circle icon="el-icon-delete" style="float:right;" @click="onDelCodeFilter(id)"></el-button>
-                                    </el-col>
-                                </el-row>
-                                <el-row class="filter-row">
-                                    <el-button style="width:100%;" type="primary" plain @click="onAddCodeFilter()" icon="el-icon-plus"></el-button>
-                                </el-row>
-                            </el-card>
-                            <el-card class="filter-pane">
-                                <div slot="header">
-                                    <span class="filter">通道过滤器</span>
-                                    <el-button style="float: right; margin-left:1px;" 
-                                        type="danger" size="mini" plain
-                                        @click="checkAllFilters('channel_filters',true)">一键过滤</el-button>
-                                    <el-button style="float: right; margin-right:1px;" 
-                                        type="success" size="mini" plain
-                                        @click="checkAllFilters('channel_filters',false)">一键通过</el-button>
+                            </div>
+                            <div class="filter-pane el-card is-always-shadow">
+                                <div style="height:100%;display:flex;flex-direction:column;">
+                                    <div style="flex:0 1 44px;padding: 18px 20px;border-bottom: 1px solid #EBEEF5;box-sizing: border-box;">
+                                        <span class="filter">通道过滤器</span>
+                                        <el-button style="float: right; margin-left:1px;" 
+                                            type="danger" size="mini" plain
+                                            @click="checkAllFilters('channel_filters',true)">一键过滤</el-button>
+                                        <el-button style="float: right; margin-right:1px;" 
+                                            type="success" size="mini" plain
+                                            @click="checkAllFilters('channel_filters',false)">一键通过</el-button>
+                                    </div>
+                                    <div style="flex:1 0 0; overflow:auto;padding:20px;">
+                                        <el-row v-for="val,id in filters['channel_filters']" :key="id" class="filter-row">
+                                            <el-col :span="12">
+                                                <i class="el-icon-link"/><span class="filter-channel">{{id}}</span>
+                                            </el-col>
+                                            <el-col :span="12">
+                                                <el-switch
+                                                    v-model="filters['channel_filters'][id]"
+                                                    active-text="过滤"
+                                                    inactive-text="通过"
+                                                    inactive-color="#13ce66"
+                                                    active-color="#ff4949">
+                                                </el-switch>
+                                            </el-col>
+                                        </el-row>
+                                    </div>
                                 </div>
-                                <el-row v-for="val,id in filters['channel_filters']" :key="id" class="filter-row">
-                                    <el-col :span="12">
-                                        <i class="el-icon-link"/><span class="filter-channel">{{id}}</span>
-                                    </el-col>
-                                    <el-col :span="12">
-                                        <el-switch
-                                            v-model="filters['channel_filters'][id]"
-                                            active-text="过滤"
-                                            inactive-text="通过"
-                                            inactive-color="#13ce66"
-                                            active-color="#ff4949">
-                                        </el-switch>
-                                    </el-col>
-                                </el-row>
-                            </el-card>
+                            </div>
                         </div>
                         <div style="flex:0 28px; margin:2px 0;">
                             <span style="font-size:12px;color:gray;line-height:24px;">
@@ -625,6 +637,8 @@ export default {
             if(this.pieChart == null) 
                 this.pieChart = this.$echarts.init(document.getElementById('pie'));
 
+            this.pieChart.resize();
+
             let datas = [];
             for(let pid in self.performances){
                 let item  = self.performances[pid];
@@ -650,7 +664,6 @@ export default {
                     }
                 },
                 legend: {
-                    type: 'scroll',
                     orient: 'horizontal',
                     left: 'center',
                     top: 'bottom'
@@ -679,7 +692,7 @@ export default {
             let groupid = this.groupid || "";
             this.$api.getPortPerfs(groupid, (resObj)=>{
                 if (resObj.result < 0) {
-                    self.$alert("查询绩效归因出错：" + resObj.message, "查询失败");
+                    self.$notify.error("查询绩效归因出错：" + resObj.message, "查询失败");
                 } else {
                     self.performances = resObj.performance;
                     setTimeout(()=>{
@@ -733,7 +746,7 @@ export default {
                 let groupid = this.groupid || "";
                 self.$api.commitPortFilters(groupid, self.filters, (resObj)=>{
                     if(resObj.result < 0){
-                        self.$alert("提交过滤器出错：" + resObj.message, "提交失败");
+                        this.$notify.error("提交过滤器出错：" + resObj.message);
                     } else {
                         this.$notify({
                             message: "过滤器提交成功"
@@ -761,7 +774,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getPortPositions(groupid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询持仓出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询持仓出错：" + resObj.message);
                         } else {
                             resObj.positions.forEach((pItem)=>{
                                 pItem.qty = pItem.volume*(pItem.long?1:-1);
@@ -783,7 +796,7 @@ export default {
                     let capital = parseInt(self.capital);
                     this.$api.getPortFunds(groupid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询绩效出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询绩效出错：" + resObj.message);
                         } else {
                             resObj.funds.forEach((item)=>{
                                 item.dynbalance = item.balance + item.dynprofit;
@@ -806,7 +819,7 @@ export default {
                     let capital = parseInt(self.capital);
                     this.$api.getPortFilters(groupid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询过滤器出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询过滤器出错：" + resObj.message);
                         } else {
                             resObj.filters["strategy_filters"] = resObj.filters["strategy_filters"] || {};
                             resObj.filters["code_filters"] = resObj.filters["code_filters"] || {};

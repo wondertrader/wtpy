@@ -331,7 +331,7 @@ export default {
                 this.$api.getChannels(newVal, (resObj)=>{
                     //console.log(resObj);
                     if(resObj.result < 0){
-                        this.$alert(resObj.message);
+                        this.$notify.error('拉取组合交易通道出错：' + resObj.message);
                     } else {
                         this.channels = resObj.channels;
                         
@@ -720,7 +720,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getChnlTrades(groupid, chnlid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询成交出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询成交出错：" + resObj.message);
                         } else {
                             self.trades = resObj.trades;
                             self.trades.reverse();
@@ -737,7 +737,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getChnlOrders(groupid, chnlid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询委托出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询订单出错：" + resObj.message);
                         } else {
                             self.orders = resObj.orders;
                             self.orders.reverse();
@@ -754,7 +754,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getChnlPositions(groupid, chnlid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询持仓出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询持仓出错：" + resObj.message);
                         } else {
                             self.positions = resObj.positions;
                         }
@@ -770,7 +770,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getChnlFunds(groupid, chnlid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询资金出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询资金出错：" + resObj.message);
                         } else {
                             let funds = [];
                             for(let cid in resObj.funds){
