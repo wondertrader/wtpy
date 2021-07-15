@@ -155,7 +155,12 @@ export default {
             self.logOnway = true;
             this.$api.getLogs(this.groupinfo.id, this.logfilter, (resObj)=>{
                 if(resObj.result < 0){
-                    this.$alert(resObj.message);
+                    this.logs = '';
+                    this.logLines = 0;
+                    this.$notify.error('组合日志拉取失败：' + resObj.message);
+                    self.$nextTick(()=>{
+                        self.$refs.logs.scrollTo(0,0);
+                    });
                 } else {
                     this.logs = resObj.content;
                     this.logLines = resObj.lines||0;

@@ -273,7 +273,7 @@ export default {
             if(self.folders.length == 0){
                 this.$api.getFolders((resObj)=>{
                     if(resObj.result < 0){
-                        self.$alert(resObj.message);
+                        self.$notify.error('查询目录结构出错：' + resObj.message);
                     } else {
                         this.$store.commit("setfolders", {
                             folders: [resObj.tree]
@@ -431,7 +431,7 @@ export default {
                 }).then(() => {
                     this.$api.delGroup(grpInfo.id, (resObj)=>{
                         if(resObj.result < 0){
-                            self.$alert(resObj.message);
+                            self.$notify.error('删除组合失败：' + resObj.message);
                         } else {
                             let nextIdx = 0;
                             for(let i = 0; i < self.groups.length; i++){
@@ -453,7 +453,7 @@ export default {
             let grpInfo = this.copyGroup;
             this.$api.commitGroup(grpInfo, this.addGroup?"add":"mod", (resObj)=>{
                 if(resObj.result < 0){
-                    self.$alert(resObj.message);
+                    self.$notify.error('提交组合信息失败：' + resObj.message);
                 } else {
                     self.groups.push(grpInfo);
                     self.showgrpdlg = false;
@@ -519,13 +519,13 @@ export default {
                             } 
                         });
                     } else {
-                        self.$message.error("该组合尚未配置调度，不能启动");
+                        self.$alert("该组合尚未配置调度，不能启动");
                     }
                 });
             } else {
                 this.$api.startGroup(this.curGroup.id, (resObj)=>{
                     if(resObj.result < 0){
-                        this.$notify.error(resObj.message);
+                        this.$notify.error('启动组合失败：' + resObj.message);
                     } 
                 });
             }
@@ -558,7 +558,7 @@ export default {
             self.$api.getGroups((resObj) => {
                 //console.log(resObj);
                 if (resObj.result < 0) {
-                    self.$alert("查询组合出错：" + resObj.message, "查询失败");
+                    self.$notify.error("查询组合出错：" + resObj.message);
                 } else {
                     self.groups = resObj.groups;
                     if(self.groups.length > 0){

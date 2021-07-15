@@ -100,7 +100,7 @@ export default {
             setTimeout(()=>{
                 self.$api.getGroupEntry(self.groupid, (resObj)=>{
                     if(resObj.result < 0){
-                        self.$alert(resObj.message);
+                        self.$notify.error('拉取入口文件失败：' + resObj.message);
                     } else {
 
                         self.content = resObj.content;
