@@ -33,12 +33,12 @@
                 <div style="height:100%;display:flex;flex-direction:column;">
                     <div style="flex:0;margin:2px 4px 0px 4px;min-height:44px;">
                         <el-tabs :value="selData" type="card" style="height:100%;" @tab-click="handleClickTab">
-                            <el-tab-pane label="策略数据" name="sdata">
+                            <el-tab-pane label="策略管理" name="sdata">
                             </el-tab-pane>
-                            <el-tab-pane label="交易数据" name="tdata">
+                            <el-tab-pane label="组合管理" name="pdata">
                             </el-tab-pane>
-                            <el-tab-pane label="组合数据" name="pdata">
-                            </el-tab-pane>
+                            <el-tab-pane label="通道管理" name="tdata">
+                            </el-tab-pane>                            
                             <el-tab-pane label="文件管理" name="editor" v-if="isAdmin">
                             </el-tab-pane>
                             <el-tab-pane label="组合配置" name="setting" v-if="isAdmin">
