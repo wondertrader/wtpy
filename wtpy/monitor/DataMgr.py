@@ -786,27 +786,34 @@ class DataMgr:
         self.__check_cache__(grpid, grpInfo)
             
         ret = list()
-        if chnlid not in self.__grp_cache__[grpid]["channels"]:
-            return []
-        
-        filepath = "./generated/traders/%s/rtdata.json" % (chnlid)
-        filepath = os.path.join(grpInfo["path"], filepath)
-        if not os.path.exists(filepath):
-            return []
-        
-        f = open(filepath, "r")
-        try:
-            content = f.read()
-            json_data = json.loads(content)
+        channels = list()
+        if chnlid != 'all':
+            channels.append(chnlid)
+        else:
+            channels = self.__grp_cache__[grpid]["channels"]
 
-            positions = json_data["positions"]
-            for pItem in positions:
-                pItem["channel"] = chnlid
-                ret.append(pItem)
-        except:
-            pass
+        for cid in channels:
+            if cid not in self.__grp_cache__[grpid]["channels"]:
+                continue
+            
+            filepath = "./generated/traders/%s/rtdata.json" % (cid)
+            filepath = os.path.join(grpInfo["path"], filepath)
+            if not os.path.exists(filepath):
+                return []
+            
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                json_data = json.loads(content)
 
-        f.close()
+                positions = json_data["positions"]
+                for pItem in positions:
+                    pItem["channel"] = cid
+                    ret.append(pItem)
+            except:
+                pass
+
+            f.close()
         return ret
 
     def get_channel_funds(self, grpid:str, chnlid:str):
@@ -1019,8 +1026,8 @@ class DataMgr:
                 content = f.read()
                 filters = json.loads(content)
 
-                if "channel_filters" not in filters:
-                    filters["channel_filters"] = dict()
+                if "executer_filters" not in filters:
+                    filters["executer_filters"] = dict()
                 if "strategy_filters" not in filters:
                     filters["strategy_filters"] = dict()
                 if "code_filters" not in filters:
@@ -1031,8 +1038,8 @@ class DataMgr:
                         filters['strategy_filters'][sid] = False
                 
                 for eid in gpCache["executers"]:
-                    if eid not in filters['channel_filters']:
-                        filters['channel_filters'][eid] = False
+                    if eid not in filters['executer_filters']:
+                        filters['executer_filters'][eid] = False
 
                 for id in filters['strategy_filters'].keys():
                     if type(filters['strategy_filters'][id]) != bool:
@@ -1057,7 +1064,7 @@ class DataMgr:
         realfilters = {
             "strategy_filters":{},
             "code_filters":{},
-            "channel_filters":{}
+            "executer_filters":{}
         }
 
         if "strategy_filters" in filters:
@@ -1076,8 +1083,8 @@ class DataMgr:
                         "target":0
                     }
 
-        if "channel_filters" in filters:
-            realfilters["channel_filters"] = filters["channel_filters"]
+        if "executer_filters" in filters:
+            realfilters["executer_filters"] = filters["executer_filters"]
         
         filepath = os.path.join(grpInfo["path"], 'filters.json')
         backup_file(filepath)
