@@ -68,14 +68,14 @@ class WtBtEngine:
         '''
         设置指标输出模块
         '''
-        self.__writer__ = writer
+        self.__idx_writer__ = writer
 
     def write_indicator(self, id, tag, time, data):
         '''
         写入指标数据
         '''
-        if self.__writer__ is not None:
-            self.__writer__.write_indicator(id, tag, time, data)
+        if self.__idx_writer__ is not None:
+            self.__idx_writer__.write_indicator(id, tag, time, data)
 
     def init(self, folder:str, cfgfile:str = "configbt.json", commfile:str="commodities.json", contractfile:str="contracts.json"):
         '''
