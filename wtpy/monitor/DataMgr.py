@@ -42,7 +42,7 @@ class DataMgr:
             grpInfo["path"] = row[3]
             grpInfo["info"] = row[4]
             grpInfo["gtype"] = row[5]
-            grpInfo["datmod"] = row[6]
+            grpInfo["datmod"] = 'mannual'
             grpInfo["env"] = row[7]
             self.__config__["groups"][grpInfo["id"]] = grpInfo
 
@@ -144,8 +144,23 @@ class DataMgr:
             self.__db_conn__.commit()
 
     def __check_cache__(self, grpid, grpInfo):
+        now = datetime.datetime.now()
         if grpid not in self.__grp_cache__:
             self.__grp_cache__[grpid] = dict()
+            self.__grp_cache__[grpid]["cachetime"] = None
+        else:
+            cache_time = self.__grp_cache__[grpid]["cachetime"]
+            bNeedReset = False
+            if cache_time is None:
+                bNeedReset = True
+            else:
+                td = now - cache_time
+                if td.total_seconds() >= 60:# 上次缓存时间超过60s，则重新读取
+                    bNeedReset = True
+
+            if bNeedReset:
+                self.__grp_cache__[grpid] = dict()
+                self.__grp_cache__[grpid]["cachetime"] = None
 
         if "strategies" not in self.__grp_cache__[grpid]:
             filepath = "./generated/marker.json"
@@ -164,13 +179,21 @@ class DataMgr:
                         "channels":marker["channels"]
                     } 
 
+                    if "executers" in marker:
+                        self.__grp_cache__[grpid]["executers"] = marker["executers"]
+                    else:
+                        self.__grp_cache__[grpid]["executers"] = []
+
                 except:
                     self.__grp_cache__[grpid] = {
                         "strategies":[],
-                        "channels":[]
+                        "channels":[],
+                        "executers":[]
                     } 
             self.__grp_cache__[grpid]["strategies"].sort()
             self.__grp_cache__[grpid]["channels"].sort()
+            self.__grp_cache__[grpid]["executers"].sort()
+            self.__grp_cache__[grpid]["cachetime"] = now
 
     def get_groups(self, tpfilter:str=''):
         ret = []
@@ -377,15 +400,17 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["trades"] = list()
                 self.__grp_cache__[grpid]["trades"][straid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["trades"][straid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["trades"]) == 0:
-            lines = lines[1:]
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
@@ -408,6 +433,7 @@ class DataMgr:
                 tItem["fee"] = float(cells[7])
 
             trdCache["trades"].append(tItem)
+            trdCache["lastrow"] += 1
         
         return trdCache["trades"][-limit:]
 
@@ -431,15 +457,18 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["funds"] = list()
                 self.__grp_cache__[grpid]["funds"][straid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["funds"][straid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["funds"]) == 0:
-            lines = lines[1:]
+
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
@@ -459,6 +488,7 @@ class DataMgr:
                 tItem["fee"] = float(cells[4])
 
             trdCache["funds"].append(tItem)
+            trdCache["lastrow"] += 1
         
         return trdCache["funds"]
 
@@ -482,15 +512,18 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["signals"] = list()
                 self.__grp_cache__[grpid]["signals"][straid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["signals"][straid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["signals"]) == 0:
-            lines = lines[1:]
+
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
@@ -505,7 +538,8 @@ class DataMgr:
             }
 
             trdCache["signals"].append(tItem)
-        
+
+        trdCache["lastrow"] += len(lines)        
         return trdCache["signals"][-limit:]
 
     def get_rounds(self, grpid:str, straid:str, limit:int = 200):
@@ -528,15 +562,17 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["rounds"] = list()
                 self.__grp_cache__[grpid]["rounds"][straid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["rounds"][straid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["rounds"]) == 0:
-            lines = lines[1:]
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
@@ -556,6 +592,7 @@ class DataMgr:
             }
 
             trdCache["rounds"].append(tItem)
+        trdCache["lastrow"] += len(lines)
         
         return trdCache["rounds"][-limit:]
 
@@ -649,15 +686,18 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["corders"] = list()
                 self.__grp_cache__[grpid]["corders"][chnlid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["corders"][chnlid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["corders"]) == 0:
-            lines = lines[1:]
+
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
@@ -700,15 +740,18 @@ class DataMgr:
                 return []
             else:
                 trdCache = dict()
-                f = open(filepath, "r")
-                trdCache["file"] = f
+                trdCache["file"] = filepath
+                trdCache["lastrow"] = 0
                 trdCache["ctrades"] = list()
                 self.__grp_cache__[grpid]["ctrades"][chnlid] = trdCache
 
         trdCache = self.__grp_cache__[grpid]["ctrades"][chnlid]
-        lines = trdCache["file"].readlines()
-        if len(trdCache["ctrades"]) == 0:
-            lines = lines[1:]
+
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
 
         for line in lines:
             cells = line.split(",")
@@ -743,27 +786,78 @@ class DataMgr:
         self.__check_cache__(grpid, grpInfo)
             
         ret = list()
-        if chnlid not in self.__grp_cache__[grpid]["channels"]:
-            return []
-        
-        filepath = "./generated/traders/%s/rtdata.json" % (chnlid)
-        filepath = os.path.join(grpInfo["path"], filepath)
-        if not os.path.exists(filepath):
-            return []
-        
-        f = open(filepath, "r")
-        try:
-            content = f.read()
-            json_data = json.loads(content)
+        channels = list()
+        if chnlid != 'all':
+            channels.append(chnlid)
+        else:
+            channels = self.__grp_cache__[grpid]["channels"]
 
-            positions = json_data["positions"]
-            for pItem in positions:
-                pItem["channel"] = chnlid
-                ret.append(pItem)
-        except:
-            pass
+        for cid in channels:
+            if cid not in self.__grp_cache__[grpid]["channels"]:
+                continue
+            
+            filepath = "./generated/traders/%s/rtdata.json" % (cid)
+            filepath = os.path.join(grpInfo["path"], filepath)
+            if not os.path.exists(filepath):
+                return []
+            
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                json_data = json.loads(content)
 
-        f.close()
+                positions = json_data["positions"]
+                for pItem in positions:
+                    pItem["channel"] = cid
+                    ret.append(pItem)
+            except:
+                pass
+
+            f.close()
+        return ret
+
+    def get_channel_funds(self, grpid:str, chnlid:str):
+        if self.__config__ is None:
+            return []
+
+        if "groups" not in self.__config__:
+            return []
+
+        if grpid not in self.__config__["groups"]:
+            return []
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+            
+        ret = dict()
+        channels = list()
+        if chnlid != 'all':
+            channels.append(chnlid)
+        else:
+            channels = self.__grp_cache__[grpid]["channels"]
+            print(channels)
+
+        for cid in channels:
+            if cid not in self.__grp_cache__[grpid]["channels"]:
+                continue
+            
+            filepath = "./generated/traders/%s/rtdata.json" % (cid)
+            filepath = os.path.join(grpInfo["path"], filepath)
+            if not os.path.exists(filepath):
+                continue
+            
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                json_data = json.loads(content)
+
+                funds = json_data["funds"]
+                ret[cid] = funds
+            except:
+                pass
+
+            f.close()
+        print(ret)
         return ret
 
     def get_actions(self, sdate, edate):
@@ -782,8 +876,220 @@ class DataMgr:
             ret.append(aInfo)
 
         return ret
+
+    def get_group_funds(self, grpid:str):
+        if grpid not in self.__config__["groups"]:
+            return []
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+
+        if "grpfunds" not in self.__grp_cache__[grpid]:
+            self.__grp_cache__[grpid]["grpfunds"] = dict()
         
+        filepath = "./generated/portfolio/funds.csv"
+        filepath = os.path.join(grpInfo["path"], filepath)
+        if not os.path.exists(filepath):
+            return []
+        else:
+            trdCache = dict()
+            trdCache["file"] = filepath
+            trdCache["lastrow"] = 0
+            trdCache["funds"] = list()
+            self.__grp_cache__[grpid]["grpfunds"]["cache"] = trdCache
 
+        trdCache = self.__grp_cache__[grpid]["grpfunds"]['cache']
 
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
+
+        for line in lines:
+            cells = line.split(",")
+
+            tItem = {
+                "date": int(cells[0]),
+                "predynbalance": float(cells[1]),
+                "prebalance": float(cells[2]),
+                "balance": float(cells[3]),
+                "closeprofit": float(cells[4]),
+                "dynprofit": float(cells[5]),
+                "fee": float(cells[6]),
+                "maxdynbalance": float(cells[7]),
+                "maxtime": float(cells[8]),
+                "mindynbalance": float(cells[9]),
+                "mintime": float(cells[10]),
+                "mdmaxbalance": float(cells[11]),
+                "mdmaxdate": float(cells[12]),
+                "mdminbalance": float(cells[13]),
+                "mdmindate": float(cells[14])
+            }
+
+            trdCache["funds"].append(tItem)
+            trdCache["lastrow"] += 1
+        
+        return trdCache["funds"]
+
+    def get_group_positions(self, grpid:str):
+        if grpid not in self.__config__["groups"]:
+            return []
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+        
+        filepath = "./generated/portfolio/datas.json"
+        filepath = os.path.join(grpInfo["path"], filepath)
+        if not os.path.exists(filepath):
+            return []
+        else:
+            ret = list()
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                json_data = json.loads(content)
+
+                positions = json_data["positions"]
+                for pItem in positions:
+                    if pItem["volume"] == 0:
+                        continue
+
+                    for dItem in pItem["details"]:
+                        dItem["code"] = pItem["code"]
+                        ret.append(dItem)
+            except:
+                pass
+
+            f.close()
+            return ret
+
+    def get_group_performances(self, grpid:str):
+        if grpid not in self.__config__["groups"]:
+            return {}
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+        
+        filepath = "./generated/portfolio/datas.json" 
+        filepath = os.path.join(grpInfo["path"], filepath)
+        if not os.path.exists(filepath):
+            return {}
+        else:
+            perf = dict()
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                json_data = json.loads(content)
+
+                positions = json_data["positions"]
+                for pItem in positions:
+                    code = pItem['code']
+                    ay = code.split(".")
+                    pid = code
+                    if len(ay) > 2:
+                        if ay[1] not in ['IDX','STK','ETF']:
+                            pid = ay[0] + "." + ay[1]
+                        else:
+                            pid = ay[0] + "." + ay[2]
+
+                    if pid not in perf:
+                        perf[pid] = {
+                            'closeprofit':0,
+                            'dynprofit':0
+                        }
+
+                    perf[pid]['closeprofit'] += pItem['closeprofit']
+                    perf[pid]['dynprofit'] += pItem['dynprofit']
+                    
+            except:
+                pass
+
+            f.close()
+            return perf
+
+    def get_group_filters(self, grpid:str):
+        if grpid not in self.__config__["groups"]:
+            return {}
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+        
+        filepath = os.path.join(grpInfo["path"], 'filters.json')
+        if not os.path.exists(filepath):
+            return {}
+        else:
+            gpCache = self.__grp_cache__[grpid]
+            filters = dict()
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                filters = json.loads(content)
+
+                if "executer_filters" not in filters:
+                    filters["executer_filters"] = dict()
+                if "strategy_filters" not in filters:
+                    filters["strategy_filters"] = dict()
+                if "code_filters" not in filters:
+                    filters["code_filters"] = dict()
+
+                for sid in gpCache["strategies"]:
+                    if sid not in filters['strategy_filters']:
+                        filters['strategy_filters'][sid] = False
+                
+                for eid in gpCache["executers"]:
+                    if eid not in filters['executer_filters']:
+                        filters['executer_filters'][eid] = False
+
+                for id in filters['strategy_filters'].keys():
+                    if type(filters['strategy_filters'][id]) != bool:
+                        filters['strategy_filters'][id] = True
+
+                for id in filters['code_filters'].keys():
+                    if type(filters['code_filters'][id]) != bool:
+                        filters['code_filters'][id] = True
+            except:
+                pass
+
+            f.close()
+            return filters
+
+    def set_group_filters(self, grpid:str, filters:dict):
+        if grpid not in self.__config__["groups"]:
+            return False
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+
+        realfilters = {
+            "strategy_filters":{},
+            "code_filters":{},
+            "executer_filters":{}
+        }
+
+        if "strategy_filters" in filters:
+            for sid in filters["strategy_filters"]:
+                if filters["strategy_filters"][sid]:
+                    realfilters["strategy_filters"][sid] = {
+                        "action":"redirect",
+                        "target":0
+                    }
+
+        if "code_filters" in filters:
+            for sid in filters["code_filters"]:
+                if filters["code_filters"][sid]:
+                    realfilters["code_filters"][sid] = {
+                        "action":"redirect",
+                        "target":0
+                    }
+
+        if "executer_filters" in filters:
+            realfilters["executer_filters"] = filters["executer_filters"]
+        
+        filepath = os.path.join(grpInfo["path"], 'filters.json')
+        backup_file(filepath)
+        f = open(filepath, "w")
+        f.write(json.dumps(realfilters, indent=4))
+        f.close()
+        return True
             
-

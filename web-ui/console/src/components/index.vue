@@ -32,13 +32,13 @@
                                             <i class="el-icon-view"></i>
                                             <span>监控中心</span>
                                         </el-menu-item>
-                                        <el-menu-item index="1-2" route="/schedule">
+                                        <el-menu-item index="1-2" route="/schedule" v-if="isAdmin">
                                             <i class="el-icon-time"></i>
                                             <span>调度中心</span>
                                         </el-menu-item>
                                     </el-menu-item-group>
                                 </el-submenu>
-                                <el-submenu index="2">
+                                <el-submenu index="2" v-if="isAdmin">
                                     <template slot="title">
                                         <i class="el-icon-box"></i>
                                         <span>自动实施</span>
@@ -54,7 +54,7 @@
                                         </el-menu-item>
                                     </el-menu-item-group>                           
                                 </el-submenu>
-                                <el-submenu index="3">
+                                <el-submenu index="3" v-if="isAdmin">
                                     <template slot="title">
                                         <i class="el-icon-setting"></i>
                                         <span>系统设置</span>
@@ -71,7 +71,7 @@
                         <div style="flex:0;margin:8px;font-size:14px;">
                             <el-row>
                                 <el-col :span="10">
-                                    <a>管理员：</a>
+                                    <a>登录用户：</a>
                                 </el-col>
                                 <el-col :span="14">
                                     <a>{{cache.userinfo.name}}({{cache.loginid}})</a>
@@ -106,7 +106,7 @@
                     <div style="flex:1;">
                     </div>
                     <div style="flex:0;margin-top:4px; min-width:150px;">
-                        <i class="el-icon-connection" style="color:dark-green;padding-right:8px;"></i><a>推送通道已连接</a>
+                        <i class="el-icon-connection" style="color:green;padding-right:8px;"></i><a>推送通道已连接</a>
                     </div>  
                 </el-footer>
             </el-container>
@@ -130,7 +130,14 @@ export default {
     computed: {
         ...mapGetters([
             'cache'
-        ])
+        ]),
+        isAdmin: function(){
+            let uInfo = this.cache.userinfo;
+            if(uInfo)
+                return (uInfo.role == 'admin' || uInfo.role == 'superman');
+            else
+                return false;        
+        }
     },
     components:{
         Admins

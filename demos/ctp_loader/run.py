@@ -1,5 +1,5 @@
-from wtpy import CTPLoader
+from wtpy import ContractLoader,LoaderType
 
-loader = CTPLoader(folder='./', isMini=False)
-loader.start()
+loader = ContractLoader(lType = LoaderType.LT_CTP)
+loader.start(cfgfile="config.ini")
 input("press enter key to exit\n")

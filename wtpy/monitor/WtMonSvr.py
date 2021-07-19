@@ -4,9 +4,11 @@ import datetime
 import os
 import hashlib
 import sys
+import base64
+import chardet
 
 from .WtLogger import WtLogger
-from .DataMgr import DataMgr
+from .DataMgr import DataMgr, backup_file
 from .PushSvr import PushServer
 from .WatchDog import WatchDog, WatcherSink
 from .EventReceiver import EventReceiver, EventSink
@@ -71,7 +73,7 @@ def check_auth():
 
     return True, usrInfo
 
-def get_path_tree(root:str, name:str):
+def get_path_tree(root:str, name:str, hasFile:bool = True):
     if not os.path.exists(root):
         return {
             "label":name,
@@ -98,9 +100,33 @@ def get_path_tree(root:str, name:str):
     }
     files = os.listdir(root, )
     for filename in files:
+        if filename in ['__pycache__', '.vscode', 'wtpy', '__init__.py']:
+            continue
+        if filename[-3:] == 'pyc':
+            continue
+
         filepath = os.path.join(root, filename)
-        if not os.path.isfile(filepath):
-            ret["children"].append(get_path_tree(filepath, filename))
+        if os.path.isfile(filepath):
+            if not hasFile:
+                continue
+            else:
+                ret["children"].append({
+                    "label":filename,
+                    "path":filepath,
+                    "exist":True,
+                    "isfile":True})
+        else:
+            ret["children"].append(get_path_tree(filepath, filename, hasFile))
+
+        ay1 = list()
+        ay2 = list()
+        for item in ret["children"]:
+            if item["isfile"]:
+                ay2.append(item)
+            else:
+                ay1.append(item)
+        ay = ay1 + ay2
+        ret["children"] = ay
     return ret
 
 class WtMonSvr(WatcherSink, EventSink):
@@ -472,6 +498,34 @@ class WtMonSvr(WatcherSink, EventSink):
 
             return pack_rsp(ret)
 
+        # 查询目录结构
+        @app.route("/mgr/qrygrpdir", methods=["POST"])
+        def qry_grp_directories():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            grpid = get_param(json_data, "groupid")
+            if not self.__data_mgr__.has_group(grpid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                monCfg = self._dog.getAppConf(grpid)
+
+                ret = {
+                    "result":0,
+                    "message":"Ok",
+                    "tree": get_path_tree(monCfg["folder"], "root", True)
+                }
+
+            return pack_rsp(ret)
+
         # 查询组合列表
         @app.route("/mgr/qrygrp", methods=["POST"])
         def qry_groups():
@@ -497,6 +551,100 @@ class WtMonSvr(WatcherSink, EventSink):
                     "result":-1,
                     "message":"请求解析失败"
                 }
+
+            return pack_rsp(ret)
+
+        # 查询文件信息
+        @app.route("/mgr/qrygrpfile", methods=["POST"])
+        def qry_group_file():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            grpid = get_param(json_data, "groupid")
+            path = get_param(json_data, "path")
+            if not self.__data_mgr__.has_group(grpid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                monCfg = self._dog.getAppConf(grpid)
+                root = monCfg["folder"]
+                if path[:len(root)] != root:
+                    ret = {
+                        "result":-1,
+                        "message":"目标文件不在当前组合下"
+                    }
+                else:
+                    f = open(path,'rb')
+                    content = f.read()
+                    f.close()
+
+                    encoding = chardet.detect(content)["encoding"]
+                    content = content.decode(encoding)
+
+                    ret = {
+                        "result":0,
+                        "message":"Ok",
+                        "content": content
+                    }
+
+            return pack_rsp(ret)
+
+        # 提交组合文件
+        @app.route("/mgr/cmtgrpfile", methods=["POST"])
+        def cmd_commit_group_file():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            grpid = get_param(json_data, "groupid")
+            content = get_param(json_data, "content")
+            path = get_param(json_data, "path")
+            if not self.__data_mgr__.has_group(grpid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                monCfg = self._dog.getAppConf(grpid)
+                root = monCfg["folder"]
+                if path[:len(root)] != root:
+                    ret = {
+                        "result":-1,
+                        "message":"目标文件不在当前组合下"
+                    }
+                else:
+                    try:
+                        f = open(path,'rb')
+                        old_content = f.read()
+                        f.close()
+                        encoding = chardet.detect(old_content)["encoding"]
+
+                        backup_file(path)
+
+                        f = open(path,'wb')
+                        f.write(content.encode(encoding))
+                        f.close()
+
+                        ret = {
+                            "result":0,
+                            "message":"Ok"
+                        }
+                    except:
+                        ret = {
+                            "result":-1,
+                            "message":"文件保存失败"
+                        }
 
             return pack_rsp(ret)
 
@@ -943,6 +1091,34 @@ class WtMonSvr(WatcherSink, EventSink):
 
             return pack_rsp(ret)
 
+        # 查询通道资金
+        @app.route("/mgr/qrychnlfund", methods=["POST"])
+        def qry_channel_funds():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+            cid = get_param(json_data, "channelid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "funds": self.__data_mgr__.get_channel_funds(gid, cid)
+                }
+
+            return pack_rsp(ret)
+
         # 查询用户列表
         @app.route("/mgr/qryusers", methods=["POST"])
         def qry_users():
@@ -1179,6 +1355,149 @@ class WtMonSvr(WatcherSink, EventSink):
                     ret = {
                         "result":-1,
                         "message":"请求解析失败"
+                    }
+
+            return pack_rsp(ret)
+
+        # 查询组合持仓
+        @app.route("/mgr/qryportpos", methods=["POST"])
+        def qry_group_positions():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "positions": self.__data_mgr__.get_group_positions(gid)
+                }
+                    
+
+            return pack_rsp(ret)
+        
+        # 查询组合资金
+        @app.route("/mgr/qryportfunds", methods=["POST"])
+        def qry_group_funds():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "funds": self.__data_mgr__.get_group_funds(gid)
+                }
+                    
+
+            return pack_rsp(ret)
+
+        # 查询组合绩效分析
+        @app.route("/mgr/qryportperfs", methods=["POST"])
+        def qry_group_perfs():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "performance": self.__data_mgr__.get_group_performances(gid)
+                }
+                    
+            return pack_rsp(ret)
+
+        # 查询组合过滤器
+        @app.route("/mgr/qryportfilters", methods=["POST"])
+        def qry_group_filters():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "filters": self.__data_mgr__.get_group_filters(gid)
+                }
+                    
+            return pack_rsp(ret)
+
+        # 提交组合过滤器
+        @app.route("/mgr/cmtgrpfilters", methods=["POST"])
+        def cmd_commit_group_filters():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            grpid = get_param(json_data, "groupid")
+            filters = get_param(json_data, "filters", type=dict)
+            if not self.__data_mgr__.has_group(grpid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                try:
+                    self.__data_mgr__.set_group_filters(grpid, filters)
+                    ret = {
+                        "result":0,
+                        "message":"Ok"
+                    }
+                except:
+                    ret = {
+                        "result":-1,
+                        "message":"过滤器保存失败"
                     }
 
             return pack_rsp(ret)

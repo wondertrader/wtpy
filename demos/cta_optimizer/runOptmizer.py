@@ -24,7 +24,8 @@ def runBaseOptimizer():
 
     # 配置回测环境，主要是将直接回测的一些参数通过这种方式动态传递，优化器中会在每个子进程动态构造回测引擎
     optimizer.config_backtest_env(deps_dir='./common/', cfgfile='configbt.json', storage_type="csv", storage_path="./storage/")
-    optimizer.config_backtest_time(start_time=201909100930, end_time=202010121500)
+    optimizer.config_backtest_time(start_time=201909100930, end_time=202009251500)
+    optimizer.config_backtest_time(start_time=201909260930, end_time=202010121500)
 
     # 启动优化器
     optimizer.go(interval=0.2, out_marker_file="strategies.json",out_summary_file="total_summary.csv")

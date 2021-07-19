@@ -30,7 +30,7 @@ class WtEngine:
     实盘交易引擎
     '''
 
-    def __init__(self, eType:EngineType, logCfg:str = "logCfg.json", genDir:str = "generated", bDumpCfg:bool = False):
+    def __init__(self, eType:EngineType, logCfg:str = "logcfg.json", genDir:str = "generated", bDumpCfg:bool = False):
         '''
         WtEngine构造函数\n
         @eType  引擎类型：EngineType.ET_CTA、EngineType.ET_HFT、EngineType.ET_SEL\n
@@ -38,6 +38,8 @@ class WtEngine:
         @genDir 数据输出目录\n
         @bDumpCfg   是否保存最终配置文件
         '''
+        self.is_backtest = False
+
         self.__wrapper__ = WtWrapper()  #api接口转换器
         self.__cta_ctxs__ = dict()      #CTA策略ctx映射表
         self.__sel_ctxs__ = dict()      #SEL策略ctx映射表

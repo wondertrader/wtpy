@@ -13,28 +13,39 @@
                             </el-tab-pane>
                             <el-tab-pane label="回合明细" name="rnd">
                             </el-tab-pane>
-                            <el-tab-pane label="每日绩效" name="fnd">
+                            <el-tab-pane label="每日绩效" name="fnd" v-if="isAdmin">
                             </el-tab-pane>
                         </el-tabs>
                     </div>
                     <div style="flex:1;border-bottom:2px solid #E4E7ED;margin-top: 4px;">
                         <div style="float:right">
-                            <el-button type="primary" icon="el-icon-refresh" size="mini" plain @click="queryData()">刷新</el-button>
-                            <el-select v-model="strafilter" placeholder="请选择" size="mini" @change="onStraSwitch">
-                                <el-option label="全部策略" value="all" v-show="selCat=='pos'">
-                                    <i class="el-icon-collection"/>
-                                    <span>全部策略</span>
-                                </el-option>
-                                <el-option :label="sid" :value="sid" :key="sid" v-for="sid in strategies">
-                                    <i class="el-icon-tickets"/>
-                                    <span>{{sid}}</span>
-                                </el-option>
-                            </el-select>
+                            <el-row>
+                                <el-col :span="4">
+                                    <el-tooltip class="item" effect="dark" content="每隔30秒刷新一次" placement="top">
+                                        <el-checkbox v-model="autoData" style="float:right;margin-top:6px;" @change="handleCheckAutoData">自动刷新</el-checkbox>
+                                    </el-tooltip>
+                                </el-col>
+                                <el-col :offset="1" :span="12">
+                                    <el-select v-model="strafilter" placeholder="请选择" size="mini" @change="onStraSwitch">
+                                        <el-option label="全部策略" value="all" v-show="selCat=='pos'">
+                                            <i class="el-icon-collection"/>
+                                            <span>全部策略</span>
+                                        </el-option>
+                                        <el-option :label="sid" :value="sid" :key="sid" v-for="sid in strategies">
+                                            <i class="el-icon-tickets"/>
+                                            <span>{{sid}}</span>
+                                        </el-option>
+                                    </el-select>
+                                </el-col>
+                                <el-col :span="4">
+                                    <el-button type="primary" icon="el-icon-refresh" size="mini" plain @click="queryData()">刷新</el-button>
+                                </el-col>
+                            </el-row>
                         </div>
                     </div> 
                 </div>
             </el-header>
-            <el-main style="overflow:auto;">
+            <el-main style="overflow:auto;border-bottom: 1px solid #E4E7ED;">
                 <div style="max-height:100%;overflow:auto;" v-show="selCat=='pos'" v-loading="loading.position">
                     <el-table
                         border
@@ -86,14 +97,16 @@
                         </el-table-column>
                         <el-table-column
                             label="最大浮盈"
-                            width="100">
+                            width="120"
+                            sortable>
                             <template slot-scope="scope">
                                 <span class="text-danger">{{scope.row.maxprofit.toFixed(1)}}</span>
                             </template>
                         </el-table-column>
                         <el-table-column
                             label="最大浮亏"
-                            width="100">
+                            width="120"
+                            sortable>
                             <template slot-scope="scope">
                                 <span class="text-success">{{scope.row.maxloss.toFixed(1)}}</span>
                             </template>
@@ -110,6 +123,8 @@
                         border
                         stripe
                         :data="trades"
+                        :summary-method="getTrdSum"
+                        show-summary
                         class="table">
                         <el-table-column
                             prop="strategy"
@@ -160,6 +175,8 @@
                         border
                         stripe
                         :data="signals"
+                        :summary-method="getSigSum"
+                        show-summary
                         class="table">
                         <el-table-column
                             prop="strategy"
@@ -270,18 +287,16 @@
                         <el-table-column
                             prop="entertag"
                             label="进场标记"
-                            width="100"
-                            sortable>
+                            width="100">
                         </el-table-column>
                         <el-table-column
                             prop="exittag"
                             label="出场标记"
-                            width="100"
-                            sortable>
+                            width="100">
                         </el-table-column>
                     </el-table>
                 </div>
-                <div style="height:100%;display:flex;flex-direction:column;"  v-show="selCat=='fnd'" v-loading="loading.fund">
+                <div style="height:100%;display:flex;flex-direction:column;"  v-show="selCat=='fnd'" v-loading="loading.fund"  v-if="isAdmin">
                     <div style="flex:1;width:100%;overflow:auto;height:50%;border-bottom:1px solid #E4E7ED;">
                         <div style="max-height:100%;">
                             <el-table
@@ -330,7 +345,7 @@
                             </el-table>
                         </div>
                     </div>
-                    <div style="flex:1;width:100%;overflow:auto;display:flex;flex-direction:column;">
+                    <div style="flex:1;width:100%;overflow:auto;display:flex;flex-direction:column;margin:4px;">
                         <div style="height:40px;display:inline-block;flex:0;margin:4px;">
                             <el-row>
                                 <el-col :span="2" style="margin-top:2px;">
@@ -352,11 +367,15 @@
                     </div>
                 </div>
             </el-main>
+            <el-footer style="height:24px;">
+                <span style="font-size:12px;color:gray;line-height:24px;">数据刷新时间: {{refreshTime}}</span>
+            </el-footer>
         </el-container>
     </div>    
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 export default {
     name: 'stradata',
     props:{
@@ -365,6 +384,18 @@ export default {
             default(){
                 return "";
             }
+        }
+    },
+    computed:{
+        ...mapGetters([
+            'cache'
+        ]),
+        isAdmin(){
+            let uInfo = this.cache.userinfo;
+            if(uInfo)
+                return (uInfo.role == 'admin' || uInfo.role == 'superman');
+            else
+                return false;        
         }
     },
     components: {
@@ -384,10 +415,14 @@ export default {
                 this.$api.getStrategies(newVal, (resObj)=>{
                     //console.log(resObj);
                     if(resObj.result < 0){
-                        this.$alert(resObj.message);
+                        this.$notify.error('获取策略列表出错：' + resObj.message);
                     } else {
                         this.strategies = resObj.strategies;
-                        this.strafilter = this.strategies[0];
+
+                        if(this.selCat!='pos' && this.strafilter=='all')
+                            this.strafilter = this.strategies[0];
+                        else if(this.selCat=='pos')
+                            this.strafilter = 'all';
 
                         this.queryData();
                     }
@@ -397,8 +432,8 @@ export default {
     },
     data () {
         return {
-            selCat:"pos",
-            strafilter:"",
+            selCat: "pos",
+            strafilter:"all",
             strategies:[],
             loading:{
                 trade: false,
@@ -414,10 +449,77 @@ export default {
             rounds:[],
             strategies:[],
             funds:[],
-            nvChart:null
+            nvChart:null,
+            autoData: false,
+            dataInterval: 0,
+            refreshTime:new Date().format('yyyy.MM.dd hh:mm:ss')
         }
     },
     methods: {
+        handleCheckAutoData: function(val){
+            this.resetDataInterval();
+        },
+        resetDataInterval: function(){
+            if(this.autoData){
+                if(this.dataInterval != 0){
+                    clearInterval(this.dataInterval);
+                }
+
+                this.dataInterval = setInterval(()=>{
+                    this.queryData();
+                }, 30000);
+            } else if(this.dataInterval != 0){
+                clearInterval(this.dataInterval);
+            }
+        },
+        getTrdSum: function(param){
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+                if (index < 3 || index > 5) {
+                    sums[index] = '';
+                    return;
+                } else if (index == 3){
+                    sums[index] = '总计';
+                    return;
+                } else if (index == 4){
+                    sums[index] = data.length + "笔";
+                } else if (index == 5){
+                    const values = data.map(item => Number(item.volume));
+                    if (!values.every(value => isNaN(value))) {
+                        sums[index] = values.reduce((prev, curr) => {
+                            const value = Number(curr);
+                            if (!isNaN(value)) {
+                                return prev + curr;
+                            } else {
+                                return prev;
+                            }
+                            }, 0) + '手';
+                    } else {
+                        sums[index] = 'N/A';
+                    }
+                }                
+            });
+
+            return sums;
+        },
+        getSigSum: function(param){
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+                if (index > 1) {
+                    sums[index] = '';
+                    return;
+                } else if (index == 0){
+                    sums[index] = '总计';
+                    return;
+                } else if (index == 1){
+                    sums[index] = data.length + "笔";
+                }                
+            });
+
+            return sums;
+        },
         getPosSum: function(param){
             const { columns, data } = param;
             const sums = [];
@@ -519,8 +621,10 @@ export default {
 
             this.selCat = tab.name;
 
-            if(this.selCat != 'pos' && this.strafilter=='all')
+            if(this.selCat!='pos' && this.strafilter=='all')
                 this.strafilter = this.strategies[0];
+            else if(this.selCat=='pos')
+                this.strafilter = 'all';
 
             this.queryData();
         },
@@ -717,7 +821,8 @@ export default {
 
             this.nvChart.setOption(options);
         },
-        queryData: function(){
+        queryData: function(needReset){
+            needReset = needReset || false;
             let self = this;
             let curCat = this.selCat;
             let groupid = this.groupid || "";
@@ -738,7 +843,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getTrades(groupid, straid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询成交出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询成交出错：" + resObj.message);
                         } else {
                             resObj.trades.forEach((tItem)=>{
                                 let action = "";
@@ -759,6 +864,9 @@ export default {
                         }
 
                         self.loading.trade = false;
+                        self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
+                        if(needReset)
+                            self.resetDataInterval();
                     });
                 }, 300);                
             } else if(curCat == "sig"){
@@ -766,13 +874,16 @@ export default {
                 setTimeout(()=>{
                     this.$api.getSignals(groupid, straid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询信号出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询信号出错：" + resObj.message);
                         } else {
                             self.signals = resObj.signals;
                             self.signals.reverse();
                         }
 
                         self.loading.signal = false;
+                        self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
+                        if(needReset)
+                            self.resetDataInterval();
                     });
                 }, 300);   
             } else if(curCat == "rnd"){
@@ -780,13 +891,16 @@ export default {
                 setTimeout(()=>{
                     this.$api.getRounds(groupid, straid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询回合出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询回合出错：" + resObj.message);
                         } else {
                             self.rounds = resObj.rounds;
                             self.rounds.reverse();
                         }
 
                         self.loading.round = false;
+                        self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
+                        if(needReset)
+                            self.resetDataInterval();
                     });
                 }, 300);   
             } else if(curCat == "pos"){
@@ -794,7 +908,7 @@ export default {
                 setTimeout(()=>{
                     this.$api.getPositions(groupid, straid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询持仓出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询持仓出错：" + resObj.message);
                         } else {
                             resObj.positions.forEach((pItem)=>{
                                 pItem.qty = pItem.volume*(pItem.long?1:-1);
@@ -803,6 +917,9 @@ export default {
                         }
 
                         self.loading.position = false;
+                        self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
+                        if(needReset)
+                            self.resetDataInterval();
                     });
                 }, 300);   
             } else if(curCat == "fnd"){
@@ -810,20 +927,31 @@ export default {
                 setTimeout(()=>{
                     this.$api.getFunds(groupid, straid, (resObj)=>{
                         if (resObj.result < 0) {
-                            self.$alert("查询绩效出错：" + resObj.message, "查询失败");
+                            this.$notify.error("查询绩效出错：" + resObj.message);
                         } else {
                             self.funds = resObj.funds;                            
                             self.funds.reverse();
                             self.paintChart();
                         }
                         self.loading.fund = false;
+                        self.refreshTime = new Date().format('yyyy.MM.dd hh:mm:ss');
+                        if(needReset)
+                            self.resetDataInterval();
                     });
                 }, 300);   
             }
         }
     },
     mounted(){
-        
+        window.onresize = function(){
+            if (!self.zooming) {
+                self.zooming = true
+                setTimeout(function () {
+                    if(self.myChart) self.nvChart.resize();
+                    self.zooming = false;
+                }, 300);
+            }
+        };
     }
 }
 </script>
