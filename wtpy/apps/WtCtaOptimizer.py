@@ -313,11 +313,11 @@ class WtCtaOptimizer:
         engine.configBacktest(params["start_time"], params["end_time"])
         engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"], dbcfg=self.env_params["db_config"])
 
+        time_range = (params["start_time"], params["end_time"])
+
         # 去掉多余的参数
         params.pop("start_time")
         params.pop("end_time")
-
-        time_range = (params["start_time"], params["end_time"])
         
         if self.cpp_stra_module is not None:
             params.pop("name")
