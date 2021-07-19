@@ -333,7 +333,7 @@ class CtaContext:
         获取指定标记的持仓的盈亏
         @stdCode       合约代码\n
         @usertag    进场标记\n
-        @flag       盈亏记号，0-浮动盈亏，1-最大浮盈，2-最大亏损（负数）
+        @flag       盈亏记号，0-浮动盈亏，1-最大浮盈，-1-最大亏损（负数）
         @return     盈亏 
         '''
         return self.__wrapper__.cta_get_detail_profit(self.__id__, stdCode, usertag, flag)
