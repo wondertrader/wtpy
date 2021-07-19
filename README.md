@@ -144,3 +144,16 @@
 * 针对C++底层进行适配：1、CTA增加一个stra_get_fund_data接口，2、回测引擎，支持设置slippage
 * WtEngine构造函数提供指定数据输出目录的genDir参数，以及日志配置文件的logCfg参数
 * 其他代码级的优化和完善
+
+### 0.6.5
+* C++底层更新到2021/07/19发布的v0.6.5版本
+* WtDtHelper新增一个resample_bars接口，用于将制定的dsb数据文件重新采样为其他周期的K线
+* SessionInfo新增一个toString对象，生成json格式的字符串
+* 暴力优化器CTAOptimizer支持设置多个回测时段
+* 完善了read_dsb_bars和read_dsb_ticks接口，同时新增read_dmb_bars和read_dmb_ticks接口调用WtDtHelper.dll的同名接口
+* Context新增一个is_backtest属性，用于判断是否在回测模式
+* 监控服务新增了查看组合文件结构、获取组合下文件内容以及修改组合下文件内容的接口
+* 完善了webui控制台针对风控员的权限控制
+* 完善了绩效分析模块的兼容性
+* webui完善
+* 其他代码级的优化和完善
