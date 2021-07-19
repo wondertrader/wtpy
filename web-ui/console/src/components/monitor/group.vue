@@ -7,22 +7,25 @@
                         <div style="flex:0;" class="simtab">
                             <span>滚动日志</span>
                         </div> 
-                        <div style="flex:1;border-bottom: 1px solid #E4E7ED;margin-top:6px;">
-                            <el-switch
-                                v-model="logScroll"
-                                active-text="自动滚动"
-                                inactive-text="暂停滚动" 
-                                active-color="#13ce66"
-                                inactive-color="#ff4949"
-                                display="block"
-                                style="float:right;"
-                                v-show="isLogAuto">
-                            </el-switch>
-                            <el-button type="primary" icon="el-icon-refresh" size="mini" plain style="float:right;" v-show="!isLogAuto" @click="handleClickQryLog()">刷新</el-button>
+                        <div style="flex:1;border-bottom: 1px solid #E4E7ED;margin-top:6px;"></div>
+                        <div style="flex:0 160px;border-bottom: 1px solid #E4E7ED;margin-top:6px;display:inline-block;">
+                            <el-row >
+                                <el-col :span="11">
+                                    <el-tooltip class="item" effect="dark" content="每个15秒刷新一次" placement="top">
+                                        <el-checkbox v-model="autoLog" style="float:right;margin-top:6px;" @change="handleCheckAutoLog">自动刷新</el-checkbox>
+                                    </el-tooltip>
+                                </el-col>
+                                <el-col :offset="1" :span="12">
+                                    <el-button type="primary" style="" icon="el-icon-refresh" size="mini" plain @click="handleClickQryLog()">刷新</el-button>
+                                </el-col>
+                            </el-row>                          
                         </div> 
                     </div>
                     <div style="flex:1;margin:10px 4px;" v-loading="logOnway">
                         <textarea readonly="readonly" ref="logs" autocomplete="off" placeholder="这里是日志内容" class="el-textarea__inner" :value="logs"></textarea>
+                    </div>
+                    <div style="flex:0 24px;align-items:right;">
+                        <span style="font-size:12px;color:gray;">日志刷新时间: {{logTime}}</span>
                     </div>
                 </div>
             </el-col>
@@ -30,21 +33,27 @@
                 <div style="height:100%;display:flex;flex-direction:column;">
                     <div style="flex:0;margin:2px 4px 0px 4px;min-height:44px;">
                         <el-tabs :value="selData" type="card" style="height:100%;" @tab-click="handleClickTab">
-                            <el-tab-pane label="策略数据" name="sdata">
+                            <el-tab-pane label="策略管理" name="sdata">
                             </el-tab-pane>
-                            <el-tab-pane label="交易数据" name="tdata">
+                            <el-tab-pane label="组合管理" name="pdata">
                             </el-tab-pane>
-                            <el-tab-pane label="组合配置" name="setting">
+                            <el-tab-pane label="通道管理" name="tdata">
+                            </el-tab-pane>                            
+                            <el-tab-pane label="文件管理" name="editor" v-if="isAdmin">
                             </el-tab-pane>
-                            <el-tab-pane label="执行入口" name="entry">
+                            <el-tab-pane label="组合配置" name="setting" v-if="isAdmin">
+                            </el-tab-pane>
+                            <el-tab-pane label="执行入口" name="entry" v-if="isAdmin">
                             </el-tab-pane>
                         </el-tabs>
                     </div>
                     <div style="flex:1;margin:2px;overflow:auto;">
                         <StrategyData v-show="selData=='sdata'" :groupid="groupid"/>
                         <ChannelData v-show="selData=='tdata'" :groupid="groupid"/>
-                        <Setting v-show="selData=='setting'" :groupid="groupid"/>
-                        <Entry v-show="selData=='entry'" :groupid="groupid"/>
+                        <PorfolioData v-show="selData=='pdata'" :groupid="groupid"/>
+                        <Editor v-show="selData=='editor'" :groupid="groupid" v-if="isAdmin"/>
+                        <Setting v-show="selData=='setting'" :groupid="groupid" v-if="isAdmin"/>
+                        <Entry v-show="selData=='entry'" :groupid="groupid" v-if="isAdmin"/>
                     </div>
                 </div>
             </el-col>
@@ -53,27 +62,34 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
 import StrategyData from './stradata'
 import ChannelData from './trddata'
+import PorfolioData from './portdata'
 import Setting from './setting'
 import Entry from './entry'
+import Editor from './editor'
 export default {
     name: 'empty',
     components: {
-        StrategyData, ChannelData, Setting, Entry
+        StrategyData, ChannelData, PorfolioData, Setting, Entry, Editor
     },
     computed: {
+        ...mapGetters([
+            'cache'
+        ]),
+        isAdmin(){
+            let uInfo = this.cache.userinfo;
+            if(uInfo)
+                return (uInfo.role == 'admin' || uInfo.role == 'superman');
+            else
+                return false;        
+        },
         groupid(){
             if(this.groupinfo == null)
                 return "";
             else
                 return this.groupinfo.id;
-        },
-        isLogAuto(){
-            if(this.groupinfo == null)
-                return false;
-            else
-                return this.groupinfo.datmod=="auto";
         }
     },
     props:{
@@ -99,7 +115,10 @@ export default {
             logCache:"",
             logLines:0,
             logScroll: true,
-            logOnway: false
+            logOnway: false,
+            autoLog: false,
+            logInterval: 0,
+            logTime:new Date().format('yyyy.MM.dd hh:mm:ss')
         }
     },
     methods: {
@@ -108,10 +127,27 @@ export default {
         },
         handleClickQryLog: function(){
             setTimeout(()=>{
-                this.queryLogs();
+                this.queryLogs(true);
             }, 300);
         },
-        queryLogs: function(){
+        handleCheckAutoLog: function(val){
+            this.resetLogInterval();
+        },
+        resetLogInterval: function(){
+            if(this.autoLog){
+                if(this.logInterval != 0){
+                    clearInterval(this.logInterval);
+                }
+
+                this.logInterval = setInterval(()=>{
+                    this.queryLogs();
+                }, 15000);
+            } else if(this.logInterval != 0){
+                clearInterval(this.logInterval);
+            }
+        },
+        queryLogs: function(needReset){
+            needReset = needReset || false;
             let self = this;
             if(this.groupinfo.id == "")
                 return;
@@ -119,7 +155,12 @@ export default {
             self.logOnway = true;
             this.$api.getLogs(this.groupinfo.id, this.logfilter, (resObj)=>{
                 if(resObj.result < 0){
-                    this.$alert(resObj.message);
+                    this.logs = '';
+                    this.logLines = 0;
+                    this.$notify.error('组合日志拉取失败：' + resObj.message);
+                    self.$nextTick(()=>{
+                        self.$refs.logs.scrollTo(0,0);
+                    });
                 } else {
                     this.logs = resObj.content;
                     this.logLines = resObj.lines||0;
@@ -128,7 +169,11 @@ export default {
                         self.$refs.logs.scrollTo(0,height);
                     });
                 }
+                self.logTime = new Date().format('yyyy.MM.dd hh:mm:ss');
                 self.logOnway = false;
+
+                if(needReset)
+                    self.resetLogInterval();
             });
         }
     },
@@ -144,7 +189,7 @@ export default {
 
             //只有手动模式的组合才需要请求日志数据
             setTimeout(()=>{
-                this.queryLogs();
+                this.queryLogs(true);
             }, 300);
         }
     },

@@ -28,6 +28,8 @@ def singleton(cls):
 class WtBtEngine:
 
     def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False):
+        self.is_backtest = True
+
         self.__wrapper__ = WtBtWrapper()  #api接口转换器
         self.__context__ = None      #策略ctx映射表
         self.__config__ = dict()        #框架配置项
@@ -66,14 +68,14 @@ class WtBtEngine:
         '''
         设置指标输出模块
         '''
-        self.__writer__ = writer
+        self.__idx_writer__ = writer
 
     def write_indicator(self, id, tag, time, data):
         '''
         写入指标数据
         '''
-        if self.__writer__ is not None:
-            self.__writer__.write_indicator(id, tag, time, data)
+        if self.__idx_writer__ is not None:
+            self.__idx_writer__.write_indicator(id, tag, time, data)
 
     def init(self, folder:str, cfgfile:str = "configbt.json", commfile:str="commodities.json", contractfile:str="contracts.json"):
         '''

@@ -21,8 +21,7 @@ Vue.use(new VueSocketIO({
     debug: false,
     // 服务器端地址
     connection: 'http://' + document.domain + ':' + location.port,
-    vuex: {
-    }
+    vuex: {}
 }));
 
 import Api from './js/api.js'

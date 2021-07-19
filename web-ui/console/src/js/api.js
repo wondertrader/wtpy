@@ -250,6 +250,66 @@ export default function () {
 			}, 'json');
 	};
 
+    self.getGroupDir = function(grpid, cb){
+		let reqInfo = {
+			groupid: grpid
+		}
+
+		$.post("/mgr/qrygrpdir",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.getGroupFile = function(grpid, path, cb){
+		let reqInfo = {
+			groupid: grpid,
+            path: path
+		}
+
+		$.post("/mgr/qrygrpfile",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.commitGroupFile = function(grpid, path, content, cb){
+		let reqInfo = {
+			groupid: grpid,
+            path: path,
+            content:content
+		}
+
+		$.post("/mgr/cmtgrpfile",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
 	self.commitGroupEntry = function(grpid, content, cb){
 		let reqInfo = {
 			groupid: grpid,
@@ -379,9 +439,9 @@ export default function () {
 	};
 
 	self.getTrades = function(gid, sid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(sid) == 'function'){
+			cb = sid;
+			sid = "";
 		}
 
 		let reqInfo = {
@@ -405,9 +465,9 @@ export default function () {
 	};
 
 	self.getSignals = function(gid, sid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(sid) == 'function'){
+			cb = sid;
+			sid = "";
 		}
 
 		let reqInfo = {
@@ -431,9 +491,9 @@ export default function () {
 	};
 
 	self.getRounds = function(gid, sid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(sid) == 'function'){
+			cb = sid;
+			sid = "";
 		}
 
 		let reqInfo = {
@@ -457,9 +517,9 @@ export default function () {
 	};
 
 	self.getPositions = function(gid, sid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(sid) == 'function'){
+			cb = sid;
+			sid = "";
 		}
 
 		let reqInfo = {
@@ -483,9 +543,9 @@ export default function () {
 	};
 
 	self.getFunds = function(gid, sid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(sid) == 'function'){
+			cb = sid;
+			sid = "";
 		}
 
 		let reqInfo = {
@@ -509,9 +569,9 @@ export default function () {
 	};
 
 	self.getChnlOrders = function(gid, cid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(cid) == 'function'){
+			cb = cid;
+			cid = "";
 		}
 
 		let reqInfo = {
@@ -535,9 +595,9 @@ export default function () {
 	};
 
 	self.getChnlTrades = function(gid, cid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(cid) == 'function'){
+			cb = cid;
+			cid = "";
 		}
 
 		let reqInfo = {
@@ -561,9 +621,9 @@ export default function () {
 	};
 
 	self.getChnlPositions = function(gid, cid, cb){
-		if(typeof(stype) == 'function'){
-			cb = stype;
-			stype = "";
+		if(typeof(cid) == 'function'){
+			cb = cid;
+			cid = "";
 		}
 
 		let reqInfo = {
@@ -573,6 +633,32 @@ export default function () {
 
 
 		$.post("/mgr/qrychnlpos",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.getChnlFunds = function(gid, cid, cb){
+		if(typeof(cid) == 'function'){
+			cb = cid;
+			cid = "";
+		}
+
+		let reqInfo = {
+			groupid: gid,
+			channelid:cid
+		};
+
+
+		$.post("/mgr/qrychnlfund",
 			JSON.stringify(reqInfo),
 			function (data, textStatus) {
 				if (textStatus != 'success') {
@@ -759,6 +845,107 @@ export default function () {
 		};
 
 		$.post("/mgr/delapp",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.getPortPositions = function(gid, cb){
+		let reqInfo = {
+			groupid: gid
+		};
+
+
+		$.post("/mgr/qryportpos",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.getPortFunds = function(gid, cb){
+		let reqInfo = {
+			groupid: gid
+		};
+
+
+		$.post("/mgr/qryportfunds",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.getPortPerfs = function(gid, cb){
+		let reqInfo = {
+			groupid: gid
+		};
+
+
+		$.post("/mgr/qryportperfs",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.getPortFilters = function(gid, cb){
+		let reqInfo = {
+			groupid: gid
+		};
+
+
+		$.post("/mgr/qryportfilters",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.commitPortFilters = function(gid, filters, cb){
+		let reqInfo = {
+			groupid: gid,
+            filters: filters
+		};
+
+
+		$.post("/mgr/cmtgrpfilters",
 			JSON.stringify(reqInfo),
 			function (data, textStatus) {
 				if (textStatus != 'success') {

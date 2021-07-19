@@ -12,9 +12,32 @@ class SessionInfo:
     def __init__(self):
         self.id = ""
         self.name = ""
+        self.auction = SectionInfo()
         self.sections = list()
         self.offset = 0
         self.totalMins = 0
+
+    def toString(self):
+        '''
+        将SessionInfo转换成json字符串
+        '''
+        obj = dict()
+        obj["name"] = self.name
+        obj["offset"] = self.offset
+        obj["auction"] = {
+            "from": self.originalTime(self.auction.stime),
+            "to": self.originalTime(self.auction.etime)
+        }
+
+        obj["sections"] = list()
+        for secInfo in self.sections:
+            obj["sections"].append({
+                "from": self.originalTime(secInfo.stime),
+                "to": self.originalTime(secInfo.etime)
+            })
+
+        return json.dumps(obj, ensure_ascii=True)
+
 
     def offsetTime(self, rawTime:int):
         curMinute = math.floor(rawTime/100)*60 + rawTime%100
@@ -180,6 +203,10 @@ class SessionMgr:
             sInfo.id = sid
             sInfo.offset = sObj["offset"]
             sInfo.name = sObj["name"]
+
+            if "auction" in sObj:
+                sInfo.auction.stime = sInfo.offsetTime(sObj["auction"]["from"])
+                sInfo.auction.etime = sInfo.offsetTime(sObj["auction"]["to"])
 
             for secObj in sObj["sections"]:
                 secInfo = SectionInfo()

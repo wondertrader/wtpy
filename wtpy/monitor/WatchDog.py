@@ -91,12 +91,7 @@ class AppInfo:
     
     def __run_subproc__(self):
         redirect = self._redirect
-        if redirect:
-            self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
-                            cwd=self.__info__["folder"],
-                            stdout = subprocess.PIPE,
-                            stderr = subprocess.PIPE)
-        elif isWindows():
+        if isWindows():
             self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
                             cwd=self.__info__["folder"], creationflags=subprocess.CREATE_NEW_CONSOLE)
         else:
