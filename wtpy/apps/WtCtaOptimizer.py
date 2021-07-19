@@ -222,7 +222,7 @@ class WtCtaOptimizer:
         f.close()
         return param_groups
 
-    def __ayalyze_result__(self, strName:str, params:dict):
+    def __ayalyze_result__(self, strName:str, time_range:tuple, params:dict):
         folder = "./outputs_bt/%s/" % (strName)
         df_closes = pd.read_csv(folder + "closes.csv")
         df_funds = pd.read_csv(folder + "funds.csv")
@@ -272,6 +272,8 @@ class WtCtaOptimizer:
             max_consecutive_loses = max(max_consecutive_loses, consecutive_loses)
 
         summary = params.copy()
+        summary["开始时间"] = time_range[0]
+        summary["结束时间"] = time_range[1]
         summary["总交易次数"] = totaltimes
         summary["盈利次数"] = wintimes
         summary["亏损次数"] = losetimes
@@ -314,6 +316,8 @@ class WtCtaOptimizer:
         # 去掉多余的参数
         params.pop("start_time")
         params.pop("end_time")
+
+        time_range = (params["start_time"], params["end_time"])
         
         if self.cpp_stra_module is not None:
             params.pop("name")
@@ -326,7 +330,7 @@ class WtCtaOptimizer:
         engine.run_backtest()
         engine.release_backtest()
 
-        self.__ayalyze_result__(name, params)
+        self.__ayalyze_result__(name, time_range, params)
 
     def __start_task__(self, params:dict):
         '''
@@ -413,7 +417,8 @@ class WtCtaOptimizer:
                 print("%s不存在，请检查数据" % (filename))
                 continue
                 
-            self.__ayalyze_result__(straName, params)
+            time_range = (obj_stras["start_time"],obj_stras["end_time"])
+            self.__ayalyze_result__(straName, time_range, params)
             
             f = open(filename, "r")
             content = f.read()
