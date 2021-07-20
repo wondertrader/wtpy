@@ -1070,6 +1070,3 @@ class WtBtWrapper:
         '''
         return self.api.init_sel_mocker(bytes(name, encoding = "utf8"), date, time, 
             bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"), slippage)
-
-    def dump_kline(self, stdCode:str, period:str, filename:str):
-        self.api.dump_bars(bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), bytes(filename, encoding = "utf8"))

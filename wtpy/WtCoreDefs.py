@@ -118,7 +118,22 @@ class WTSOrdDtlStruct(Structure):
     _pack_ = 1
 
 
+class BarList(list):
+    def on_read_bar(self, curBar:POINTER(WTSBarStruct), isLast:bool):
+        self.append(copy(curBar.contents))
+
+    def on_data_count(self, dataCnt:int):
+        pass
+
+class TickList(list):
+    def on_read_tick(self, curTick:POINTER(WTSTickStruct), isLast:bool):
+        self.append(copy(curTick.contents))
+
+    def on_data_count(self, dataCnt:int):
+        pass
+
 # 回调函数定义
+
 
 #策略初始化回调
 CB_STRATEGY_INIT = CFUNCTYPE(c_void_p, c_ulong) 

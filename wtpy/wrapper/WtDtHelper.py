@@ -1,5 +1,5 @@
 from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_int, c_uint, c_uint64
-from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct
+from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, BarList, TickList
 from wtpy.SessionMgr import SessionInfo
 from wtpy.wrapper.PlatformHelper import PlatformHelper as ph
 from copy import copy
@@ -17,20 +17,6 @@ CB_DTHELPER_TICK_GETTER = CFUNCTYPE(c_bool, POINTER(WTSTickStruct), c_int)
 def on_log_output(message:str):
     message = bytes.decode(message, 'gbk')
     print(message)
-
-class TickList(list):
-    def on_read_tick(self, curTick:POINTER(WTSTickStruct), isLast:bool):
-        self.append(copy(curTick.contents))
-
-    def on_data_count(self, dataCnt:int):
-        pass
-
-class BarList(list):
-    def on_read_bar(self, curBar:POINTER(WTSBarStruct), isLast:bool):
-        self.append(copy(curBar.contents))
-
-    def on_data_count(self, dataCnt:int):
-        pass
 
 cb_dthelper_log = CB_DTHELPER_LOG(on_log_output)
 
