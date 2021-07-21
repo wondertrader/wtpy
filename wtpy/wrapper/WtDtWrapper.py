@@ -30,9 +30,7 @@ class WtDtWrapper:
             dllname = "linux/libWtDtPorter.so"
             a = (paths[:-1] + (dllname,))
             _path = os.path.join(*a)
-            print(_path)
             self.api = cdll.LoadLibrary(_path)
-            print(self.api)
         self.api.get_version.restype = c_char_p
         self.ver = bytes.decode(self.api.get_version())
 

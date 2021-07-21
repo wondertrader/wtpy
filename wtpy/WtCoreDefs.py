@@ -1,5 +1,6 @@
 from ctypes import c_uint, c_void_p, CFUNCTYPE, POINTER, c_char_p, c_bool, c_ulong, c_double
 from ctypes import Structure, c_char, c_int32, c_uint16, c_uint32, c_uint64
+from copy import copy
 
 MAX_INSTRUMENT_LENGTH = c_char*32
 MAX_EXCHANGE_LENGTH = c_char*10
@@ -122,19 +123,11 @@ class BarList(list):
     def on_read_bar(self, curBar:POINTER(WTSBarStruct), isLast:bool):
         self.append(copy(curBar.contents))
 
-    def on_data_count(self, dataCnt:int):
-        pass
-
 class TickList(list):
     def on_read_tick(self, curTick:POINTER(WTSTickStruct), isLast:bool):
         self.append(copy(curTick.contents))
 
-    def on_data_count(self, dataCnt:int):
-        pass
-
 # 回调函数定义
-
-
 #策略初始化回调
 CB_STRATEGY_INIT = CFUNCTYPE(c_void_p, c_ulong) 
 #策略tick数据推送回调
