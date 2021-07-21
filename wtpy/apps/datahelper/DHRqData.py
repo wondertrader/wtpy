@@ -167,7 +167,7 @@ class DHRqData(BaseDataHelper):
             
             print("Fetching %s bars of %s(%d/%s)..." % (period, stdCode, count, length))
             df_bars = rq.get_price(order_book_ids = rq_code,start_date=start_date, end_date=end_date,frequency=freq,adjust_type='none',expect_df=True)
-            content = "date,time,open,high,low,close,volume,turnover\n"
+            content = "date,time,open,high,low,close,volume,turnover,hold\n"
             total_nums = len(df_bars)
             cur_num = 0
             for idx, row in df_bars.iterrows():
@@ -184,6 +184,8 @@ class DHRqData(BaseDataHelper):
                 v = str(row["volume"])
                 t = str(row["total_turnover"])
                 items = [date, time, o, h, l, c, v, t]
+                if "open_interest" in row:
+                    items.append(str(row["open_interest"]))
 
                 content += ",".join(items) + "\n"
 
