@@ -1,13 +1,21 @@
 from ctypes import c_uint, c_void_p, CFUNCTYPE, POINTER, c_char_p, c_bool, c_ulong, c_double
 from ctypes import Structure, c_char, c_int32, c_uint16, c_uint32, c_uint64
 from copy import copy
+import numpy as np
+import pandas as pd
+from typing import Any
 
 MAX_INSTRUMENT_LENGTH = c_char*32
 MAX_EXCHANGE_LENGTH = c_char*10
 PriceQueueType = c_double*10
 VolumeQueueType = c_uint32*10
 
-class WTSTickStruct(Structure):
+class WTSStruct(Structure):
+    @property
+    def values(self) -> tuple:
+        return tuple(getattr(self, i[0]) for i in self._fields_)
+
+class WTSTickStruct(WTSStruct):
     '''
     C接口传递的tick数据结构
     '''
@@ -44,7 +52,7 @@ class WTSTickStruct(Structure):
     _pack_ = 1
 
 
-class WTSBarStruct(Structure):
+class WTSBarStruct(WTSStruct):
     '''
     C接口传递的bar数据结构
     '''
@@ -61,7 +69,7 @@ class WTSBarStruct(Structure):
                 ("diff", c_int32)]
     _pack_ = 1
 
-class WTSTransStruct(Structure):
+class WTSTransStruct(WTSStruct):
     '''
     C接口传递的逐笔成交数据结构
     '''
@@ -82,7 +90,7 @@ class WTSTransStruct(Structure):
                 ("bidorder", c_int32)]
     _pack_ = 1
 
-class WTSOrdQueStruct(Structure):
+class WTSOrdQueStruct(WTSStruct):
     '''
     C接口传递的委托队列数据结构
     '''
@@ -100,7 +108,7 @@ class WTSOrdQueStruct(Structure):
                 ("volumes", c_uint32*50)]
     _pack_ = 1
 
-class WTSOrdDtlStruct(Structure):
+class WTSOrdDtlStruct(WTSStruct):
     '''
     C接口传递的委托明细数据结构
     '''
@@ -119,11 +127,21 @@ class WTSOrdDtlStruct(Structure):
     _pack_ = 1
 
 
-class BarList(list):
+class CacheList(list):
+    def to_record(self) -> np.recarray:
+        data = np.empty(len(self), dtype=self[0]._fields_)
+        for k, v in enumerate(self):
+            data[k] = v.values
+        return data.view(np.recarray)
+
+    def to_pandas(self) -> pd.DataFrame:
+        return pd.DataFrame(self.to_record())
+
+class BarList(CacheList):
     def on_read_bar(self, curBar:POINTER(WTSBarStruct), isLast:bool):
         self.append(copy(curBar.contents))
 
-class TickList(list):
+class TickList(CacheList):
     def on_read_tick(self, curTick:POINTER(WTSTickStruct), isLast:bool):
         self.append(copy(curTick.contents))
 
