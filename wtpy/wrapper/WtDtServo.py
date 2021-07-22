@@ -71,7 +71,7 @@ class WtDtServo:
         @endTime    结束时间，格式为yyyymmddHHMMSSsss\n
         '''
         tick_cache = TickList()
-        if 0 == self.api.get_ticks(bytes(stdCode, encoding="utf8"), fromTime, endTime, CB_GET_TICK(bar_cache.on_read_tick)):
+        if 0 == self.api.get_ticks(bytes(stdCode, encoding="utf8"), fromTime, endTime, CB_GET_TICK(TickList.on_read_tick)):
             return None
         else:
             return tick_cache
