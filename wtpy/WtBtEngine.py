@@ -5,6 +5,7 @@ from wtpy.HftContext import HftContext
 from wtpy.StrategyDefs import BaseCtaStrategy, BaseSelStrategy, BaseHftStrategy
 from wtpy.ExtToolDefs import BaseIndexWriter
 from wtpy.WtCoreDefs import EngineType
+from wtpy.WtUtilDefs import singleton
 
 from .ProductMgr import ProductMgr, ProductInfo
 from .SessionMgr import SessionMgr, SessionInfo
@@ -15,14 +16,6 @@ from .CodeHelper import CodeHelper
 import os
 import json
 
-def singleton(cls):
-    instances = {}
-    def getinstance(*args,**kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args,**kwargs)
-        return instances[cls]
-    return getinstance
-
 
 @singleton
 class WtBtEngine:
@@ -30,7 +23,7 @@ class WtBtEngine:
     def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False):
         self.is_backtest = True
 
-        self.__wrapper__ = WtBtWrapper()  #api接口转换器
+        self.__wrapper__ = WtBtWrapper(self)  #api接口转换器
         self.__context__ = None      #策略ctx映射表
         self.__config__ = dict()        #框架配置项
         self.__cfg_commited__ = False   #配置是否已提交
@@ -40,11 +33,11 @@ class WtBtEngine:
         self.__dump_config__ = bDumpCfg #是否保存最终配置
 
         if eType == eType.ET_CTA:
-            self.__wrapper__.initialize_cta(self, logCfg, isFile)   #初始化CTA环境
+            self.__wrapper__.initialize_cta(logCfg, isFile)   #初始化CTA环境
         elif eType == eType.ET_HFT:
-            self.__wrapper__.initialize_hft(self, logCfg, isFile)   #初始化HFT环境
+            self.__wrapper__.initialize_hft(logCfg, isFile)   #初始化HFT环境
         elif eType == eType.ET_SEL:
-            self.__wrapper__.initialize_sel(self, logCfg, isFile)   #初始化SEL环境
+            self.__wrapper__.initialize_sel(logCfg, isFile)   #初始化SEL环境
 
     def __check_config__(self):
         '''
