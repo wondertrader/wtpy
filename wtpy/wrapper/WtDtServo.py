@@ -1,12 +1,15 @@
 from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_uint64, c_uint32
 from wtpy.WtCoreDefs import BarList, TickList, WTSBarStruct, WTSTickStruct
 from wtpy.wrapper.PlatformHelper import PlatformHelper as ph
+from wtpy.WtUtilDefs import singleton
+
 import os
 import json
 
 CB_GET_BAR = CFUNCTYPE(c_void_p,  POINTER(WTSBarStruct), c_bool)
 CB_GET_TICK = CFUNCTYPE(c_void_p,  POINTER(WTSTickStruct), c_bool)
 
+@singleton
 class WtDtServo:
     '''
     Wt平台数据组件C接口底层对接模块

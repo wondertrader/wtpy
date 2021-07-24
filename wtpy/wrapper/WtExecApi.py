@@ -1,7 +1,9 @@
 from ctypes import cdll, c_char_p
 from .PlatformHelper import PlatformHelper as ph
+from wtpy.WtUtilDefs import singleton
 import os
 
+@singleton
 class WtExecApi:
 
     # api可以作为公共变量
