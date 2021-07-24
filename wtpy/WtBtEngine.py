@@ -216,6 +216,14 @@ class WtBtEngine:
         '''
         return self.contractMgr.getTotalCodes()
 
+    def set_time_range(self, beginTime:int, endTime:int):
+        '''
+        设置回测时间\r
+        @beginTime  开始时间，格式如yyyymmddHHMM
+        @endTime    结束时间，格式如yyyymmddHHMM
+        '''
+        self.__wrapper__.set_time_range(beginTime, endTime)
+
     def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0):
         '''
         添加策略\n
