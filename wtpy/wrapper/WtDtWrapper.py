@@ -1,8 +1,10 @@
-from ctypes import cdll, c_int, c_char_p, c_longlong, c_bool, c_void_p, c_ulong, c_uint, c_uint64, c_double
+from ctypes import cdll, c_char_p
 from .PlatformHelper import PlatformHelper as ph
+from wtpy.WtUtilDefs import singleton
 import os
 
 # Python对接C接口的库
+@singleton
 class WtDtWrapper:
     '''
     Wt平台数据组件C接口底层对接模块
