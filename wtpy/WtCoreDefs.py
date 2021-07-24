@@ -141,9 +141,15 @@ class BarList(CacheList):
     def on_read_bar(self, curBar:POINTER(WTSBarStruct), isLast:bool):
         self.append(copy(curBar.contents))
 
+    def on_data_count(self, count:int):
+        pass
+
 class TickList(CacheList):
     def on_read_tick(self, curTick:POINTER(WTSTickStruct), isLast:bool):
         self.append(copy(curTick.contents))
+
+    def on_data_count(self, count:int):
+        pass
 
 # 回调函数定义
 #策略初始化回调
