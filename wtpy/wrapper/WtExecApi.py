@@ -44,7 +44,7 @@ class WtExecApi:
     def config(self, cfgfile:str = 'cfgexec.json', isFile:bool = True):
         self.api.config_exec(bytes(cfgfile, encoding = "utf8"), isFile)
 
-    def initialize(self, engine, logCfg:str = "logcfgexec.json", isFile:bool = True):
+    def initialize(self, logCfg:str = "logcfgexec.json", isFile:bool = True):
         '''
         C接口初始化
         '''
