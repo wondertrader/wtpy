@@ -2,6 +2,7 @@ from wtpy.wrapper import WtDataHelper
 from wtpy.WtCoreDefs import WTSBarStruct, WTSTickStruct
 from ctypes import POINTER
 from wtpy.SessionMgr import SessionMgr
+import pandas as pd
 
 def strToDate(strDate:str) -> int:
     items = strDate.split("/")
@@ -19,6 +20,64 @@ def strToTime(strTime:str) -> int:
         return int(items[0])*100 + int(items[1])
     else:
         return int(strTime)
+
+class PickleReader:
+    pd: pd.DataFrame
+
+    def __len__(self) -> int:
+        return len(self.pd)
+
+    def load_ticks(self, filename:str) -> bool:
+        self.pd = pd.read_pickle(filename)
+        return True
+
+    def get_tick(self, curTick:POINTER(WTSTickStruct), idx:int) -> bool:
+        row = self.pd.iloc[idx]
+
+
+        # open 	float 	开盘价
+        # high 	float 	最高价
+        # low 	float 	最低价
+        # price 	float 	最新价
+        # cum_volume 	float 	成交总量/最新成交量,累计值
+        # cum_amount 	float 	成交总金额/最新成交额,累计值
+        # trade_type 	int 	交易类型 1: ‘双开’, 2: ‘双平’, 3: ‘多开’, 4: ‘空开’, 5: ‘空平’, 6: ‘多平’, 7: ‘多换’, 8: ‘空换’
+        # last_volume 	int 	瞬时成交额
+        # cum_position 	int 	合约持仓量(期),累计值
+        # last_amount 	float 	瞬时成交额
+        # created_at 	datetime.datetime 	创建时间
+        # quotes 	list[quote] 	期货提供买卖一档数据; 跌停时无买方报价，涨停时无卖方报价
+
+        exchg,code = row.symbol.split('.', 1)
+        curTick.contents.exchg = bytes(exchg, 'utf-8')
+        curTick.contents.code = bytes(code.upper() if exchg=='CFFEX' or exchg=='CZCE' else code.lower(),'utf-8')
+
+        curTick.contents.open = row.open
+        curTick.contents.high = row.high
+        curTick.contents.low = row.low
+        curTick.contents.price = row.price
+
+        curTick.contents.action_date = int(row.created_at.strftime("%Y%m%d"))
+        curTick.contents.trading_date = int(row.created_at.strftime("%Y%m%d"))
+        curTick.contents.action_time = int(row.created_at.strftime("%H%M%S"))*1000
+
+        curTick.contents.total_volume = row.cum_volume
+        curTick.contents.total_turnover = row.cum_amount
+        curTick.contents.volume = row.last_volume
+        curTick.contents.open_interest = row.cum_position
+
+        curTick.contents.bid_prices[0] = row.quotes[0]['bid_p']
+        curTick.contents.bid_qty[0] = row.quotes[0]['bid_v']
+
+        curTick.contents.ask_prices[0] = row.quotes[0]['ask_p']
+        curTick.contents.ask_qty[0] = row.quotes[0]['ask_v']
+
+        print(curTick.contents)
+
+        
+        return True
+
+
 
 class CsvReader:
     def __init__(self, filename:str, isMin:bool = False):
@@ -65,10 +124,15 @@ dtHelper = WtDataHelper()
 # reader = CsvReader("./CFFEX.IC.HOT_d.csv", isMin=False)
 # dtHelper.trans_bars(barFile="./test_d.dsb", getter=reader.get_bar, count=len(reader.lines), period="d")
 
+# 转储tick
+reader = PickleReader()
+reader.load_ticks('./CZCE.ZC.2021-04-27.pkl')
+dtHelper.trans_ticks(tickFile="./CZCE.ZC.2021-04-27.dsb", getter=reader.get_tick, count=10000)#len(reader)
+
 
 # 测试重采样
-sessMgr = SessionMgr()
-sessMgr.load("sessions.json")
-sInfo = sessMgr.getSession("SD0930")
-ret = dtHelper.resample_bars("IC2009.dsb",'m1',5,202001010931,202009181500,sInfo)
-print(ret)
+# sessMgr = SessionMgr()
+# sessMgr.load("sessions.json")
+# sInfo = sessMgr.getSession("SD0930")
+# ret = dtHelper.resample_bars("IC2009.dsb",'m1',5,202001010931,202009181500,sInfo)
+# print(ret)
