@@ -156,6 +156,9 @@ def get_cfg_tree(root:str, name:str):
                 "isfile":True,
                 "children":[]
             })
+
+    filepath = os.path.join(root, 'generated')
+    ret["children"].append(get_path_tree(filepath, 'generated', True))
         
     return ret
 
