@@ -12,6 +12,10 @@ VolumeQueueType = c_uint32*10
 
 class WTSStruct(Structure):
     @property
+    def fields(self) -> list:
+        return self._fields_
+
+    @property
     def values(self) -> tuple:
         return tuple(getattr(self, i[0]) for i in self._fields_)
 
@@ -50,6 +54,17 @@ class WTSTickStruct(WTSStruct):
                 ("bid_qty", VolumeQueueType),
                 ("ask_qty", VolumeQueueType)]
     _pack_ = 1
+
+    @property
+    def fields(self) -> list:
+        fields = self._fields_.copy()
+        fields[0] = ('exchg', 'S10')
+        fields[1] = ('code', 'S10')
+        fields[-4] = ('bid_prices', 'O')
+        fields[-3] = ('ask_prices', 'O')
+        fields[-2] = ('bid_qty', 'O')
+        fields[-1] = ('ask_qty', 'O')
+        return fields
 
 
 class WTSBarStruct(WTSStruct):
@@ -129,7 +144,7 @@ class WTSOrdDtlStruct(WTSStruct):
 
 class CacheList(list):
     def to_record(self) -> np.recarray:
-        data = np.empty(len(self), dtype=self[0]._fields_)
+        data = np.empty(len(self), dtype=self[0].fields)
         for k, v in enumerate(self):
             data[k] = v.values
         return data.view(np.recarray)
