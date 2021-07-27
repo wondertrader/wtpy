@@ -708,7 +708,7 @@ export default {
         },
         onAddCodeFilter: function(){
             let self = this;
-            self.$prompt('请输出品种代码，格式如CFFEX.IF', '新增代码过滤器', {
+            self.$prompt('请输入品种代码，格式如CFFEX.IF', '新增代码过滤器', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消'
             }).then(({ value }) => {
@@ -823,7 +823,7 @@ export default {
                         } else {
                             resObj.filters["strategy_filters"] = resObj.filters["strategy_filters"] || {};
                             resObj.filters["code_filters"] = resObj.filters["code_filters"] || {};
-                            resObj.filters["channel_filters"] = resObj.filters["channel_filters"] || {};
+                            resObj.filters["channel_filters"] = resObj.filters["executer_filters"] || {};
 
                             self.filters = resObj.filters;
                         }

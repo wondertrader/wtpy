@@ -12,11 +12,12 @@
                         ref="mycode"
                         v-model="content_s"
                         :options="cmOptions"
-                        style="height:100%">
+                        style="height:100% !important;">
                     </codemirror>
                 </div>
             </div>
             <div style="flex:0 32px;margin-top:8px;">
+                <span style="font-size:12px;color:gray;float:left;">当前文件:{{curFilePath}}</span>
                 <el-button size="mini" style="float:right;" v-show="!edit" @click="onClickEdit()">
                     <i class="el-icon-edit"/>修改
                 </el-button>
@@ -34,6 +35,7 @@
 <script>
 import {codemirror } from 'vue-codemirror'
 import "codemirror/mode/python/python.js";
+import "codemirror/mode/javascript/javascript.js"
 
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/addon/fold/foldgutter.css'
@@ -61,6 +63,14 @@ export default {
             }
         }
     },
+    computed:{
+        curFilePath(){
+            if(this.curFile == null)
+                return '';
+            else
+                return this.curFile.path;
+        }
+    },
     components:{
         codemirror
     },
@@ -79,6 +89,7 @@ export default {
         return {
             folders:[],
             edit: false,
+            filename:'',
             content_s:"",
             content_backup:"",
             curFile:null,
@@ -124,8 +135,8 @@ export default {
                     return;
                 }
                 self.fileOnway = true;
-                this.curFile = data;
-                this.$api.getGroupFile(this.groupid, data.path, (resObj)=>{
+                self.curFile = data;
+                self.$api.getGroupFile(this.groupid, data.path, (resObj)=>{
                     if(resObj.result < 0){
                         self.$notify.error('获取文件内容失败' + resObj.message);
                     } else {
@@ -182,7 +193,6 @@ export default {
                         message:"文件提交成功",
                         type:"success"
                     });
-                    this.setting = config;
                 }
                 this.edit = false;
                 this.cmOptions.readOnly = true;
@@ -195,3 +205,8 @@ export default {
     }
 }
 </script>
+<style>
+.CodeMirror{
+    height:100% !important;
+}
+</style>
