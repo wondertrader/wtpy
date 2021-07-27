@@ -73,6 +73,92 @@ def check_auth():
 
     return True, usrInfo
 
+def get_cfg_tree(root:str, name:str):
+    if not os.path.exists(root):
+        return {
+            "label":name,
+            "path":root,
+            "exist":False,
+            "isfile":False,
+            "children":[]
+        }
+
+    if os.path.isfile(root):
+        return {
+            "label":name,
+            "path":root,
+            "exist":False,
+            "isfile":True
+        }
+
+    ret = {
+        "label":name,
+        "path":root,
+        "exist":True,
+        "isfile":False,
+        "children":[]
+    }
+
+    filepath = os.path.join(root, "run.py")
+    ret['children'].append({
+        "label":"run.py",
+        "path":filepath,
+        "exist":True,
+        "isfile":True,
+        "children":[]
+    })
+
+    filepath = os.path.join(root, "config.json")
+    ret['children'].append({
+        "label":"config.json",
+        "path":filepath,
+        "exist":True,
+        "isfile":True,
+        "children":[]
+    })
+
+    f = open(filepath, "r")
+    content = f.read()
+    f.close()
+    cfgObj = json.loads(content)
+    if "executers" in cfgObj:
+        filename = cfgObj["executers"]
+        if type(filename) == str:
+            filepath = os.path.join(root, filename)
+            ret['children'].append({
+                "label":filename,
+                "path":filepath,
+                "exist":True,
+                "isfile":True,
+                "children":[]
+            })
+
+    if "parsers" in cfgObj:
+        filename = cfgObj["parsers"]
+        if type(filename) == str:
+            filepath = os.path.join(root, filename)
+            ret['children'].append({
+                "label":filename,
+                "path":filepath,
+                "exist":True,
+                "isfile":True,
+                "children":[]
+            })
+
+    if "traders" in cfgObj:
+        filename = cfgObj["traders"]
+        if type(filename) == str:
+            filepath = os.path.join(root, filename)
+            ret['children'].append({
+                "label":filename,
+                "path":filepath,
+                "exist":True,
+                "isfile":True,
+                "children":[]
+            })
+        
+    return ret
+
 def get_path_tree(root:str, name:str, hasFile:bool = True):
     if not os.path.exists(root):
         return {
@@ -521,7 +607,7 @@ class WtMonSvr(WatcherSink, EventSink):
                 ret = {
                     "result":0,
                     "message":"Ok",
-                    "tree": get_path_tree(monCfg["folder"], "root", True)
+                    "tree": get_cfg_tree(monCfg["folder"], "root")
                 }
 
             return pack_rsp(ret)
@@ -645,125 +731,6 @@ class WtMonSvr(WatcherSink, EventSink):
                             "result":-1,
                             "message":"文件保存失败"
                         }
-
-            return pack_rsp(ret)
-
-        # 查询组合配置
-        @app.route("/mgr/qrygrpcfg", methods=["POST"])
-        def qry_group_cfg():
-            bSucc, json_data = parse_data()
-            if not bSucc:
-                return pack_rsp(json_data)
-
-            bSucc, usrInfo = check_auth()
-            if not bSucc:
-                return pack_rsp(usrInfo)
-
-            grpid = get_param(json_data, "groupid")
-            if not self.__data_mgr__.has_group(grpid):
-                ret = {
-                    "result":-1,
-                    "message":"组合不存在"
-                }
-            else:
-                ret = {
-                    "result":0,
-                    "message":"Ok",
-                    "config":self.__data_mgr__.get_group_cfg(grpid)
-                }
-
-            return pack_rsp(ret)
-
-        # 提交组合配置
-        @app.route("/mgr/cmtgrpcfg", methods=["POST"])
-        def cmd_commit_group_cfg():
-            bSucc, json_data = parse_data()
-            if not bSucc:
-                return pack_rsp(json_data)
-
-            bSucc, usrInfo = check_auth()
-            if not bSucc:
-                return pack_rsp(usrInfo)
-
-            grpid = get_param(json_data, "groupid")
-            config = get_param(json_data, key="config", type=dict)
-            if not self.__data_mgr__.has_group(grpid):
-                ret = {
-                    "result":-1,
-                    "message":"组合不存在"
-                }
-            else:
-                try:
-
-                    self.__data_mgr__.set_group_cfg(grpid, config)
-                    ret = {
-                        "result":0,
-                        "message":"Ok"
-                    }
-                except:
-                    ret = {
-                        "result":-1,
-                        "message":"配置解析失败"
-                    }
-
-            return pack_rsp(ret)
-
-        # 查询组合入口
-        @app.route("/mgr/qrygrpentry", methods=["POST"])
-        def qry_group_entry():
-            bSucc, json_data = parse_data()
-            if not bSucc:
-                return pack_rsp(json_data)
-
-            bSucc, usrInfo = check_auth()
-            if not bSucc:
-                return pack_rsp(usrInfo)
-
-            grpid = get_param(json_data, "groupid")
-            if not self.__data_mgr__.has_group(grpid):
-                ret = {
-                    "result":-1,
-                    "message":"组合不存在"
-                }
-            else:
-                ret = {
-                    "result":0,
-                    "message":"Ok",
-                    "content":self.__data_mgr__.get_group_entry(grpid)
-                }
-
-            return pack_rsp(ret)
-
-        # 提交组合入口
-        @app.route("/mgr/cmtgrpentry", methods=["POST"])
-        def cmd_commit_group_entry():
-            bSucc, json_data = parse_data()
-            if not bSucc:
-                return pack_rsp(json_data)
-
-            bSucc, usrInfo = check_auth()
-            if not bSucc:
-                return pack_rsp(usrInfo)
-
-            grpid = get_param(json_data, "groupid")
-            content = get_param(json_data, "content")
-            if not self.__data_mgr__.has_group(grpid):
-                ret = {
-                    "result":-1,
-                    "message":"组合不存在"
-                }
-            else:
-                try:
-                    self.__data_mgr__.set_group_entry(grpid, content)
-                    ret = {
-                        "result":0,
-                        "message":"Ok"
-                    }
-                except:
-                    ret = {
-                        "result":-1,
-                        "message":"配置解析失败"
-                    }
 
             return pack_rsp(ret)
         
