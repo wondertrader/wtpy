@@ -39,11 +39,7 @@
                             </el-tab-pane>
                             <el-tab-pane label="通道管理" name="tdata">
                             </el-tab-pane>                            
-                            <el-tab-pane label="文件管理" name="editor" v-if="isAdmin">
-                            </el-tab-pane>
-                            <el-tab-pane label="组合配置" name="setting" v-if="isAdmin">
-                            </el-tab-pane>
-                            <el-tab-pane label="执行入口" name="entry" v-if="isAdmin">
+                            <el-tab-pane label="配置管理" name="editor">
                             </el-tab-pane>
                         </el-tabs>
                     </div>
@@ -51,9 +47,7 @@
                         <StrategyData v-show="selData=='sdata'" :groupid="groupid"/>
                         <ChannelData v-show="selData=='tdata'" :groupid="groupid"/>
                         <PorfolioData v-show="selData=='pdata'" :groupid="groupid"/>
-                        <Editor v-show="selData=='editor'" :groupid="groupid" v-if="isAdmin"/>
-                        <Setting v-show="selData=='setting'" :groupid="groupid" v-if="isAdmin"/>
-                        <Entry v-show="selData=='entry'" :groupid="groupid" v-if="isAdmin"/>
+                        <Editor v-show="selData=='editor'" :groupid="groupid"/>
                     </div>
                 </div>
             </el-col>
@@ -66,13 +60,11 @@ import { mapGetters } from 'vuex';
 import StrategyData from './stradata'
 import ChannelData from './trddata'
 import PorfolioData from './portdata'
-import Setting from './setting'
-import Entry from './entry'
 import Editor from './editor'
 export default {
     name: 'empty',
     components: {
-        StrategyData, ChannelData, PorfolioData, Setting, Entry, Editor
+        StrategyData, ChannelData, PorfolioData, Editor
     },
     computed: {
         ...mapGetters([

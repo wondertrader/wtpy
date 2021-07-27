@@ -192,64 +192,6 @@ export default function () {
 			}, 'json');
 	};
 
-	self.getGroupCfg = function(grpid, cb){
-		let reqInfo = {
-			groupid: grpid
-		}
-
-		$.post("/mgr/qrygrpcfg",
-			JSON.stringify(reqInfo),
-			function (data, textStatus) {
-				if (textStatus != 'success') {
-					cb({
-						result: -9999,
-						message: textStatus
-					});
-				} else {
-					cb(data);
-				}
-			}, 'json');
-	};
-
-	self.commitGroupCfg = function(grpid, config, cb){
-		let reqInfo = {
-			groupid: grpid,
-			config: config
-		}
-
-		$.post("/mgr/cmtgrpcfg",
-			JSON.stringify(reqInfo),
-			function (data, textStatus) {
-				if (textStatus != 'success') {
-					cb({
-						result: -9999,
-						message: textStatus
-					});
-				} else {
-					cb(data);
-				}
-			}, 'json');
-	};
-
-    self.getGroupEntry = function(grpid, cb){
-		let reqInfo = {
-			groupid: grpid
-		}
-
-		$.post("/mgr/qrygrpentry",
-			JSON.stringify(reqInfo),
-			function (data, textStatus) {
-				if (textStatus != 'success') {
-					cb({
-						result: -9999,
-						message: textStatus
-					});
-				} else {
-					cb(data);
-				}
-			}, 'json');
-	};
-
     self.getGroupDir = function(grpid, cb){
 		let reqInfo = {
 			groupid: grpid
@@ -297,26 +239,6 @@ export default function () {
 		}
 
 		$.post("/mgr/cmtgrpfile",
-			JSON.stringify(reqInfo),
-			function (data, textStatus) {
-				if (textStatus != 'success') {
-					cb({
-						result: -9999,
-						message: textStatus
-					});
-				} else {
-					cb(data);
-				}
-			}, 'json');
-	};
-
-	self.commitGroupEntry = function(grpid, content, cb){
-		let reqInfo = {
-			groupid: grpid,
-			content: content
-		}
-
-		$.post("/mgr/cmtgrpentry",
 			JSON.stringify(reqInfo),
 			function (data, textStatus) {
 				if (textStatus != 'success') {
