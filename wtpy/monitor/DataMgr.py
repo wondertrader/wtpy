@@ -1017,42 +1017,43 @@ class DataMgr:
         
         filepath = os.path.join(grpInfo["path"], 'filters.json')
         if not os.path.exists(filepath):
-            return {}
+            filters = {}
         else:
-            gpCache = self.__grp_cache__[grpid]
-            filters = dict()
+            filters = {}
             f = open(filepath, "r")
             try:
                 content = f.read()
                 filters = json.loads(content)
-
-                if "executer_filters" not in filters:
-                    filters["executer_filters"] = dict()
-                if "strategy_filters" not in filters:
-                    filters["strategy_filters"] = dict()
-                if "code_filters" not in filters:
-                    filters["code_filters"] = dict()
-
-                for sid in gpCache["strategies"]:
-                    if sid not in filters['strategy_filters']:
-                        filters['strategy_filters'][sid] = False
-                
-                for eid in gpCache["executers"]:
-                    if eid not in filters['executer_filters']:
-                        filters['executer_filters'][eid] = False
-
-                for id in filters['strategy_filters'].keys():
-                    if type(filters['strategy_filters'][id]) != bool:
-                        filters['strategy_filters'][id] = True
-
-                for id in filters['code_filters'].keys():
-                    if type(filters['code_filters'][id]) != bool:
-                        filters['code_filters'][id] = True
             except:
                 pass
 
             f.close()
-            return filters
+
+        gpCache = self.__grp_cache__[grpid]
+        if "executer_filters" not in filters:
+            filters["executer_filters"] = dict()
+        if "strategy_filters" not in filters:
+            filters["strategy_filters"] = dict()
+        if "code_filters" not in filters:
+            filters["code_filters"] = dict()
+
+        for sid in gpCache["strategies"]:
+            if sid not in filters['strategy_filters']:
+                filters['strategy_filters'][sid] = False
+        
+        for eid in gpCache["executers"]:
+            if eid not in filters['executer_filters']:
+                filters['executer_filters'][eid] = False
+
+        for id in filters['strategy_filters'].keys():
+            if type(filters['strategy_filters'][id]) != bool:
+                filters['strategy_filters'][id] = True
+
+        for id in filters['code_filters'].keys():
+            if type(filters['code_filters'][id]) != bool:
+                filters['code_filters'][id] = True
+
+        return filters
 
     def set_group_filters(self, grpid:str, filters:dict):
         if grpid not in self.__config__["groups"]:
