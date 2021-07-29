@@ -21,12 +21,12 @@
         "name":"ÆÚ»õ°×ÅÌ0915",
         "offset": 0,
         "auction":{
-            "from": 914,
-            "to": 915
+            "from": 929,
+            "to": 930
         },
         "sections":[
             {
-                "from": 915,
+                "from": 930,
                 "to": 1130
             },
             {

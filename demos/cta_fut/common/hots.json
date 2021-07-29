@@ -175,6 +175,20 @@
                 "newclose": 6524.0,
                 "oldclose": 6556.4,
                 "to": "IC2106"
+            },
+            {
+                "date": 20210619,
+                "from": "IC2106",
+                "newclose": 6614.2,
+                "oldclose": 6648.6,
+                "to": "IC2107"
+            },
+            {
+                "date": 20210716,
+                "from": "IC2107",
+                "newclose": 6873.8,
+                "oldclose": 6920.0,
+                "to": "IC2108"
             }
         ],
         "IF": [
@@ -373,6 +387,20 @@
                 "newclose": 5172.2,
                 "oldclose": 5183.8,
                 "to": "IF2106"
+            },
+            {
+                "date": 20210619,
+                "from": "IF2106",
+                "newclose": 5062.8,
+                "oldclose": 5094.6,
+                "to": "IF2107"
+            },
+            {
+                "date": 20210716,
+                "from": "IF2107",
+                "newclose": 5129.0,
+                "oldclose": 5145.8,
+                "to": "IF2108"
             }
         ],
         "IH": [
@@ -557,6 +585,20 @@
                 "newclose": 3507.4,
                 "oldclose": 3520.2,
                 "to": "IH2106"
+            },
+            {
+                "date": 20210619,
+                "from": "IH2106",
+                "newclose": 3423.4,
+                "oldclose": 3446.8,
+                "to": "IH2107"
+            },
+            {
+                "date": 20210717,
+                "from": "IH2107",
+                "newclose": 3364.4,
+                "oldclose": 3378.2,
+                "to": "IH2108"
             }
         ],
         "T": [
@@ -963,6 +1005,13 @@
                 "newclose": 10305.0,
                 "oldclose": 9875.0,
                 "to": "CJ109"
+            },
+            {
+                "date": 20210724,
+                "from": "CJ109",
+                "newclose": 12580.0,
+                "oldclose": 8885.0,
+                "to": "CJ201"
             }
         ],
         "CY": [
@@ -1072,6 +1121,13 @@
                 "newclose": 2149.0,
                 "oldclose": 2159.0,
                 "to": "FG109"
+            },
+            {
+                "date": 20210724,
+                "from": "FG109",
+                "newclose": 3017.0,
+                "oldclose": 3039.0,
+                "to": "FG201"
             }
         ],
         "JR": [
@@ -1195,6 +1251,13 @@
                 "newclose": 2973.0,
                 "oldclose": 0.0,
                 "to": "LR107"
+            },
+            {
+                "date": 20210715,
+                "from": "LR107",
+                "newclose": 2973.0,
+                "oldclose": 0.0,
+                "to": "LR109"
             }
         ],
         "MA": [
@@ -1336,6 +1399,15 @@
                 "to": "PF109"
             }
         ],
+        "PK": [
+            {
+                "date": 20210527,
+                "from": "",
+                "newclose": 10040.0,
+                "oldclose": 0.0,
+                "to": "PK110"
+            }
+        ],
         "PM": [
             {
                 "date": 20190102,
@@ -1378,6 +1450,13 @@
                 "newclose": 2422.0,
                 "oldclose": 2441.0,
                 "to": "PM107"
+            },
+            {
+                "date": 20210715,
+                "from": "PM107",
+                "newclose": 2540.0,
+                "oldclose": 2510.0,
+                "to": "PM109"
             }
         ],
         "RI": [
@@ -1436,6 +1515,13 @@
                 "newclose": 2561.0,
                 "oldclose": 0.0,
                 "to": "RI107"
+            },
+            {
+                "date": 20210715,
+                "from": "RI107",
+                "newclose": 2683.0,
+                "oldclose": 0.0,
+                "to": "RI109"
             }
         ],
         "RM": [
@@ -1545,6 +1631,13 @@
                 "newclose": 5262.0,
                 "oldclose": 0.0,
                 "to": "RS107"
+            },
+            {
+                "date": 20210610,
+                "from": "RS107",
+                "newclose": 5869.0,
+                "oldclose": 5837.0,
+                "to": "RS109"
             }
         ],
         "SA": [
@@ -1582,6 +1675,13 @@
                 "newclose": 2039.0,
                 "oldclose": 1884.0,
                 "to": "SA109"
+            },
+            {
+                "date": 20210729,
+                "from": "SA109",
+                "newclose": 2584.0,
+                "oldclose": 2312.0,
+                "to": "SA201"
             }
         ],
         "SF": [
@@ -1865,6 +1965,13 @@
                 "newclose": 1979.0,
                 "oldclose": 2056.0,
                 "to": "UR107"
+            },
+            {
+                "date": 20210605,
+                "from": "UR107",
+                "newclose": 2364.0,
+                "oldclose": 2439.0,
+                "to": "UR109"
             }
         ],
         "WH": [
@@ -2055,6 +2162,13 @@
                 "newclose": 5860.0,
                 "oldclose": 5801.0,
                 "to": "a2109"
+            },
+            {
+                "date": 20210728,
+                "from": "a2109",
+                "newclose": 5779.0,
+                "oldclose": 5742.0,
+                "to": "a2111"
             }
         ],
         "b": [
@@ -2218,6 +2332,20 @@
                 "newclose": 4416.0,
                 "oldclose": 4366.0,
                 "to": "b2107"
+            },
+            {
+                "date": 20210605,
+                "from": "b2107",
+                "newclose": 4345.0,
+                "oldclose": 4305.0,
+                "to": "b2108"
+            },
+            {
+                "date": 20210706,
+                "from": "b2108",
+                "newclose": 4363.0,
+                "oldclose": 4342.0,
+                "to": "b2109"
             }
         ],
         "bb": [
@@ -2360,6 +2488,20 @@
                 "newclose": 220.0,
                 "oldclose": 348.3,
                 "to": "bb2106"
+            },
+            {
+                "date": 20210616,
+                "from": "bb2106",
+                "newclose": 230.55,
+                "oldclose": 0.0,
+                "to": "bb2107"
+            },
+            {
+                "date": 20210715,
+                "from": "bb2107",
+                "newclose": 234.5,
+                "oldclose": 0.0,
+                "to": "bb2108"
             }
         ],
         "c": [
@@ -2476,6 +2618,13 @@
                 "newclose": 3188.0,
                 "oldclose": 3204.0,
                 "to": "cs2107"
+            },
+            {
+                "date": 20210618,
+                "from": "cs2107",
+                "newclose": 3109.0,
+                "oldclose": 3144.0,
+                "to": "cs2109"
             }
         ],
         "eb": [
@@ -2534,6 +2683,20 @@
                 "newclose": 9080.0,
                 "oldclose": 9301.0,
                 "to": "eb2107"
+            },
+            {
+                "date": 20210617,
+                "from": "eb2107",
+                "newclose": 8385.0,
+                "oldclose": 8606.0,
+                "to": "eb2108"
+            },
+            {
+                "date": 20210714,
+                "from": "eb2108",
+                "newclose": 8947.0,
+                "oldclose": 9097.0,
+                "to": "eb2109"
             }
         ],
         "eg": [
@@ -2727,6 +2890,13 @@
                 "newclose": 1316.5,
                 "oldclose": 1274.5,
                 "to": "fb2106"
+            },
+            {
+                "date": 20210601,
+                "from": "fb2106",
+                "newclose": 1400.0,
+                "oldclose": 1354.0,
+                "to": "fb2109"
             }
         ],
         "i": [
@@ -3235,6 +3405,20 @@
                 "newclose": 4077.0,
                 "oldclose": 4127.0,
                 "to": "pg2107"
+            },
+            {
+                "date": 20210605,
+                "from": "pg2107",
+                "newclose": 4359.0,
+                "oldclose": 4353.0,
+                "to": "pg2108"
+            },
+            {
+                "date": 20210708,
+                "from": "pg2108",
+                "newclose": 4966.0,
+                "oldclose": 4978.0,
+                "to": "pg2109"
             }
         ],
         "pp": [
@@ -3379,6 +3563,27 @@
                 "newclose": 3616.0,
                 "oldclose": 3641.0,
                 "to": "rr2107"
+            },
+            {
+                "date": 20210527,
+                "from": "rr2107",
+                "newclose": 3583.0,
+                "oldclose": 3568.0,
+                "to": "rr2108"
+            },
+            {
+                "date": 20210630,
+                "from": "rr2108",
+                "newclose": 3522.0,
+                "oldclose": 3528.0,
+                "to": "rr2109"
+            },
+            {
+                "date": 20210730,
+                "from": "rr2109",
+                "newclose": 3529.0,
+                "oldclose": 3521.0,
+                "to": "rr2110"
             }
         ],
         "v": [
@@ -3534,6 +3739,27 @@
                 "newclose": 64820.0,
                 "oldclose": 64620.0,
                 "to": "bc2107"
+            },
+            {
+                "date": 20210603,
+                "from": "bc2107",
+                "newclose": 65680.0,
+                "oldclose": 65530.0,
+                "to": "bc2108"
+            },
+            {
+                "date": 20210701,
+                "from": "bc2108",
+                "newclose": 61030.0,
+                "oldclose": 60890.0,
+                "to": "bc2109"
+            },
+            {
+                "date": 20210728,
+                "from": "bc2109",
+                "newclose": 64250.0,
+                "oldclose": 64290.0,
+                "to": "bc2110"
             }
         ],
         "lu": [
@@ -3585,6 +3811,20 @@
                 "newclose": 3211.0,
                 "oldclose": 3203.0,
                 "to": "lu2108"
+            },
+            {
+                "date": 20210529,
+                "from": "lu2108",
+                "newclose": 3221.0,
+                "oldclose": 3206.0,
+                "to": "lu2109"
+            },
+            {
+                "date": 20210701,
+                "from": "lu2109",
+                "newclose": 3470.0,
+                "oldclose": 3432.0,
+                "to": "lu2110"
             }
         ],
         "nr": [
@@ -3699,6 +3939,20 @@
                 "newclose": 11140.0,
                 "oldclose": 11005.0,
                 "to": "nr2107"
+            },
+            {
+                "date": 20210527,
+                "from": "nr2107",
+                "newclose": 11355.0,
+                "oldclose": 11185.0,
+                "to": "nr2108"
+            },
+            {
+                "date": 20210629,
+                "from": "nr2108",
+                "newclose": 10920.0,
+                "oldclose": 10770.0,
+                "to": "nr2109"
             }
         ],
         "sc": [
@@ -3897,6 +4151,20 @@
                 "newclose": 428.7,
                 "oldclose": 428.3,
                 "to": "sc2107"
+            },
+            {
+                "date": 20210616,
+                "from": "sc2107",
+                "newclose": 452.1,
+                "oldclose": 454.4,
+                "to": "sc2108"
+            },
+            {
+                "date": 20210715,
+                "from": "sc2108",
+                "newclose": 466.8,
+                "oldclose": 460.9,
+                "to": "sc2109"
             }
         ]
     },
@@ -4162,6 +4430,20 @@
                 "newclose": 19295.0,
                 "oldclose": 19315.0,
                 "to": "al2107"
+            },
+            {
+                "date": 20210618,
+                "from": "al2107",
+                "newclose": 18680.0,
+                "oldclose": 18690.0,
+                "to": "al2108"
+            },
+            {
+                "date": 20210720,
+                "from": "al2108",
+                "newclose": 19275.0,
+                "oldclose": 19275.0,
+                "to": "al2109"
             }
         ],
         "au": [
@@ -4455,6 +4737,20 @@
                 "newclose": 74330.0,
                 "oldclose": 74090.0,
                 "to": "cu2107"
+            },
+            {
+                "date": 20210622,
+                "from": "cu2107",
+                "newclose": 66520.0,
+                "oldclose": 66350.0,
+                "to": "cu2108"
+            },
+            {
+                "date": 20210723,
+                "from": "cu2108",
+                "newclose": 69000.0,
+                "oldclose": 68960.0,
+                "to": "cu2109"
             }
         ],
         "fu": [
@@ -4734,6 +5030,20 @@
                 "newclose": 134150.0,
                 "oldclose": 134450.0,
                 "to": "ni2107"
+            },
+            {
+                "date": 20210625,
+                "from": "ni2107",
+                "newclose": 134560.0,
+                "oldclose": 134820.0,
+                "to": "ni2108"
+            },
+            {
+                "date": 20210723,
+                "from": "ni2108",
+                "newclose": 138650.0,
+                "oldclose": 139020.0,
+                "to": "ni2109"
             }
         ],
         "nr": [
@@ -4962,6 +5272,20 @@
                 "newclose": 15680.0,
                 "oldclose": 15610.0,
                 "to": "pb2107"
+            },
+            {
+                "date": 20210622,
+                "from": "pb2107",
+                "newclose": 15500.0,
+                "oldclose": 15435.0,
+                "to": "pb2108"
+            },
+            {
+                "date": 20210721,
+                "from": "pb2108",
+                "newclose": 15705.0,
+                "oldclose": 15630.0,
+                "to": "pb2109"
             }
         ],
         "rb": [
@@ -5285,6 +5609,20 @@
                 "newclose": 185320.0,
                 "oldclose": 185070.0,
                 "to": "sn2107"
+            },
+            {
+                "date": 20210616,
+                "from": "sn2107",
+                "newclose": 205410.0,
+                "oldclose": 205930.0,
+                "to": "sn2108"
+            },
+            {
+                "date": 20210722,
+                "from": "sn2108",
+                "newclose": 223160.0,
+                "oldclose": 225500.0,
+                "to": "sn2109"
             }
         ],
         "sp": [
@@ -5364,6 +5702,13 @@
                 "newclose": 7200.0,
                 "oldclose": 7332.0,
                 "to": "sp2107"
+            },
+            {
+                "date": 20210609,
+                "from": "sp2107",
+                "newclose": 6100.0,
+                "oldclose": 6116.0,
+                "to": "sp2109"
             }
         ],
         "ss": [
@@ -5471,6 +5816,20 @@
                 "newclose": 14360.0,
                 "oldclose": 14510.0,
                 "to": "ss2107"
+            },
+            {
+                "date": 20210605,
+                "from": "ss2107",
+                "newclose": 15320.0,
+                "oldclose": 15535.0,
+                "to": "ss2108"
+            },
+            {
+                "date": 20210723,
+                "from": "ss2108",
+                "newclose": 18410.0,
+                "oldclose": 18575.0,
+                "to": "ss2109"
             }
         ],
         "wr": [
@@ -5734,6 +6093,20 @@
                 "newclose": 23210.0,
                 "oldclose": 23220.0,
                 "to": "zn2107"
+            },
+            {
+                "date": 20210623,
+                "from": "zn2107",
+                "newclose": 21635.0,
+                "oldclose": 21650.0,
+                "to": "zn2108"
+            },
+            {
+                "date": 20210724,
+                "from": "zn2108",
+                "newclose": 22210.0,
+                "oldclose": 22210.0,
+                "to": "zn2109"
             }
         ]
     }

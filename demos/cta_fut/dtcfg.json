@@ -8,8 +8,8 @@
     "writer":{
         "path":"./FUT_Data",
         "savelog":true,
-        "async":true,
-        "groupsize":100
+        "async":false,
+        "groupsize":1000
     },
     "parsers":"mdparsers.json",
     "statemonitor":"statemonitor.json",
