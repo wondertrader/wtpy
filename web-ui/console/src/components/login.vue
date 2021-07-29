@@ -1,5 +1,5 @@
 <template>
-    <div class="loginBox">
+    <div class="loginBox"  v-loading="loading">
         <div class="login">
             <div class="loginForm">
                  <el-row>
@@ -29,7 +29,8 @@ export default {
         return {
             loginid: "",
             passwd: "",
-            saveuser:true
+            saveuser:true,
+            loading: false
         };
     },
     methods: {
@@ -37,6 +38,7 @@ export default {
             let self = this;
             let loginid = self.loginid;
             let passwd = self.passwd;
+            self.loading = true;
             this.$api.login(loginid, passwd, (resObj) => {
                 if (resObj.result < 0) {
                     self.$alert("用户登录出错：" + resObj.message, "登录失败");
@@ -53,6 +55,7 @@ export default {
 
                     self.$router.push("/index");
                 }
+                self.loading = false;
             });
         },
     },

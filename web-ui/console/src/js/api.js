@@ -81,6 +81,46 @@ export default function () {
 			}, 'json');
 	};
 
+    self.modpwd = function (oldpwd, newpwd, cb) {
+		let reqInfo = {
+			oldpwd: md5(oldpwd),
+			newpwd: md5(newpwd)
+		};
+
+		$.post("/mgr/modpwd",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
+    self.resetpwd = function (user, pwd, cb) {
+		let reqInfo = {
+			loginid: user,
+			passwd: md5(pwd)
+		};
+
+		$.post("/mgr/resetpwd",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+	};
+
 	self.getGroups = function(cb){
 		let reqInfo = {	};
 

@@ -46,7 +46,7 @@
                     <div style="flex:1;margin:2px;overflow:auto;">
                         <StrategyData v-show="selData=='sdata'" :groupid="groupid"/>
                         <ChannelData v-show="selData=='tdata'" :groupid="groupid"/>
-                        <PorfolioData v-show="selData=='pdata'" :groupid="groupid"/>
+                        <PorfolioData v-show="selData=='pdata'" :groupid="groupid" ref="portfolio"/>
                         <Editor v-show="selData=='editor'" :groupid="groupid"/>
                     </div>
                 </div>
@@ -116,6 +116,11 @@ export default {
     methods: {
         handleClickTab: function(tab, event){
             this.selData = tab.name;
+            if(tab.name == 'pdata'){
+                setTimeout(()=>{
+                    this.$refs.portfolio.$emit("resize");
+                },150);
+            }
         },
         handleClickQryLog: function(){
             setTimeout(()=>{
