@@ -1,4 +1,5 @@
 from flask import Flask, session, redirect, request, make_response
+from flask_compress  import Compress
 import json
 import datetime
 import os
@@ -234,6 +235,7 @@ class WtMonSvr(WatcherSink, EventSink):
 
         app = Flask(__name__, instance_relative_config=True, static_folder=static_folder, static_url_path=static_url_path)
         app.secret_key = "!@#$%^&*()"
+        Compress(app)
         # app.debug = True
         self.app = app
         self.worker = None
@@ -305,6 +307,57 @@ class WtMonSvr(WatcherSink, EventSink):
                 }
                 if session.get("userinfo") is not None:
                     session.pop("userinfo")
+
+            return pack_rsp(ret)
+
+        # 修改密码
+        @app.route("/mgr/modpwd", methods=["POST"])
+        def mod_pwd():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+
+            oldpwd = get_param(json_data, "oldpwd")
+            newpwd = get_param(json_data, "newpwd")
+
+            if len(oldpwd) == 0 or len(newpwd) == 0:
+                ret = {
+                    "result":-1,
+                    "message":"新旧密码都不能为空"
+                }
+            else:
+                user = adminInfo["loginid"]
+                oldencpwd = hashlib.md5((user+oldpwd).encode("utf-8")).hexdigest()
+                usrInf = self.__data_mgr__.get_user(user)
+                if usrInf is None:
+                    ret = {
+                        "result":-1,
+                        "message":"用户不存在"
+                    }
+                else:
+                    if oldencpwd != usrInf["passwd"]:
+                        ret = {
+                            "result":-1,
+                            "message":"旧密码错误"
+                        }
+                    else:
+                        if 'builtin' in usrInf and usrInf["builtin"]:
+                            #如果是内建账号要改密码，则先添加用户
+                            usrInf["passwd"] = oldpwd
+                            self.__data_mgr__.add_user(usrInf, user)
+                            print("%s是内建账户，自动添加到数据库中" % user)
+
+                        newencpwd = hashlib.md5((user+newpwd).encode("utf-8")).hexdigest()
+                        self.__data_mgr__.mod_user_pwd(user, newencpwd, user)
+
+                        ret = {
+                            "result":0,
+                            "message":"Ok"
+                        }
 
             return pack_rsp(ret)
 
@@ -1153,6 +1206,43 @@ class WtMonSvr(WatcherSink, EventSink):
                 "result":0,
                 "message":"Ok"
             }
+
+            return pack_rsp(ret)
+
+        # 修改密码
+        @app.route("/mgr/resetpwd", methods=["POST"])
+        def reset_pwd():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, adminInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(adminInfo)
+
+            user = get_param(json_data, "loginid")
+            pwd = get_param(json_data, "passwd")
+
+            if len(pwd) == 0 or len(user) == 0:
+                ret = {
+                    "result":-1,
+                    "message":"密码都不能为空"
+                }
+            else:
+                encpwd = hashlib.md5((user+pwd).encode("utf-8")).hexdigest()
+                usrInf = self.__data_mgr__.get_user(user)
+                if usrInf is None:
+                    ret = {
+                        "result":-1,
+                        "message":"用户不存在"
+                    }
+                else:
+                    self.__data_mgr__.mod_user_pwd(user, encpwd, adminInfo["loginid"])
+                    self.__data_mgr__.log_action(adminInfo, "resetpwd", loginid)
+                    ret = {
+                        "result":0,
+                        "message":"Ok"
+                    }
 
             return pack_rsp(ret)
 

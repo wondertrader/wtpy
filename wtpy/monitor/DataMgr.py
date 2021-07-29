@@ -328,6 +328,13 @@ class DataMgr:
 
         self.__config__["users"][loginid] = usrInfo
 
+    def mod_user_pwd(self, loginid:str, newpwd:str, admin:str):
+        cur = self.__db_conn__.cursor()
+        cur.execute("UPDATE users SET passwd=?,modifyby=?,modifytime=datetime('now','localtime') WHERE loginid=?;", 
+                (newpwd,admin,loginid))
+        self.__db_conn__.commit()
+        self.__config__["users"][loginid]["passwd"]=newpwd
+
 
     def del_user(self, loginid, admin):
         if loginid in self.__config__["users"]:
@@ -357,7 +364,8 @@ class DataMgr:
                 "role":"superman",
                 "passwd":"25ed305a56504e95fd1ca9900a1da174",
                 "iplist":"",
-                "remark":"内置超管账号"
+                "remark":"内置超管账号",
+                'builtin':True
             }
         else:
             return None
