@@ -50,7 +50,7 @@
                                     label="数量"
                                     width="100">
                                     <template slot-scope="scope">
-                                        <span :class="scope.row.qty>=0?'text-danger':'text-success'">{{scope.row.volume}}</span>
+                                        <span :class="scope.row.qty>=0?'text-danger':'text-success'">{{scope.row.qty}}</span>
                                     </template>
                                 </el-table-column>
                                 <el-table-column
@@ -144,11 +144,17 @@
                                                 </el-switch>
                                             </el-col>
                                             <el-col :span="4">
-                                                <el-button size="mini" circle icon="el-icon-delete" style="float:right;" @click="onDelCodeFilter(id)"></el-button>
+                                                <el-tooltip placement="top">
+                                                    <div slot="content">删除代码过滤器</div>
+                                                    <el-button size="mini" circle icon="el-icon-delete" style="float:right;" @click="onDelCodeFilter(id)"></el-button>
+                                                </el-tooltip>
                                             </el-col>
                                         </el-row>
                                         <el-row class="filter-row">
-                                            <el-button style="width:100%;" type="primary" plain @click="onAddCodeFilter()" icon="el-icon-plus"></el-button>
+                                            <el-tooltip placement="top">
+                                                <div slot="content">添加代码过滤器</div>
+                                                <el-button style="width:100%;" type="primary" plain @click="onAddCodeFilter()" icon="el-icon-plus"></el-button>
+                                            </el-tooltip>
                                         </el-row>
                                     </div>
                                 </div>
@@ -637,8 +643,6 @@ export default {
             if(this.pieChart == null) 
                 this.pieChart = this.$echarts.init(document.getElementById('pie'));
 
-            this.pieChart.resize();
-
             let datas = [];
             for(let pid in self.performances){
                 let item  = self.performances[pid];
@@ -848,6 +852,19 @@ export default {
                 }, 300);
             }
         };
+
+        self.$nextTick(()=>{
+            self.$on("resize", ()=>{
+                if (!self.zooming) {
+                    self.zooming = true
+                    setTimeout(function () {
+                        if(self.myChart) self.nvChart.resize();
+                        if(self.pieChart) self.pieChart.resize();
+                        self.zooming = false;
+                    }, 150);
+                }
+            });
+        });
     }
 }
 </script>

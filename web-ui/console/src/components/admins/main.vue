@@ -14,6 +14,7 @@
                                     <el-dropdown-item command="add"><i class="el-icon-circle-plus-outline"></i>添加用户</el-dropdown-item>
                                     <el-dropdown-item command="mod"><i class="el-icon-edit-outline"></i>修改用户</el-dropdown-item>
                                     <el-dropdown-item command="del"><i class="el-icon-delete"></i>删除用户</el-dropdown-item>
+                                    <el-dropdown-item command="reset"><i class="el-icon-switch-button"></i>重置密码</el-dropdown-item>
                                     <el-dropdown-item divided  command="refresh"><i class="el-icon-refresh"></i>刷新数据</el-dropdown-item>
                                 </el-dropdown-menu>
                             </el-dropdown>
@@ -306,6 +307,38 @@ export default {
                         }
                     });
                 });
+            } else if(command == 'reset'){
+                if(this.curUser.loginid == ""){
+                    this.$alert("请选择要重置密码的用户");
+                    return;
+                }
+
+                this.$prompt('请输入新的密码', '重置密码', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    inputType: 'password'
+                }).then(({ value }) => {
+                    this.$confirm('确定要重置用户' + this.curUser.loginid + '的密码吗?', '重置密码', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'danger'
+                    }).then(() => {
+                        this.$api.resetpwd(this.curUser.loginid, value, (resObj)=>{
+                            if(resObj.result < 0){
+                                this.$notify.error(resObj.message);
+                            } else {
+                                this.$notify({
+                                    message: "密码重置成功",
+                                    type:"success"
+                                });
+                            }
+                        });
+                    });
+                }).catch(() => {
+                           
+                });
+                
+                
             } else if(command == "refresh"){
                 this.queryUsers();
             }

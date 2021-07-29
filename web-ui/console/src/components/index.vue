@@ -1,5 +1,5 @@
 <template>
-    <div id="index" style="height:100%;">
+    <div id="index" style="height:100%;" v-loading="loading">
         <el-container style="height:100%;">
             <el-aside width="230px" style="border-right:2px solid #E4E7ED;height:100%;">
                 <div style="height:100%;display:flex;flex-direction:column;">
@@ -68,29 +68,62 @@
                                 </el-submenu>
                             </el-menu>
                         </div>
-                        <div style="flex:0;margin:8px;font-size:14px;">
-                            <el-row>
-                                <el-col :span="10">
-                                    <a>登录用户：</a>
-                                </el-col>
-                                <el-col :span="14">
-                                    <a>{{cache.userinfo.name}}({{cache.loginid}})</a>
-                                </el-col>
-                            </el-row>
-                            <el-row>
-                                <el-col :span="10">
-                                    <a>登录IP：</a>
-                                </el-col>
-                                <el-col :span="14">
-                                    <a>{{cache.userinfo.loginip}}</a>
-                                </el-col>
-                            </el-row>
-                            <el-row>
-                                <a>登录时间：</a>
-                            </el-row>
-                            <el-row>
-                                <a>{{cache.userinfo.logintime}}</a>
-                            </el-row>
+                        <div style="flex:0;margin:8px;font-size:14px;display:flex;flex-direction:row;">
+                            <div style="flex:0 0; margin-right:8px;">
+                                <el-popover
+                                    placement="top-start"
+                                    width="240"
+                                    trigger="hover">
+                                    <div>
+                                        <el-row style="font-size:20px; padding-bottom:4px;">
+                                            <i class="el-icon-user" style="padding-right:4px;"/><strong>用户信息</strong>
+                                        </el-row>
+                                        <el-row>
+                                            <el-col :span="8">账户：</el-col>
+                                            <el-col :span="14">{{cache.loginid}}</el-col>
+                                        </el-row>
+                                        <el-row>
+                                            <el-col :span="8">姓名：</el-col>
+                                            <el-col :span="14">{{cache.userinfo.name}}</el-col>
+                                        </el-row>
+                                        <el-row>
+                                            <el-col :span="8">用户类型：</el-col>
+                                            <el-col :span="14">{{isAdmin?"管理员":"风控员"}}</el-col>
+                                        </el-row>
+                                        <el-row>
+                                            <el-col :span="8">登录时间：</el-col>
+                                            <el-col :span="14">{{cache.userinfo.logintime}}</el-col>
+                                        </el-row>
+                                        <el-row>
+                                            <el-col :span="8">登录地址：</el-col>
+                                            <el-col :span="14">{{cache.userinfo.loginip}}</el-col>
+                                        </el-row>
+                                    </div>
+                                    <span slot="reference" ><i class="el-icon-user userhead"/></span>
+                                </el-popover>
+                            </div>
+                            <div style="flex: 1 0;">
+                                <el-row>
+                                    <span class="user">{{cache.userinfo.name}}</span>
+                                </el-row>
+                                <el-row>
+                                    <span class="user">{{cache.loginid}}</span>
+                                </el-row>
+                            </div>
+                            <div style="flex: 0 0;">
+                                <div>
+                                    <el-tooltip placement="top">
+                                        <div slot="content">修改密码</div>
+                                        <i class="el-icon-setting button" @click="onModPwd"/>
+                                    </el-tooltip>
+                                </div>
+                                <div>
+                                    <el-tooltip placement="top">
+                                        <div slot="content">注销登录</div>
+                                        <i class="el-icon-switch-button button" @click="onLogout" style="color:#F56C6C;"/>
+                                    </el-tooltip>
+                                </div>
+                            </div>
                         </div>
                         </div>
                     </div>
@@ -112,18 +145,27 @@
             </el-container>
         </el-container>
         <el-dialog
-            title="用户管理"
-            :visible.sync="showadmins"
-            width="25%">
-            <Admins/>
+            title="修改密码"
+            :visible.sync="showDlgModPwd"
+            width="360px">
+            <el-row style="margin:8px 0;">
+                <el-input placeholder="请输入旧密码" v-model="oldpwd" show-password></el-input>
+            </el-row>
+            <el-row style="margin:8px 0;">
+                <el-input placeholder="请输入新密码" v-model="newpwd" show-password></el-input>
+            </el-row>
+            <el-row style="margin:8px 0;">
+                <el-input placeholder="请确认新密码" v-model="confirmpwd" show-password></el-input>
+            </el-row>
+            <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="doModPwd()" plain>确 定</el-button>
+            </span>
         </el-dialog>
     </div>    
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
-
-import Admins from './admins/main'
 
 export default {
     name: 'index',
@@ -140,19 +182,60 @@ export default {
         }
     },
     components:{
-        Admins
     },
     data () {
         return {
-            showadmins: false,
+           showDlgModPwd: false,
+           oldpwd:'',
+           newpwd:'',
+           confirmpwd:'',
+           loading:false
         }
     },
     methods: {
         handleItemSel: function(index, idxPath, obj, e){
-            // console.log(index, idxPath, obj, e);
-            if(index == "admins"){
-                this.showadmins = true;
+            
+        },
+        onLogout: function(e){
+            this.$confirm('确定要注销登录吗？', '注销登录', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.$store.commit("logoutok");
+
+                this.$router.push("/login");
+            }).catch(() => {
+      
+            });
+        },
+        onModPwd: function(e){
+            this.showDlgModPwd = true;
+        },
+        doModPwd: function(){
+            let self = this;
+            if(this.newpwd=='' || this.oldpwd=='' || this.confirmpwd==''){
+                this.$alert("密码不能为空");
+                return;
             }
+
+            if(this.newpwd != this.confirmpwd){
+                this.$alert("两次输入的新密码不一致");
+                return;
+            }
+
+            this.loading = true;
+            this.$api.modpwd(this.oldpwd, this.newpwd, (resObj)=>{
+                if(resObj.result < 0){
+                    self.$notify.error("密码修改失败：" + resObj.message, "修改密码");
+                } else {
+                    self.$notify.success("密码修改成功", "修改密码");
+                    this.showDlgModPwd = false;
+                }
+                 setTimeout(()=>{
+                    this.loading = false;
+                },150);
+            });
         }
     },
     mounted(){
@@ -188,5 +271,31 @@ export default {
 
     .el-menu{
         border-right: 0px solid transparent !important;
+    }
+
+    .user{
+        font-size: 16px;
+        display: block;
+        margin: 3px 0;
+    }
+
+    .button{
+        font-size: 18px;
+        padding: 4px;
+        font-weight: bold;
+        color: #909399;
+    }
+
+    .button:hover{
+        cursor:pointer;
+    }
+
+    .userhead{
+        font-size:44px;
+        color: #909399;
+    }
+    .userhead:hover{
+        cursor:pointer;
+        color: #F56C6C;
     }
 </style>
