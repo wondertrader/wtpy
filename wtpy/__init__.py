@@ -10,9 +10,9 @@ from .WtDataDefs import WtKlineData,WtHftData
 from .ExtToolDefs import BaseDataReporter, BaseIndexWriter
 from .ExtModuleDefs import BaseExtExecuter, BaseExtParser
 from .WtMsgQue import WtMsgQue, WtMQClient, WtMQServer
+from .WtDtServo import WtDtServo
 
 from wtpy.wrapper.WtExecApi import WtExecApi
-from wtpy.wrapper.WtDtServo import WtDtServo
 from wtpy.wrapper.ContractLoader import ContractLoader,LoaderType
 
 __all__ = ["BaseCtaStrategy", "BaseSelStrategy", "BaseHftStrategy", "WtEngine", "CtaContext", "SelContext", "HftContext", 
