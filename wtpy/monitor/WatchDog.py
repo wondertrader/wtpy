@@ -6,6 +6,10 @@ import datetime
 import json
 import copy
 import platform
+from typing import ChainMap
+import psutil
+
+from .EventReceiver import EventReceiver, EventSink
 from .WtLogger import WtLogger
 
 from enum import Enum
@@ -27,8 +31,18 @@ class WatcherSink:
     def on_stop(self, appid:str):
         pass
 
-    def on_output(self, appid:str, message:str):
+    def on_output(self, appid:str, tag:str, time:int, message:str):
         pass
+
+    def on_order(self, appid:str, chnl:str, ordInfo:dict):
+        pass
+
+    def on_trade(self, appid:str, chnl:str, trdInfo:dict):
+        pass
+    
+    def on_notify(self, appid:str, chnl:str, message:str):
+        pass
+
 
 class ActionType(Enum):
     '''
@@ -49,9 +63,11 @@ class AppState(Enum):
     AS_Running      = 903
     AS_Closed       = 904
 
-class AppInfo:
+class AppInfo(EventSink):
     def __init__(self, appConf:dict, sink:WatcherSink = None, logger:WtLogger=None):
         self.__info__ = appConf
+
+        self._cmd_line = None
 
         self.__logger__ = logger
 
@@ -65,8 +81,10 @@ class AppInfo:
 
         self._ticks = 0
         self._state = AppState.AS_NotRunning
-        self._proc = None
+        self._procid = None
         self._sink = sink
+
+        self._evt_receiver = None
 
         if not os.path.exists(appConf["folder"]) or not os.path.exists(appConf["path"]):
             self._state == AppState.AS_NotExist
@@ -88,72 +106,101 @@ class AppInfo:
         ret = copy.copy(self.__info__)
         self._lock.release()
         return ret
-    
-    def __run_subproc__(self):
-        redirect = self._redirect
-        if isWindows():
-            self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
-                            cwd=self.__info__["folder"], creationflags=subprocess.CREATE_NEW_CONSOLE)
-        else:
-            self._proc = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
-                            cwd=self.__info__["folder"])
 
-        self._state = AppState.AS_Running
+    @property
+    def cmd_line(self) -> str:
+        if self._cmd_line is None:
+            self._cmd_line = self.__info__["path"] + " " + self.__info__["param"]
+        return self._cmd_line
 
-        self.__logger__.info("应用%s的已启动" % (self._id))
-        if self._sink is not None:
-            self._sink.on_start(self._id)
-
-        while self._proc.poll() is None:                      # None表示正在执行中
-            if redirect:
-                line = self._proc.stdout.readline()
-                if len(line) == 0:
-                    continue
+    def is_running(self, pids) -> bool:
+        bNeedCheck = (self._procid is None) or (not psutil.pid_exists(self._procid))
+        if bNeedCheck:
+            for pid in pids:
                 try:
-                    r = line.decode("gbk")
+                    pInfo = psutil.Process(pid)
+                    cmdLine = pInfo.cmdline()
+                    if len(cmdLine) == 0:
+                        continue
+                    # print(cmdLine)
+                    cmdLine = ' '.join(cmdLine)
+                    if self.cmd_line.upper() == cmdLine.upper():
+                        self._procid = pid
+                        self.__logger__.info("应用%s挂载成功，进程ID: %d" % (self._id, self._procid))
+                        return True
                 except:
-                    r = line.decode("utf-8")
-                if self._sink is not None:
-                    self._sink.on_output(self._id, r)
-            else:
-                time.sleep(1)
-        
-        self.__logger__.info("应用%s的已停止" % (self._id))
-        self._proc = None
-        if self._state != AppState.AS_Closed:
-            self._state = AppState.AS_NotRunning
+                    continue
+            return False
 
-        if self._sink is not None:
-            print("stopped")
-            self._sink.on_stop(self._id)
+        return True
 
     def run(self):
         if self._state == AppState.AS_Running:
             return
 
-        self.worker = threading.Thread(target=self.__run_subproc__, name=self.__info__["id"], daemon=True)
-        self.worker.start()
+        if "mq_url" in self.__info__ and self.__info__["mq_url"] != '':
+            # 如果事件接收器为空或者url发生了改变，则需要重新创建
+            bNeedCreate = self._evt_receiver is None or self._evt_receiver.url != self.__info__["mq_url"]
+            if bNeedCreate:
+                if self._evt_receiver is not None:
+                    self._evt_receiver.release()
+                self._evt_receiver = EventReceiver(self.__info__["mq_url"] != '')
+                self.__logger__.info("应用%s开始接收%s的通知信息" % (self._id, self.__info__["mq_url"]))
+
+        try:
+            if isWindows():
+                self._procid = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
+                                cwd=self.__info__["folder"], creationflags=subprocess.CREATE_NEW_CONSOLE).pid
+            else:
+                self._procid = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
+                                cwd=self.__info__["folder"]).pid
+
+            self._cmd_line = self.__info__["path"] + " " + self.__info__["param"]
+        except:
+            self.__logger__.info("应用%s启动异常" % (self._id))
+
+        self._state = AppState.AS_Running
+
+        self.__logger__.info("应用%s的已启动，进程ID: %d" % (self._id, self._procid))
+        if self._sink is not None:
+            self._sink.on_start(self._id)
 
     def stop(self):
         if self._state != AppState.AS_Running:
             return
 
-        self._proc.terminate()
+        try:
+            os.kill(self._procid, 0)
+        except:
+            pass
+        self.__logger__.info("应用%s的已停止，进程ID: %d" % (self._id, self._procid))
+        if self._sink is not None:
+            self._sink.on_stop(self._id)
+        self._procid = None
         self._state = AppState.AS_Closed
 
     def restart(self):
-        if self._proc is not None:
+        if self._procid is not None:
             self.stop()
-            self.worker.join()
-            self.worker = None
         
         self.run()
 
-    def tick(self):
+    def update_state(self, pids):
+        if self.is_running(pids):
+            self._state = AppState.AS_Running
+        elif self._state == AppState.AS_Running:
+            self._state = AppState.AS_NotRunning
+            self.__logger__.info("应用%s的已停止" % (self._id))
+            self._procid = None
+            if self._sink is not None:
+                self._sink.on_stop(self._id)
+        
+
+    def tick(self, pids):
         self._ticks += 1
 
         if self._ticks == self._check_span:
-
+            self.update_state(pids)
             if self._state == AppState.AS_NotRunning and self._guard:
                 self.__logger__.info("应用%s未启动，正在自动重启" % (self._id))
                 self.run()
@@ -215,6 +262,27 @@ class AppInfo:
     def isRunning(self):
         return self._state == AppState.AS_Running
 
+    # EventSink.on_order
+    def on_order(self, chnl:str, ordInfo:dict):
+        if self._sink is not None:
+            self._sink.on_order(self._id, chnl, ordInfo)
+
+    # EventSink.on_trade
+    def on_trade(self, chnl:str, trdInfo:dict):
+        if self._sink is not None:
+            self._sink.on_trade(self._id, chnl, trdInfo)
+    
+    # EventSink.on_notify
+    def on_notify(self, chnl:str, message:str):
+        if self._sink is not None:
+            self._sink.on_notify(self._id, chnl, message)
+
+    # EventSink.on_log
+    def on_log(self, tag:str, time:int, message:str):
+        if self._sink is not None:
+            self._sink.on_output(self._id, tag, time, message)
+        pass
+
 class WatchDog:
 
     def __init__(self, db, sink:WatcherSink = None, logger:WtLogger=None):
@@ -255,10 +323,11 @@ class WatchDog:
     def __watch_impl__(self):
         while not self.__stopped__:
             time.sleep(1)
+            pids = psutil.pids()
             for appid in self.__apps__:
                 appInfo = self.__apps__[appid]
 
-                appInfo.tick()
+                appInfo.tick(pids)
 
     def get_apps(self):
         ret = {}
