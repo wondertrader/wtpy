@@ -57,7 +57,7 @@
                                     label="守护"
                                     width="80">
                                     <template slot-scope="scope">
-                                        <span :class="scope.row.guard=='是'?'text-success':'text-danger'">{{scope.row.guard}}</span>
+                                        <span :class="scope.row.guard=='是'?'text-success':'text-danger'">{{scope.row.guardstr}}</span>
                                     </template>
                                 </el-table-column>
                                 <el-table-column
@@ -280,7 +280,7 @@ export default {
                             let key = keys[idx];
                             let appInfo = resObj.schedules[key];
                             appInfo.state = appInfo.running?"运行中":"未启动";
-                            appInfo.guard = appInfo.guard?"是":"否";
+                            appInfo.guardstr = appInfo.guard?"是":"否";
                             appInfo.task = appInfo.schedule.active?"是":"否";
                             monitors.push(appInfo);
                         }
