@@ -219,7 +219,7 @@ def get_path_tree(root:str, name:str, hasFile:bool = True):
         ret["children"] = ay
     return ret
 
-class WtMonSvr(WatcherSink, EventSink):
+class WtMonSvr(WatcherSink):
 
     def __init__(self, static_folder:str="", static_url_path="/", deploy_dir="C:/"):
         if len(static_folder) == 0:
@@ -1587,9 +1587,9 @@ class WtMonSvr(WatcherSink, EventSink):
         if self.__data_mgr__.has_group(grpid):
             self.push_svr.notifyGrpEvt(grpid, 'stop')
     
-    def on_output(self, grpid:str, message:str):
+    def on_output(self, grpid:str, tag:str, time:int, message:str):
         if self.__data_mgr__.has_group(grpid):
-            self.push_svr.notifyGrpLog(grpid, message)
+            self.push_svr.notifyGrpLog(grpid, tag, time, message)
 
     def on_order(self, grpid:str, chnl:str, ordInfo:dict):
         self.push_svr.notifyGrpChnlEvt(grpid, chnl, 'order', ordInfo)
@@ -1597,5 +1597,5 @@ class WtMonSvr(WatcherSink, EventSink):
     def on_trade(self, grpid:str, chnl:str, trdInfo:dict):
         self.push_svr.notifyGrpChnlEvt(grpid, chnl, 'trade', trdInfo)
     
-    def on_message(self, grpid:str, chnl:str, message:str):
-        self.push_svr.notifyGrpChnlEvt(grpid, chnl, 'message', message)
+    def on_notify(self, grpid:str, chnl:str, message:str):
+        self.push_svr.notifyGrpChnlEvt(grpid, chnl, 'notify', message)

@@ -36,8 +36,8 @@ class PushServer:
     def run(self, port:int, host:str):
         self.sockio.run(self.app, host, port)
 
-    def notifyGrpLog(self, groupid, message):
-        self.sockio.emit("notify", {"type":"gplog", "groupid":groupid, "message":message}, broadcast=True)
+    def notifyGrpLog(self, groupid, tag:str, time:int, message):
+        self.sockio.emit("notify", {"type":"gplog", "groupid":groupid, "tag":tag, "time":time, "message":message}, broadcast=True)
 
     def notifyGrpEvt(self, groupid, evttype):
         self.sockio.emit("notify", {"type":"gpevt", "groupid":groupid, "evttype":evttype}, broadcast=True)
