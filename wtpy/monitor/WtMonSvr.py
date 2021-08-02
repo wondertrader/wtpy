@@ -379,6 +379,7 @@ class WtMonSvr(WatcherSink):
             gtype = get_param(json_data, "gtype")
             env = get_param(json_data, "env")
             datmod = get_param(json_data, "datmod")
+            mqurl = get_param(json_data, "mqurl")
 
             action = get_param(json_data, "action")
             if action == "":
@@ -408,7 +409,8 @@ class WtMonSvr(WatcherSink):
                         "info":info,
                         "gtype":gtype,
                         "datmod":datmod,
-                        "env":env
+                        "env":env,
+                        "mqurl":mqurl
                     }   
 
                     if self.__data_mgr__.add_group(grpInfo):
@@ -421,6 +423,8 @@ class WtMonSvr(WatcherSink):
                             self.__data_mgr__.log_action(adminInfo, "addgrp", json.dumps(grpInfo))
                         else:
                             self.__data_mgr__.log_action(adminInfo, "modgrp", json.dumps(grpInfo))
+
+                        self._dog.updateMQURL(id, mqurl)
                     else:
                         ret = {
                             "result":-2,
@@ -658,12 +662,12 @@ class WtMonSvr(WatcherSink):
                     "message":"组合不存在"
                 }
             else:
-                monCfg = self._dog.getAppConf(grpid)
+                monCfg = self.__data_mgr__.get_group(grpid)
 
                 ret = {
                     "result":0,
                     "message":"Ok",
-                    "tree": get_cfg_tree(monCfg["folder"], "root")
+                    "tree": get_cfg_tree(monCfg["path"], "root")
                 }
 
             return pack_rsp(ret)
@@ -715,8 +719,8 @@ class WtMonSvr(WatcherSink):
                     "message":"组合不存在"
                 }
             else:
-                monCfg = self._dog.getAppConf(grpid)
-                root = monCfg["folder"]
+                monCfg = self.__data_mgr__.get_group(grpid)
+                root = monCfg["path"]
                 if path[:len(root)] != root:
                     ret = {
                         "result":-1,
@@ -758,8 +762,8 @@ class WtMonSvr(WatcherSink):
                     "message":"组合不存在"
                 }
             else:
-                monCfg = self._dog.getAppConf(grpid)
-                root = monCfg["folder"]
+                monCfg = self.__data_mgr__.get_group(grpid)
+                root = monCfg["path"]
                 if path[:len(root)] != root:
                     ret = {
                         "result":-1,

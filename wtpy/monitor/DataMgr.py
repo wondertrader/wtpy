@@ -42,8 +42,9 @@ class DataMgr:
             grpInfo["path"] = row[3]
             grpInfo["info"] = row[4]
             grpInfo["gtype"] = row[5]
-            grpInfo["datmod"] = 'mannual'
+            grpInfo["datmod"] = row[6]
             grpInfo["env"] = row[7]
+            grpInfo["mqurl"] = row[8]
             self.__config__["groups"][grpInfo["id"]] = grpInfo
 
         for row in cur.execute("SELECT * FROM users;"):
@@ -95,6 +96,7 @@ class DataMgr:
             sql += "[gtype] VARCHAR(10) NOT NULL DEFAULT 'cta',\n"
             sql += "[datmod] VARCHAR(10) NOT NULL DEFAULT 'mannual',\n"
             sql += "[env] VARCHAR(20) NOT NULL DEFAULT 'product',\n"
+            sql += "[mqurl] VARCHAR(255) NOT NULL DEFAULT '',\n"
             sql += "[createtime] DATETIME default (datetime('now', 'localtime')),\n"
             sql += "[modifytime] DATETIME default (datetime('now', 'localtime')));"
             cur.execute(sql)
@@ -114,6 +116,7 @@ class DataMgr:
             sql += "[redirect] VARCHAR(20) DEFAULT 'false',\n"
             sql += "[schedule] VARCHAR(20) DEFAULT 'false',\n"
             sql += "[weekflag] VARCHAR(20) DEFAULT '000000',\n"
+            sql += "[mqurl] VARCHAR(255) NOT NULL DEFAULT '',\n"
             sql += "[task1] VARCHAR(100) NOT NULL DEFAULT '{\"active\": true,\"time\": 0,\"action\": 0}',\n"
             sql += "[task2] VARCHAR(100) NOT NULL DEFAULT '{\"active\": true,\"time\": 0,\"action\": 0}',\n"
             sql += "[task3] VARCHAR(100) NOT NULL DEFAULT '{\"active\": true,\"time\": 0,\"action\": 0}',\n"
@@ -274,9 +277,11 @@ class DataMgr:
             cur = self.__db_conn__.cursor()
             sql = ''
             if isNewGrp:
-                sql = "INSERT INTO groups(groupid,name,path,info,gtype,datmod,env) VALUES('%s','%s','%s','%s','%s','%s','%s');" % (grpid, grpInfo["name"], grpInfo["path"], grpInfo["info"], grpInfo["gtype"], grpInfo["datmod"], grpInfo["env"])
+                sql = "INSERT INTO groups(groupid,name,path,info,gtype,datmod,env,mqurl) VALUES('%s','%s','%s','%s','%s','%s','%s','%s');" \
+                    % (grpid, grpInfo["name"], grpInfo["path"], grpInfo["info"], grpInfo["gtype"], grpInfo["datmod"], grpInfo["env"], grpInfo["mqurl"])
             else:
-                sql = "UPDATE groups SET name='%s',path='%s',info='%s',gtype='%s',datmod='%s',env='%s',modifytime=datetime('now','localtime') WHERE groupid='%s';" % (grpInfo["name"], grpInfo["path"], grpInfo["info"], grpInfo["gtype"], grpInfo["datmod"], grpInfo["env"], grpid)
+                sql = "UPDATE groups SET name='%s',path='%s',info='%s',gtype='%s',datmod='%s',env='%s',mqurl='%s',modifytime=datetime('now','localtime') WHERE groupid='%s';" \
+                    % (grpInfo["name"], grpInfo["path"], grpInfo["info"], grpInfo["gtype"], grpInfo["datmod"], grpInfo["env"], grpInfo["mqurl"], grpid)
             cur.execute(sql)
             self.__db_conn__.commit()
             bSucc = True
