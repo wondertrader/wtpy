@@ -41,7 +41,15 @@
                             <el-button icon="el-icon-folder" :disabled="fixinfo" @click="handlePickFolder"></el-button>
                         </el-tooltip>
                     </el-input>
-                    </el-col>
+                </el-col>
+            </el-row>
+            <el-row>
+                <el-col :span="4">
+                    <a>消息地址：</a>
+                </el-col>
+                <el-col :span="20">
+                    <el-input size="mini" v-model="config.mqurl" placeholder="请输入消息队列的URL" :disabled="forapp"></el-input>
+                </el-col>
             </el-row>
         </div>
         <el-divider content-position="left">监控设置</el-divider>
@@ -286,6 +294,7 @@ export default {
                     "folder": "",
                     "path": "",
                     "param": "",
+                    "mqurl":"",
                     "span":3,
                     "guard":false,
                     "redirect":false,
@@ -417,7 +426,6 @@ export default {
                 type: 'warning'
             }).then(() => {
                 delete config.schedule.weekmask;
-                console.log(config);
                 this.$api.commitMonCfg(config, (resObj)=>{
                     if(resObj.result < 0){
                         this.$message.error(resObj.message);

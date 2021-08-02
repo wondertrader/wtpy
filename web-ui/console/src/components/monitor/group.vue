@@ -9,7 +9,7 @@
                         </div> 
                         <div style="flex:1;border-bottom: 1px solid #E4E7ED;margin-top:6px;"></div>
                         <div style="flex:0 160px;border-bottom: 1px solid #E4E7ED;margin-top:6px;display:inline-block;">
-                            <el-row >
+                            <el-row v-show="!logScroll">
                                 <el-col :span="11">
                                     <el-tooltip class="item" effect="dark" content="每个15秒刷新一次" placement="top">
                                         <el-checkbox v-model="autoLog" style="float:right;margin-top:6px;" @change="handleCheckAutoLog">自动刷新</el-checkbox>
@@ -18,13 +18,13 @@
                                 <el-col :offset="1" :span="12">
                                     <el-button type="primary" style="" icon="el-icon-refresh" size="mini" plain @click="handleClickQryLog()">刷新</el-button>
                                 </el-col>
-                            </el-row>                          
+                            </el-row>                   
                         </div> 
                     </div>
                     <div style="flex:1;margin:10px 4px;" v-loading="logOnway">
                         <textarea readonly="readonly" ref="logs" autocomplete="off" placeholder="这里是日志内容" class="el-textarea__inner" :value="logs"></textarea>
                     </div>
-                    <div style="flex:0 24px;align-items:right;">
+                    <div style="flex:0 24px;align-items:right;" v-show="!logScroll">
                         <span style="font-size:12px;color:gray;">日志刷新时间: {{logTime}}</span>
                     </div>
                 </div>
@@ -172,6 +172,63 @@ export default {
                 if(needReset)
                     self.resetLogInterval();
             });
+        },
+        processLog: function(data){
+            let self = this;
+            let message = data.message || "";
+            if(message.length > 0){
+                let isEmpty = self.logCache.length == 0;
+                let date = new Date(data.time);
+                let line = "[" + date.format("yyyy.MM.dd hh:mm:ss") + " - " + data.tag + "] " + message + "\n";
+                self.logCache += line;
+                self.logLines ++;
+                if(isEmpty){
+                    self.$nextTick(()=>{
+                        if(self.logLines >= 200){
+                            self.logs = "";
+                            self.logLines = 0;
+                        }
+
+                        self.logs += self.logCache;
+                        self.logCache = "";
+                        self.$nextTick(()=>{
+                            let height = self.$refs.logs.scrollHeight;
+                            self.$refs.logs.scrollTo(0,height);
+                        });
+                    });
+                }
+            }
+        },
+        processEvent: function(data){
+            let self = this;
+            let evttype = data.evttype || "";
+            if(evttype == '')
+                return;
+
+            if(evttype == 'notify'){
+                self.$notify({
+                    title:"订单回报",
+                    type:"error",
+                    message: "交易通道{0}错误：{1}".format(data.channel,data.message)
+                });
+            } else if(evttype == 'order'){
+                if(!order.canceled)
+                    return;
+
+                self.$notify({
+                    title:"订单回报",
+                    type:"error",
+                    message: "交易通道{0}订单已撤销，本地订单号：{1}".format(data.channel,data.data.localid)
+                });
+            } else if(evttype == 'trade'){
+                let action = data.data.isopen?"开":"平" + data.data.islong?"多":"空";
+                self.$notify({
+                    title:"成交回报",
+                    type:"success",
+                    message: "交易通道{0}{1}{2}{3}手，成交价：{4}，本地订单号：{5}".format(
+                        data.channel, action, data.data.code, data.data.volume, data.data.price, data.data.localid)
+                });
+            }
         }
     },
     watch:{
@@ -185,6 +242,7 @@ export default {
                 return;
 
             //只有手动模式的组合才需要请求日志数据
+            self.logScroll = (newGrp.datmod == 'auto');
             setTimeout(()=>{
                 this.queryLogs(true);
             }, 300);
@@ -193,31 +251,16 @@ export default {
     mounted() {
         let self = this;
         self.$on('notify', (data) => {
-            if(data.type == "gplog" && data.groupid == self.groupinfo.id){
+            if(data.groupid != self.groupinfo.id)
+                return;
+
+            if(data.type == "gplog"){
                 if(!self.logScroll)
                     return;
 
-                let message = data.message || "";
-                if(message.length > 0){
-                    let isEmpty = self.logCache.length == 0;
-                    self.logCache += message;
-                    self.logLines ++;
-                    if(isEmpty){
-                        self.$nextTick(()=>{
-                            if(self.logLines >= 200){
-                                self.logs = "";
-                                self.logLines = 0;
-                            }
-
-                            self.logs += self.logCache;
-                            self.logCache = "";
-                            self.$nextTick(()=>{
-                                let height = self.$refs.logs.scrollHeight;
-                                self.$refs.logs.scrollTo(0,height);
-                            });
-                        });
-                    }
-                }
+                self.processLog(data);
+            } else if(data.type == "chnlevt"){
+                self.processEvent(data);
             }
         });
     }

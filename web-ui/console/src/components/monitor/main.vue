@@ -129,6 +129,16 @@
             </el-row>
             <el-row>
                 <el-col :span="6">
+                    <a>消息地址：</a>
+                </el-col>
+                <el-col :span="18">
+                    <el-tooltip class="item" effect="dark" content="消息订阅地址要和配置文件中的notifier一致" placement="top">
+                        <el-input v-model="copyGroup.mqurl" size="mini" :disabled="!editGroup || copyGroup.datmod!='auto'" placeholder="请输入消息队列的订阅地址"></el-input>
+                    </el-tooltip>
+                </el-col>
+            </el-row>
+            <el-row>
+                <el-col :span="6">
                     <a>组合环境：</a>
                 </el-col>
                 <el-col :span="18">
@@ -213,7 +223,8 @@ export default {
                 info:"",
                 gtype:"cta",
                 datmod:"mannual",
-                env:"product"
+                env:"product",
+                mqurl:""
             },
             showfolders:false,
             selfolder:"",
@@ -352,6 +363,7 @@ export default {
                                 "span":3,
                                 "guard":false,
                                 "redirect":false,
+                                "mqurl":"",
                                 "schedule":{
                                     "active": false,
                                     "weekflag":"0111110",
@@ -393,6 +405,7 @@ export default {
                             config.id = self.curGroup.id;
                             config.folder = self.curGroup.path;
                             config.redirect = true;
+                            config.mqurl = self.curGroup.mqurl;
                             self.curMonCfg = config;
                             self.schedule = true;
                         });
@@ -413,7 +426,8 @@ export default {
                     info:"",
                     gtype:"cta",
                     datmod:"mannual",
-                    env:"product"
+                    env:"product",
+                    mqurl:""
                 };
                 this.addGroup = true;
                 this.showgrpdlg = true;
@@ -455,7 +469,8 @@ export default {
                 if(resObj.result < 0){
                     self.$notify.error('提交组合信息失败：' + resObj.message);
                 } else {
-                    self.groups.push(grpInfo);
+                    if(this.addGroup)
+                        self.groups.push(grpInfo);
                     self.showgrpdlg = false;
                     if(self.curGroup == null){
                         self.selectedIdx = grpInfo.id;
@@ -583,7 +598,7 @@ export default {
                         if(self.curGroup == null || data.groupid != self.curGroup.id)
                             return;
 
-                        if(data.type == 'gplog'){
+                        if(data.type == 'gplog' || data.type == 'chnlevt'){
                             if(self.$refs.group)
                                 self.$refs.group.$emit('notify', data);
                         } else if(data.type == 'gpevt') {
