@@ -75,7 +75,8 @@ class AppInfo(EventSink):
         self._id = appConf["id"]
         self._check_span = appConf["span"]
         self._guard = appConf["guard"]
-        self._redirect = False #appConf["redirect"]
+        self._redirect = appConf["redirect"]
+        self._mq_url = appConf["mqurl"]
         self._schedule = appConf["schedule"]["active"]
         self._weekflag = appConf["schedule"]["weekflag"]
 
@@ -94,12 +95,23 @@ class AppInfo(EventSink):
         self.__info__ = appConf
         self._check_span = appConf["span"]
         self._guard = appConf["guard"]
-        self._redirect = False #appConf["redirect"]
+        old_mqurl = self._mq_url
+        self._mq_url = appConf["mqurl"]
+        self._redirect = appConf["redirect"]
         self._schedule = appConf["schedule"]["active"]
         self._weekflag = appConf["schedule"]["weekflag"]
         self._ticks = 0
         self._lock.release()
         self.__logger__.info("应用%s的调度设置已更新" % (self._id))
+
+        if self._mq_url != old_mqurl:
+            if self._evt_receiver is not None:
+                self._evt_receiver.release()
+
+            if self._mq_url != '':
+                self._evt_receiver = EventReceiver(url=self._mq_url, logger=self.__logger__)
+                self._evt_receiver.run()
+                self.__logger__.info("应用%s开始接收%s的通知信息" % (self._id, self._mq_url))
 
     def getConf(self):
         self._lock.acquire()
@@ -127,9 +139,18 @@ class AppInfo(EventSink):
                     if self.cmd_line.upper() == cmdLine.upper():
                         self._procid = pid
                         self.__logger__.info("应用%s挂载成功，进程ID: %d" % (self._id, self._procid))
-                        return True
+
+                        if self._mq_url != '':
+                            # 如果事件接收器为空或者url发生了改变，则需要重新创建
+                            bNeedCreate = self._evt_receiver is None or self._evt_receiver.url != self._mq_url
+                            if bNeedCreate:
+                                if self._evt_receiver is not None:
+                                    self._evt_receiver.release()
+                                self._evt_receiver = EventReceiver(url=self._mq_url, logger=self.__logger__, sink=self)
+                                self._evt_receiver.run()
+                                self.__logger__.info("应用%s开始接收%s的通知信息" % (self._id, self._mq_url))
                 except:
-                    continue
+                    pass
             return False
 
         return True
@@ -138,24 +159,26 @@ class AppInfo(EventSink):
         if self._state == AppState.AS_Running:
             return
 
-        if "mq_url" in self.__info__ and self.__info__["mq_url"] != '':
+        if self._mq_url != '':
             # 如果事件接收器为空或者url发生了改变，则需要重新创建
-            bNeedCreate = self._evt_receiver is None or self._evt_receiver.url != self.__info__["mq_url"]
+            bNeedCreate = self._evt_receiver is None or self._evt_receiver.url != self._mq_url
             if bNeedCreate:
                 if self._evt_receiver is not None:
                     self._evt_receiver.release()
-                self._evt_receiver = EventReceiver(self.__info__["mq_url"] != '')
-                self.__logger__.info("应用%s开始接收%s的通知信息" % (self._id, self.__info__["mq_url"]))
+                self._evt_receiver = EventReceiver(url=self._mq_url, logger=self.__logger__, sink=self)
+                self._evt_receiver.run()
+                self.__logger__.info("应用%s开始接收%s的通知信息" % (self._id, self._mq_url))
 
         try:
+            fullPath = os.path.join(self.__info__["folder"], self.__info__["param"])
             if isWindows():
-                self._procid = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
+                self._procid = subprocess.Popen([self.__info__["path"], fullPath],  # 需要执行的文件路径
                                 cwd=self.__info__["folder"], creationflags=subprocess.CREATE_NEW_CONSOLE).pid
             else:
-                self._procid = subprocess.Popen([self.__info__["path"], self.__info__["param"]],  # 需要执行的文件路径
+                self._procid = subprocess.Popen([self.__info__["path"], fullPath],  # 需要执行的文件路径
                                 cwd=self.__info__["folder"]).pid
 
-            self._cmd_line = self.__info__["path"] + " " + self.__info__["param"]
+            self._cmd_line = self.__info__["path"] + " " + fullPath
         except:
             self.__logger__.info("应用%s启动异常" % (self._id))
 
@@ -170,8 +193,12 @@ class AppInfo(EventSink):
             return
 
         try:
-            os.kill(self._procid, 0)
-        except:
+            if isWindows():
+                os.system("taskkill /pid " + str(self._procid))
+            else:
+                os.system("kill -9 " + str(self._procid))
+        except e as SystemError:
+            self.__logger__.error("关闭异常: {}" % (e))
             pass
         self.__logger__.info("应用%s的已停止，进程ID: %d" % (self._id, self._procid))
         if self._sink is not None:
@@ -306,16 +333,17 @@ class WatchDog:
             appConf["span"] = row[6]
             appConf["guard"] = row[7]=='true'
             appConf["redirect"] = row[8]=='true'
+            appConf["mqurl"] = row[11]
             appConf["schedule"] = dict()
             appConf["schedule"]["active"] = row[9]=='true'
             appConf["schedule"]["weekflag"] = row[10]
             appConf["schedule"]["tasks"] = list()
-            appConf["schedule"]["tasks"].append(json.loads(row[11]))
             appConf["schedule"]["tasks"].append(json.loads(row[12]))
             appConf["schedule"]["tasks"].append(json.loads(row[13]))
             appConf["schedule"]["tasks"].append(json.loads(row[14]))
             appConf["schedule"]["tasks"].append(json.loads(row[15]))
             appConf["schedule"]["tasks"].append(json.loads(row[16]))
+            appConf["schedule"]["tasks"].append(json.loads(row[17]))
             self.__app_conf__[appConf["id"]] = appConf
             self.__apps__[appConf["id"]] = AppInfo(appConf, sink, self.__logger__)
 
@@ -395,6 +423,20 @@ class WatchDog:
         self.__db_conn__.commit()
         self.__logger__.info("应用%s自动调度已删除" % (appid))
 
+    def updateMQURL(self, appid:str, mqurl:str):
+        if appid not in self.__apps__:
+            return
+
+        self.__app_conf__[appid]["mqurl"] = mqurl
+        appConf = self.__app_conf__[appid]
+        appInst = self.__apps__[appid]
+        appInst.applyConf(appConf)
+        
+        cur = self.__db_conn__.cursor()
+        sql = "UPDATE schedules SET mqurl='%s',modifytime=datetime('now','localtime') WHERE appid='%s';" % (mqurl, appid)
+        cur.execute(sql)
+        self.__db_conn__.commit()
+
     def applyAppConf(self, appConf:dict, isGroup:bool = False):
         appid = appConf["id"]
         self.__app_conf__[appid] = appConf
@@ -415,16 +457,18 @@ class WatchDog:
         cur = self.__db_conn__.cursor()
         sql = ''
         if isNewApp:
-            sql = "INSERT INTO schedules(appid,path,folder,param,type,span,guard,redirect,schedule,weekflag,task1,task2,task3,task4,task5,task6) \
-                    VALUES('%s','%s','%s','%s',%d, %d,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s');" % (
+            sql = "INSERT INTO schedules(appid,path,folder,param,type,span,guard,redirect,schedule,weekflag,task1,task2,task3,task4,task5,task6,mqurl) \
+                    VALUES('%s','%s','%s','%s',%d, %d,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s');" % (
                     appid, appConf["path"], appConf["folder"], appConf["param"], stype, appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
                     json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
-                    json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]))
+                    json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]),
+                    appConf["mqurl"])
         else:
             sql = "UPDATE schedules SET path='%s',folder='%s',param='%s',type=%d,span='%s',guard='%s',redirect='%s',schedule='%s',weekflag='%s',task1='%s',task2='%s',\
-                    task3='%s',task4='%s',task5='%s',task6='%s',modifytime=datetime('now','localtime') WHERE appid='%s';" % (
+                    task3='%s',task4='%s',task5='%s',task6='%s',mqurl='%s',modifytime=datetime('now','localtime') WHERE appid='%s';" % (
                     appConf["path"], appConf["folder"], appConf["param"], stype, appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
                     json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
-                    json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]), appid)
+                    json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]), 
+                    appConf["mqurl"], appid)
         cur.execute(sql)
         self.__db_conn__.commit()

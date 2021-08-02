@@ -43,4 +43,4 @@ class PushServer:
         self.sockio.emit("notify", {"type":"gpevt", "groupid":groupid, "evttype":evttype}, broadcast=True)
 
     def notifyGrpChnlEvt(self, groupid, chnlid, evttype, data):
-        self.sockio.emit("notify", {"type":"gpevt", "groupid":groupid, "channel":chnlid, "data":data, "evttype":evttype}, broadcast=True)
+        self.sockio.emit("notify", {"type":"chnlevt", "groupid":groupid, "channel":chnlid, "data":data, "evttype":evttype}, broadcast=True)

@@ -1,6 +1,7 @@
 import threading
 import struct
 import json
+import chardet
 
 from wtpy import WtMsgQue, WtMQClient
 
@@ -27,10 +28,22 @@ class EventSink:
     def on_log(self, tag:str, time:int, message:str):
         pass
 
+def decode_bytes(data:bytes):
+    ret = chardet.detect(data)
+    if ret is not None:
+        encoding = ret["encoding"]
+        if encoding is not None:
+            return data.decode(encoding)
+        else:
+            return data.decode()
+    else:
+        return data.decode()
+
 class EventReceiver(WtMQClient):
 
-    def __init__(self, url:str, topics:list = [], sink:EventSink = None):
+    def __init__(self, url:str, topics:list = [], sink:EventSink = None, logger = None):
         self.url = url
+        self.logger = logger
         mq.add_mq_client(url, self)
         for topic in topics:
             self.subscribe(topic)
@@ -40,8 +53,8 @@ class EventReceiver(WtMQClient):
         self._sink = sink
 
     def on_mq_message(self, topic:str, message:str, dataLen:int):
-        topic = topic.decode()
-        message = message[:dataLen].decode()
+        topic = decode_bytes(topic)
+        message = decode_bytes(message[:dataLen])
         if self._sink is not None:
             if topic == TOPIC_RT_TRADE:
                 msgObj = json.loads(message)
