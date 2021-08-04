@@ -1,6 +1,8 @@
 from flask_socketio import SocketIO, emit
 from flask import session, sessions
 
+from .WtLogger import WtLogger
+
 def get_param(json_data, key:str, type=str, defVal = ""):
     if key not in json_data:
         return defVal
@@ -9,20 +11,26 @@ def get_param(json_data, key:str, type=str, defVal = ""):
 
 class PushServer:
 
-    def __init__(self, app, dataMgr):
+    def __init__(self, app, dataMgr, logger:WtLogger = None):
         sockio = SocketIO(app)
         self.sockio = sockio
         self.app = app
         self.dataMgr = dataMgr
+        self.logger = logger
 
         @sockio.on('connect', namespace='/')
         def on_connect():
             # emit('my response', {'data': 'Connected'})
+            print(session)
             usrInfo = session.get("userinfo")
+            if usrInfo is not None:
+                self.logger.info("%s connected" % usrInfo["loginid"])
 
         @sockio.on('disconnect', namespace='/')
         def on_disconnect():
-            print('Client disconnected')
+            usrInfo = session.get("userinfo")
+            if usrInfo is not None:
+                self.logger.info("%s disconnected" % usrInfo["loginid"])
 
         @sockio.on('setgroup', namespace='/')
         def set_group(data):

@@ -242,7 +242,7 @@ class WtMonSvr(WatcherSink):
         self.deploy_dir = deploy_dir
         self.deploy_tree = None
 
-        self.push_svr = PushServer(app, self.__data_mgr__)
+        self.push_svr = PushServer(app, self.__data_mgr__, self.logger)
 
         @app.route("/console", methods=["GET"])
         def stc_console_index():
