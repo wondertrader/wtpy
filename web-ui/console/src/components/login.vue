@@ -53,6 +53,8 @@ export default {
                         userinfo:userinfo
                     });
 
+                    this.$socket.emit("connect", 1)
+
                     self.$router.push("/index");
                 }
                 self.loading = false;

@@ -1,204 +1,259 @@
 <template>
     <div style="height:100%;width:100%;display:flex;flex-direction:column;">
-        <div style="flex:1 40%;overflow:auto;border-bottom:1px solid #E4E7ED;margin:2px;width:100%;display:flex;flex-direction:column;">
-            <div style="flex:0 44px;">
-                <el-tabs :value="selChart" tab-position="top" style="height:100%;margin:0;" @tab-click="onChartSel">
-                    <el-tab-pane label="收益曲线" name="fund">
-                    </el-tab-pane>
-                    <el-tab-pane label="信号分析" name="kline">
-                    </el-tab-pane>
-                </el-tabs>
-            </div>
-            <div style="flex: 1; margin:4px;">
-                <div id="bt_kline" style="width:100%;height:100%;" v-show="selChart=='kline'">
-                </div>
-                <div id="bt_fund" style="width:100%;height:100%;" v-show="selChart=='fund'">
-                </div>
-            </div>
+        <div style="flex:0 44px;">
+            <el-tabs :value="selCat" tab-position="top" style="height:100%;margin:0;" @tab-click="onCatSel">
+                <el-tab-pane label="绩效概览" name="summary">
+                </el-tab-pane>
+                <el-tab-pane label="信号分析" name="kline">
+                </el-tab-pane>
+                <el-tab-pane label="成交明细" name="trd">
+                </el-tab-pane>
+                <el-tab-pane label="信号明细" name="sig">
+                </el-tab-pane>
+                <el-tab-pane label="回合明细" name="rnd">
+                </el-tab-pane>
+                <el-tab-pane label="每日绩效" name="fnd">
+                </el-tab-pane>
+            </el-tabs>
         </div>
-        <div style="flex:1 60%;overflow:auto;display:flex;flex-direction:column;margin:2px;width:100%;">
-            <div style="flex:0 44px;">
-                <el-tabs :value="selCat" tab-position="top" style="height:100%;margin:0;" @tab-click="onCatSel">
-                    <el-tab-pane label="信号明细" name="sig">
-                    </el-tab-pane>
-                    <el-tab-pane label="回合明细" name="rnd">
-                    </el-tab-pane>
-                    <el-tab-pane label="每日绩效" name="fnd">
-                    </el-tab-pane>
-                </el-tabs>
+        <div style="flex: 1; margin:4px;">
+            <div style="height:100%;overflow:auto;display:flex;flex-direction:column;" v-show="selCat=='kline'">
+                <div id="bt_kline" style="height:100%;" >
+                    <p>这里绘制K线和信号列表</p>
+                </div>
             </div>
-            <div style="flex: 1; margin:4px;">
-                <div style="max-height:100%;overflow:auto;"  v-show="selCat=='sig'" v-loading="loading.signal">
-                    <el-table
-                        border
-                        stripe
-                        :data="signals"
-                        class="table">
-                        <el-table-column
-                            prop="strategy"
-                            label="策略"
-                            width="120">
-                        </el-table-column>
-                        <el-table-column
-                            prop="code"
-                            label="品种"
-                            width="120"
-                            sortable>
-                        </el-table-column>
-                        <el-table-column
-                            prop="target"
-                            label="目标数量"
-                            width="80">
-                            <template slot-scope="scope">
-                                <span :class="fmtProfit(scope.row.target)">{{scope.row.target}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            label="触发价格"
-                            width="100">
-                            <template slot-scope="scope">
-                                <span>{{fmtPrice(scope.row.sigprice)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            label="触发时间"
-                            width="180">
-                            <template slot-scope="scope">
-                                <span>{{fmtTime(scope.row.gentime, true)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            prop="tag"
-                            label="标记"
-                            sortable
-                            width="180">
-                        </el-table-column>
-                    </el-table>
+            <div style="height:100%;overflow:auto;display:flex;flex-direction:column;" v-show="selCat=='summary'">
+                <div style="flex:0 30%;">
+                    <p>这里是策略绩效指标</p>
                 </div>
-                <div style="max-height:100%;overflow:auto;"  v-show="selCat=='rnd'" v-loading="loading.round">
-                    <el-table
-                        border
-                        stripe
-                        :data="rounds"
-                        class="table">
-                        <el-table-column
-                            prop="strategy"
-                            label="策略"
-                            width="120">
-                        </el-table-column>
-                        <el-table-column
-                            prop="code"
-                            label="品种"
-                            width="120"
-                            sortable>
-                        </el-table-column>
-                        <el-table-column
-                            label="方向"
-                            width="64">
-                            <template slot-scope="scope">
-                                <span :class="scope.row.direct=='LONG'?'text-danger':'text-success'">{{scope.row.direct=='LONG'?'多':'空'}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            label="开仓时间"
-                            width="120">
-                            <template slot-scope="scope">
-                                <span>{{fmtTime(scope.row.opentime)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            label="开仓价格"
-                            width="80">
-                            <template slot-scope="scope">
-                                <span>{{fmtPrice(scope.row.openprice)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            label="平仓时间"
-                            width="120">
-                            <template slot-scope="scope">
-                                <span>{{fmtTime(scope.row.closetime)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            label="平仓价格"
-                            width="80">
-                            <template slot-scope="scope">
-                                <span>{{fmtPrice(scope.row.closeprice)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            prop="qty"
-                            label="数量"
-                            width="64">
-                        </el-table-column>
-                        <el-table-column
-                            label="盈亏"
-                            width="100">
-                            <template slot-scope="scope">
-                                <span :class="scope.row.profit>=0?'text-danger':'text-success'">{{scope.row.profit.toFixed(1)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            prop="entertag"
-                            label="进场标记"
-                            width="100">
-                        </el-table-column>
-                        <el-table-column
-                            prop="exittag"
-                            label="出场标记"
-                            width="100">
-                        </el-table-column>
-                    </el-table>
+                <div style="flex:1;">
+                    <div id="bt_fund" style="height:100%;" >
+                        <p>这里绘制每日收益曲线</p>
+                    </div>
                 </div>
-                <div style="max-height:100%;overflow:auto;"  v-show="selCat=='fnd'" v-loading="loading.fund">
-                    <el-table
-                        border
-                        stripe
-                        :data="funds"
-                        class="table">
-                        <el-table-column
-                            prop="strategy"
-                            label="策略"
-                            width="120">
-                        </el-table-column>
-                        <el-table-column
-                            label="日期"
-                            width="120">
-                            <template slot-scope="scope">
-                                <span>{{fmtDate(scope.row.date)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            label="平仓盈亏"
-                            width="100">
-                            <template slot-scope="scope">
-                                <span :class="scope.row.closeprofit>=0?'text-danger':'text-success'">{{scope.row.closeprofit.toFixed(1)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            label="浮动盈亏"
-                            width="100">
-                            <template slot-scope="scope">
-                                <span :class="scope.row.dynprofit>=0?'text-danger':'text-success'">{{scope.row.dynprofit.toFixed(1)}}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column
-                            prop="fee"
-                            label="手续费"
-                            width="120">
-                        </el-table-column>
-                        <el-table-column
-                            prop="dynbalance"
-                            label="动态权益"
-                            width="120">
-                            <template slot-scope="scope">
-                                <span :class="scope.row.dynbalance>=0?'text-danger':'text-success'">{{scope.row.dynbalance.toFixed(1)}}</span>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </div>
-            </div>             
+            </div>
+            <div style="max-height:100%;overflow:auto;"  v-show="selCat=='sig'" v-loading="loading.signal">
+                <el-table
+                    border
+                    stripe
+                    :data="signals"
+                    class="table">
+                    <el-table-column
+                        prop="strategy"
+                        label="策略"
+                        width="120">
+                    </el-table-column>
+                    <el-table-column
+                        prop="code"
+                        label="品种"
+                        width="120"
+                        sortable>
+                    </el-table-column>
+                    <el-table-column
+                        prop="target"
+                        label="目标数量"
+                        width="80">
+                        <template slot-scope="scope">
+                            <span :class="fmtProfit(scope.row.target)">{{scope.row.target}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="触发价格"
+                        width="100">
+                        <template slot-scope="scope">
+                            <span>{{fmtPrice(scope.row.sigprice)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="触发时间"
+                        width="180">
+                        <template slot-scope="scope">
+                            <span>{{fmtTime(scope.row.gentime, true)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="tag"
+                        label="标记"
+                        sortable
+                        width="180">
+                    </el-table-column>
+                </el-table>
+            </div>
+            <div style="max-height:100%;overflow:auto;"  v-show="selCat=='rnd'" v-loading="loading.round">
+                <el-table
+                    border
+                    stripe
+                    :data="rounds"
+                    class="table">
+                    <el-table-column
+                        prop="strategy"
+                        label="策略"
+                        width="120">
+                    </el-table-column>
+                    <el-table-column
+                        prop="code"
+                        label="品种"
+                        width="120"
+                        sortable>
+                    </el-table-column>
+                    <el-table-column
+                        label="方向"
+                        width="64">
+                        <template slot-scope="scope">
+                            <span :class="scope.row.direct=='LONG'?'text-danger':'text-success'">{{scope.row.direct=='LONG'?'多':'空'}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="开仓时间"
+                        width="120">
+                        <template slot-scope="scope">
+                            <span>{{fmtTime(scope.row.opentime)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="开仓价格"
+                        width="80">
+                        <template slot-scope="scope">
+                            <span>{{fmtPrice(scope.row.openprice)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="平仓时间"
+                        width="120">
+                        <template slot-scope="scope">
+                            <span>{{fmtTime(scope.row.closetime)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="平仓价格"
+                        width="80">
+                        <template slot-scope="scope">
+                            <span>{{fmtPrice(scope.row.closeprice)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="qty"
+                        label="数量"
+                        width="64">
+                    </el-table-column>
+                    <el-table-column
+                        label="盈亏"
+                        width="100">
+                        <template slot-scope="scope">
+                            <span :class="scope.row.profit>=0?'text-danger':'text-success'">{{scope.row.profit.toFixed(1)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="entertag"
+                        label="进场标记"
+                        width="100">
+                    </el-table-column>
+                    <el-table-column
+                        prop="exittag"
+                        label="出场标记"
+                        width="100">
+                    </el-table-column>
+                </el-table>
+            </div>
+            <div style="max-height:100%;overflow:auto;"  v-show="selCat=='fnd'" v-loading="loading.fund">
+                <el-table
+                    border
+                    stripe
+                    :data="funds"
+                    class="table">
+                    <el-table-column
+                        prop="strategy"
+                        label="策略"
+                        width="120">
+                    </el-table-column>
+                    <el-table-column
+                        label="日期"
+                        width="120">
+                        <template slot-scope="scope">
+                            <span>{{fmtDate(scope.row.date)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="平仓盈亏"
+                        width="100">
+                        <template slot-scope="scope">
+                            <span :class="scope.row.closeprofit>=0?'text-danger':'text-success'">{{scope.row.closeprofit.toFixed(1)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="浮动盈亏"
+                        width="100">
+                        <template slot-scope="scope">
+                            <span :class="scope.row.dynprofit>=0?'text-danger':'text-success'">{{scope.row.dynprofit.toFixed(1)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="fee"
+                        label="手续费"
+                        width="120">
+                    </el-table-column>
+                    <el-table-column
+                        prop="dynbalance"
+                        label="动态权益"
+                        width="120">
+                        <template slot-scope="scope">
+                            <span :class="scope.row.dynbalance>=0?'text-danger':'text-success'">{{scope.row.dynbalance.toFixed(1)}}</span>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
+            <div style="max-height:100%;overflow:auto;" v-show="selCat=='trd'" v-loading="loading.trade">
+                <el-table
+                    border
+                    stripe
+                    :data="trades"
+                    :summary-method="getTrdSum"
+                    show-summary
+                    class="table">
+                    <el-table-column
+                        prop="strategy"
+                        label="策略"
+                        width="120">
+                    </el-table-column>
+                    <el-table-column
+                        prop="code"
+                        label="品种"
+                        width="120"
+                        sortable>
+                    </el-table-column>
+                    <el-table-column
+                        label="时间"
+                        width="120">
+                        <template slot-scope="scope">
+                            <span>{{fmtTime(scope.row.time)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="动作"
+                        width="80">
+                        <template slot-scope="scope">
+                            <span :class="(scope.row.action=='开多'||scope.row.action=='平空')?'text-danger':'text-success'">{{scope.row.action}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="价格"
+                        width="80">
+                        <template slot-scope="scope">
+                            <span>{{fmtPrice(scope.row.price)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="volume"
+                        label="数量"
+                        width="80">
+                    </el-table-column>
+                    <el-table-column
+                        prop="tag"
+                        label="标记"
+                        sortable>
+                    </el-table-column>
+                </el-table>
+            </div>
         </div>
     </div>
 </template>
@@ -212,31 +267,127 @@ export default {
             loading:{
                 signal: false,
                 round: false,
-                fund: false
+                fund: false,
+                trade: false
             },
-            selChart:"fund",
-            selCat:"rnd",
+            selCat:"summary",
             signals:[],
             rounds:[],
             funds:[],
-            nvChart:null,
+            trades:[],
+            kChart:null,
+            tChart:null
         };
     },
     methods: {
-        onChartSel: function(tab){
-            this.selChart = tab.name;
-        },
         onCatSel: function(tab, event){
             if(this.selCat == tab.name)
                 return;
 
             this.selCat = tab.name;
         },
+        getTrdSum: function(param){
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+                if (index < 3 || index > 5) {
+                    sums[index] = '';
+                    return;
+                } else if (index == 3){
+                    sums[index] = '总计';
+                    return;
+                } else if (index == 4){
+                    sums[index] = data.length + "笔";
+                } else if (index == 5){
+                    const values = data.map(item => Number(item.volume));
+                    if (!values.every(value => isNaN(value))) {
+                        sums[index] = values.reduce((prev, curr) => {
+                            const value = Number(curr);
+                            if (!isNaN(value)) {
+                                return prev + curr;
+                            } else {
+                                return prev;
+                            }
+                            }, 0) + '手';
+                    } else {
+                        sums[index] = 'N/A';
+                    }
+                }                
+            });
+
+            return sums;
+        },
+        getSigSum: function(param){
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+                if (index > 1) {
+                    sums[index] = '';
+                    return;
+                } else if (index == 0){
+                    sums[index] = '总计';
+                    return;
+                } else if (index == 1){
+                    sums[index] = data.length + "笔";
+                }                
+            });
+
+            return sums;
+        },
+        getRndSum: function(param){
+            const { columns, data } = param;
+            const sums = [];
+            columns.forEach((column, index) => {
+                if (index != 5 && index != 6 && index != 7 && index != 8) {
+                    sums[index] = '';
+                    return;
+                } else if (index == 5){
+                    sums[index] = '总计';
+                    return;
+                } else if (index == 6){
+                    sums[index] = data.length + "笔";
+                    return;
+                }
+
+                if(index == 7){
+                    const values = data.map(item => Number(item.qty));
+                    if (!values.every(value => isNaN(value))) {
+                        sums[index] = values.reduce((prev, curr) => {
+                            const value = Number(curr);
+                            if (!isNaN(value)) {
+                                return prev + curr;
+                            } else {
+                                return prev;
+                            }
+                            }, 0) + '手';
+                    } else {
+                        sums[index] = 'N/A';
+                    }
+                } else if(index == 8) {
+                    const values = data.map(item => Number(item.profit));
+                    if (!values.every(value => isNaN(value))) {
+                        sums[index] = values.reduce((prev, curr) => {
+                            const value = Number(curr);
+                            if (!isNaN(value)) {
+                                return prev + curr;
+                            } else {
+                                return prev;
+                            }
+                            }, 0).toFixed(1);
+                    } else {
+                        sums[index] = 'N/A';
+                    }
+                }
+                
+            });
+
+            return sums;
+        },
         paintChart: function(bars){
             bars = bars || [];
             let self = this;
-            if(self.nvChart == null) //K线图
-                self.nvChart = this.$echarts.init(document.getElementById("bt_kline"));
+            if(self.kChart == null) //K线图
+                self.kChart = this.$echarts.init(document.getElementById("bt_kline"));
 
             let upColor = "#ec0000";
             let upBorderColor = "#8A0000";
@@ -470,20 +621,211 @@ export default {
                 ]
             };
 
-            console.log(self.nvChart);
+            console.log(self.kChart);
             self.nvchart.setOption(option);
+        },
+        fmtDate:function(val){
+            let ret = val + "";
+            return ret.substr(0,4) + "." + ret.substr(4,2) + "." + ret.substr(6,2);
+        },
+        fmtProfit:function(val){
+            if(val > 0)
+                return 'text-danger';
+            else if(val < 0)
+                return 'text-success';
+            else
+                return '';
+        },
+        fmtTime:function(val, bSignal){
+            bSignal = bSignal || false;
+            if(!bSignal){
+                let ret = val + "";
+                return ret.substr(2,2) + "." + ret.substr(4,2) + "." + ret.substr(6,2) + " " + ret.substr(8,2) + ":" + ret.substr(10,2);
+            } else {
+                let ret = val + "";
+                return ret.substr(2,2) + "." + ret.substr(4,2) + "." + ret.substr(6,2) + " " + ret.substr(8,2) + ":" + ret.substr(10,2)+ ":" + ret.substr(12,2)+ "," + ret.substr(14,3);
+            }
+        },
+        formatAmount: function(row,col){
+            return row[col.property].toFixed(2);
+        },
+        fmtPrice:function(val){
+            let ret = val.toFixed(4);
+            let idx=0;
+            for(; idx < ret.length; idx++){
+                if(ret[ret.length-1-idx] != '0')
+                    break;
+            }
+            if(ret[ret.length-1-idx] == ".")
+                idx ++;
+
+            let len = ret.length-idx;
+            return ret.substr(0, len);
+        },
+        paintTrend: function(){
+             let self = this;
+            if(this.tChart == null) 
+                this.tChart = this.$echarts.init(document.getElementById('bt_fund'));
+
+            let options = {
+                title: {
+                    text: '净值走势'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        label: {
+                            backgroundColor: '#6a7985',
+                            formatter: function(params) {
+                                var val = params.value + '';
+                                return val.substr(0, 4) + '.' + val.substr(4, 2) + '.' + val.substr(6, 2);
+                            }
+                        }
+                    },
+                    formatter: function(params) {
+                        if(params.length == 0)
+                            return "收益曲线";
+
+                        var ret = params[0].axisValueLabel;
+
+                        for(var idx in params) {
+                            if(params[idx].seriesName == '净值')
+                                ret += '<br/>净值: ' + params[idx].value.toFixed(4);
+                            else
+                                ret += '<br/>' + params[idx].seriesName + ': ' + params[idx].value;
+                        }
+
+                        return ret;
+                    }
+                },
+                grid: {
+                    top: 42,
+                    left: '8',
+                    right: '8',
+                    bottom: '8',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: [],
+                    boundaryGap: false,
+                    axisLabel: {
+                        textStyle: {
+                            color: '#000'
+                        },
+                        formatter: function(val, idx) {
+                            val = val + '';
+                            return val.substr(0, 4) + '.' + val.substr(4, 2) + '.' + val.substr(6, 2);
+                        }
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#000'
+                        }
+                    }
+                },
+                yAxis: [{
+                    type: 'value',
+                    axisLabel: {
+                        textStyle: {
+                            color: '#000'
+                        },
+                        formatter: function(val, idx) {
+                            return val.toFixed(4);
+                        }
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#000'
+                        }
+                    },
+                    scale: true
+                }],
+                series: [{
+                    name: '净值',
+                    type: 'line',
+                    smooth: true,
+                    stack: '净值',
+                    areaStyle: {
+                        normal: {
+                            color: {
+                                type: 'linear',
+                                x: 0,
+                                y: 0,
+                                x2: 0,
+                                y2: 1,
+                                colorStops: [{
+                                    offset: 0,
+                                    color: 'rgba(102,156,214,0.5)' // 0% 处的颜色
+                                }, {
+                                    offset: 1,
+                                    color: 'rgba(242,242,242,0.3)' // 100% 处的颜色
+                                }],
+                                globalCoord: false // 缺省为 false
+                            }
+                        }
+                    },
+                    data: [],
+                    lineStyle: {
+                        normal: {
+                            color: 'rgb(102,156,214)',
+                            width: 2
+                        }
+                    },
+                    itemStyle: {
+                        normal: {
+                            color: 'rgb(102,156,214)',
+                            borderWidth: 1
+                        }
+                    }
+                }]
+            };
+
+            let dates = [],
+                prices = [];
+            
+            let baseamt = parseInt(self.capital);
+            for(let idx = self.funds.length-1; idx >= 0; idx--) {
+                let item = self.funds[idx];
+                dates.push(item.date);
+                let dynbal = baseamt + item.dynbalance;
+                prices.push(dynbal/baseamt);
+            }
+
+            let maxPx = Math.max.apply(null, prices);
+            let minPx = Math.min.apply(null, prices);
+
+            if(maxPx == minPx) {
+                maxPx *= 1.05;
+                minPx *= 0.95;
+            } else {
+                var diff = maxPx - minPx;
+                maxPx += diff * 0.05;
+                minPx = Math.max(0, minPx - diff * 0.05);
+            }
+
+            options.xAxis.data = dates;
+            options.series[0].data = prices;
+            options.yAxis[0].max = maxPx;
+            options.yAxis[0].min = minPx;
+
+            this.tChart.setOption(options);
         }
     },
     mounted() {
         this.$nextTick(()=>{
-            //this.paintChart();
+            setTimeout(()=>{
+                this.paintChart();
+                this.paintTrend();
+            },300);
         });
 
         window.onresize = function(){
             if (!self.zooming) {
                 self.zooming = true
                 setTimeout(function () {
-                    if(self.nvChart) self.nvChart.resize();                    
+                    if(self.kChart) self.kChart.resize();
+                    if(self.tChart) self.tChart.resize();
                     self.zooming = false;
                 }, 300);
             }
