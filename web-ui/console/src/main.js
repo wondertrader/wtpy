@@ -27,9 +27,6 @@ Vue.use(new VueSocketIO({
 import Api from './js/api.js'
 Vue.prototype.$api = new Api();
 
-import FinCharts from './js/fincharts.js'
-Vue.prototype.$fincharts = new FinCharts();
-
 /* eslint-disable no-new */
 new Vue({
   store: store,
