@@ -18,7 +18,7 @@ Vue.config.productionTip = false;
 Vue.use(ElementUI);
 
 Vue.use(new VueSocketIO({
-    debug: false,
+    debug: true,
     // 服务器端地址
     connection: 'http://' + document.domain + ':' + location.port,
     vuex: {}
