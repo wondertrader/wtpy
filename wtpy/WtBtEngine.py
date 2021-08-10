@@ -253,12 +253,12 @@ class WtBtEngine:
 
     def run_backtest(self):
         '''
-        运行框架
+        运行框架\n
         '''
         if not self.__cfg_commited__:   #如果配置没有提交，则自动提交一下
             self.commitBTConfig()
 
-        self.__wrapper__.run_backtest()
+        self.__wrapper__.run_backtest(True)
 
     def release_backtest(self):
         '''
