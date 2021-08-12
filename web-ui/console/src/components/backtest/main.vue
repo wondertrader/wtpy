@@ -22,33 +22,105 @@
                         <el-tabs :value="selData" type="card" style="height:100%;" @tab-click="handleClickTab">
                             <el-tab-pane label="策略编辑" name="editor">
                             </el-tab-pane>
-                            <el-tab-pane label="策略回测" name="backtest">
+                            <el-tab-pane label="回测详情" name="backtest">
                             </el-tab-pane>
                         </el-tabs>
                     </div>
                     <div style="flex:1 0;overflow:auto;margin:4px;">
                         <div style="height:100%;display:flex;flex-direction:column;" v-show="selData=='editor'">
-                            <div style="flex:1 1;overflow:auto;border:1px solid #DCDFE6;border-radius:2px;">
-                                <div style="height:100%">
-                                    <codemirror
-                                        ref="mycode"
-                                        v-model="content_s"
-                                        :options="cmOptions"
-                                        style="height:100% !important;">
-                                    </codemirror>
+                            <div style="flex:2;display:flex;flex-direction:column;">
+                                <div style="flex:1 1;overflow:auto;border:1px solid #DCDFE6;border-radius:2px;">
+                                    <div style="height:100%">
+                                        <codemirror
+                                            ref="mycode"
+                                            v-model="content_s"
+                                            :options="cmOptions"
+                                            style="height:100% !important;">
+                                        </codemirror>
+                                    </div>
+                                </div>
+                                <div style="flex:0 32px;margin-top:8px;">
+                                    <span style="font-size:12px;color:gray;float:left;">当前文件:{{curFilePath}}</span>
+                                    <el-button size="mini" style="float:right;" v-show="!edit" @click="onClickEdit()">
+                                        <i class="el-icon-edit"/>修改
+                                    </el-button>
+                                    <el-button size="mini" style="float:right;" v-show="edit" @click="onClickCommit()">
+                                        <i class="el-icon-set-up"/>提交
+                                    </el-button>
+                                    <el-button size="mini" style="float:right;" v-show="edit" @click="onClickCancel()">
+                                        <i class="el-icon-refresh-left"/>取消
+                                    </el-button>
                                 </div>
                             </div>
-                            <div style="flex:0 32px;margin-top:8px;">
-                                <span style="font-size:12px;color:gray;float:left;">当前文件:{{curFilePath}}</span>
-                                <el-button size="mini" style="float:right;" v-show="!edit" @click="onClickEdit()">
-                                    <i class="el-icon-edit"/>修改
-                                </el-button>
-                                <el-button size="mini" style="float:right;" v-show="edit" @click="onClickCommit()">
-                                    <i class="el-icon-set-up"/>提交
-                                </el-button>
-                                <el-button size="mini" style="float:right;" v-show="edit" @click="onClickCancel()">
-                                    <i class="el-icon-refresh-left"/>取消
-                                </el-button>
+                            <el-divider></el-divider>
+                            <div style="flex:1;">
+                                <el-table
+                                    border
+                                    stripe
+                                    :data="backtests"
+                                    class="table">
+                                    <el-table-column
+                                        prop="time"
+                                        label="回测时间"
+                                        width="150">
+                                    </el-table-column>
+                                    <el-table-column
+                                        prop="stime"
+                                        label="开始时间"
+                                        width="130">
+                                    </el-table-column>
+                                    <el-table-column
+                                        prop="etime"
+                                        label="结束时间"
+                                        width="130">
+                                    </el-table-column>
+                                    <el-table-column
+                                        prop="return"
+                                        label="累计收益率%"
+                                        width="110">
+                                    </el-table-column>
+                                    <el-table-column
+                                        prop="ar"
+                                        label="年化收益率%"
+                                        width="110">
+                                    </el-table-column>
+                                    <el-table-column
+                                        prop="mdd"
+                                        label="最大回撤%"
+                                        width="90">
+                                    </el-table-column>
+                                    <el-table-column
+                                        prop="sharpe"
+                                        label="夏普率"
+                                        width="72">
+                                    </el-table-column>
+                                    <el-table-column
+                                        prop="calma"
+                                        label="卡尔玛比率"
+                                        width="100">
+                                    </el-table-column>
+                                    <el-table-column
+                                        label="回测进度">
+                                         <template slot-scope="scope">
+                                            <el-progress :percentage="scope.row.progress" color="#409eff"></el-progress>
+                                        </template>
+                                    </el-table-column>
+                                    <el-table-column
+                                        prop="elapse"
+                                        label="耗时s"
+                                        width="60">
+                                    </el-table-column>
+                                    <el-table-column
+                                        label="操作"
+                                        width="60">
+                                        <template>
+                                            <el-tooltip placement="top">
+                                                <div slot="content">删除该回测记录</div>
+                                                <i class="el-icon-delete delete-btn"></i>
+                                            </el-tooltip>
+                                        </template>
+                                    </el-table-column>
+                                </el-table>
                             </div>
                         </div>
                         <BTComp style="height:100%;" v-show="selData=='backtest'">
@@ -92,6 +164,18 @@ export default {
         return {
             selData:"editor",
             folders:[],
+            backtests:[{
+                time:"2021.08.12 17:03:45",
+                stime:"2021.07.01 09:00",
+                etime:"2021.08.12 15:00",
+                return:9.46,
+                ar:16.83,
+                mdd:3.17,
+                sharpe:3.2795,
+                calma:3.5946,
+                progress: 100,
+                elapse:48
+            }],
             edit: false,
             filename:'',
             content_s:"",
@@ -219,5 +303,10 @@ export default {
 }
 .CodeMirror{
     height:100% !important;
+}
+
+.delete-btn:hover{
+    cursor: pointer;
+    color: #F56C6C;
 }
 </style>
