@@ -33,7 +33,7 @@ class PlatformHelper:
             else:
                 dllname = "x86/"
         else:#Linux平台
-            dllname = "linux/"
+            dllname = "linux/lib"
             ext = ".so"
 
         if subdir != "":
