@@ -6,8 +6,8 @@ from wtpy.WtUtilDefs import singleton
 import os
 
 CB_DTHELPER_LOG = CFUNCTYPE(c_void_p,  c_char_p)
-CB_DTHELPER_TICK = CFUNCTYPE(c_void_p,  POINTER(WTSTickStruct), c_bool)
-CB_DTHELPER_BAR = CFUNCTYPE(c_void_p,  POINTER(WTSBarStruct), c_bool)
+CB_DTHELPER_TICK = CFUNCTYPE(c_void_p,  POINTER(WTSTickStruct), c_uint, c_bool)
+CB_DTHELPER_BAR = CFUNCTYPE(c_void_p,  POINTER(WTSBarStruct), c_uint, c_bool)
 
 CB_DTHELPER_COUNT = CFUNCTYPE(c_void_p,  c_uint)
 
@@ -96,6 +96,7 @@ class WtDataHelper:
             return None
         else:
             return tick_cache
+
 
     def read_dsb_bars(self, barFile: str) -> BarList:
         '''
