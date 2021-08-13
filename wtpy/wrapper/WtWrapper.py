@@ -1,4 +1,4 @@
-from ctypes import cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, POINTER
+from ctypes import cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, POINTER, sizeof, addressof
 from wtpy.WtCoreDefs import CB_EXECUTER_CMD, CB_EXECUTER_INIT, CB_PARSER_EVENT, CB_PARSER_SUBCMD, CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION, EVENT_PARSER_CONNECT, EVENT_PARSER_DISCONNECT, EVENT_PARSER_INIT, EVENT_PARSER_RELEASE
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
@@ -186,7 +186,7 @@ class WtWrapper:
         return
 
 
-    def on_stra_get_bar(self, id:int, stdCode:str, period:str, curBar:POINTER(WTSBarStruct), isLast:bool):
+    def on_stra_get_bar(self, id:int, stdCode:str, period:str, curBar:POINTER(WTSBarStruct), count:int, isLast:bool):
         '''
         获取K线回调，该回调函数因为是python主动发起的，需要同步执行，所以不走事件推送\n
         @id     策略id\n
@@ -197,14 +197,14 @@ class WtWrapper:
         '''
         engine = self._engine
         ctx = engine.get_context(id)
-        realBar = None
-        if curBar:
-            realBar = curBar.contents
-
         period = bytes.decode(period)
 
-        bar = None
-        if realBar is not None:
+        bsSize = sizeof(WTSBarStruct)
+        addr = addressof(curBar.contents) # 获取内存地址
+        bars = [None]*count # 预先分配list的长度
+        for i in range(count):
+            addr += bsSize
+            realBar = WTSBarStruct.from_address(addr)   # 从内存中直接解析成WTSBarStruct
             bar = dict()
             if period[0] == 'd':
                 bar["time"] = realBar.date
@@ -216,12 +216,13 @@ class WtWrapper:
             bar["low"] = realBar.low
             bar["close"] = realBar.close
             bar["volume"] = realBar.vol
+            bars[i] = bar
 
         if ctx is not None:
-            ctx.on_getbars(bytes.decode(stdCode), period, bar, isLast)
+            ctx.on_getbars(bytes.decode(stdCode), period, bars, isLast)
         return
 
-    def on_stra_get_tick(self, id:int, stdCode:str, curTick:POINTER(WTSTickStruct), isLast:bool):
+    def on_stra_get_tick(self, id:int, stdCode:str, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
         '''
         获取Tick回调，该回调函数因为是python主动发起的，需要同步执行，所以不走事件推送\n
         @id         策略id\n
@@ -232,13 +233,14 @@ class WtWrapper:
 
         engine = self._engine
         ctx = engine.get_context(id)
-        realTick = None
-        if curTick:
-            realTick = curTick.contents
 
-        tick = None
-        if realTick is not None:
-            tick = dict()
+        tsSize = sizeof(WTSTickStruct)
+        addr = addressof(curTick.contents) # 获取内存地址
+        ticks = [None]*count # 预先分配list的长度
+        for i in range(count):
+            addr += bsSize
+            realTick = WTSTickStruct.from_address(addr)   # 从内存中直接解析成WTSTickStruct
+
             tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
             tick["open"] = realTick.open
             tick["high"] = realTick.high
@@ -266,8 +268,10 @@ class WtWrapper:
                     tick["askprice"].append(realTick.ask_prices[i])
                     tick["askqty"].append(realTick.ask_qty[i])
 
+            ticks[i] = tick
+
         if ctx is not None:
-            ctx.on_getticks(bytes.decode(stdCode), tick, isLast)
+            ctx.on_getticks(bytes.decode(stdCode), ticks, isLast)
         return
 
     def on_stra_get_position(self, id:int, stdCode:str, qty:float, isLast:bool):
@@ -329,14 +333,14 @@ class WtWrapper:
         if ctx is not None:
             ctx.on_order_queue(stdCode, curOrdQue)
 
-    def on_hftstra_get_order_queue(self, id:int, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct), isLast:bool):
+    def on_hftstra_get_order_queue(self, id:int, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct), count:int, isLast:bool):
         engine = self._engine
         ctx = engine.get_context(id)
-        realOrdQue = None
-        if newOrdQue:
-            realOrdQue = newOrdQue.contents
-        
-        if realOrdQue is not None:
+        szItem = sizeof(WTSOrdQueStruct)
+        addr = addressof(newOrdQue)
+        item_list = [None]*count
+        for i in range(count):
+            realOrdQue = WTSOrdQueStruct.from_address(addr)
             curOrdQue = dict()
             curOrdQue["time"] = realOrdQue.action_date * 1000000000 + realOrdQue.action_time
             curOrdQue["side"] = realOrdQue.side
@@ -350,9 +354,12 @@ class WtWrapper:
                     break
                 else:
                     curOrdQue["volumes"].append(realOrdQue.volumes[i])
+
+            item_list[i] = curOrdDtl
+            addr += szItem
             
-            if ctx is not None:
-                ctx.on_get_order_queue(bytes.decode(stdCode), curOrdQue, isLast)
+        if ctx is not None:
+            ctx.on_get_order_queue(bytes.decode(stdCode), item_list, isLast)
 
     def on_hftstra_order_detail(self, id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct)):
         engine = self._engine
@@ -370,14 +377,14 @@ class WtWrapper:
         if ctx is not None:
             ctx.on_order_detail(stdCode, curOrdDtl)
 
-    def on_hftstra_get_order_detail(self, id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct), isLast:bool):
+    def on_hftstra_get_order_detail(self, id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct), count:int, isLast:bool):
         engine = self._engine
         ctx = engine.get_context(id)
-        realOrdDtl = None
-        if newOrdDtl:
-            realOrdDtl = newOrdDtl.contents
-        
-        if realOrdDtl is not None:
+        szItem = sizeof(WTSOrdDtlStruct)
+        addr = addressof(newOrdDtl)
+        item_list = [None]*count
+        for i in range(count):
+            realOrdDtl = WTSOrdDtlStruct.from_address(addr)
             curOrdDtl = dict()
             curOrdDtl["time"] = realOrdDtl.action_date * 1000000000 + realOrdDtl.action_time
             curOrdDtl["index"] = realOrdDtl.index
@@ -385,9 +392,12 @@ class WtWrapper:
             curOrdDtl["price"] = realOrdDtl.price
             curOrdDtl["volume"] = realOrdDtl.volume
             curOrdDtl["otype"] = realOrdDtl.otype
+
+            item_list[i] = curOrdDtl
+            addr += szItem
             
-            if ctx is not None:
-                ctx.on_get_order_detail(bytes.decode(stdCode), curOrdDtl, isLast)
+        if ctx is not None:
+            ctx.on_get_order_detail(bytes.decode(stdCode), item_list, isLast)
 
     def on_hftstra_transaction(self, id:int, stdCode:str, newTrans:POINTER(WTSTransStruct)):
         engine = self._engine
@@ -407,14 +417,14 @@ class WtWrapper:
         if ctx is not None:
             ctx.on_transaction(stdCode, curTrans)
         
-    def on_hftstra_get_transaction(self, d:int, stdCode:str, newTrans:POINTER(WTSTransStruct), isLast:bool):
+    def on_hftstra_get_transaction(self, d:int, stdCode:str, newTrans:POINTER(WTSTransStruct), count:int, isLast:bool):
         engine = self._engine
         ctx = engine.get_context(id)
-        realTrans = None
-        if newTrans:
-            realTrans = newTrans.contents
-        
-        if realTrans is not None:
+        szTrans = sizeof(WTSTransStruct)
+        addr = addressof(newTrans)
+        trans_list = [None]*count
+        for i in range(count):
+            realTrans = WTSTransStruct.from_address(addr)
             curTrans = dict()
             curTrans["time"] = realTrans.action_date * 1000000000 + realTrans.action_time
             curTrans["index"] = realTrans.index
@@ -424,9 +434,11 @@ class WtWrapper:
             curTrans["volume"] = realTrans.volume
             curTrans["askorder"] = realTrans.askorder
             curTrans["bidorder"] = realTrans.bidorder
+            trans_list[i] = curTrans
+            addr += szTrans
             
-            if ctx is not None:
-                ctx.on_get_transaction(bytes.decode(stdCode), curTrans, isLast)
+        if ctx is not None:
+            ctx.on_get_transaction(bytes.decode(stdCode), trans_list, isLast)
 
     def on_parser_event(self, evtId:int, id:str):
         id = bytes.decode(id)

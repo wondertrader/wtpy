@@ -52,25 +52,19 @@ class HftContext:
         '''
         self.__stra_info__.on_session_end(self, curTDate)
 
-    def on_getticks(self, code:str, curTick:dict, isLast:bool):
-        if curTick is None:
-            return
-
-        key = code
+    def on_getticks(self, stdCode:str, newTicks:list, isLast:bool):
+        key = stdCode
 
         ticks = self.__tick_cache__[key]
-            
-        if curTick is not None:          
-            ticks.append_item(curTick)
+        for newTick in newTicks:
+            ticks.append_item(newTick)
 
-    def on_getbars(self, code:str, period:str, curBar:dict, isLast:bool):
-        key = "%s#%s" % (code, period)
+    def on_getbars(self, stdCode:str, period:str, newBars:list, isLast:bool):
+        key = "%s#%s" % (stdCode, period)
 
         bars = self.__bar_cache__[key]
-            
-        if curBar is not None:          
-            bars.append_bar(curBar)
-
+        for newBar in newBars:
+            bars.append_bar(newBar)
 
     def on_tick(self, stdCode:str, newTick:dict):
         self.__stra_info__.on_tick(self, stdCode, newTick)
@@ -78,44 +72,29 @@ class HftContext:
     def on_order_queue(self, stdCode:str, newOrdQue:dict):
         self.__stra_info__.on_order_queue(self, stdCode, newOrdQue)
 
-    def on_get_order_queue(self, stdCode:str, curOrdQue:dict, isLast:bool):
-        if curOrdQue is None:
-            return
-
+    def on_get_order_queue(self, stdCode:str, newOdrQues:list, isLast:bool):
         key = stdCode
-
         items = self.__ordque_cache__[key]
-            
-        if curOrdQue is not None:          
-            items.append_item(curOrdQue)
+        for newItem in newOdrQues:
+            items.append_item(newItem)
 
     def on_order_detail(self, stdCode:str, newOrdDtl:dict):
         self.__stra_info__.on_order_detail(self, stdCode, newOrdDtl)
 
-    def on_get_order_detail(self, stdCode:str, curOrdDtl:dict, isLast:bool):
-        if curOrdDtl is None:
-            return
-
+    def on_get_order_detail(self, stdCode:str, newOrdDtls:list, isLast:bool):
         key = stdCode
-
         items = self.__orddtl_cache__[key]
-            
-        if curOrdDtl is not None:          
-            items.append_item(curOrdDtl)
+        for newItem in newOrdDtls:
+            items.append_item(newItem)
 
     def on_transaction(self, stdCode:str, newTrans:dict):
         self.__stra_info__.on_transaction(self, stdCode, newTrans)
 
-    def on_get_transaction(self, stdCode:str, curTrans:dict, isLast:bool):
-        if curTrans is None:
-            return
-
+    def on_get_transaction(self, stdCode:str, newTranses:list, isLast:bool):
         key = stdCode
-
         items = self.__trans_cache__[key]
-            
-        if curTrans is not None:          
-            items.append_item(curTrans)
+        for newItem in newTranses:
+            items.append_item(newItem)
 
     def on_channel_ready(self):
         self.__stra_info__.on_channel_ready(self)
