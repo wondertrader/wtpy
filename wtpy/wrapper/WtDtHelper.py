@@ -33,25 +33,12 @@ class WtDataHelper:
     # 构造函数，传入动态库名
     def __init__(self):
         paths = os.path.split(__file__)
-        if ph.isWindows():  # windows平台
-            if ph.isPythonX64():
-                dllname = "x64/WtDtHelper.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-            else:
-                dllname = "x86/WtDtHelper.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-        else:  # Linux平台
-            dllname = "linux/libWtDtHelper.so"
-            a = (paths[:-1] + (dllname,))
-            _path = os.path.join(*a)
-            self.api = cdll.LoadLibrary(_path)
-
+        dllname = ph.getModule("WtDtHelper")
+        a = (paths[:-1] + (dllname,))
+        _path = os.path.join(*a)
+        self.api = cdll.LoadLibrary(_path)
+        
         self.cb_dthelper_log = CB_DTHELPER_LOG(on_log_output)
-
         self.api.resample_bars.argtypes = [c_char_p, CB_DTHELPER_BAR, CB_DTHELPER_COUNT, c_uint64, c_uint64, c_char_p, c_uint, c_char_p, CB_DTHELPER_LOG]
 
     def on_log_output(message:str):

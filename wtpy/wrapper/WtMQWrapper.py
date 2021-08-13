@@ -1,3 +1,11 @@
+'''
+Descripttion: Automatically generated file comment
+version: 
+Author: Wesley
+Date: 2021-07-27 09:53:43
+LastEditors: Wesley
+LastEditTime: 2021-08-13 15:35:07
+'''
 from ctypes import c_char, cdll, CFUNCTYPE, c_uint32, c_bool, c_void_p, c_char_p, c_ulong
 from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
@@ -21,22 +29,10 @@ class WtMQWrapper:
     def __init__(self, mgr):
         self._mgr = mgr
         paths = os.path.split(__file__)
-        if ph.isWindows(): #windows平台
-            if ph.isPythonX64():
-                dllname = "x64/WtMsgQue.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-            else:
-                dllname = "x86/WtMsgQue.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-        else:#Linux平台
-            dllname = "linux/libWtMsgQue.so"
-            a = (paths[:-1] + (dllname,))
-            _path = os.path.join(*a)
-            self.api = cdll.LoadLibrary(_path)
+        dllname = ph.getModule("WtMsgQue")
+        a = (paths[:-1] + (dllname,))
+        _path = os.path.join(*a)
+        self.api = cdll.LoadLibrary(_path)
 
         self._cb_log = CB_ON_LOG(self.on_mq_log)
         self.api.regiter_callbacks(self._cb_log)

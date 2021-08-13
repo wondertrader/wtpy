@@ -26,22 +26,10 @@ class WtBtWrapper:
     def __init__(self, engine):
         self._engine = engine
         paths = os.path.split(__file__)
-        if ph.isWindows(): #windows平台
-            if ph.isPythonX64():
-                dllname = "x64/WtBtPorter.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-            else:
-                dllname = "x86/WtBtPorter.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-        else:#Linux平台
-            dllname = "linux/libWtBtPorter.so"
-            a = (paths[:-1] + (dllname,))
-            _path = os.path.join(*a)
-            self.api = cdll.LoadLibrary(_path)
+        dllname = ph.getModule("WtBtPorter")
+        a = (paths[:-1] + (dllname,))
+        _path = os.path.join(*a)
+        self.api = cdll.LoadLibrary(_path)
             
         self.api.get_version.restype = c_char_p
         self.api.cta_get_last_entertime.restype = c_uint64

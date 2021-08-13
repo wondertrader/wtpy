@@ -1,3 +1,11 @@
+'''
+Descripttion: Automatically generated file comment
+version: 
+Author: Wesley
+Date: 2021-05-24 15:05:01
+LastEditors: Wesley
+LastEditTime: 2021-08-13 15:35:59
+'''
 from .PlatformHelper import PlatformHelper as ph
 import os
 from ctypes import cdll,c_char_p
@@ -24,14 +32,7 @@ def getModuleName(lType:LoaderType)->str:
         return
     
     paths = os.path.split(__file__)
-    exename = ''
-    if ph.isWindows(): #windows平台
-        if ph.isPythonX64():
-            exename = "x64/%s.dll" % (filename)
-        else:
-            exename = "x86/%s.dll" % (filename)
-    else:#Linux平台
-        exename = "linux/lib%s.so" % filename
+    exename = ph.getModule(filename)
     a = (paths[:-1] + (exename,))
     return os.path.join(*a)
 
