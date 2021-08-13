@@ -26,6 +26,7 @@ class PlatformHelper:
     def getModule(moduleName:str, subdir:str="") -> str:
         dllname = ""
         ext = ""
+        prefix = ""
         if PlatformHelper.isWindows(): #windows平台
             ext = ".dll"
             if PlatformHelper.isPythonX64():
@@ -33,12 +34,13 @@ class PlatformHelper:
             else:
                 dllname = "x86/"
         else:#Linux平台
-            dllname = "linux/lib"
+            dllname = "linux/"
+            prefix = "lib"
             ext = ".so"
 
         if subdir != "":
             dllname += subdir + "/"
 
-        dllname += moduleName + ext
+        dllname += prefix + moduleName + ext
         return dllname
             
