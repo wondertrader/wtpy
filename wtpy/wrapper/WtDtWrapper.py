@@ -1,3 +1,11 @@
+'''
+Descripttion: Automatically generated file comment
+version: 
+Author: Wesley
+Date: 2021-07-27 09:53:43
+LastEditors: Wesley
+LastEditTime: 2021-08-13 15:26:16
+'''
 from ctypes import cdll, c_char_p
 from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
@@ -17,22 +25,10 @@ class WtDtWrapper:
     # 构造函数，传入动态库名
     def __init__(self):
         paths = os.path.split(__file__)
-        if ph.isWindows(): #windows平台
-            if ph.isPythonX64():
-                dllname = "x64/WtDtPorter.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-            else:
-                dllname = "x86/WtDtPorter.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-        else:#Linux平台
-            dllname = "linux/libWtDtPorter.so"
-            a = (paths[:-1] + (dllname,))
-            _path = os.path.join(*a)
-            self.api = cdll.LoadLibrary(_path)
+        dllname = ph.getModule("WtDtPorter")
+        a = (paths[:-1] + (dllname,))
+        _path = os.path.join(*a)
+        self.api = cdll.LoadLibrary(_path)
         self.api.get_version.restype = c_char_p
         self.ver = bytes.decode(self.api.get_version())
 

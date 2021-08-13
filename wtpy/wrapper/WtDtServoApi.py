@@ -4,7 +4,7 @@ version:
 Author: Wesley
 Date: 2021-07-27 09:53:43
 LastEditors: Wesley
-LastEditTime: 2021-08-13 13:49:37
+LastEditTime: 2021-08-13 15:34:36
 '''
 from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_uint64, c_uint32
 from wtpy.WtCoreDefs import BarList, TickList, WTSBarStruct, WTSTickStruct
@@ -29,22 +29,11 @@ class WtDtServoApi:
     # 构造函数，传入动态库名
     def __init__(self):
         paths = os.path.split(__file__)
-        if ph.isWindows():  # windows平台
-            if ph.isPythonX64():
-                dllname = "x64/WtDtServo.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-            else:
-                dllname = "x86/WtDtServo.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-        else:  # Linux平台
-            dllname = "linux/libWtDtServo.so"
-            a = (paths[:-1] + (dllname,))
-            _path = os.path.join(*a)
-            self.api = cdll.LoadLibrary(_path)
+        dllname = ph.getModule("WtDtServo")
+        a = (paths[:-1] + (dllname,))
+        _path = os.path.join(*a)
+        self.api = cdll.LoadLibrary(_path)
+
         self.api.get_version.restype = c_char_p
         self.ver = bytes.decode(self.api.get_version())
 
