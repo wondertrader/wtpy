@@ -224,9 +224,9 @@ class WtBtWrapper:
         addr = addressof(curTick.contents) # 获取内存地址
         ticks = [None]*count # 预先分配list的长度
         for i in range(count):
-            addr += bsSize
+            addr += tsSize
             realTick = WTSTickStruct.from_address(addr)   # 从内存中直接解析成WTSTickStruct
-
+            tick = dict()
             tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
             tick["open"] = realTick.open
             tick["high"] = realTick.high
@@ -340,7 +340,7 @@ class WtBtWrapper:
                 else:
                     curOrdQue["volumes"].append(realOrdQue.volumes[i])
 
-            item_list[i] = curOrdDtl
+            item_list[i] = curOrdQue
             addr += szItem
             
         if ctx is not None:
