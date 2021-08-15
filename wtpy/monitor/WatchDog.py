@@ -6,7 +6,6 @@ import datetime
 import json
 import copy
 import platform
-from typing import ChainMap
 import psutil
 
 from .EventReceiver import EventReceiver, EventSink
