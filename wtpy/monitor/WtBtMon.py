@@ -4,7 +4,7 @@ version:
 Author: Wesley
 Date: 2021-08-11 14:03:33
 LastEditors: Wesley
-LastEditTime: 2021-08-11 17:40:57
+LastEditTime: 2021-08-16 16:10:44
 '''
 import os
 import json
@@ -12,6 +12,9 @@ import subprocess
 import platform
 import sys
 import psutil
+import hashlib
+import datetime
+
 from wtpy import WtDtServo
 from .WtLogger import WtLogger
 from .EventReceiver import BtEventReceiver, BtEventSink
@@ -21,6 +24,14 @@ def isWindows():
         return True
 
     return False
+
+def md5_str(v:str) -> str:
+    return hashlib.md5(v.encode()).digest()
+
+def gen_btid(strid:str) -> str:
+    now = datetime.datetime()
+    s = straid + "_" + str(now.timestamp())
+    return md5_str(s)
 
 class WtBtTask(BtEventSink):
     '''

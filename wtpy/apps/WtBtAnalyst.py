@@ -1030,6 +1030,85 @@ def output_closes(workbook:Workbook, df_closes:df, capital = 500000):
     worksheet.write_column('Q4', df_closes['max_loss_ratio'], value_format)
     worksheet.write_column('R4', df_closes['totalprofit']+capital, value_format)
 
+def summary_analyze(df_funds:df, capital = 5000000, rf = 0, period = 240) -> dict:
+    '''
+    概要分析
+    '''
+    init_capital = capital
+    annual_days = period
+    days = len(df_funds)
+
+    #先做资金统计吧
+    print("anayzing fund data……")
+    df_funds["dynbalance"] += init_capital
+    ayBal = df_funds["dynbalance"]              # 每日期末动态权益
+
+    #生成每日期初动态权益
+    ayPreBal = np.array(ayBal.tolist()[:-1])  
+    ayPreBal = np.insert(ayPreBal, 0, init_capital)    #每日期初权益
+    df_funds["prebalance"] = ayPreBal
+
+    #统计期末权益大于期初权益的天数，即盈利天数
+    windays = len(df_funds[df_funds["dynbalance"]>df_funds["prebalance"]])
+
+    #每日净值
+    ayNetVals = (ayBal/init_capital)
+    
+    ar = math.pow(ayNetVals.iloc[-1], annual_days/days) - 1       #年化收益率=总收益率^(年交易日天数/统计天数)
+    ayDailyReturn = ayBal/ayPreBal-1 #每日收益率
+    delta = fmtNAN(ayDailyReturn.std(axis=0)*math.pow(annual_days,0.5),0)       #年化标准差=每日收益率标准差*根号下(年交易日天数)
+    down_delta = fmtNAN(ayDailyReturn[ayDailyReturn<0].std(axis=0)*math.pow(annual_days,0.5), 0)    #下行标准差=每日亏损收益率标准差*根号下(年交易日天数)
+
+    #sharpe率
+    if delta != 0.0:
+        sr = (ar-rf)/delta
+    else:
+        sr = 9999.0
+
+    #计算最大回撤和最大上涨
+    maxub = ayNetVals[0]
+    minub = maxub
+    mdd = 0.0
+    midd = 0.0
+    mup = 0.0
+    for idx in range(1,len(ayNetVals)):
+        maxub = max(maxub, ayNetVals[idx])
+        minub = min(minub, ayNetVals[idx])
+        profit = (ayNetVals[idx] - ayNetVals[idx-1])/ayNetVals[idx-1]
+        falldown = (ayNetVals[idx] - maxub)/maxub
+        riseup = (ayNetVals[idx] - minub)/minub
+        if profit <= 0:
+            midd = max(midd, abs(profit))
+            mdd = max(mdd, abs(falldown))
+        else:
+            mup = max(mup, abs(riseup))
+    #索提诺比率
+    if down_delta != 0.0:
+        sortino = (ar-rf)/down_delta
+    else:
+        sortino = 0.0
+    if mdd != 0.0:
+        calmar = ar/mdd
+    else:
+        calmar = 999999.0
+
+
+    # key_indicator = ['交易天数', '累积收益（%）', '年化收益率（%）', '胜率（%）', '最大回撤（%）', '最大上涨（%）', '标准差（%）',
+    #         '下行波动率（%）', 'Sharpe比率', 'Sortino比率', 'Calmar比率']
+    return {
+        "days": days,
+        "total_return":(ayNetVals.iloc[-1]-1)*100, 
+        "annual_return":ar*100, 
+        "win_rate":(windays/days)*100, 
+        "max_falldown":mdd*100, 
+        "max_profratio":mup*100, 
+        "std":delta*100, 
+        "down_std":down_delta*100, 
+        "sharpe_ratio":sr, 
+        "sortino_ratio":sortino, 
+        "calmar_ratio":calmar
+    }
+
 
 def funds_analyze(workbook:Workbook, df_funds:df, capital = 5000000, rf = 0, period = 240):
     '''
@@ -1319,4 +1398,22 @@ class WtBtAnalyst:
 
             print("PnL analyzing of strategy %s done" % (sname))
 
-        
+    def run_simple(self):
+        if len(self.__strategies__.keys()) == 0:
+            raise Exception("strategies is empty")
+
+        for sname in self.__strategies__:
+            sInfo = self.__strategies__[sname]
+            folder = sInfo["folder"]
+
+            df_funds = pd.read_csv(folder + "funds.csv")
+
+            init_capital = sInfo["cap"]
+            annual_days = sInfo["atd"]
+            rf = sInfo["rf"]
+            
+            filename = 'generated_bt/%s/summary.json' % (sname)
+            sumObj = funds_analyze(workbook, df_funds, capital=init_capital, rf=rf, period=annual_days)
+            f = open(filename,"w")
+            f.write(sumObj.dumps())
+            f.close()
