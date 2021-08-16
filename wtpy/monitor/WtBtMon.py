@@ -4,7 +4,7 @@ version:
 Author: Wesley
 Date: 2021-08-11 14:03:33
 LastEditors: Wesley
-LastEditTime: 2021-08-16 16:10:44
+LastEditTime: 2021-08-16 17:24:06
 '''
 import os
 import json
@@ -14,6 +14,7 @@ import sys
 import psutil
 import hashlib
 import datetime
+import shutil
 
 from wtpy import WtDtServo
 from .WtLogger import WtLogger
@@ -28,9 +29,9 @@ def isWindows():
 def md5_str(v:str) -> str:
     return hashlib.md5(v.encode()).digest()
 
-def gen_btid(strid:str) -> str:
+def gen_btid(user:str, strid:str) -> str:
     now = datetime.datetime()
-    s = straid + "_" + str(now.timestamp())
+    s = user + "_" + straid + "_" + str(now.timestamp())
     return md5_str(s)
 
 class WtBtTask(BtEventSink):
@@ -111,10 +112,11 @@ class WtBtMon:
     '''
     回测管理器
     '''
-    def __init__(self, deploy_folder:str, data_folder:str = "", commFolder:str = ""):
+    def __init__(self, deploy_folder:str, data_folder:str = "", commFolder:str = "", logger:WtLogger = None):
         self.path = deploy_folder
         self.user_stras = dict()
         self.user_bts = dict()
+        self.logger = logger
         self.dt_servo = None
         if len(commFolder) > 0:
             self.dt_servo = WtDtServo()
@@ -480,6 +482,34 @@ class WtBtMon:
 
         return thisBts[btid]["kline"]
 
+    def run_backtest(self, user:str, straid:str) -> str:
+        btid = gen_btid(user, strid)
 
+        # 生成回测目录
+        folder = "%s/%s/backtests/%s/" % (user, straid, btid)
+        folder = os.path.join(self.path, filename)
+        os.mkdir(folder)
 
+        # 将策略文件复制到该目录下
+        old_path = os.path.join(self.path, "%s/%s/runBT.py" % (user, straid))
+        new_path = os.path.join(self.path, "%s/%s/backtests/%s/runBT.py" % (user, straid, btid))
+        shutil.copyfile(old_path, new_path)
+
+        # 初始化目录下的配置文件
+        old_path = os.path.join(self.path, "template/configbt.json")
+        new_path = os.path.join(self.path, "%s/%s/backtests/%s/configbt.json" % (user, straid, btid))
+        shutil.copyfile(old_path, new_path)
+
+        old_path = os.path.join(self.path, "template/logcfgbt.json")
+        new_path = os.path.join(self.path, "%s/%s/backtests/%s/logcfgbt.json" % (user, straid, btid))
+        shutil.copyfile(old_path, new_path)
+
+        old_path = os.path.join(self.path, "template/fees.json")
+        new_path = os.path.join(self.path, "%s/%s/backtests/%s/fees.json" % (user, straid, btid))
+        shutil.copyfile(old_path, new_path)
+
+        # 添加
+        task = WtBtTask(user, straid, btid, folder, self.logger)
+        task.run()
+        return True
     
