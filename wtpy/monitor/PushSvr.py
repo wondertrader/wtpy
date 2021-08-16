@@ -1,3 +1,11 @@
+'''
+Descripttion: Automatically generated file comment
+version: 
+Author: Wesley
+Date: 2021-08-05 18:49:24
+LastEditors: Wesley
+LastEditTime: 2021-08-16 14:01:24
+'''
 from flask_socketio import SocketIO, emit
 from flask import session, sessions
 
