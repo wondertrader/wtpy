@@ -75,7 +75,7 @@ class AppInfo(EventSink):
         self._check_span = appConf["span"]
         self._guard = appConf["guard"]
         self._redirect = appConf["redirect"]
-        self._mq_url = appConf["mqurl"]
+        self._mq_url = appConf["mqurl"].strip()
         self._schedule = appConf["schedule"]["active"]
         self._weekflag = appConf["schedule"]["weekflag"]
 
@@ -120,8 +120,9 @@ class AppInfo(EventSink):
 
     @property
     def cmd_line(self) -> str:
+        fullPath = os.path.join(self.__info__["folder"], self.__info__["param"])
         if self._cmd_line is None:
-            self._cmd_line = self.__info__["path"] + " " + self.__info__["param"]
+            self._cmd_line = self.__info__["path"] + " " + fullPath
         return self._cmd_line
 
     def is_running(self, pids) -> bool:
@@ -138,7 +139,7 @@ class AppInfo(EventSink):
                     if self.cmd_line.upper() == cmdLine.upper():
                         self._procid = pid
                         self.__logger__.info("应用%s挂载成功，进程ID: %d" % (self._id, self._procid))
-
+     
                         if self._mq_url != '':
                             # 如果事件接收器为空或者url发生了改变，则需要重新创建
                             bNeedCreate = self._evt_receiver is None or self._evt_receiver.url != self._mq_url
@@ -433,6 +434,7 @@ class WatchDog:
         
         cur = self.__db_conn__.cursor()
         sql = "UPDATE schedules SET mqurl='%s',modifytime=datetime('now','localtime') WHERE appid='%s';" % (mqurl, appid)
+        print(sql)
         cur.execute(sql)
         self.__db_conn__.commit()
 
