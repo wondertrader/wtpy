@@ -13,6 +13,7 @@ from .DataMgr import DataMgr, backup_file
 from .PushSvr import PushServer
 from .WatchDog import WatchDog, WatcherSink
 from .EventReceiver import EventReceiver, EventSink
+from .WtBtMon import WtBtMon
 
 def pack_rsp(obj):
     rsp = make_response(json.dumps(obj))
@@ -230,6 +231,8 @@ class WtMonSvr(WatcherSink):
         # 数据管理器，主要用于缓存各组合的数据
         self.__data_mgr__ = DataMgr('data.db', logger=self.logger)
 
+        self.__bt_mon__:WtBtMon = None
+
         # 看门狗模块，主要用于调度各个组合启动关闭
         self._dog = WatchDog(sink=self, db=self.__data_mgr__.get_db(), logger=self.logger)
 
@@ -243,6 +246,118 @@ class WtMonSvr(WatcherSink):
         self.deploy_tree = None
 
         self.push_svr = PushServer(app, self.__data_mgr__, self.logger)
+
+        self.init_mgr_apis(app)
+
+    def set_bt_mon(self, btMon:WtBtMon):
+        self.__bt_mon__ = btMon
+        self.init_bt_apis(self.app)
+
+    def init_bt_apis(self, app:Flask):
+        
+        @app.route("/bt/qrystras", methods=["POST"])
+        def qry_my_stras():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, userInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(userInfo)
+
+            user = userInfo["loginid"]
+            role = userInfo["role"]
+            if role not in ['researcher','superman']:
+                ret = {
+                    "result":-1,
+                    "message":"没有权限"
+                }
+                return pack_rsp(ret)
+
+            ret = {
+                "result":0,
+                "message":"OK",
+                "strategies": self.__bt_mon__.get_strategies(user)
+            }
+
+            return pack_rsp(ret)
+
+        @app.route("/bt/qrycode", methods=["POST"])
+        def qry_stra_code():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, userInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(userInfo)
+
+            user = userInfo["loginid"]
+            role = userInfo["role"]
+            if role not in ['researcher','superman']:
+                ret = {
+                    "result":-1,
+                    "message":"没有权限"
+                }
+                return pack_rsp(ret)
+
+            straid = get_param(json_data, "straid")
+            if self.__bt_mon__ is None:
+                ret = {
+                    "result":-1,
+                    "message":"回测管理器未配置"
+                }
+            else:
+                if not self.__bt_mon__.has_strategy(user, straid):
+                    ret = {
+                        "result":-2,
+                        "message":"策略代码不存在"
+                    }
+                else:
+                    content = self.__bt_mon__.get_strategy_code(user, straid)
+                    ret = {
+                        "result":0,
+                        "message":"OK",
+                        "content":content
+                    }
+
+            return pack_rsp(ret)
+
+
+        @app.route("/bt/setcode", methods=["POST"])
+        def set_stra_code():
+            pass
+
+        @app.route("/bt/addstra", methods=["POST"])
+        def cmd_add_stra():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, userInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(userInfo)
+
+            user = userInfo["loginid"]
+            role = userInfo["role"]
+            if role not in ['researcher','superman']:
+                ret = {
+                    "result":-1,
+                    "message":"没有权限"
+                }
+                return pack_rsp(ret)
+
+            if self.__bt_mon__ is None:
+                ret = {
+                    "result":-1,
+                    "message":"回测管理器未配置"
+                }
+
+        @app.route("/bt/delstra", methods=["POST"])
+        def cmd_del_stra():
+            pass
+
+    def init_mgr_apis(self, app:Flask):
 
         @app.route("/console", methods=["GET"])
         def stc_console_index():

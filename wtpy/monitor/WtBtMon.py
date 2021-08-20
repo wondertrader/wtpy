@@ -4,7 +4,7 @@ version:
 Author: Wesley
 Date: 2021-08-11 14:03:33
 LastEditors: Wesley
-LastEditTime: 2021-08-16 17:24:06
+LastEditTime: 2021-08-20 17:34:53
 '''
 import os
 import json
@@ -32,6 +32,11 @@ def md5_str(v:str) -> str:
 def gen_btid(user:str, strid:str) -> str:
     now = datetime.datetime()
     s = user + "_" + straid + "_" + str(now.timestamp())
+    return md5_str(s)
+
+def gen_straid(user:str) -> str:
+    now = datetime.datetime()
+    s = user + "_" + str(now.timestamp())
     return md5_str(s)
 
 class WtBtTask(BtEventSink):
@@ -112,22 +117,12 @@ class WtBtMon:
     '''
     回测管理器
     '''
-    def __init__(self, deploy_folder:str, data_folder:str = "", commFolder:str = "", logger:WtLogger = None):
+    def __init__(self, deploy_folder:str, dtServo:WtDtServo = None, logger:WtLogger = None):
         self.path = deploy_folder
         self.user_stras = dict()
         self.user_bts = dict()
         self.logger = logger
-        self.dt_servo = None
-        if len(commFolder) > 0:
-            self.dt_servo = WtDtServo()
-            self.dt_servo.setStorage(data_folder)
-            self.dt_servo.setBasefiles(commFolder + "commodities.json",
-                            commFolder + "contracts.json",
-                            commFolder + "holidays.json",
-                            commFolder + "sessions.json",
-                            commFolder + "hots.json")
-            self.dt_servo.commitConfig()
-        pass
+        self.dt_servo = dtServo
 
     def __load_user_data__(self, user:str):
         folder = os.path.join(self.path, user)
@@ -164,7 +159,6 @@ class WtBtMon:
                     "return":19.3,
                     "mdd":7.86,
                     "capital":500000,
-                    "
                 }
             }
         }
@@ -174,6 +168,88 @@ class WtBtMon:
             ay.append(self.user_stras[user][straid])
         return ay
 
+    def add_strategy(self, user:str, name:str) -> dict:
+        if user not in self.user_stras:
+            self.user_stras[user] = dict()
+
+        straid = gen_straid(user)
+        self.user_stras[user][strid] = {
+            "id":strid,
+            "name":name,
+            "perform":{
+                "return":0,
+                "mdd":0
+            }
+        }
+
+        folder = os.path.join(self.path, straid)
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+
+        fname = os.path.join(folder, "runBT.py")
+        srcfname = os.path.join(self.path, "template/runBT.py")
+        shutil.copyfile(srcfname, fname)
+
+        return self.user_stras[user][strid]
+
+    def del_strategy(self, user:str, straid:str):
+        if user not in self.user_bts:
+            bSucc = self.__load_user_data__(user)
+    
+    def has_strategy(self, user:str, straid:str, btid:str = None) -> bool:
+        if user not in self.user_bts:
+            bSucc = self.__load_user_data__(user)
+
+        if not bSucc:
+            return False
+
+        if btid is None:
+            return straid in self.user_stras[user]
+        else:
+            return btid in self.user_bts[user]
+
+    def get_strategy_code(self, user:str, straid:str, btid:str = None) -> str:
+        if user not in self.user_bts:
+            bSucc = self.__load_user_data__(user)
+
+        if not bSucc:
+            return None
+
+        if btid is None:
+            path = os.path.join(self.path, straid + "/runBT.py")
+            if not os.path.exists(path):
+                return None
+
+            f = open(path, "r")
+            content = f.read()
+            f.close()
+            return content
+        else:
+            thisBts = self.user_bts[user]
+            if btid not in thisBts:
+                return None
+
+            bt_path = os.path.join(self.path, "%s/%s/backtests/%s/runBT.py" % (user, straid, btid))
+            f = open(bt_path, "r")
+            content = f.read()
+            f.close()
+            return content
+
+    def set_strategy_code(self, user:str, straid:str, content:str) -> bool:
+        if user not in self.user_bts:
+            bSucc = self.__load_user_data__(user)
+
+        if not bSucc:
+            return False
+
+        path = os.path.join(self.path, straid + "/runBT.py")
+        if not os.path.exists(path):
+            return None
+
+        f = open(path, "w")
+        f.write(content)
+        f.close()
+        return True
 
     def get_backtests(self, user:str, straid:str) -> list:
         bSucc = False
