@@ -70,17 +70,15 @@ class EventReceiver(WtMQClient):
                 msgObj = json.loads(message)
                 trader = msgObj["trader"]
                 msgObj.pop("trader")
-                self._sink.on_trade(trader, trader)
+                self._sink.on_trade(trader, msgObj)
             elif topic == TOPIC_RT_ORDER:
                 msgObj = json.loads(message)
                 trader = msgObj["trader"]
                 msgObj.pop("trader")
-                self._sink.on_order(trader, trader)
-            elif topic == TOPIC_RT_TRADE:
-                msgObj = json.loads(message)
+                self._sink.on_order(trader, msgObj)
+            elif topic == TOPIC_RT_NOTIFY:
                 trader = msgObj["trader"]
-                msgObj.pop("trader")
-                self._sink.on_notify(trader, msgObj)
+                self._sink.on_notify(trader, msgObj["message"])
             elif topic == TOPIC_RT_LOG:
                 msgObj = json.loads(message)
                 self._sink.on_log(msgObj["tag"], msgObj["time"], msgObj["message"])
