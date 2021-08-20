@@ -1,3 +1,11 @@
+/*
+ * @Descripttion: Automatically generated file comment
+ * @version: 
+ * @Author: Wesley
+ * @Date: 2021-08-04 09:09:35
+ * @LastEditors: Wesley
+ * @LastEditTime: 2021-08-20 14:12:38
+ */
 'use strict'
 // Template version: 1.3.1
 // see http://vuejs-templates.github.io/webpack for documentation.
@@ -20,10 +28,10 @@ module.exports = {
         },
         proxyTable: {
             '/':{
-                target:'http://console.wonderwiz.cn:8098'
+                target:'http://console.wonderwiz.cn:8099'
             },
             '/mgr':{
-                target:'http://console.wonderwiz.cn:8098'
+                target:'http://console.wonderwiz.cn:8099'
             }
         },
 

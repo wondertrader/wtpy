@@ -209,24 +209,28 @@ export default {
                 self.$notify({
                     title:"订单回报",
                     type:"error",
-                    message: "交易通道{0}错误：{1}".format(data.channel,data.message)
+                    message: "交易通道{0}错误：{1}".format(data.channel,data.message),
+                    duration: 0
                 });
             } else if(evttype == 'order'){
-                if(!order.canceled)
+                if(!data.data.canceled)
                     return;
 
                 self.$notify({
                     title:"订单回报",
                     type:"error",
-                    message: "交易通道{0}订单已撤销，本地订单号：{1}".format(data.channel,data.data.localid)
+                    message: "交易通道{0}订单已撤销，本地订单号：{1}".format(data.channel,data.data.localid),
+                    duration: 0
                 });
             } else if(evttype == 'trade'){
+                console.log(data);
                 let action = data.data.isopen?"开":"平" + data.data.islong?"多":"空";
                 self.$notify({
                     title:"成交回报",
                     type:"success",
                     message: "交易通道{0}{1}{2}{3}手，成交价：{4}，本地订单号：{5}".format(
-                        data.channel, action, data.data.code, data.data.volume, data.data.price, data.data.localid)
+                        data.channel, action, data.data.code, data.data.volume, data.data.price, data.data.localid),
+                    duration: 0
                 });
             }
         }
