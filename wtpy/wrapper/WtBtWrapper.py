@@ -190,7 +190,6 @@ class WtBtWrapper:
         addr = addressof(curBar.contents) # 获取内存地址
         bars = [None]*count # 预先分配list的长度
         for i in range(count):
-            addr += bsSize
             realBar = WTSBarStruct.from_address(addr)   # 从内存中直接解析成WTSBarStruct
             bar = dict()
             if period[0] == 'd':
@@ -204,6 +203,7 @@ class WtBtWrapper:
             bar["close"] = realBar.close
             bar["volume"] = realBar.vol
             bars[i] = bar
+            addr += bsSize
 
         if ctx is not None:
             ctx.on_getbars(bytes.decode(stdCode), period, bars, isLast)
@@ -224,7 +224,6 @@ class WtBtWrapper:
         addr = addressof(curTick.contents) # 获取内存地址
         ticks = [None]*count # 预先分配list的长度
         for i in range(count):
-            addr += tsSize
             realTick = WTSTickStruct.from_address(addr)   # 从内存中直接解析成WTSTickStruct
             tick = dict()
             tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
@@ -255,6 +254,7 @@ class WtBtWrapper:
                     tick["askqty"].append(realTick.ask_qty[i])
 
             ticks[i] = tick
+            addr += tsSize
 
         if ctx is not None:
             ctx.on_getticks(bytes.decode(stdCode), ticks, isLast)
