@@ -28,6 +28,21 @@ def readFileContent(filename):
     f.close()
     return content
 
+def countWDOfMonth(curDate:datetime.datetime):
+    '''
+    计算本月相同星期天数
+    '''
+    thisWD = curDate.weekday()
+    checkDate = datetime.datetime(year=curDate.year, month=curDate.month, day=1)
+    count = 0
+    while checkDate <= curDate:
+        if checkDate.weekday() == thisWD:
+            count += 1
+        
+        checkDate += datetime.timedelta(days=1)
+
+    return count
+
 def httpGet(url, encoding='utf-8'):
     request = urllib.request.Request(url)
     request.add_header('Accept-encoding', 'gzip')
@@ -574,7 +589,7 @@ class WtHotPicker:
         '''
         self.mail_notifier = notifier
 
-    def pick_exchg_hots(self, current_hots, exchg, beginDT, endDT, alg = 0):
+    def pick_exchg_hots(self, current_hots:dict, exchg:str, beginDT:datetime.datetime, endDT:datetime.datetime, alg:int = 0):
         '''
         确定指定市场的主力合约\n
 
@@ -595,35 +610,42 @@ class WtHotPicker:
 
         while curDT <= endDT:
             hots = {}
+            seconds = {}
             logging.info("[%s]开始拉取%s数据" % (exchg, curDT.strftime('%Y%m%d')))
             items = cacheMon.get_cache(exchg, curDT)
             if items is not None:
+                wd = curDT.weekday()
+                wd_cnt = countWDOfMonth(curDT)
+                month = curDT.strftime('%Y%m')[2:]
+
+                sorted = dict()
                 for code in items:
                     item = items[code]
                     pid = item.pid
-                    if pid not in hots:
-                        hots[pid] = item.code
-                    else:
-                        # 这里开始正式的判断
-                        oldCode = hots[pid]
-                        oldData = items[oldCode]
-                        if alg == 1:#中金所算法
-                            # 如果新合约的成交量大于旧合约的成交量的三分之一，并且总持大于旧合约的总持，则进行切换
-                            if item.month > oldData.month:
-                                if item.hold > oldData.hold and item.volumn > oldData.volumn/3:
-                                    hots[pid] = code
-                            else:
-                                if oldData.hold <= item.hold or oldData.volumn <= item.volumn/3:
-                                    hots[pid] = code
-                        elif alg == 0:
-                            # 如果新合约的总持大于旧合约的总持，则进行切换
-                            if item.month > oldData.month:
-                                if item.hold > oldData.hold:
-                                    hots[pid] = code
-                            else:
-                                if oldData.hold <= item.hold:
-                                    hots[pid] = code
 
+                    if pid not in sorted:
+                        sorted[pid] = list()
+
+                    sorted[pid].append(item)
+
+                for pid in sorted:
+                    ay = sorted[pid]
+                    ay.sort(key=lambda x : x.hold)
+                    hot = ay[-1]
+
+                    if len(ay) > 1:
+                        sec = ay[-2]
+                        #中金所算法，如果是当月第三个周三，并且主力合约月份小于次主力合约月份，
+                        #说明没有根据数据自动换月，强制进行换月
+                        if alg == 1 and wd == 3 and wd_cnt == 3 and hot.month < sec.month and hot.month==month:
+                            hot = sec
+                            if len(ay) > 2:
+                                sec = ay[-3]
+                        
+                        seconds[pid] = sec.code
+
+                    hots[pid] = hot.code
+                    
                 for key in hots.keys():
                     nextDT = curDT + datetime.timedelta(days=1)
                     if key not in lastHots:
@@ -714,7 +736,7 @@ class WtHotPicker:
         while curDate <= endDate:
             for exchg in exchanges:
                 alg = 1 if exchg=='CFFEX' else 0    # 中金所的换月算法和其他交易所不同
-                cfHots,current_hots = self.pick_exchg_hots(current_hots, exchg, curDate, curDate, self.cache_monitor, alg=alg)
+                cfHots,current_hots = self.pick_exchg_hots(current_hots, exchg, curDate, curDate, alg=alg)
 
                 if len(cfHots.keys()) > 0:
                     hasChange,total = self.merge_switch_list(total, exchg, cfHots)
@@ -798,7 +820,7 @@ class WtHotPicker:
         for exchg in exchanges:
             logging.info("[%s]开始分析主力换月数据" % exchg)
             alg = 1 if exchg=='CFFEX' else 0    # 中金所的换月算法和其他交易所不同
-            cfHots,current_hots = self.pick_exchg_hots(current_hots, exchg, beginDT, endDate, self.cache_monitor, alg=alg)
+            cfHots,current_hots = self.pick_exchg_hots(current_hots, exchg, beginDT, endDate, alg=alg)
 
             if len(cfHots.keys()) > 0:
                 hasChange,total = self.merge_switch_list(total, exchg, cfHots)
