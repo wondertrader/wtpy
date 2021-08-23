@@ -444,7 +444,7 @@ class WtCacheMonSS(WtCacheMon):
 
         filename = "%s%s.csv" % (self.snapshot_path, dtStr)
         content = readFileContent(filename)
-        lines = content.split("")
+        lines = content.split("\n")
 
         if dtStr not in self.day_cache:
             self.day_cache[dtStr] = dict()
@@ -487,7 +487,7 @@ class WtCacheMonSS(WtCacheMon):
 
         dtStr = curDT.strftime('%Y%m%d')
         if dtStr not in self.day_cache:
-            self.cacheSnapshot(curDT)
+            self.cache_snapshot(curDT)
 
         if dtStr not in self.day_cache:
             return None
@@ -503,7 +503,7 @@ class WtMailNotifier:
     def __init__(self, user:str, pwd:str, sender:str=None, host:str="smtp.exmail.qq.com", port=465, isSSL:bool = True):
         self.user = user
         self.pwd = pwd
-        self.sender = sender if sender is not None else "WtHotNotifier"
+        self.sender = sender if sender is not None else "WtHotNotifier<%s>" % (user)
         self.receivers = list()
 
         self.mail_host = host
@@ -522,7 +522,7 @@ class WtMailNotifier:
             "addr":addr
         })
 
-    def notify(self, hot_changes:dict, sec_changes:dict, nextDT:datetime.datetime, hotFile:str, hotMap:str):
+    def notify(self, hot_changes:dict, sec_changes:dict, nextDT:datetime.datetime, hotFile:str, hotMap:str, secFile:str, secMap:str):
         '''
         通知主力切换事件
 
@@ -547,13 +547,13 @@ class WtMailNotifier:
         for exchg in hot_changes:
             for pid in hot_changes[exchg]:
                 item = hot_changes[exchg][pid][-1]
-                content +=  '品种%s.%s的主力合约已切换,下个交易日(%s)生效, %s -> %s' % (exchg, pid, dtStr, item["from"], item["to"])
+                content +=  '品种%s.%s的主力合约已切换,下个交易日(%s)生效, %s -> %s\n' % (exchg, pid, dtStr, item["from"], item["to"])
 
-        content += ''
+        content += '\n'
         for exchg in sec_changes:
             for pid in sec_changes[exchg]:
                 item = sec_changes[exchg][pid][-1]
-                content +=  '品种%s.%s的次主力合约已切换,下个交易日(%s)生效, %s -> %s' % (exchg, pid, dtStr, item["from"], item["to"])
+                content +=  '品种%s.%s的次主力合约已切换,下个交易日(%s)生效, %s -> %s\n' % (exchg, pid, dtStr, item["from"], item["to"])
 
         msg_mp = MIMEMultipart()
         msg_mp['From'] = sender  # 发送者          
@@ -561,7 +561,7 @@ class WtMailNotifier:
         subject = '主力合约换月邮件<%s>' % (dtStr)
         msg_mp['Subject'] = Header(subject, 'utf-8')
 
-        content = MIMEText(subject, 'plain', 'utf-8')
+        content = MIMEText(content, 'plain', 'utf-8')
         msg_mp.attach(content)
 
         xlspart = MIMEApplication(open(hotFile,'rb').read())
@@ -572,6 +572,16 @@ class WtMailNotifier:
         xlspart = MIMEApplication(open(hotMap,'rb').read())
         xlspart["Content-Type"] = 'application/octet-stream'
         xlspart.add_header('Content-Disposition','attachment', filename=os.path.basename(hotMap))
+        msg_mp.attach(xlspart)
+
+        xlspart = MIMEApplication(open(secFile,'rb').read())
+        xlspart["Content-Type"] = 'application/octet-stream'
+        xlspart.add_header('Content-Disposition','attachment', filename=os.path.basename(secFile))
+        msg_mp.attach(xlspart)
+
+        xlspart = MIMEApplication(open(secMap,'rb').read())
+        xlspart["Content-Type"] = 'application/octet-stream'
+        xlspart.add_header('Content-Disposition','attachment', filename=os.path.basename(secMap))
         msg_mp.attach(xlspart)
 
         if self.mail_ssl:
@@ -881,7 +891,7 @@ class WtHotPicker:
         output.close()
 
         if self.mail_notifier is not None:
-            self.mail_notifier.notify(hot_changes, sec_changes, endDate, self.hot_file, "hotmap.json")
+            self.mail_notifier.notify(hot_changes, sec_changes, endDate, hotFile, "hotmap.json", secFile, "secmap.json")
 
         return total_hots,total_secs
   
@@ -994,6 +1004,6 @@ class WtHotPicker:
             output.close()
 
             if self.mail_notifier is not None:
-                self.mail_notifier.notify(hot_changes, sec_changes, endDate, hotFile, "hotmap.json")
+                self.mail_notifier.notify(hot_changes, sec_changes, endDate, hotFile, "hotmap.json", secFile, "secmap.json")
         else:
             logging.info("主力切换规则未更新，不保存数据")
