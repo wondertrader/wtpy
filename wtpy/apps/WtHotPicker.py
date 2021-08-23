@@ -89,7 +89,7 @@ class DayData:
         self.month = 0
         self.code = ''  # 代码
         self.close = 0  # 今收盘(收盘价)
-        self.volumn = 0  # 成交量(手)
+        self.volume = 0  # 成交量(手)
         self.hold = 0  # 空盘量(总持？持仓量)
 
 class WtCacheMon:
@@ -143,7 +143,7 @@ class WtCacheMonExchg(WtCacheMon):
                 "openinterest")[0].firstChild.data)
             item.close = float(day.getElementsByTagName(
                 "closeprice")[0].firstChild.data)
-            item.volumn = int(day.getElementsByTagName(
+            item.volume = int(day.getElementsByTagName(
                 "volume")[0].firstChild.data)
 
             item.month = item.code[len(item.pid):]
@@ -181,7 +181,7 @@ class WtCacheMonExchg(WtCacheMon):
             item.code = code
             item.hold = int(day['OPENINTEREST'])
             if day['VOLUME'] != '':
-                item.volumn = int(day['VOLUME'])
+                item.volume = int(day['VOLUME'])
             item.close = float(day["CLOSEPRICE"])
             item.month = item.code[len(item.pid):]
             items[code] = item
@@ -233,9 +233,9 @@ class WtCacheMonExchg(WtCacheMon):
             if close != '':
                 item.close = float(close.replace(",",""))
 
-            volumn = doc(tdlis[9]).text()
-            if volumn != '':
-                item.volumn = int(volumn.replace(",",""))
+            volume = doc(tdlis[9]).text()
+            if volume != '':
+                item.volume = int(volume.replace(",",""))
 
             hold = doc(tdlis[10]).text()
             if hold != '':
@@ -319,7 +319,7 @@ class WtCacheMonExchg(WtCacheMon):
             spj = doc(tdlis[5]).text()
             item.close = float(spj if spj != '' else 0)
             # 成交量
-            item.volumn = int(doc(tdlis[10]).text())
+            item.volume = int(doc(tdlis[10]).text())
             # 持仓量
             item.hold = int(doc(tdlis[11]).text())
             item.month = item.code[len(item.pid):]
@@ -351,7 +351,7 @@ class WtCacheMonExchg(WtCacheMon):
             item.code = pid + dm
             item.hold = int(day['OPENINTEREST'])
             item.close = day['CLOSEPRICE']
-            item.volumn = day['VOLUME']
+            item.volume = day['VOLUME']
             item.month = item.code[len(item.pid):]
             items[item.code] = item
         return items
@@ -444,7 +444,7 @@ class WtCacheMonSS(WtCacheMon):
             # 收盘价
             day.close = float(items[6])
             # 成交量
-            day.volumn = int(items[8])
+            day.volume = int(items[8])
             # 持仓量
             day.hold = int(items[10])
             day.month = day.code[len(day.pid):]
@@ -500,11 +500,12 @@ class WtMailNotifier:
             "addr":addr
         })
 
-    def notify(self, change_list:dict, nextDT:datetime.datetime, hotFile:str, hotMap:str):
+    def notify(self, hot_changes:dict, sec_changes:dict, nextDT:datetime.datetime, hotFile:str, hotMap:str):
         '''
         通知主力切换事件\n
 
-        @change_list    当日切换的规则列表\n
+        @hot_changes    当日主力切换的规则列表\n
+        @sec_changes    当日次主力切换的规则列表\n
         @nextDT         生效日期\n
         @hotFile        主力规则文件\n
         @hotMap         主力映射文件\n
@@ -521,10 +522,16 @@ class WtMailNotifier:
         receivers = self.receivers
 
         content = ''
-        for exchg in change_list:
-            for pid in change_list[exchg]:
-                item = change_list[exchg][pid][-1]
+        for exchg in hot_changes:
+            for pid in hot_changes[exchg]:
+                item = hot_changes[exchg][pid][-1]
                 content +=  '品种%s.%s的主力合约已切换,下个交易日(%s)生效, %s -> %s\n' % (exchg, pid, dtStr, item["from"], item["to"])
+
+        content += '\n'
+        for exchg in sec_changes:
+            for pid in sec_changes[exchg]:
+                item = sec_changes[exchg][pid][-1]
+                content +=  '品种%s.%s的次主力合约已切换,下个交易日(%s)生效, %s -> %s\n' % (exchg, pid, dtStr, item["from"], item["to"])
 
         msg_mp = MIMEMultipart()
         msg_mp['From'] = sender  # 发送者          
@@ -570,12 +577,16 @@ class WtHotPicker:
     '''
     主力选择器
     '''
-    def __init__(self, markerFile:str = "./marker.json", hotFile = "../Common/hots.json"):
+    def __init__(self, markerFile:str = "./marker.json", hotFile:str = "../Common/hots.json", secFile:str = None):
         self.marker_file = markerFile
         self.hot_file = hotFile
+        self.sec_file = secFile
 
         self.mail_notifier:WtMailNotifier = None
         self.cache_monitor:WtCacheMon = None
+
+        self.current_hots = None
+        self.current_secs = None
 
     def set_cacher(self, cacher:WtCacheMon):
         '''
@@ -589,11 +600,10 @@ class WtHotPicker:
         '''
         self.mail_notifier = notifier
 
-    def pick_exchg_hots(self, current_hots:dict, exchg:str, beginDT:datetime.datetime, endDT:datetime.datetime, alg:int = 0):
+    def pick_exchg_hots(self, exchg:str, beginDT:datetime.datetime, endDT:datetime.datetime, alg:int = 0):
         '''
         确定指定市场的主力合约\n
 
-        @current_hots   当前主力映射表\n
         @exchg          交易所代码\n
         @beginDT        开始日期\n
         @endDT          截止日期\n
@@ -601,10 +611,20 @@ class WtHotPicker:
         '''
 
         cacheMon = self.cache_monitor
+        current_hots = self.current_hots
+        current_secs = self.current_secs
+
         if exchg not in current_hots:
             current_hots[exchg] = dict()
+
+        if exchg not in current_secs:
+            current_secs[exchg] = dict()
+
         lastHots = current_hots[exchg]
-        switch_list = {}
+        lastSecs = current_secs[exchg]
+
+        hot_switches = {}
+        sec_switches = {}
 
         curDT = beginDT
 
@@ -618,19 +638,22 @@ class WtHotPicker:
                 wd_cnt = countWDOfMonth(curDT)
                 month = curDT.strftime('%Y%m')[2:]
 
-                sorted = dict()
+                items_by_pid = dict()
                 for code in items:
                     item = items[code]
                     pid = item.pid
 
-                    if pid not in sorted:
-                        sorted[pid] = list()
+                    if pid not in items_by_pid:
+                        items_by_pid[pid] = list()
 
-                    sorted[pid].append(item)
+                    items_by_pid[pid].append(item)
 
-                for pid in sorted:
-                    ay = sorted[pid]
-                    ay.sort(key=lambda x : x.hold)
+                for pid in items_by_pid:
+                    ay = items_by_pid[pid]
+                    if alg == 1:
+                        ay.sort(key=lambda x : x.hold) #按总持排序
+                    elif alg == 0:
+                        ay.sort(key=lambda x : x.volume) #按成交量排序
                     hot = ay[-1]
 
                     if len(ay) > 1:
@@ -655,7 +678,7 @@ class WtHotPicker:
                         item["to"] = hots[key]
                         item["oldclose"] = 0.0
                         item["newclose"] = items[hots[key]].close
-                        switch_list[key] = [item]
+                        hot_switches[key] = [item]
                         lastHots[key] = hots[key]
                         logging.info("[%s]品种%s主力确认, 确认日期: %s, %s", exchg,key, nextDT.strftime('%Y%m%d'), hots[key])
                     else:
@@ -676,14 +699,50 @@ class WtHotPicker:
                                 item["oldclose"] = 0.0
                                 item["date"] = int(curDT.strftime('%Y%m%d'))
                             item["newclose"] = items[newcode].close
-                            if key not in switch_list:
-                                switch_list[key] = list()
-                            switch_list[key].append(item)
+                            if key not in hot_switches:
+                                hot_switches[key] = list()
+                            hot_switches[key].append(item)
                             logging.info("[%s]品种%s主力切换 切换日期: %s，%s -> %s", exchg, key, nextDT.strftime('%Y%m%d'), lastHots[key], hots[key])
                             lastHots[key] = hots[key]
+
+                for key in seconds.keys():
+                    nextDT = curDT + datetime.timedelta(days=1)
+                    if key not in lastSecs:
+                        item = {}
+                        item["date"] = int(curDT.strftime('%Y%m%d'))
+                        item["from"] = ""
+                        item["to"] = seconds[key]
+                        item["oldclose"] = 0.0
+                        item["newclose"] = items[seconds[key]].close
+                        sec_switches[key] = [item]
+                        lastSecs[key] = seconds[key]
+                        logging.info("[%s]品种%s次主力确认, 确认日期: %s, %s", exchg,key, nextDT.strftime('%Y%m%d'), seconds[key])
+                    else:
+                        oldcode = lastSecs[key]
+                        newcode = seconds[key]
+                        oldItem = None
+                        if oldcode in items:
+                            oldItem = items[oldcode]
+                        newItem = items[newcode]
+                        if oldItem is None or newItem.month > oldItem.month:
+                            item = {}
+                            item["date"] = int(nextDT.strftime('%Y%m%d'))
+                            item["from"] = oldcode
+                            item["to"] = newcode
+                            if oldcode in items:
+                                item["oldclose"] = items[oldcode].close
+                            else:
+                                item["oldclose"] = 0.0
+                                item["date"] = int(curDT.strftime('%Y%m%d'))
+                            item["newclose"] = items[newcode].close
+                            if key not in sec_switches:
+                                sec_switches[key] = list()
+                            sec_switches[key].append(item)
+                            logging.info("[%s]品种%s次主力切换 切换日期: %s，%s -> %s", exchg, key, nextDT.strftime('%Y%m%d'), lastSecs[key], seconds[key])
+                            lastSecs[key] = seconds[key]
             # 日期递增
             curDT = curDT + datetime.timedelta(days=1)
-        return switch_list, current_hots
+        return hot_switches,sec_switches
     
     def merge_switch_list(self, total, exchg, switch_list):
         '''
@@ -725,25 +784,37 @@ class WtHotPicker:
         if beginDate is None:
             beginDate = datetime.datetime.strptime("2016-01-01", '%Y-%m-%d')
         
-        total = dict()
-        current_hots = dict()
+        total_hots = dict()
+        total_secs = dict()
+
+        self.current_hots = dict()
+        self.current_secs = dict()
 
         for exchg in exchanges:
-            current_hots[exchg] = dict()
+            self.current_hots[exchg] = dict()
+            self.current_secs[exchg] = dict()
         
-        change_list = dict()
+        hot_changes = dict()
+        sec_changes = dict()
         curDate = beginDate
         while curDate <= endDate:
             for exchg in exchanges:
                 alg = 1 if exchg=='CFFEX' else 0    # 中金所的换月算法和其他交易所不同
-                cfHots,current_hots = self.pick_exchg_hots(current_hots, exchg, curDate, curDate, alg=alg)
+                hotRules,secRules = self.pick_exchg_hots(exchg, curDate, curDate, alg=alg)
 
-                if len(cfHots.keys()) > 0:
-                    hasChange,total = self.merge_switch_list(total, exchg, cfHots)
+                if len(hotRules.keys()) > 0:
+                    hasChange,total_hots = self.merge_switch_list(total_hots, exchg, hotRules)
 
-                    if exchg not in change_list:
-                        change_list[exchg] = dict()
-                    change_list[exchg].update(cfHots)
+                    if exchg not in hot_changes:
+                        hot_changes[exchg] = dict()
+                    hot_changes[exchg].update(hotRules)
+
+                if len(secRules.keys()) > 0:
+                    hasChange,total_secs = self.merge_switch_list(total_secs, exchg, secRules)
+
+                    if exchg not in sec_changes:
+                        sec_changes[exchg] = dict()
+                    sec_changes[exchg].update(secRules)
 
             curDate = curDate + datetime.timedelta(days=1)
 
@@ -757,17 +828,26 @@ class WtHotPicker:
         logging.info("主力切换规则已更新")
 
         output = open(self.hot_file, 'w')
-        output.write(json.dumps(total, sort_keys=True, indent = 4))
+        output.write(json.dumps(total_hots, sort_keys=True, indent = 4))
         output.close()
 
+        if self.sec_file is not None:
+            output = open(self.sec_file, 'w')
+            output.write(json.dumps(total_secs, sort_keys=True, indent = 4))
+            output.close()
+
         output = open("hotmap.json", 'w')
-        output.write(json.dumps(current_hots, sort_keys=True, indent = 4))
+        output.write(json.dumps(self.current_hots, sort_keys=True, indent = 4))
+        output.close()
+
+        output = open("secmap.json", 'w')
+        output.write(json.dumps(self.current_secs, sort_keys=True, indent = 4))
         output.close()
 
         if self.mail_notifier is not None:
-            self.mail_notifier.notify(change_list, endDate, self.hot_file, "hotmap.json")
+            self.mail_notifier.notify(hot_changes, sec_changes, endDate, self.hot_file, "hotmap.json")
 
-        return total
+        return total_hots,total_secs
   
     def execute_increment(self, endDate:datetime.datetime = None, exchanges = ["CFFEX", "SHFE", "CZCE", "DCE", "INE"]):
         '''
@@ -783,6 +863,7 @@ class WtHotPicker:
 
         markerFile = self.marker_file
         hotFile = self.hot_file
+        secFile = self.sec_file
 
         marker = {"date":"0"}
         c = readFileContent(markerFile)
@@ -790,9 +871,16 @@ class WtHotPicker:
             marker = json.loads(c)
 
         c = readFileContent(hotFile)
-        total = dict()
+        total_hots = dict()
         if len(c) > 0:
-            total = json.loads(c)
+            total_hots = json.loads(c)
+        else:
+            marker["date"] = "0"
+
+        c = readFileContent(secFile)
+        total_secs = dict()
+        if len(c) > 0:
+            total_secs = json.loads(c)
         else:
             marker["date"] = "0"
 
@@ -805,27 +893,42 @@ class WtHotPicker:
         else:
             beginDT = datetime.datetime.strptime("2016-01-01", '%Y-%m-%d')
         
-        current_hots = dict()
+        self.current_hots = dict()
+        self.current_secs = dict()
 
-        for exchg in total:
-            if exchg not in current_hots:
-                current_hots[exchg] = dict()
+        for exchg in total_hots:
+            if exchg not in self.current_hots:
+                self.current_hots[exchg] = dict()
 
-            for pid in total[exchg]:
-                ay = total[exchg][pid]
-                current_hots[exchg][pid] = ay[-1]["to"]
+            for pid in total_hots[exchg]:
+                ay = total_hots[exchg][pid]
+                self.current_hots[exchg][pid] = ay[-1]["to"]
+
+        for exchg in total_secs:
+            if exchg not in self.current_secs:
+                self.current_secs[exchg] = dict()
+
+            for pid in total_secs[exchg]:
+                ay = total_secs[exchg][pid]
+                self.current_secs[exchg][pid] = ay[-1]["to"]
         
         bChanged = False
-        change_list = dict()
+        hot_changes = dict()
+        sec_changes = dict()
         for exchg in exchanges:
             logging.info("[%s]开始分析主力换月数据" % exchg)
             alg = 1 if exchg=='CFFEX' else 0    # 中金所的换月算法和其他交易所不同
-            cfHots,current_hots = self.pick_exchg_hots(current_hots, exchg, beginDT, endDate, alg=alg)
+            hotRules,secRules = self.pick_exchg_hots(exchg, beginDT, endDate, alg=alg)
 
-            if len(cfHots.keys()) > 0:
-                hasChange,total = self.merge_switch_list(total, exchg, cfHots)
+            if len(hotRules.keys()) > 0:
+                hasChange,total_hots = self.merge_switch_list(total_hots, exchg, hotRules)
                 bChanged  = bChanged or hasChange
-                change_list[exchg] = cfHots
+                hot_changes[exchg] = hotRules
+
+            if len(secRules.keys()) > 0:
+                hasChange,total_secs = self.merge_switch_list(total_secs, exchg, secRules)
+                bChanged  = bChanged or hasChange
+                sec_changes[exchg] = secRules
 
 
         #日期标记要保存
@@ -839,14 +942,22 @@ class WtHotPicker:
             logging.info("主力切换规则已更新")
 
             output = open(hotFile, 'w')
-            output.write(json.dumps(total, sort_keys=True, indent = 4))
+            output.write(json.dumps(total_hots, sort_keys=True, indent = 4))
+            output.close()
+
+            output = open(secFile, 'w')
+            output.write(json.dumps(total_secs, sort_keys=True, indent = 4))
             output.close()
 
             output = open("hotmap.json", 'w')
-            output.write(json.dumps(current_hots, sort_keys=True, indent = 4))
+            output.write(json.dumps(self.current_hots, sort_keys=True, indent = 4))
+            output.close()
+
+            output = open("secmap.json", 'w')
+            output.write(json.dumps(self.current_secs, sort_keys=True, indent = 4))
             output.close()
 
             if self.mail_notifier is not None:
-                self.mail_notifier.notify(change_list, endDate, hotFile, "hotmap.json")
+                self.mail_notifier.notify(hot_changes, sec_changes, endDate, hotFile, "hotmap.json")
         else:
             logging.info("主力切换规则未更新，不保存数据")
