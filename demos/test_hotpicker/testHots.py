@@ -1,3 +1,11 @@
+'''
+Descripttion: Automatically generated file comment
+version: 
+Author: Wesley
+Date: 2021-08-23 09:38:05
+LastEditors: Wesley
+LastEditTime: 2021-08-23 10:19:07
+'''
 from wtpy.apps import WtHotPicker, WtCacheMonExchg, WtCacheMonSS, WtMailNotifier
 import datetime
 import logging
@@ -24,13 +32,14 @@ def rebuild_hot_rules():
     # 从datakit落地的行情快照直接读取
     # cacher = WtCacheMonSS("./FUT_DATA/his/snapshot/")
 
-    picker = WtHotPicker(hotFile="hots.json")
+    picker = WtHotPicker(hotFile="hots.json", secFile="seconds.json")
     picker.set_cacher(cacher)
 
     sDate = datetime.datetime.strptime("2016-01-04", '%Y-%m-%d')
     eDate = datetime.datetime.strptime("2016-02-01", '%Y-%m-%d') # 可以设置为None，None则自动设置为当前日期
-    ret = picker.execute_rebuild(sDate, eDate)
-    print(ret)
+    hotRules,secRules = picker.execute_rebuild(sDate, eDate)
+    print(hotRules)
+    print(secRules)
 
 def daily_hot_rules():
     '''
@@ -42,7 +51,7 @@ def daily_hot_rules():
     # 从datakit落地的行情快照直接读取
     # cacher = WtCacheMonSS("./FUT_DATA/his/snapshot/")
 
-    picker = WtHotPicker(hotFile="hots.json")
+    picker = WtHotPicker(hotFile="hots.json", secFile="seconds.json")
     picker.set_cacher(cacher)
 
     # notifier = WtMailNotifier(user="yourmailaddr", pwd="yourmailpwd", host="smtp.exmail.qq.com", port=465, isSSL=True)
@@ -52,5 +61,5 @@ def daily_hot_rules():
     eDate = datetime.datetime.strptime("2016-03-01", '%Y-%m-%d') # 可以设置为None，None则自动设置为当前日期
     picker.execute_increment(eDate)
 
-rebuild_hot_rules()
+daily_hot_rules()
 input("press enter key to exit\n")
