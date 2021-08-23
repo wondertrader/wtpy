@@ -1,8 +1,10 @@
 
 import datetime
+import time
 import json
 import os
 import logging
+import functools
 
 import urllib.request
 import io
@@ -10,6 +12,19 @@ import gzip
 import xml.dom.minidom
 from pyquery import PyQuery as pq
 import re
+
+class DayData:
+    '''
+    每日行情数据
+    '''
+
+    def __init__(self):
+        self.pid = ''
+        self.month = 0
+        self.code = ''  # 代码
+        self.close = 0  # 今收盘(收盘价)
+        self.volume = 0  # 成交量(手)
+        self.hold = 0  # 空盘量(总持？持仓量)
 
 def extractPID(code):
     
@@ -28,18 +43,33 @@ def readFileContent(filename):
     f.close()
     return content
 
-def countWDOfMonth(curDate:datetime.datetime):
+def cmp_alg_01(left:DayData, right:DayData):
+    if left.month > right.month:
+        if left.hold > right.hold and left.volume > right.volume/3:
+            return 1
+        else:
+            return -1
+    else:
+        if left.hold <= right.hold or left.volume <= right.volume/3:
+            return -1
+        else:
+            return 1
+
+def countFridays(curDate:datetime.datetime):
     '''
-    计算本月相同星期天数
+    计算截止到当周的周五的天数
     '''
-    thisWD = curDate.weekday()
+    wd = curDate.weekday()
     checkDate = datetime.datetime(year=curDate.year, month=curDate.month, day=1)
     count = 0
-    while checkDate <= curDate:
-        if checkDate.weekday() == thisWD:
+    while checkDate < curDate:
+        if checkDate.weekday() == 4:
             count += 1
         
         checkDate += datetime.timedelta(days=1)
+
+    if wd < 4:
+        count += 1
 
     return count
 
@@ -79,19 +109,6 @@ def httpPost(url, datas, encoding='utf-8'):
     except:
         return ""
 
-class DayData:
-    '''
-    每日行情数据
-    '''
-
-    def __init__(self):
-        self.pid = ''
-        self.month = 0
-        self.code = ''  # 代码
-        self.close = 0  # 今收盘(收盘价)
-        self.volume = 0  # 成交量(手)
-        self.hold = 0  # 空盘量(总持？持仓量)
-
 class WtCacheMon:
     '''
     缓存管理器基类
@@ -104,14 +121,14 @@ class WtCacheMon:
 
 class WtCacheMonExchg(WtCacheMon):
     '''
-    交易所行情缓存器\n
-    通过到交易所官网上拉取当日的行情快照，缓存当日行情数据\n
+    交易所行情缓存器
+    通过到交易所官网上拉取当日的行情快照，缓存当日行情数据
     '''
 
     @staticmethod
     def getCffexData(curDT:datetime.datetime) -> dict:
         '''
-        读取CFFEX指定日期的行情快照\n
+        读取CFFEX指定日期的行情快照
 
         @curDT  指定的日期
         '''
@@ -134,11 +151,16 @@ class WtCacheMonExchg(WtCacheMon):
         items = {}
         days = root.getElementsByTagName("dailydata")
         for day in days:
+            pid = day.getElementsByTagName(
+                "productid")[0].firstChild.data.strip()
+
+            if pid not in ["IF","IH","IC","T",'TF']:
+                continue
+
             item = DayData()
             item.code = day.getElementsByTagName("instrumentid")[
                 0].firstChild.data.strip()
-            item.pid = day.getElementsByTagName(
-                "productid")[0].firstChild.data.strip()
+            item.pid = pid
             item.hold = float(day.getElementsByTagName(
                 "openinterest")[0].firstChild.data)
             item.close = float(day.getElementsByTagName(
@@ -154,7 +176,7 @@ class WtCacheMonExchg(WtCacheMon):
     @staticmethod
     def getShfeData(curDT:datetime.datetime) -> dict:
         '''
-        读取SHFE指定日期的行情快照\n
+        读取SHFE指定日期的行情快照
 
         @curDT  指定的日期
         '''
@@ -169,8 +191,6 @@ class WtCacheMonExchg(WtCacheMon):
         for day in root['o_curinstrument']:
             pid = day['PRODUCTID'].strip().rstrip('_f')
             dm = day['DELIVERYMONTH']
-            if pid > 'zz' or dm > '2100':
-                continue
             if len(str(day['CLOSEPRICE']).strip()) == 0:
                 continue
 
@@ -190,7 +210,7 @@ class WtCacheMonExchg(WtCacheMon):
     @staticmethod
     def getCzceData(curDT:datetime.datetime) -> dict:
         '''
-        读取CZCE指定日期的行情快照\n
+        读取CZCE指定日期的行情快照
 
         @curDT  指定的日期
         '''
@@ -254,7 +274,7 @@ class WtCacheMonExchg(WtCacheMon):
     @staticmethod
     def getDceData(curDT:datetime.datetime) -> dict:
         '''
-        读取DCE指定日期的行情快照\n
+        读取DCE指定日期的行情快照
 
         @curDT  指定的日期
         '''
@@ -278,7 +298,9 @@ class WtCacheMonExchg(WtCacheMon):
             "豆油": "y",
             "乙二醇":"eg",
             "粳米":"rr",
-            "苯乙烯":"eb"
+            "苯乙烯":"eb",
+            "液化石油气":"pg",
+            "生猪":"lh"
         }
 
         url = 'http://www.dce.com.cn/publicweb/quotesdata/dayQuotesCh.html'
@@ -330,7 +352,7 @@ class WtCacheMonExchg(WtCacheMon):
     @staticmethod
     def getIneData(curDT:datetime.datetime) -> dict:
         '''
-        读取INE指定日期的行情快照\n
+        读取INE指定日期的行情快照
 
         @curDT  指定的日期
         '''
@@ -350,8 +372,8 @@ class WtCacheMonExchg(WtCacheMon):
             item.pid = pid
             item.code = pid + dm
             item.hold = int(day['OPENINTEREST'])
-            item.close = day['CLOSEPRICE']
-            item.volume = day['VOLUME']
+            item.close = float(day['CLOSEPRICE'])
+            item.volume = int(day['VOLUME']) if day['VOLUME']!='' else 0
             item.month = item.code[len(item.pid):]
             items[item.code] = item
         return items
@@ -359,9 +381,9 @@ class WtCacheMonExchg(WtCacheMon):
 
     def cache_by_date(self, exchg:str, curDT:datetime.datetime):
         '''
-        缓存指定日期指定交易所的行数据\n
+        缓存指定日期指定交易所的行数据
 
-        @exchg  交易所代码\n
+        @exchg  交易所代码
         @curDT  指定日期
         '''
         dtStr = curDT.strftime('%Y%m%d')
@@ -385,9 +407,9 @@ class WtCacheMonExchg(WtCacheMon):
 
     def get_cache(self, exchg:str, curDT:datetime.datetime):
         '''
-        获取指定日期的某个交易所合约的快照数据\n
+        获取指定日期的某个交易所合约的快照数据
 
-        @exchg  交易所代码\n
+        @exchg  交易所代码
         @curDT  指定日期
         '''
         dtStr = curDT.strftime('%Y%m%d')
@@ -403,8 +425,8 @@ class WtCacheMonExchg(WtCacheMon):
 
 class WtCacheMonSS(WtCacheMon):
     '''
-    快照缓存管理器\n
-    通过读取wtpy的datakit当日生成的快照文件，缓存当日行情数据\n
+    快照缓存管理器
+    通过读取wtpy的datakit当日生成的快照文件，缓存当日行情数据
     一般目录为"数据存储目录/his/snapshots/xxxxxxx.csv"
     '''
 
@@ -414,7 +436,7 @@ class WtCacheMonSS(WtCacheMon):
 
     def cache_snapshot(self, curDT:datetime):
         '''
-        缓存指定日期的快照数据\n
+        缓存指定日期的快照数据
 
         @curDT  指定的日期
         '''
@@ -422,7 +444,7 @@ class WtCacheMonSS(WtCacheMon):
 
         filename = "%s%s.csv" % (self.snapshot_path, dtStr)
         content = readFileContent(filename)
-        lines = content.split("\n")
+        lines = content.split("")
 
         if dtStr not in self.day_cache:
             self.day_cache[dtStr] = dict()
@@ -457,9 +479,9 @@ class WtCacheMonSS(WtCacheMon):
 
     def get_cache(self, exchg, curDT:datetime):
         '''
-        获取指定日期的某个交易所合约的快照数据\n
+        获取指定日期的某个交易所合约的快照数据
 
-        @exchg  交易所代码\n
+        @exchg  交易所代码
         @curDT  指定日期
         '''
 
@@ -490,9 +512,9 @@ class WtMailNotifier:
 
     def add_receiver(self, name:str, addr:str):
         '''
-        添加收件人\n
+        添加收件人
 
-        @name   收件人姓名\n
+        @name   收件人姓名
         @addr   收件人邮箱地址
         '''
         self.receivers.append({
@@ -502,13 +524,13 @@ class WtMailNotifier:
 
     def notify(self, hot_changes:dict, sec_changes:dict, nextDT:datetime.datetime, hotFile:str, hotMap:str):
         '''
-        通知主力切换事件\n
+        通知主力切换事件
 
-        @hot_changes    当日主力切换的规则列表\n
-        @sec_changes    当日次主力切换的规则列表\n
-        @nextDT         生效日期\n
-        @hotFile        主力规则文件\n
-        @hotMap         主力映射文件\n
+        @hot_changes    当日主力切换的规则列表
+        @sec_changes    当日次主力切换的规则列表
+        @nextDT         生效日期
+        @hotFile        主力规则文件
+        @hotMap         主力映射文件
         '''
         dtStr = nextDT.strftime('%Y.%m.%d')
     
@@ -525,13 +547,13 @@ class WtMailNotifier:
         for exchg in hot_changes:
             for pid in hot_changes[exchg]:
                 item = hot_changes[exchg][pid][-1]
-                content +=  '品种%s.%s的主力合约已切换,下个交易日(%s)生效, %s -> %s\n' % (exchg, pid, dtStr, item["from"], item["to"])
+                content +=  '品种%s.%s的主力合约已切换,下个交易日(%s)生效, %s -> %s' % (exchg, pid, dtStr, item["from"], item["to"])
 
-        content += '\n'
+        content += ''
         for exchg in sec_changes:
             for pid in sec_changes[exchg]:
                 item = sec_changes[exchg][pid][-1]
-                content +=  '品种%s.%s的次主力合约已切换,下个交易日(%s)生效, %s -> %s\n' % (exchg, pid, dtStr, item["from"], item["to"])
+                content +=  '品种%s.%s的次主力合约已切换,下个交易日(%s)生效, %s -> %s' % (exchg, pid, dtStr, item["from"], item["to"])
 
         msg_mp = MIMEMultipart()
         msg_mp['From'] = sender  # 发送者          
@@ -602,11 +624,11 @@ class WtHotPicker:
 
     def pick_exchg_hots(self, exchg:str, beginDT:datetime.datetime, endDT:datetime.datetime, alg:int = 0):
         '''
-        确定指定市场的主力合约\n
+        确定指定市场的主力合约
 
-        @exchg          交易所代码\n
-        @beginDT        开始日期\n
-        @endDT          截止日期\n
+        @exchg          交易所代码
+        @beginDT        开始日期
+        @endDT          截止日期
         @alg            切换规则算法，0-除中金所外，按成交量确定，1-中金所，按照成交量和总持共同确定
         '''
 
@@ -635,8 +657,13 @@ class WtHotPicker:
             items = cacheMon.get_cache(exchg, curDT)
             if items is not None:
                 wd = curDT.weekday()
-                wd_cnt = countWDOfMonth(curDT)
-                month = curDT.strftime('%Y%m')[2:]
+                fri_cnt = countFridays(curDT)
+                cur_month = curDT.strftime('%Y%m')[2:]
+                next_month = int(cur_month)+1
+                if next_month % 100 == 13:
+                    next_month = str(int(cur_month[:2])+1)+"01"
+                else:
+                    next_month = str(next_month)
 
                 items_by_pid = dict()
                 for code in items:
@@ -651,19 +678,25 @@ class WtHotPicker:
                 for pid in items_by_pid:
                     ay = items_by_pid[pid]
                     if alg == 1:
-                        ay.sort(key=lambda x : x.hold) #按总持排序
+                        #ay.sort(key=functools.cmp_to_key(cmp_alg_01)) #按总持排序
+                        ay.sort(key=lambda x : x.volume) #按成交量
                     elif alg == 0:
-                        ay.sort(key=lambda x : x.volume) #按成交量排序
+                        ay.sort(key=lambda x : x.hold) #按总持
                     hot = ay[-1]
 
                     if len(ay) > 1:
                         sec = ay[-2]
                         #中金所算法，如果是当月第三个周三，并且主力合约月份小于次主力合约月份，
                         #说明没有根据数据自动换月，强制进行换月
-                        if alg == 1 and wd == 3 and wd_cnt == 3 and hot.month < sec.month and hot.month==month:
-                            hot = sec
-                            if len(ay) > 2:
-                                sec = ay[-3]
+                        if alg == 1 and wd == 2 and fri_cnt == 3 and hot.month==cur_month:
+                            for item in ay:
+                                if item.month == next_month:
+                                    hot = item
+                                    break
+
+                        #如果主力合约月份大于等于次主力合约，则次主力递延一位
+                        if hot.month >= sec.month:
+                            sec = ay[-3]
                         
                         seconds[pid] = sec.code
 
@@ -746,10 +779,10 @@ class WtHotPicker:
     
     def merge_switch_list(self, total, exchg, switch_list):
         '''
-        合并主力切换规则\n
+        合并主力切换规则
         
-        @total          已有的全部切换规则\n
-        @exchg          交易所代码\n
+        @total          已有的全部切换规则
+        @exchg          交易所代码
         @switcg_list    新的切换规则
         '''
         if exchg not in total:
@@ -769,14 +802,15 @@ class WtHotPicker:
                 bChanged = True
         return bChanged, total
 
-    def execute_rebuild(self, beginDate:datetime.datetime = None, endDate:datetime.datetime = None, exchanges = ["CFFEX", "SHFE", "CZCE", "DCE", "INE"]):
+    def execute_rebuild(self, beginDate:datetime.datetime = None, endDate:datetime.datetime = None, exchanges = ["CFFEX", "SHFE", "CZCE", "DCE", "INE"], wait=False):
         '''
-        重构全部的主力切换规则\n
-        不依赖现有数据，全部重新确定主力合约的切换规则\n
+        重构全部的主力切换规则
+        不依赖现有数据，全部重新确定主力合约的切换规则
 
-        @beginDate  开始日期\n
-        @endDate    截止日期\n
+        @beginDate  开始日期
+        @endDate    截止日期
         @exchanges  要重构的交易所列表
+        @wait       每个日期切换是否等待，等待时间1s，主要针对从交易所官网拉取，防止被拉黑名单
         '''
         if endDate is None:
             endDate = datetime.datetime.now()
@@ -798,6 +832,8 @@ class WtHotPicker:
         sec_changes = dict()
         curDate = beginDate
         while curDate <= endDate:
+            if wait:
+                time.sleep(1)
             for exchg in exchanges:
                 alg = 1 if exchg=='CFFEX' else 0    # 中金所的换月算法和其他交易所不同
                 hotRules,secRules = self.pick_exchg_hots(exchg, curDate, curDate, alg=alg)
@@ -851,10 +887,10 @@ class WtHotPicker:
   
     def execute_increment(self, endDate:datetime.datetime = None, exchanges = ["CFFEX", "SHFE", "CZCE", "DCE", "INE"]):
         '''
-        增量更新主力切换规则\n
-        会自动加载marker.json取得上次更新的日期，并读取hots.json确定当前的映射规则\n
+        增量更新主力切换规则
+        会自动加载marker.json取得上次更新的日期，并读取hots.json确定当前的映射规则
 
-        @endDate    截止日期\n
+        @endDate    截止日期
         @exchanges  要重构的交易所列表
         '''
 

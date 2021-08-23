@@ -4,13 +4,13 @@ version:
 Author: Wesley
 Date: 2021-08-23 09:38:05
 LastEditors: Wesley
-LastEditTime: 2021-08-23 10:19:07
+LastEditTime: 2021-08-23 15:06:29
 '''
 from wtpy.apps import WtHotPicker, WtCacheMonExchg, WtCacheMonSS, WtMailNotifier
 import datetime
 import logging
 
-logging.basicConfig(filename='hotsel.log', level=logging.INFO, filemode="a", 
+logging.basicConfig(filename='hotsel.log', level=logging.INFO, filemode="w", 
     format='[%(asctime)s - %(levelname)s] %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
 
@@ -35,9 +35,9 @@ def rebuild_hot_rules():
     picker = WtHotPicker(hotFile="hots.json", secFile="seconds.json")
     picker.set_cacher(cacher)
 
-    sDate = datetime.datetime.strptime("2016-01-04", '%Y-%m-%d')
-    eDate = datetime.datetime.strptime("2016-02-01", '%Y-%m-%d') # 可以设置为None，None则自动设置为当前日期
-    hotRules,secRules = picker.execute_rebuild(sDate, eDate)
+    sDate = datetime.datetime.strptime("2019-01-01", '%Y-%m-%d')
+    eDate = datetime.datetime.strptime("2021-08-21", '%Y-%m-%d') # 可以设置为None，None则自动设置为当前日期
+    hotRules,secRules = picker.execute_rebuild(sDate, eDate, wait=True)
     print(hotRules)
     print(secRules)
 
@@ -61,5 +61,5 @@ def daily_hot_rules():
     eDate = datetime.datetime.strptime("2016-03-01", '%Y-%m-%d') # 可以设置为None，None则自动设置为当前日期
     picker.execute_increment(eDate)
 
-daily_hot_rules()
+rebuild_hot_rules()
 input("press enter key to exit\n")
