@@ -143,8 +143,8 @@ class DHTushare(BaseDataHelper):
                 date = row["trade_date"]
                 factor = row["adj_factor"]
                 items.append({
-                    "date": date,
-                    "factor": factor
+                    "date": int(date),
+                    "factor": float(factor)
                 })
 
             items.reverse()
