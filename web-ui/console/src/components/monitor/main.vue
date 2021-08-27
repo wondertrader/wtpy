@@ -595,6 +595,58 @@ export default {
                             }
                         }
 
+                        if(data.type == 'chnlevt'){
+                            let obj = null;
+                            let evttype = data.evttype || "";
+
+                            let thisGrp = null;
+                            self.groups.forEach((grpInfo)=>{
+                                if(grpInfo.id == data.groupid)
+                                    thisGrp = grpInfo;
+                            });
+
+                            if(thisGrp != null){
+                                if(evttype == 'notify'){
+                                    obj = {
+                                        time:new Date(),
+                                        group: thisGrp.name,
+                                        channel: data.channel,
+                                        title:"事件通知",
+                                        type:"error",
+                                        message: "错误：{1}".format(data.channel,data.message)
+                                    };
+                                } else if(evttype == 'order'){
+                                    if(data.data.canceled){
+                                        obj = {
+                                            time:new Date(),
+                                            group: thisGrp.name,
+                                            channel: data.channel,
+                                            title:"订单回报",
+                                            type:"danger",
+                                            message: "订单已撤销，本地订单号：{1}".format(data.channel,data.data.localid)
+                                        };
+                                    }
+                                    
+                                } else if(evttype == 'trade'){
+                                    let action = (data.data.isopen?"开":"平") + (data.data.islong?"多":"空");
+
+                                    obj = {
+                                        time:new Date(),
+                                        group: thisGrp.name,
+                                        channel: data.channel,
+                                        title:"成交回报",
+                                        type:"success",
+                                        message: "操作：{1}，代码：{2}，数量：{3}，成交价：{4}，本地订单号：{5}".format(
+                                            data.channel, action, data.data.code, data.data.volume, data.data.price, data.data.localid)
+                                    };
+                                }
+
+                                if(obj != null){
+                                    self.$emit("notify", obj);
+                                }
+                            }
+                        }
+
                         if(self.curGroup == null || data.groupid != self.curGroup.id)
                             return;
 

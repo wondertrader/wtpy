@@ -223,12 +223,11 @@ export default {
                     duration: 0
                 });
             } else if(evttype == 'trade'){
-                console.log(data);
-                let action = data.data.isopen?"开":"平" + data.data.islong?"多":"空";
+                let action = (data.data.isopen?"开":"平") + (data.data.islong?"多":"空");
                 self.$notify({
                     title:"成交回报",
                     type:"success",
-                    message: "交易通道{0}{1}{2}{3}手，成交价：{4}，本地订单号：{5}".format(
+                    message: "交易通道：{0}，操作：{1}，代码：{2}，数量：{3}，成交价：{4}，本地订单号：{5}".format(
                         data.channel, action, data.data.code, data.data.volume, data.data.price, data.data.localid),
                     duration: 0
                 });
