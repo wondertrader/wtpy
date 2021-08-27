@@ -137,10 +137,10 @@
                 </el-main>
                 <el-footer class="statusbar">
                     <div style="flex:1; margin:4px;">
-                        <div class="scroller" @click="onClickScroller">
-                            <marquee v-show="lastNotify">
+                        <div class="scroller" @click="onClickScroller" v-show="lastNotify">
+                            <marquee>
                                 <i class="el-icon-news" style="padding-right:4px;"></i>
-                                <span class="time">{{scope.row.time.format("hh:mm:ss")}}</span>
+                                <span class="time">{{lastNotify?lastNotify.time.format("hh:mm:ss"):""}}</span>
                                 <span class="group">{{lastNotify?lastNotify.group:""}}</span>
                                 <span class="channel">{{lastNotify?lastNotify.channel:""}}</span>
                                 <span class="title">{{lastNotify?lastNotify.title:""}}</span>
