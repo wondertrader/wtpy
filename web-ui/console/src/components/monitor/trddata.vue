@@ -100,7 +100,7 @@
                         <el-table-column
                             prop="channel"
                             label="通道"
-                            width="100">
+                            width="120">
                         </el-table-column>
                         <el-table-column
                             prop="code"
@@ -161,7 +161,7 @@
                         <el-table-column
                             prop="channel"
                             label="通道"
-                            width="100">
+                            width="120">
                         </el-table-column>
                         <el-table-column
                             prop="code"
@@ -229,7 +229,7 @@
                         <el-table-column
                             prop="channel"
                             label="通道"
-                            width="100"
+                            width="120"
                             sortable>
                         </el-table-column>
                         <el-table-column
@@ -722,6 +722,15 @@ export default {
                         if (resObj.result < 0) {
                             this.$notify.error("查询成交出错：" + resObj.message);
                         } else {
+                            resObj.trades.forEach((item)=>{
+                                item.action = (function(act){
+                                    if(act == "OL") return "开多";
+                                    if(act == "OS") return "开空";
+                                    if(act == "CL") return "平多";
+                                    if(act == "CS") return "平空";
+                                    return act;
+                                })(item.action);
+                            });
                             self.trades = resObj.trades;
                             self.trades.reverse();
                         }
@@ -739,6 +748,16 @@ export default {
                         if (resObj.result < 0) {
                             this.$notify.error("查询订单出错：" + resObj.message);
                         } else {
+                            resObj.orders.forEach((item)=>{
+                                item.action = (function(act){
+                                    if(act == "OL") return "开多";
+                                    if(act == "OS") return "开空";
+                                    if(act == "CL") return "平多";
+                                    if(act == "CS") return "平空";
+                                    return act;
+                                })(item.action);
+                            });
+
                             self.orders = resObj.orders;
                             self.orders.reverse();
                         }
