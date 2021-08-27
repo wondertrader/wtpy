@@ -160,14 +160,12 @@ class AppInfo(EventSink):
             return
 
         if self._mq_url != '':
-            # 如果事件接收器为空或者url发生了改变，则需要重新创建
-            bNeedCreate = self._evt_receiver is None or self._evt_receiver.url != self._mq_url
-            if bNeedCreate:
-                if self._evt_receiver is not None:
-                    self._evt_receiver.release()
-                self._evt_receiver = EventReceiver(url=self._mq_url, logger=self.__logger__, sink=self)
-                self._evt_receiver.run()
-                self.__logger__.info("应用%s开始接收%s的通知信息" % (self._id, self._mq_url))
+            # 每次启动都重新创建接收器
+            if self._evt_receiver is not None:
+                self._evt_receiver.release()
+            self._evt_receiver = EventReceiver(url=self._mq_url, logger=self.__logger__, sink=self)
+            self._evt_receiver.run()
+            self.__logger__.info("应用%s开始接收%s的通知信息" % (self._id, self._mq_url))
 
         try:
             fullPath = os.path.join(self.__info__["folder"], self.__info__["param"])
