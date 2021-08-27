@@ -337,9 +337,9 @@ export default {
                         
                         let needShowAll = this.showAllChannels(this.selCat);
 
-                        if( !needShowAll && this.chnlfilter=='all')
+                        if( !needShowAll)
                             this.chnlfilter = this.channels[0];
-                        else if(needShowAll)
+                        else
                             this.chnlfilter = 'all';
 
                         setTimeout(()=>{

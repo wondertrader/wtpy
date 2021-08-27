@@ -132,11 +132,21 @@
             <el-container>
                 <el-main style="border-bottom: 2px solid #E4E7ED;">
                     <keep-alive>
-                        <router-view ref="main"></router-view>
+                        <router-view ref="main" @notify="handleNotify"></router-view>
                     </keep-alive>
                 </el-main>
                 <el-footer class="statusbar">
-                    <div style="flex:1;">
+                    <div style="flex:1; margin:4px;">
+                        <div class="scroller" @click="onClickScroller">
+                            <marquee v-show="lastNotify">
+                                <i class="el-icon-news" style="padding-right:4px;"></i>
+                                <span class="time">{{scope.row.time.format("hh:mm:ss")}}</span>
+                                <span class="group">{{lastNotify?lastNotify.group:""}}</span>
+                                <span class="channel">{{lastNotify?lastNotify.channel:""}}</span>
+                                <span class="title">{{lastNotify?lastNotify.title:""}}</span>
+                                <span class="message">{{lastNotify?lastNotify.message:""}}</span>
+                            </marquee>
+                        </div>
                     </div>
                     <div style="flex:0;margin-top:4px; min-width:150px;">
                         <i class="el-icon-connection" style="color:green;padding-right:8px;"></i><a>推送通道已连接</a>
@@ -160,6 +170,29 @@
             <span slot="footer" class="dialog-footer">
                 <el-button type="primary" @click="doModPwd()" plain>确 定</el-button>
             </span>
+        </el-dialog>
+        <el-dialog
+            title="通知列表"
+            :visible.sync="showNotifies"
+            direction="btt"
+            width="800px">
+            <div style="height:400px;overflow-y:scroll;border:solid 1px #E4E7ED;padding:4px;">
+                <el-table
+                    :data="notifies"
+                    stripe
+                    :show-header="false">
+                    <el-table-column>
+                        <template slot-scope="scope">
+                            <i class="el-icon-news" style="padding-right:4px;"></i>
+                            <span class="time">{{scope.row.time.format("hh:mm:ss")}}</span>
+                            <span class="group">{{scope.row.group}}</span>
+                            <span class="channel">{{scope.row.channel}}</span>
+                            <span class="title">{{scope.row.title}}</span>
+                            <span class="message">{{scope.row.message}}</span>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </div>
         </el-dialog>
     </div>    
 </template>
@@ -189,7 +222,10 @@ export default {
            oldpwd:'',
            newpwd:'',
            confirmpwd:'',
-           loading:false
+           loading:false,
+           notifies:[],
+           lastNotify:null,
+           showNotifies:false
         }
     },
     methods: {
@@ -236,15 +272,22 @@ export default {
                     this.loading = false;
                 },150);
             });
+        },
+        handleNotify:function(notify){
+            this.notifies.push(notify);
+            if(this.notifies.length > 100){
+                this.notifies = this.notifies.slice(this.notifies.length - 100);
+            }
+            this.lastNotify = notify;
+        },
+        onClickScroller:function(e){
+            this.showNotifies = !this.showNotifies;
         }
     },
     mounted(){
-        // console.log("mounted");
         if(!this.cache.isLogined){
             this.$router.push("/login");
-        } else {
-           
-        }
+        } 
     }
 }
 </script>
@@ -294,8 +337,50 @@ export default {
         font-size:44px;
         color: #909399;
     }
+    
     .userhead:hover{
         cursor:pointer;
         color: #F56C6C;
+    }
+
+    .group{
+        background-color: #F56C6C;
+        padding:2px 4px;
+        border:solid 1px gray;
+    }
+
+    .channel{
+        background-color: chocolate;
+        padding:2px 4px;
+        border:solid 1px gray;
+    }
+
+    .title{
+        background-color: rgb(173, 202, 122);
+        padding:2px 4px;
+        border:solid 1px gray;
+    }
+
+    .time{
+        background-color:deeppink;
+        padding:2px 4px;
+        border:solid 1px gray;
+    }
+
+
+    .message{
+        padding:2px 4px;
+    }
+
+    .scroller{
+        padding-top:5px;
+        padding-left:5px;
+    }
+
+    .scroller:hover{
+        cursor:pointer;
+        border: solid 1px #F56C6C;
+        padding-top:4px;
+        padding-left:4px;
     }
 </style>
