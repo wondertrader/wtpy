@@ -944,4 +944,60 @@ export default function () {
 				}
 			}, 'json');
 	};
+
+    //获取回测策略列表
+    self.getBtStrategies = function(cb){
+        let reqInfo = {};
+        $.post("/bt/qrystras",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
+
+    //获取回测策略代码
+    self.getBtStraCode = function(straid, cb){
+        let reqInfo = {
+            straid: straid
+        };
+        $.post("/bt/qrycode",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
+
+    //提交回测策略代码
+    self.commitBtStraCode = function(straid, content, cb){
+        let reqInfo = {
+            straid: straid,
+            content: content
+        };
+        $.post("/bt/setcode",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
 };

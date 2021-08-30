@@ -4,7 +4,7 @@
  * @Author: Wesley
  * @Date: 2021-08-04 09:09:35
  * @LastEditors: Wesley
- * @LastEditTime: 2021-08-20 14:12:38
+ * @LastEditTime: 2021-08-30 16:32:32
  */
 'use strict'
 // Template version: 1.3.1
@@ -18,7 +18,7 @@ module.exports = {
         // Paths
         assetsSubDirectory: 'static',
         assetsPublicPath: '/',
-        proxyTable_local: {
+        proxyTable: {
             '/':{
                 target:'http://127.0.0.1:8099'
             },
@@ -26,7 +26,7 @@ module.exports = {
                 target:'http://127.0.0.1:8099'
             }
         },
-        proxyTable: {
+        proxyTable_remote: {
             '/':{
                 target:'http://console.wonderwiz.cn:8099'
             },
