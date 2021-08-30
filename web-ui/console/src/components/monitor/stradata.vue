@@ -57,7 +57,7 @@
                         <el-table-column
                             prop="strategy"
                             label="策略"
-                            width="120"
+                            width="140"
                             sortable>
                         </el-table-column>
                         <el-table-column
@@ -129,7 +129,7 @@
                         <el-table-column
                             prop="strategy"
                             label="策略"
-                            width="120">
+                            width="140">
                         </el-table-column>
                         <el-table-column
                             prop="code"
@@ -181,7 +181,7 @@
                         <el-table-column
                             prop="strategy"
                             label="策略"
-                            width="120">
+                            width="140">
                         </el-table-column>
                         <el-table-column
                             prop="code"
@@ -229,7 +229,7 @@
                         <el-table-column
                             prop="strategy"
                             label="策略"
-                            width="120">
+                            width="140">
                         </el-table-column>
                         <el-table-column
                             prop="code"
@@ -307,7 +307,7 @@
                                 <el-table-column
                                     prop="strategy"
                                     label="策略"
-                                    width="120">
+                                    width="140">
                                 </el-table-column>
                                 <el-table-column
                                     label="日期"

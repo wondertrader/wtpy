@@ -139,11 +139,11 @@
                     <div style="flex:1; margin:4px;">
                         <div class="scroller" @click="onClickScroller" v-show="lastNotify">
                             <marquee>
-                                <i class="el-icon-news" style="padding-right:4px;"></i>
+                                <i :class="getIconStyle(lastNotify?lastNotify.title:'')" style="padding-right:4px;"></i>
                                 <span class="time">{{lastNotify?lastNotify.time.format("hh:mm:ss"):""}}</span>
                                 <span class="group">{{lastNotify?lastNotify.group:""}}</span>
                                 <span class="channel">{{lastNotify?lastNotify.channel:""}}</span>
-                                <span class="title">{{lastNotify?lastNotify.title:""}}</span>
+                                <span :class="getTitleStyle(lastNotify?lastNotify.title:'')">{{lastNotify?lastNotify.title:""}}</span>
                                 <span class="message">{{lastNotify?lastNotify.message:""}}</span>
                             </marquee>
                         </div>
@@ -183,11 +183,11 @@
                     :show-header="false">
                     <el-table-column>
                         <template slot-scope="scope">
-                            <i class="el-icon-news" style="padding-right:4px;"></i>
+                            <i :class="getIconStyle(scope.row.title)" style="padding-right:4px;"></i>
                             <span class="time">{{scope.row.time.format("hh:mm:ss")}}</span>
                             <span class="group">{{scope.row.group}}</span>
                             <span class="channel">{{scope.row.channel}}</span>
-                            <span class="title">{{scope.row.title}}</span>
+                            <span :class="getTitleStyle(scope.row.title)">{{scope.row.title}}</span>
                             <span class="message">{{scope.row.message}}</span>
                         </template>
                     </el-table-column>
@@ -282,6 +282,20 @@ export default {
         },
         onClickScroller:function(e){
             this.showNotifies = !this.showNotifies;
+        },
+        getTitleStyle: function(title){
+            if(title == '成交回报'){
+                return 'title-success';
+            } else {
+                return 'title-warning';
+            }
+        },
+        getIconStyle: function(title){
+            if(title == '成交回报'){
+                return 'el-icon-news';
+            } else {
+                return 'el-icon-warning-outline';
+            }
         }
     },
     mounted(){
@@ -344,32 +358,41 @@ export default {
     }
 
     .group{
-        background-color: #F56C6C;
+        background-color: #A3B8E3;
         padding:2px 4px;
-        border:solid 1px gray;
+        color: #2A3A57;
+        border-radius: 2px;
     }
 
     .channel{
-        background-color: chocolate;
+        background-color: #C2DBFF;
         padding:2px 4px;
-        border:solid 1px gray;
+        color: #2A3A57;
+        border-radius: 2px;
     }
 
-    .title{
-        background-color: rgb(173, 202, 122);
+    .title-success{
+        background-color: #9EE379;
         padding:2px 4px;
-        border:solid 1px gray;
+        color: #2A3A57;
+        border-radius: 2px;
+    }
+
+    .title-warning{
+        background-color: #FFD16E;
+        padding:2px 4px;
+        color: #2A3A57;
+        border-radius: 2px;
     }
 
     .time{
-        background-color:deeppink;
+        color: #5E93FC;
         padding:2px 4px;
-        border:solid 1px gray;
     }
-
 
     .message{
         padding:2px 4px;
+        color:#707070;
     }
 
     .scroller{
