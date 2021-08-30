@@ -326,7 +326,57 @@ class WtMonSvr(WatcherSink):
 
         @app.route("/bt/setcode", methods=["POST"])
         def set_stra_code():
-            pass
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, userInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(userInfo)
+
+            user = userInfo["loginid"]
+            role = userInfo["role"]
+            if role not in ['researcher','superman']:
+                ret = {
+                    "result":-1,
+                    "message":"没有权限"
+                }
+                return pack_rsp(ret)
+
+            straid = get_param(json_data, "straid")
+            content = get_param(json_data, "content")
+            if len(content) == 0 or len(straid) == 0:
+                ret = {
+                    "result":-2,
+                    "message":"策略ID和代码不能为空"
+                }
+                return pack_rsp(ret)
+
+            if self.__bt_mon__ is None:
+                ret = {
+                    "result":-1,
+                    "message":"回测管理器未配置"
+                }
+            else:
+                if not self.__bt_mon__.has_strategy(user, straid):
+                    ret = {
+                        "result":-2,
+                        "message":"策略不存在"
+                    }
+                else:
+                    ret = self.__bt_mon__.set_strategy_code(user, straid, content)
+                    if ret:
+                        ret = {
+                            "result":0,
+                            "message":"OK"
+                        }
+                    else:
+                        ret = {
+                            "result":-3,
+                            "message":"保存策略代码失败"
+                        }
+
+            return pack_rsp(ret)
 
         @app.route("/bt/addstra", methods=["POST"])
         def cmd_add_stra():
@@ -347,15 +397,89 @@ class WtMonSvr(WatcherSink):
                 }
                 return pack_rsp(ret)
 
+            name = get_param(json_data, "name")
+            if len(name) == 0:
+                ret = {
+                    "result":-2,
+                    "message":"策略名称不能为空"
+                }
+                return pack_rsp(ret)
+
+            if self.__bt_mon__ is None:
+                ret = {
+                    "result":-3,
+                    "message":"回测管理器未配置"
+                }
+                return pack_rsp(ret)
+
+            straInfo = self.__bt_mon__.add_strategy(user, name)
+            if straInfo is None:
+                ret = {
+                    "result":-4,
+                    "message":"策略添加失败"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"OK",
+                    "strategy": straInfo
+                }
+
+            return pack_rsp(ret)
+
+        @app.route("/bt/delstra", methods=["POST"])
+        def cmd_del_stra():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, userInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(userInfo)
+
+            user = userInfo["loginid"]
+            role = userInfo["role"]
+            if role not in ['researcher','superman']:
+                ret = {
+                    "result":-1,
+                    "message":"没有权限"
+                }
+                return pack_rsp(ret)
+
+            straid = get_param(json_data, "straid")
+            content = get_param(json_data, "content")
+            if len(content) == 0 or len(straid) == 0:
+                ret = {
+                    "result":-2,
+                    "message":"策略ID和代码不能为空"
+                }
+                return pack_rsp(ret)
+
             if self.__bt_mon__ is None:
                 ret = {
                     "result":-1,
                     "message":"回测管理器未配置"
                 }
+            else:
+                if not self.__bt_mon__.has_strategy(user, straid):
+                    ret = {
+                        "result":-2,
+                        "message":"策略不存在"
+                    }
+                else:
+                    ret = self.__bt_mon__.set_strategy_code(user, straid, content)
+                    if ret:
+                        ret = {
+                            "result":0,
+                            "message":"OK"
+                        }
+                    else:
+                        ret = {
+                            "result":-3,
+                            "message":"保存策略代码失败"
+                        }
 
-        @app.route("/bt/delstra", methods=["POST"])
-        def cmd_del_stra():
-            pass
+            return pack_rsp(ret)
 
     def init_mgr_apis(self, app:Flask):
 

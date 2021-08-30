@@ -4,7 +4,7 @@ version:
 Author: Wesley
 Date: 2021-08-11 14:03:33
 LastEditors: Wesley
-LastEditTime: 2021-08-20 17:34:53
+LastEditTime: 2021-08-30 17:01:16
 '''
 import os
 import json
@@ -195,6 +195,17 @@ class WtBtMon:
     def del_strategy(self, user:str, straid:str):
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
+
+        if strid not in self.user_stras[user]:
+            return True
+
+        folder = os.path.join(self.path, straid)
+        if not os.path.exists(folder):
+            return True
+
+        delFolder = os.path.join(self.path, "./del/")
+        shutil.move(folder, defFolder)
+        return True
     
     def has_strategy(self, user:str, straid:str, btid:str = None) -> bool:
         if user not in self.user_bts:
