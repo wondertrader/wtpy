@@ -4,7 +4,7 @@ version:
 Author: Wesley
 Date: 2021-08-11 14:03:33
 LastEditors: Wesley
-LastEditTime: 2021-08-30 17:01:16
+LastEditTime: 2021-08-31 17:30:51
 '''
 import os
 import json
@@ -15,6 +15,7 @@ import psutil
 import hashlib
 import datetime
 import shutil
+import json
 
 from wtpy import WtDtServo
 from .WtLogger import WtLogger
@@ -27,15 +28,15 @@ def isWindows():
     return False
 
 def md5_str(v:str) -> str:
-    return hashlib.md5(v.encode()).digest()
+    return hashlib.md5(v.encode()).hexdigest()
 
 def gen_btid(user:str, strid:str) -> str:
-    now = datetime.datetime()
+    now = datetime.datetime.now()
     s = user + "_" + straid + "_" + str(now.timestamp())
     return md5_str(s)
 
 def gen_straid(user:str) -> str:
-    now = datetime.datetime()
+    now = datetime.datetime.now()
     s = user + "_" + str(now.timestamp())
     return md5_str(s)
 
@@ -142,12 +143,34 @@ class WtBtMon:
         self.user_bts[user] = obj["backtests"]
         return True
 
+    def __save_user_data__(self, user):
+        folder = os.path.join(self.path, user)
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+
+        obj = {
+            "strategies":[],
+            "backtests":[]
+        }
+
+        if user in self.user_stras:
+            obj["strategies"] = self.user_stras[user]
+
+        if user in self.user_bts:
+            obj["backtests"] = self.user_bts[user]
+
+        filepath = os.path.join(folder, "marker.json")
+        f = open(filepath, "w")
+        f.write(json.dumps(obj, indent=4, ensure_ascii=False))
+        f.close()
+        return True
+
     def get_strategies(self, user:str) -> list:
         if user not in self.user_stras:
             bSucc = self.__load_user_data__(user)
         
-        if not bSucc:
-            return None
+            if not bSucc:
+                return None
 
         '''
         {
@@ -170,11 +193,14 @@ class WtBtMon:
 
     def add_strategy(self, user:str, name:str) -> dict:
         if user not in self.user_stras:
+            self.__load_user_data__(user)
+
+        if user not in self.user_stras:
             self.user_stras[user] = dict()
 
         straid = gen_straid(user)
-        self.user_stras[user][strid] = {
-            "id":strid,
+        self.user_stras[user][straid] = {
+            "id":straid,
             "name":name,
             "perform":{
                 "return":0,
@@ -182,37 +208,46 @@ class WtBtMon:
             }
         }
 
-        folder = os.path.join(self.path, straid)
+        folder = os.path.join(self.path, user, straid)
         if not os.path.exists(folder):
             os.mkdir(folder)
 
-        fname = os.path.join(folder, "runBT.py")
-        srcfname = os.path.join(self.path, "template/runBT.py")
+        fname = os.path.join(folder, "MyStrategy.py")
+        srcfname = os.path.join(self.path, "template/MyStrategy.py")
         shutil.copyfile(srcfname, fname)
 
-        return self.user_stras[user][strid]
+        self.__save_user_data__(user)
+
+        return self.user_stras[user][straid]
 
     def del_strategy(self, user:str, straid:str):
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if strid not in self.user_stras[user]:
+            if not bSucc:
+                return False
+
+        if straid not in self.user_stras[user]:
             return True
 
-        folder = os.path.join(self.path, straid)
+        folder = os.path.join(self.path, user, straid)
         if not os.path.exists(folder):
             return True
 
-        delFolder = os.path.join(self.path, "./del/")
-        shutil.move(folder, defFolder)
+        delFolder = os.path.join(self.path, user, ".del")
+        if not os.path.exists(delFolder):
+            os.mkdir(delFolder)
+        shutil.move(folder, delFolder)
+        self.user_stras[user].pop(straid)
+        self.__save_user_data__(user)
         return True
     
     def has_strategy(self, user:str, straid:str, btid:str = None) -> bool:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return False
+            if not bSucc:
+                return False
 
         if btid is None:
             return straid in self.user_stras[user]
@@ -223,15 +258,15 @@ class WtBtMon:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return None
+            if not bSucc:
+                return None
 
         if btid is None:
-            path = os.path.join(self.path, straid + "/runBT.py")
+            path = os.path.join(self.path, user, straid, "MyStrategy.py")
             if not os.path.exists(path):
                 return None
 
-            f = open(path, "r")
+            f = open(path, "r", encoding="UTF-8")
             content = f.read()
             f.close()
             return content
@@ -250,10 +285,10 @@ class WtBtMon:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return False
+            if not bSucc:
+                return False
 
-        path = os.path.join(self.path, straid + "/runBT.py")
+        path = os.path.join(self.path, user, straid, "MyStrategy.py")
         if not os.path.exists(path):
             return None
 
@@ -263,25 +298,22 @@ class WtBtMon:
         return True
 
     def get_backtests(self, user:str, straid:str) -> list:
-        bSucc = False
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return None
+            if not bSucc:
+                return None
 
         if straid not in self.user_bts:
             return None
 
         '''
         {
-            "49ba59abbe56e057":
             {
                 "id":"49ba59abbe56e057",
-                "code":"CFFEX.IC.HOT",
-                "period":"m5",
                 "stime":202107010930,
                 "etime":202108151500,
+                "capital":500000,
                 "progress":100.0
             }
         }
@@ -296,8 +328,8 @@ class WtBtMon:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return None
+            if not bSucc:
+                return None
 
         thisBts = self.user_bts[user]
         if btid not in thisBts:
@@ -338,8 +370,8 @@ class WtBtMon:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return None
+            if not bSucc:
+                return None
 
         thisBts = self.user_bts[user]
         if btid not in thisBts:
@@ -382,13 +414,12 @@ class WtBtMon:
         
         return items
 
-
     def get_bt_rounds(self, user:str, straid:str, btid:str) -> list:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return None
+            if not bSucc:
+                return None
 
         thisBts = self.user_bts[user]
         if btid not in thisBts:
@@ -431,8 +462,8 @@ class WtBtMon:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return None
+            if not bSucc:
+                return None
 
         thisBts = self.user_bts[user]
         if btid not in thisBts:
@@ -470,8 +501,8 @@ class WtBtMon:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return None
+            if not bSucc:
+                return None
 
         thisBts = self.user_bts[user]
         if btid not in thisBts:
@@ -493,8 +524,8 @@ class WtBtMon:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return None
+            if not bSucc:
+                return None
 
         thisBts = self.user_bts[user]
         if btid not in thisBts:
@@ -518,8 +549,8 @@ class WtBtMon:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return None
+            if not bSucc:
+                return None
 
         thisBts = self.user_bts[user]
         if btid not in thisBts:
@@ -534,8 +565,8 @@ class WtBtMon:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
 
-        if not bSucc:
-            return None
+            if not bSucc:
+                return None
         
         btState = self.get_bt_state(user, straid, btid)
         if btState is None:
@@ -569,7 +600,13 @@ class WtBtMon:
 
         return thisBts[btid]["kline"]
 
-    def run_backtest(self, user:str, straid:str) -> str:
+    def run_backtest(self, user:str, straid:str, fromTime:int, endTime:int, capital:float) -> str:
+        if user not in self.user_bts:
+            self.__load_user_data__(user)
+
+        if user not in self.user_bts:
+            self.user_bts[user] = dict()
+            
         btid = gen_btid(user, strid)
 
         # 生成回测目录
@@ -578,8 +615,8 @@ class WtBtMon:
         os.mkdir(folder)
 
         # 将策略文件复制到该目录下
-        old_path = os.path.join(self.path, "%s/%s/runBT.py" % (user, straid))
-        new_path = os.path.join(self.path, "%s/%s/backtests/%s/runBT.py" % (user, straid, btid))
+        old_path = os.path.join(self.path, user, straid, "MyStrategy.py")
+        new_path = os.path.join(self.path, "%s/%s/backtests/%s/MyStrategy.py" % (user, straid, btid))
         shutil.copyfile(old_path, new_path)
 
         # 初始化目录下的配置文件
@@ -595,8 +632,33 @@ class WtBtMon:
         new_path = os.path.join(self.path, "%s/%s/backtests/%s/fees.json" % (user, straid, btid))
         shutil.copyfile(old_path, new_path)
 
+        old_path = os.path.join(self.path, "template/runBT.py")
+        new_path = os.path.join(self.path, "%s/%s/backtests/%s/runBT.py" % (user, straid, btid))
+
+        f = open(old_path, "r")
+        content = f.read()
+        f.close()
+        content = content.replace("$FROMTIME$", str(fromTime))
+        content = content.replace("$ENDTIME$", str(endTime))
+        content = content.replace("$STRAID$", straid)
+        content = content.replace("$CAPITAL$", str(capital))
+
+        f = open(new_path, "w")
+        f.write(content)
+        f.close()
+
+        self.user_bts[user][btid] = {
+            "id":btid,
+            "stime":fromTime,
+            "etime":endTime,
+            "capital":capital,
+            "progress":100.0
+        }
+
+        self.__save_user_data__(user)
+
         # 添加
         task = WtBtTask(user, straid, btid, folder, self.logger)
         task.run()
-        return True
+        return btid
     

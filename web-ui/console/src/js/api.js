@@ -962,6 +962,42 @@ export default function () {
 			}, 'json');
     };
 
+    self.addBtStrategy = function(name, cb){
+        let reqInfo = {
+            name: name
+        };
+        $.post("/bt/addstra",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
+
+    self.delBtStrategy = function(straid, cb){
+        let reqInfo = {
+            straid:straid
+        };
+        $.post("/bt/delstra",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
+
     //获取回测策略代码
     self.getBtStraCode = function(straid, cb){
         let reqInfo = {
@@ -986,6 +1022,25 @@ export default function () {
         let reqInfo = {
             straid: straid,
             content: content
+        };
+        $.post("/bt/setcode",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
+
+    //提交回测策略代码
+    self.getBacktests = function(straid, cb){
+        let reqInfo = {
+            straid: straid
         };
         $.post("/bt/setcode",
 			JSON.stringify(reqInfo),

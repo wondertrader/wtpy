@@ -255,6 +255,7 @@ class WtMonSvr(WatcherSink):
 
     def init_bt_apis(self, app:Flask):
         
+        # 拉取用户策略列表
         @app.route("/bt/qrystras", methods=["POST"])
         def qry_my_stras():
             bSucc, json_data = parse_data()
@@ -282,6 +283,7 @@ class WtMonSvr(WatcherSink):
 
             return pack_rsp(ret)
 
+        # 拉取策略代码
         @app.route("/bt/qrycode", methods=["POST"])
         def qry_stra_code():
             bSucc, json_data = parse_data()
@@ -323,7 +325,7 @@ class WtMonSvr(WatcherSink):
 
             return pack_rsp(ret)
 
-
+        # 提交策略代码
         @app.route("/bt/setcode", methods=["POST"])
         def set_stra_code():
             bSucc, json_data = parse_data()
@@ -378,6 +380,7 @@ class WtMonSvr(WatcherSink):
 
             return pack_rsp(ret)
 
+        # 添加用户策略
         @app.route("/bt/addstra", methods=["POST"])
         def cmd_add_stra():
             bSucc, json_data = parse_data()
@@ -427,6 +430,7 @@ class WtMonSvr(WatcherSink):
 
             return pack_rsp(ret)
 
+        # 删除用户策略
         @app.route("/bt/delstra", methods=["POST"])
         def cmd_del_stra():
             bSucc, json_data = parse_data()
@@ -447,11 +451,10 @@ class WtMonSvr(WatcherSink):
                 return pack_rsp(ret)
 
             straid = get_param(json_data, "straid")
-            content = get_param(json_data, "content")
-            if len(content) == 0 or len(straid) == 0:
+            if len(straid) == 0:
                 ret = {
                     "result":-2,
-                    "message":"策略ID和代码不能为空"
+                    "message":"策略ID不能为空"
                 }
                 return pack_rsp(ret)
 
@@ -467,7 +470,7 @@ class WtMonSvr(WatcherSink):
                         "message":"策略不存在"
                     }
                 else:
-                    ret = self.__bt_mon__.set_strategy_code(user, straid, content)
+                    ret = self.__bt_mon__.del_strategy(user, straid)
                     if ret:
                         ret = {
                             "result":0,
@@ -478,6 +481,102 @@ class WtMonSvr(WatcherSink):
                             "result":-3,
                             "message":"保存策略代码失败"
                         }
+
+            return pack_rsp(ret)
+
+        # 获取策略回测列表
+        @app.route("/bt/qrystrabts", methods=["POST"])
+        def qry_stra_bts():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, userInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(userInfo)
+
+            user = userInfo["loginid"]
+            role = userInfo["role"]
+            if role not in ['researcher','superman']:
+                ret = {
+                    "result":-1,
+                    "message":"没有权限"
+                }
+                return pack_rsp(ret)
+
+            straid = get_param(json_data, "straid")
+            if len(straid) == 0:
+                ret = {
+                    "result":-2,
+                    "message":"策略ID不能为空"
+                }
+                return pack_rsp(ret)
+
+            if self.__bt_mon__ is None:
+                ret = {
+                    "result":-1,
+                    "message":"回测管理器未配置"
+                }
+            else:
+                if not self.__bt_mon__.has_strategy(user, straid):
+                    ret = {
+                        "result":-2,
+                        "message":"策略不存在"
+                    }
+                else:
+                    ret = {
+                        "result":0,
+                        "message":"OK",
+                        "backtests":self.__bt_mon__.get_backtests(user, straid)
+                    }
+
+            return pack_rsp(ret)
+
+        # 启动策略回测
+        @app.route("/bt/runstrabts", methods=["POST"])
+        def cmd_run_stra_bt():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, userInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(userInfo)
+
+            user = userInfo["loginid"]
+            role = userInfo["role"]
+            if role not in ['researcher','superman']:
+                ret = {
+                    "result":-1,
+                    "message":"没有权限"
+                }
+                return pack_rsp(ret)
+
+            straid = get_param(json_data, "straid")
+            if len(straid) == 0:
+                ret = {
+                    "result":-2,
+                    "message":"策略ID不能为空"
+                }
+                return pack_rsp(ret)
+
+            if self.__bt_mon__ is None:
+                ret = {
+                    "result":-1,
+                    "message":"回测管理器未配置"
+                }
+            else:
+                if not self.__bt_mon__.has_strategy(user, straid):
+                    ret = {
+                        "result":-2,
+                        "message":"策略不存在"
+                    }
+                else:
+                    ret = {
+                        "result":0,
+                        "message":"OK",
+                        "backtests":self.__bt_mon__.get_backtests(user, straid)
+                    }
 
             return pack_rsp(ret)
 
