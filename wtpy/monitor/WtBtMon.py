@@ -4,7 +4,7 @@ version:
 Author: Wesley
 Date: 2021-08-11 14:03:33
 LastEditors: Wesley
-LastEditTime: 2021-08-31 17:30:51
+LastEditTime: 2021-09-01 17:43:21
 '''
 import os
 import json
@@ -125,6 +125,11 @@ class WtBtMon:
         self.logger = logger
         self.dt_servo = dtServo
 
+        self.task_infos = dict()
+        self.task_map = dict()
+
+        self.__load_tasks__()
+
     def __load_user_data__(self, user:str):
         folder = os.path.join(self.path, user)
         if not os.path.exists(folder):
@@ -149,8 +154,8 @@ class WtBtMon:
             os.mkdir(folder)
 
         obj = {
-            "strategies":[],
-            "backtests":[]
+            "strategies":{},
+            "backtests":{}
         }
 
         if user in self.user_stras:
@@ -622,7 +627,14 @@ class WtBtMon:
         # 初始化目录下的配置文件
         old_path = os.path.join(self.path, "template/configbt.json")
         new_path = os.path.join(self.path, "%s/%s/backtests/%s/configbt.json" % (user, straid, btid))
-        shutil.copyfile(old_path, new_path)
+        f = open(old_path, "r")
+        content = f.read()
+        f.close()
+        content = content.replace("$BTID$", btid)
+
+        f = open(new_path, "w")
+        f.write(content)
+        f.close()
 
         old_path = os.path.join(self.path, "template/logcfgbt.json")
         new_path = os.path.join(self.path, "%s/%s/backtests/%s/logcfgbt.json" % (user, straid, btid))
@@ -640,25 +652,92 @@ class WtBtMon:
         f.close()
         content = content.replace("$FROMTIME$", str(fromTime))
         content = content.replace("$ENDTIME$", str(endTime))
-        content = content.replace("$STRAID$", straid)
+        content = content.replace("$STRAID$", btid)
         content = content.replace("$CAPITAL$", str(capital))
 
         f = open(new_path, "w")
         f.write(content)
         f.close()
 
-        self.user_bts[user][btid] = {
+        btInfo = {
             "id":btid,
             "stime":fromTime,
             "etime":endTime,
             "capital":capital,
-            "progress":100.0
+            "progress":100.0,
+            "runtime":datetime.datetime.now().strftime("%Y.%m.%d %H:%M:%S"),
+            "fintime":"-",
+            "perform":{
+                "return":0,
+                "ar":0,
+                "days":0,
+                "mdd":0,
+                "sharpe":0,
+                "calmar":0
+            }
         }
+
+        self.user_bts[user][btid] = btInfo
 
         self.__save_user_data__(user)
 
         # 添加
-        task = WtBtTask(user, straid, btid, folder, self.logger)
-        task.run()
+        btTask = WtBtTask(user, straid, btid, folder, self.logger)
+        btTask.run()
+
+        self.task_map[btid] = btTask
+
+        # 这里还需要记录一下回测的任务，不然如果重启就恢复不了了
+        taskInfo = {
+            "user":user,
+            "straid":straid,
+            "btid":btid,
+            "folder":folder
+        }
+        self.task_infos[btid]= taskInfo
+        self.__save_tasks__()
+
         return btid
+
+    def __update_bt_result__(self, user, straid, btid):
+        if user not in self.user_bts:
+            self.__load_user_data__(user)
+
+        if user not in self.user_bts:
+            self.user_bts[user] = dict()
+    
+    def __save_tasks__(self):
+        obj = self.task_infos
+
+        filename = os.path.join(self.path, "tasks.json")
+        f = open(filename, "w")
+        f.write(json.dumps(obj))
+        f.close()
+
+    def __load_tasks__(self):
+        filename = os.path.join(self.path, "tasks.json")
+        if not os.path.exists(filname):
+            return
+
+        f = open(filename, "r")
+        content = f.read()
+        f.close()
+
+        task_infos = json.loads(content)
+        pids = psutil.pids()
+        for btid in task_infos:
+            tInfo = task_infos[btid].copy()
+            tInfo["logger"] = self.logger
+            btTask = WtBtTask(**tInfo)
+
+            if btTask.is_running(pids):
+                self.task_map[btid] = btTask
+                self.task_infos[btid] = task_infos[btid]
+                self.logger.info("回测任务%s已恢复")
+            else:
+                # 之前记录过测回测任务，执行完成了，要更新回测数据
+                self.__update_bt_result__(tInfo["user"], tInfo["straid"], btid)
+
+
+
     
