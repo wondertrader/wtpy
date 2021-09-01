@@ -6,6 +6,7 @@ from collections import Counter
 from datetime import datetime
 
 import math
+import json
 from xlsxwriter import Workbook
 
 
@@ -1412,8 +1413,8 @@ class WtBtAnalyst:
             annual_days = sInfo["atd"]
             rf = sInfo["rf"]
             
-            filename = 'generated_bt/%s/summary.json' % (sname)
-            sumObj = funds_analyze(workbook, df_funds, capital=init_capital, rf=rf, period=annual_days)
+            filename = folder + 'summary.json'
+            sumObj = summary_analyze(df_funds, capital=init_capital, rf=rf, period=annual_days)
             f = open(filename,"w")
-            f.write(sumObj.dumps())
+            f.write(json.dumps(sumObj))
             f.close()
