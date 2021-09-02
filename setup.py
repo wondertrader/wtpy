@@ -22,7 +22,7 @@ VERSION = '0.6.5'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'numpy', 'pandas', 'xlsxwriter', 'flask', 'flask_socketio'
+    'numpy', 'pandas', 'xlsxwriter', 'flask', 'flask_socketio', 'pyquery', 'flask-compress'
 ]
 
 # What packages are optional?
