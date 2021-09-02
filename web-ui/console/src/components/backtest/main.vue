@@ -60,35 +60,38 @@
                     </div>
                     <div style="flex:1 0;overflow:auto;margin:4px;">
                         <div style="height:100%;display:flex;flex-direction:column;" v-show="selData=='editor'">
-                            <div style="flex:2;display:flex;flex-direction:column;">
-                                <div style="flex:0;">
-                                    <span style="color:gray;">快捷操作：</span>
-                                    <el-tooltip placement="top">
-                                        <div slot="content">提交代码</div>
-                                        <i class="el-icon-upload2 toolbar" @click="onClickCommit()"/>
-                                    </el-tooltip>
-                                    <el-tooltip placement="top">
-                                        <div slot="content">放弃修改</div>
-                                        <i class="el-icon-refresh-left toolbar" @click="onClickCancel()"/>
-                                    </el-tooltip>
-                                    <el-tooltip placement="top">
-                                        <div slot="content">启动回测</div>
-                                        <i class="el-icon-video-play toolbar"/>
-                                    </el-tooltip>
-                                    <span style="color:gray;float:right;">当前策略:{{curStra?curStra.name:""}}</span>
-                                </div>
-                                <div style="flex:1 1;overflow:auto;border:1px solid #DCDFE6;border-radius:2px;">
-                                    <div style="height:100%">
-                                        <codemirror
-                                            ref="mycode"
-                                            v-model="content"
-                                            :options="cmOptions"
-                                            style="height:100% !important;">
-                                        </codemirror>
+                            <div style="flex:2;width:100%;overflow:auto;">
+                                <div style="height:100%;display:flex;flex-direction:column;">
+                                    <div style="flex:0;">
+                                        <span style="color:gray;">快捷操作：</span>
+                                        <el-tooltip placement="top">
+                                            <div slot="content">提交代码</div>
+                                            <i class="el-icon-upload2 toolbar" @click="onClickCommit()"/>
+                                        </el-tooltip>
+                                        <el-tooltip placement="top">
+                                            <div slot="content">放弃修改</div>
+                                            <i class="el-icon-refresh-left toolbar" @click="onClickCancel()"/>
+                                        </el-tooltip>
+                                        <el-tooltip placement="top">
+                                            <div slot="content">启动回测</div>
+                                            <i class="el-icon-video-play toolbar" @click="showBTCfg=true;"/>
+                                        </el-tooltip>
+                                        <span style="color:gray;float:right;">当前策略:{{curStra?curStra.name:""}}</span>
+                                    </div>
+                                    <div style="flex:1;overflow:auto;margin:20px;border:1px solid #DCDFE6;border-radius:2px;">
+                                        <div style="height:100%;">
+                                            <div style="height:100%;">
+                                                <codemirror
+                                                    ref="mycode"
+                                                    v-model="content"
+                                                    :options="cmOptions"
+                                                    style="height:100% !important;">
+                                                </codemirror>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="divider"></div>
                             <div style="flex:1;">
                                 <el-table
                                     border
@@ -169,6 +172,72 @@
                 </div>
             </div>
         </div>
+        <el-dialog
+            title="回测配置"
+            :visible.sync="showBTCfg"
+            width="300px">
+            <el-row style="margin:8px 0;">
+                <el-col :span="8">
+                    <span>开始时间：</span>
+                </el-col>
+                <el-col :span="16">
+                    <el-date-picker
+                        size="mini"
+                        v-model="btConfig.startTime"
+                        type="date"
+                        format="yyyy-MM-dd"
+                        placeholder="选择开始时间"
+                        style="width:100%;">
+                    </el-date-picker>
+                </el-col>
+            </el-row>
+            <el-row style="margin:8px 0;">
+                <el-col :span="8">
+                    <span>结束时间：</span>
+                </el-col>
+                <el-col :span="16">
+                    <el-date-picker
+                        size="mini"
+                        v-model="btConfig.endTime"
+                        type="date"
+                        format="yyyy-MM-dd"
+                        placeholder="选择结束时间"
+                        style="width:100%;">
+                    </el-date-picker>
+                </el-col>
+            </el-row>
+            <el-row style="margin:8px 0;">
+                <el-col :span="8">
+                    <span>初始资金：</span>
+                </el-col>
+                <el-col :span="16">
+                    <el-input-number 
+                        size="mini"
+                        v-model="btConfig.capital" 
+                        :min="100000" :max="2000000" 
+                        :step="10000" label="初始资金"
+                        style="width:100%;">
+                    </el-input-number>
+                </el-col>
+            </el-row>
+            <el-row style="margin:8px 0;">
+                <el-col :span="8">
+                    <span>价格滑点：</span>
+                </el-col>
+                <el-col :span="16">
+                     <el-input-number 
+                        size="mini"
+                        v-model="btConfig.slippage" 
+                        :min="1" :max="20" 
+                        label="价格滑点"
+                        style="width:100%;">
+                    </el-input-number>
+                </el-col>
+            </el-row>
+            <span slot="footer" class="dialog-footer">
+                <el-button type="danger" size="mini" plain>启动</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
@@ -216,9 +285,19 @@ export default {
     },
     data() {
         return {
+            btConfig:{
+                startTime:new Date().addDays(-92),
+                endTime:new Date(),
+                capital:500000,
+                slippage:0
+            },
+            pickerOption:{
+                format:"yyyy-MM-dd HH:mm"
+            },
             selData:"editor",
             strategies:[],
             strasOnWay:false,
+            showBTCfg: false,
             curStra:null,
             curBT:null,
             backtests:[{
@@ -384,7 +463,6 @@ export default {
                 this.refreshStras();
             },300);
         });
-
     },
 };
 </script>
