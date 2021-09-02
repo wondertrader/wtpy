@@ -4,7 +4,7 @@ version:
 Author: Wesley
 Date: 2021-08-11 14:03:33
 LastEditors: Wesley
-LastEditTime: 2021-09-01 17:43:21
+LastEditTime: 2021-09-02 14:18:50
 '''
 import os
 import json
@@ -297,7 +297,7 @@ class WtBtMon:
         if not os.path.exists(path):
             return None
 
-        f = open(path, "w")
+        f = open(path, "w", encoding="UTF-8")
         f.write(content)
         f.close()
         return True
@@ -716,7 +716,7 @@ class WtBtMon:
 
     def __load_tasks__(self):
         filename = os.path.join(self.path, "tasks.json")
-        if not os.path.exists(filname):
+        if not os.path.exists(filename):
             return
 
         f = open(filename, "r")
