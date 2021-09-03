@@ -228,14 +228,14 @@
                      <el-input-number 
                         size="mini"
                         v-model="btConfig.slippage" 
-                        :min="1" :max="20" 
+                        :min="0" :max="20" 
                         label="价格滑点"
                         style="width:100%;">
                     </el-input-number>
                 </el-col>
             </el-row>
             <span slot="footer" class="dialog-footer">
-                <el-button type="danger" size="mini" plain>启动</el-button>
+                <el-button type="danger" size="mini" @click="onRunBacktest" plain>启动</el-button>
             </span>
         </el-dialog>
     </div>
@@ -351,6 +351,33 @@ export default {
                         this.strategies.push(resObj.strategy)
                     }
                 })
+            }).catch(() => {
+                        
+            });
+        },
+        onRunBacktest: function(e){
+            this.$confirm('确定要启动回测任务吗', '启动回测', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消'
+            }).then(() => {
+                let straid = this.curStra.id;
+                let stime = this.btConfig.startTime.format("yyyyMMdd");
+                let etime = this.btConfig.endTime.format("yyyyMMdd");
+                let capital = this.btConfig.capital;
+                let slippage = this.btConfig.slippage;
+
+                this.$api.runBacktest(straid, stime, etime, capital, slippage, (resObj)=>{
+                    if(resObj.result < 0){
+                        this.$message.error("回测任务启动失败:" + resObj.message);
+                    } else {
+                        this.$message({
+                            message:"回测任务启动成功",
+                            type:"success"
+                        });
+                        this.backtests.push(resObj.backtest);
+                    }
+                    this.showBTCfg = false;
+                });
             }).catch(() => {
                         
             });
