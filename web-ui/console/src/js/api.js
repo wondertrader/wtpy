@@ -1055,4 +1055,32 @@ export default function () {
 				}
 			}, 'json');
     };
+
+    //提交回测策略代码
+    self.runBacktest = function(straid, sdate, edate, capital, slippage, cb){
+        if(typeof(slippage) == 'function'){
+            cb = slippage;
+            slippage = 0;
+        }
+
+        let reqInfo = {
+            straid: straid,
+            stime: sdate,
+            etime: edate,
+            capital: capital,
+            slippage: slippage
+        };
+        $.post("/bt/runstrabt",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
 };
