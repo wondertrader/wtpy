@@ -533,7 +533,7 @@ class WtMonSvr(WatcherSink):
             return pack_rsp(ret)
 
         # 启动策略回测
-        @app.route("/bt/runstrabts", methods=["POST"])
+        @app.route("/bt/runstrabt", methods=["POST"])
         def cmd_run_stra_bt():
             bSucc, json_data = parse_data()
             if not bSucc:
@@ -552,13 +552,25 @@ class WtMonSvr(WatcherSink):
                 }
                 return pack_rsp(ret)
 
+            curDt = int(datetime.datetime.now().strftime("%Y%m%d"))
+
             straid = get_param(json_data, "straid")
+            fromtime = get_param(json_data, "stime", int, defVal=curDt)
+            endtime = get_param(json_data, "etime", int, defVal=curDt)
+            capital = get_param(json_data, "capital", float, defVal=500000)
+            slippage = get_param(json_data, "slippage", int, defVal=0)
             if len(straid) == 0:
                 ret = {
                     "result":-2,
                     "message":"策略ID不能为空"
                 }
                 return pack_rsp(ret)
+
+            if fromtime > endtime:
+                fromtime,endtime = endtime,fromtime
+
+            fromtime = fromtime*10000 + 900
+            endtime = endtime*10000 + 1515
 
             if self.__bt_mon__ is None:
                 ret = {
@@ -572,10 +584,11 @@ class WtMonSvr(WatcherSink):
                         "message":"策略不存在"
                     }
                 else:
+                    btInfo = self.__bt_mon__.run_backtest(user,straid,fromtime,endtime,capital,slippage)
                     ret = {
                         "result":0,
                         "message":"OK",
-                        "backtests":self.__bt_mon__.get_backtests(user, straid)
+                        "backtest": btInfo
                     }
 
             return pack_rsp(ret)
