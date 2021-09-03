@@ -28,16 +28,6 @@ class EventSink:
     def on_log(self, tag:str, time:int, message:str):
         pass
 
-class BtEventSink:
-    def __init__(self):
-        pass
-    
-    def on_notify(self, chnl:str, message:str):
-        pass
-
-    def on_log(self, tag:str, time:int, message:str):
-        pass
-
 def decode_bytes(data:bytes):
     ret = chardet.detect(data)
     if ret is not None:
@@ -89,6 +79,26 @@ class EventReceiver(WtMQClient):
     def release(self):
         mq.destroy_mq_client(self)
 
+TOPIC_BT_EVENT  = "BT_EVENT"    # 回测环境下的事件，主要通知回测的启动和结束
+TOPIC_BT_PROG   = "BT_STATE"    # 回测的状态
+TOPIC_BT_FUND   = "BT_FUND"     # 每日资金变化
+
+class BtEventSink:
+    def __init__(self):
+        pass
+    
+    def on_begin(self):
+        pass
+    
+    def on_finish(self):
+        pass
+
+    def on_fund(self, fundInfo:dict):
+        pass
+
+    def on_state(self, statInfo:float):
+        pass
+
 class BtEventReceiver(WtMQClient):
 
     def __init__(self, url:str, topics:list = [], sink:BtEventSink = None, logger = None):
@@ -106,24 +116,17 @@ class BtEventReceiver(WtMQClient):
         topic = decode_bytes(topic)
         message = decode_bytes(message[:dataLen])
         if self._sink is not None:
-            if topic == TOPIC_RT_TRADE:
+            if topic == TOPIC_BT_EVENT:
+                if message == 'BT_START':
+                    self._sink.on_begin()
+                else:
+                    self._sink.on_finish()
+            elif topic == TOPIC_BT_STATE:
                 msgObj = json.loads(message)
-                trader = msgObj["trader"]
-                msgObj.pop("trader")
-                self._sink.on_trade(trader, trader)
-            elif topic == TOPIC_RT_ORDER:
+                self._sink.on_state(msgObj)
+            elif topic == TOPIC_RT_FUND:
                 msgObj = json.loads(message)
-                trader = msgObj["trader"]
-                msgObj.pop("trader")
-                self._sink.on_order(trader, trader)
-            elif topic == TOPIC_RT_TRADE:
-                msgObj = json.loads(message)
-                trader = msgObj["trader"]
-                msgObj.pop("trader")
-                self._sink.on_notify(trader, msgObj)
-            elif topic == TOPIC_RT_LOG:
-                msgObj = json.loads(message)
-                self._sink.on_log(msgObj["tag"], msgObj["time"], msgObj["message"])
+                self._sink.on_fund(msgObj)
 
     def run(self):
         self.start()

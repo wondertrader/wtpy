@@ -30,7 +30,7 @@ def isWindows():
 def md5_str(v:str) -> str:
     return hashlib.md5(v.encode()).hexdigest()
 
-def gen_btid(user:str, strid:str) -> str:
+def gen_btid(user:str, straid:str) -> str:
     now = datetime.datetime.now()
     s = user + "_" + straid + "_" + str(now.timestamp())
     return md5_str(s)
@@ -40,28 +40,47 @@ def gen_straid(user:str) -> str:
     s = user + "_" + str(now.timestamp())
     return md5_str(s)
 
+class BtTaskSink:
+
+    def __init__(self):
+        pass
+
+    def on_start(self, user:str, straid:str, btid:str):
+        pass
+
+    def on_stop(self, user:str, straid:str, btid:str):
+        pass
+
+    def on_state(self, user:str, straid:str, btid:str, statInfo:dict):
+        pass
+
+    def on_fund(self, user:str, straid:str, btid:str, fundInfo:dict):
+        pass
+
 class WtBtTask(BtEventSink):
     '''
     回测任务类
     '''
-    def __init__(self, user:str, straid:str, btid:str, folder:str, logger:WtLogger = None):
+    def __init__(self, user:str, straid:str, btid:str, folder:str, logger:WtLogger = None, sink:BtTaskSink = None):
         self.user = user
         self.straid = straid
         self.btid = btid
         self.logger = logger
         self.folder = folder
+        self.sink = sink
         
         self._cmd_line = None
         self._mq_url = "ipc:///wtpy/bt_%s.ipc" % (btid)
         self._ticks = 0
         self._state = 0
         self._procid = None
-        self._evt_receiver = BtEventReceiver(url=self._mq_url, logger=self.logger)
+        self._evt_receiver = None
 
     def run(self):
         if self._state != 0:
             return
 
+        self._evt_receiver = BtEventReceiver(url=self._mq_url, logger=self.logger)
         self._evt_receiver.run()
         self.logger.info("回测%s开始接收%s的通知信息" % (self.btid, self._mq_url))
 
@@ -105,6 +124,7 @@ class WtBtTask(BtEventSink):
                         self.logger.info("回测%s挂载成功，进程ID: %d" % (self.btid, self._procid))
 
                         if self._mq_url != '':
+                            self._evt_receiver = BtEventReceiver(url=self._mq_url, logger=self.logger)
                             self._evt_receiver.run()
                             self.logger.info("回测%s开始接收%s的通知信息" % (self.btid, self._mq_url))
                 except:
@@ -113,8 +133,24 @@ class WtBtTask(BtEventSink):
 
         return True
 
+    def on_begin(self):
+        if self.sink is not None:
+            self.sink.on_start(self.user, self.straid, self.btid)
 
-class WtBtMon:
+    def on_finish(self):
+        if self.sink is not None:
+            self.sink.on_stop(self.user, self.straid, self.btid)
+
+    def on_state(self, statInfo:dict):
+        if self.sink is not None:
+            self.sink.on_state(self.user, self.straid, self.btid, statInfo)
+
+    def on_fund(self, fundInfo:dict):
+        if self.sink is not None:
+            self.sink.on_fund(self.user, self.straid, self.btid, fundInfo)
+
+
+class WtBtMon(BtTaskSink):
     '''
     回测管理器
     '''
@@ -525,6 +561,29 @@ class WtBtMon:
         obj = json.loads(content)
         return obj
 
+    def get_bt_state(self, user:str, straid:str, btid:str) -> list:
+        if user not in self.user_bts:
+            bSucc = self.__load_user_data__(user)
+
+            if not bSucc:
+                return None
+
+        thisBts = self.user_bts[user]
+        if btid not in thisBts:
+            return None
+
+        filename = "%s/%s/backtests/%s/outputs_bt/%s/btenv.json" % (user, straid, btid, btid)
+        filename = os.path.join(self.path, filename)
+        if not os.path.exists(filename):
+            return None
+
+        f = open(filename, "r")
+        content = f.read()
+        f.close()
+
+        obj = json.loads(content)
+        return obj
+
     def get_bt_state(self, user:str, straid:str, btid:str) -> dict:
         if user not in self.user_bts:
             bSucc = self.__load_user_data__(user)
@@ -605,68 +664,76 @@ class WtBtMon:
 
         return thisBts[btid]["kline"]
 
-    def run_backtest(self, user:str, straid:str, fromTime:int, endTime:int, capital:float) -> str:
+    def run_backtest(self, user:str, straid:str, fromTime:int, endTime:int, capital:float, slippage:int=0) -> dict:
         if user not in self.user_bts:
             self.__load_user_data__(user)
 
         if user not in self.user_bts:
             self.user_bts[user] = dict()
             
-        btid = gen_btid(user, strid)
+        btid = gen_btid(user, straid)
 
         # 生成回测目录
-        folder = "%s/%s/backtests/%s/" % (user, straid, btid)
-        folder = os.path.join(self.path, filename)
+        folder = os.path.join(self.path, user, straid, "backtests")
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+        
+        folder = os.path.join(folder, btid)
         os.mkdir(folder)
 
         # 将策略文件复制到该目录下
         old_path = os.path.join(self.path, user, straid, "MyStrategy.py")
-        new_path = os.path.join(self.path, "%s/%s/backtests/%s/MyStrategy.py" % (user, straid, btid))
+        new_path = os.path.join(folder, "MyStrategy.py")
         shutil.copyfile(old_path, new_path)
 
         # 初始化目录下的配置文件
         old_path = os.path.join(self.path, "template/configbt.json")
-        new_path = os.path.join(self.path, "%s/%s/backtests/%s/configbt.json" % (user, straid, btid))
-        f = open(old_path, "r")
+        new_path = os.path.join(folder, "configbt.json")
+        f = open(old_path, "r", encoding="UTF-8")
         content = f.read()
         f.close()
         content = content.replace("$BTID$", btid)
 
-        f = open(new_path, "w")
+        f = open(new_path, "w", encoding="UTF-8")
         f.write(content)
         f.close()
 
         old_path = os.path.join(self.path, "template/logcfgbt.json")
-        new_path = os.path.join(self.path, "%s/%s/backtests/%s/logcfgbt.json" % (user, straid, btid))
+        new_path = os.path.join(folder, "logcfgbt.json")
         shutil.copyfile(old_path, new_path)
 
         old_path = os.path.join(self.path, "template/fees.json")
-        new_path = os.path.join(self.path, "%s/%s/backtests/%s/fees.json" % (user, straid, btid))
+        new_path = os.path.join(folder, "fees.json")
         shutil.copyfile(old_path, new_path)
 
         old_path = os.path.join(self.path, "template/runBT.py")
-        new_path = os.path.join(self.path, "%s/%s/backtests/%s/runBT.py" % (user, straid, btid))
+        new_path = os.path.join(folder, "runBT.py")
 
-        f = open(old_path, "r")
+        f = open(old_path, "r", encoding="UTF-8")
         content = f.read()
         f.close()
         content = content.replace("$FROMTIME$", str(fromTime))
         content = content.replace("$ENDTIME$", str(endTime))
         content = content.replace("$STRAID$", btid)
         content = content.replace("$CAPITAL$", str(capital))
+        content = content.replace("$SLIPPAGE$", str(slippage))
 
-        f = open(new_path, "w")
+        f = open(new_path, "w", encoding="UTF-8")
         f.write(content)
         f.close()
 
         btInfo = {
             "id":btid,
-            "stime":fromTime,
-            "etime":endTime,
             "capital":capital,
-            "progress":100.0,
             "runtime":datetime.datetime.now().strftime("%Y.%m.%d %H:%M:%S"),
-            "fintime":"-",
+            "state":{
+                "code": "",
+                "period": "",
+                "stime": fromTime,
+                "etime": endTime,
+                "progress": 0,
+                "elapse": 0
+            },
             "perform":{
                 "return":0,
                 "ar":0,
@@ -682,7 +749,7 @@ class WtBtMon:
         self.__save_user_data__(user)
 
         # 添加
-        btTask = WtBtTask(user, straid, btid, folder, self.logger)
+        btTask = WtBtTask(user, straid, btid, folder, self.logger, sink=self)
         btTask.run()
 
         self.task_map[btid] = btTask
@@ -697,21 +764,31 @@ class WtBtMon:
         self.task_infos[btid]= taskInfo
         self.__save_tasks__()
 
-        return btid
+        return btInfo
 
-    def __update_bt_result__(self, user, straid, btid):
+    def __update_bt_result__(self, user:str, straid:str, btid:str):
         if user not in self.user_bts:
             self.__load_user_data__(user)
 
         if user not in self.user_bts:
             self.user_bts[user] = dict()
+
+        # 更新回测状态
+        stateObj = self.get_bt_state(user, straid, btid)
+        self.user_bts[user][btid]["state"] = stateObj
+
+        # 更新回测结果摘要
+        summaryObj = self.get_bt_summary(user, straid, btid)
+        self.user_bts[user][btid]["perform"] = summaryObj
+
+        self.__save_user_data__(user)
     
     def __save_tasks__(self):
         obj = self.task_infos
 
         filename = os.path.join(self.path, "tasks.json")
         f = open(filename, "w")
-        f.write(json.dumps(obj))
+        f.write(json.dumps(obj, indent=4))
         f.close()
 
     def __load_tasks__(self):
@@ -737,7 +814,19 @@ class WtBtMon:
             else:
                 # 之前记录过测回测任务，执行完成了，要更新回测数据
                 self.__update_bt_result__(tInfo["user"], tInfo["straid"], btid)
+        
+        self.__save_tasks__()
+            
 
 
+    def on_start(self, user:str, straid:str, btid:str):
+        pass
 
-    
+    def on_stop(self, user:str, straid:str, btid:str):
+        pass
+
+    def on_state(self, user:str, straid:str, btid:str, statInfo:dict):
+        self.user_bts[user][btid]["sdate"] = statInfo
+
+    def on_fund(self, user:str, straid:str, btid:str, fundInfo:dict):
+        pass
