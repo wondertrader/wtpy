@@ -251,14 +251,23 @@ class WtBtEngine:
     def get_context(self, id:int):
         return self.__context__
 
-    def run_backtest(self):
+    def run_backtest(self, bAsync:bool = False):
         '''
-        运行框架\n
+        运行框架
+
+        @bAsync 是否异步运行，默认为false
         '''
         if not self.__cfg_commited__:   #如果配置没有提交，则自动提交一下
             self.commitBTConfig()
 
-        self.__wrapper__.run_backtest(True)
+        self.__wrapper__.run_backtest(bNeedDump = True, bAsync = bAsync)
+
+
+    def stop_backtest(self):
+        '''
+        手动停止回测
+        '''
+        self.__wrapper__.stop_backtest()
 
     def release_backtest(self):
         '''

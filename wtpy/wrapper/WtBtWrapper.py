@@ -446,8 +446,11 @@ class WtBtWrapper:
         self.api.enable_tick(bEnabled)
 
     ### 实盘和回测有差异 ###
-    def run_backtest(self, bNeedDump:bool = False):
-        self.api.run_backtest(bNeedDump)
+    def run_backtest(self, bNeedDump:bool = False, bAsync:bool = False):
+        self.api.run_backtest(bNeedDump, bAsync)
+
+    def stop_backtest(self):
+        self.api.stop_backtest()
 
     def release_backtest(self):
         self.api.release_backtest()
