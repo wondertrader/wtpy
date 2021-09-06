@@ -228,6 +228,7 @@ EVENT_ENGINE_INIT	= 1     #框架初始化
 EVENT_SESSION_BEGIN = 2     #交易日开始
 EVENT_SESSION_END	= 3     #交易日结束
 EVENT_ENGINE_SCHDL	= 4     #框架调度
+EVENT_BACKTEST_END  = 5     #回测结束
 
 CHNL_EVENT_READY	= 1000  #通道就绪事件
 CHNL_EVENT_LOST		= 1001  #通道断开事件

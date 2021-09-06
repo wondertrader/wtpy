@@ -86,6 +86,8 @@ class WtBtWrapper:
             engine.on_session_begin(evtDate)
         elif evtid == EVENT_SESSION_END:
             engine.on_session_end(evtDate)
+        elif evtid == EVENT_BACKTEST_END:
+            engine.on_backtest_end()
         return
 
     def on_stra_init(self, id:int):
@@ -449,6 +451,9 @@ class WtBtWrapper:
 
     def release_backtest(self):
         self.api.release_backtest()
+
+    def clear_cache(self):
+        self.api.clear_cache()
 
     def config_backtest(self, cfgfile:str = 'config.json', isFile:bool = True):
         self.api.config_backtest(bytes(cfgfile, encoding = "utf8"), isFile)
