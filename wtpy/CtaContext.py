@@ -59,6 +59,12 @@ class CtaContext:
         '''
         self.__stra_info__.on_session_end(self, curTDate)
 
+    def on_backtest_end(self):
+        '''
+        回测结束事件
+        '''
+        self.__stra_info__.on_backtest_end(self)
+
     def on_getticks(self, stdCode:str, newTicks:list, isLast:bool):
         key = stdCode
 

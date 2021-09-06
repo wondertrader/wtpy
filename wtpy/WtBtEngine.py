@@ -266,14 +266,6 @@ class WtBtEngine:
         '''
         self.__wrapper__.release_backtest()
 
-    def dump_kline(self, code:str, period:str, filename:str):
-        '''
-        将K线导出到文件\n
-        @code   合约代码，格式如SHFE.rb.HOT\n
-        @period 周期，一般使用d/m1/m5
-        '''
-        self.__wrapper__.dump_kline(code, period, filename)
-
     def on_init(self):
         return
 
@@ -285,3 +277,12 @@ class WtBtEngine:
 
     def on_session_end(self, date:int):
         return
+
+    def on_backtest_end(self):
+        self.__context__.on_backtest_end()
+
+    def clear_cache(self):
+        '''
+        清除缓存的数据，即加已经加载到内存中的数据全部清除
+        '''
+        self.__wrapper__.clear_cache()
