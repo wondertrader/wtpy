@@ -99,6 +99,23 @@ export default {
             }
         }
     },
+    watch:{
+        groupinfo(newGrp, oldVal){
+            let self = this;
+
+            if(newGrp == null)
+                return;
+
+            if(oldVal != null && newGrp.id == oldVal.id)
+                return;
+
+            //只有手动模式的组合才需要请求日志数据
+            self.logScroll = (newGrp.datmod == 'auto');
+            setTimeout(()=>{
+                this.queryLogs(true);
+            }, 300);
+        }
+    },
     data () {
         return {
             selData: "sdata",
@@ -231,23 +248,6 @@ export default {
                         data.channel, action, data.data.code, data.data.volume, data.data.price, data.data.localid)
                 });
             }
-        }
-    },
-    watch:{
-        groupinfo(newGrp, oldVal){
-            let self = this;
-
-            if(newGrp == null)
-                return;
-
-            if(oldVal != null && newGrp.id == oldVal.id)
-                return;
-
-            //只有手动模式的组合才需要请求日志数据
-            self.logScroll = (newGrp.datmod == 'auto');
-            setTimeout(()=>{
-                this.queryLogs(true);
-            }, 300);
         }
     },
     mounted() {

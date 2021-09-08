@@ -16,7 +16,7 @@
                 </el-tab-pane>
             </el-tabs>
         </div>
-        <div style="flex: 1; margin:4px;">
+        <div style="flex: 1;overflow:auto;">
             <div style="height:100%;overflow:auto;display:flex;flex-direction:column;" v-show="selCat=='kline'">
                 <div id="bt_kline" style="height:100%;" >
                     <p>这里绘制K线和信号列表</p>
@@ -26,7 +26,7 @@
                 <div style="flex:0 30%;">
                     <p>这里是策略绩效指标</p>
                 </div>
-                <div style="flex:1;">
+                <div style="flex:1 1;">
                     <div id="bt_fund" style="height:100%;" >
                         <p>这里绘制每日收益曲线</p>
                     </div>
@@ -38,11 +38,6 @@
                     stripe
                     :data="signals"
                     class="table">
-                    <el-table-column
-                        prop="strategy"
-                        label="策略"
-                        width="120">
-                    </el-table-column>
                     <el-table-column
                         prop="code"
                         label="品种"
@@ -85,11 +80,6 @@
                     stripe
                     :data="rounds"
                     class="table">
-                    <el-table-column
-                        prop="strategy"
-                        label="策略"
-                        width="120">
-                    </el-table-column>
                     <el-table-column
                         prop="code"
                         label="品种"
@@ -162,11 +152,6 @@
                     :data="funds"
                     class="table">
                     <el-table-column
-                        prop="strategy"
-                        label="策略"
-                        width="120">
-                    </el-table-column>
-                    <el-table-column
                         label="日期"
                         width="120">
                         <template slot-scope="scope">
@@ -210,11 +195,6 @@
                     :summary-method="getTrdSum"
                     show-summary
                     class="table">
-                    <el-table-column
-                        prop="strategy"
-                        label="策略"
-                        width="120">
-                    </el-table-column>
                     <el-table-column
                         prop="code"
                         label="品种"
@@ -262,6 +242,38 @@
 
 export default {
     name: "BTComp",
+    props:{
+        btInfo:{
+            type: Object,
+            default() {
+                return null;
+            }
+        },
+        straInfo:{
+            type: Object,
+            default() {
+                return null;
+            }
+        }
+    },
+    watch:{
+        btInfo(newVal, oldVal){
+            let self = this;
+
+            if(newVal == null)
+                return;
+
+            if(oldVal != null && newVal.id == oldVal.id)
+                return;
+
+            setTimeout(()=>{
+                self.queryTrades();
+                self.queryRounds();
+                self.queryFunds();
+                self.querySignals();
+            }, 300);
+        }
+    },
     data() {
         return {
             loading:{
@@ -285,6 +297,80 @@ export default {
                 return;
 
             this.selCat = tab.name;
+        },
+        querySignals: function(){
+            let straid = this.straInfo.id;
+            let btid = this.btInfo.id;
+            this.loading.signal = true;
+            this.$api.getBtSignals(straid, btid, (resObj)=>{
+                if (resObj.result < 0) {
+                    this.$notify.error("查询信号出错：" + resObj.message);
+                } else {
+                    this.signals = resObj.signals;
+                    this.signals.reverse();
+                }
+
+                this.loading.signal = false;
+            });
+        },
+        queryTrades: function(){
+            let straid = this.straInfo.id;
+            let btid = this.btInfo.id;
+            this.loading.trade = true;
+            this.$api.getBtTrades(straid, btid, (resObj)=>{
+                if (resObj.result < 0) {
+                    this.$notify.error("查询成交出错：" + resObj.message);
+                } else {
+                    resObj.trades.forEach((tItem)=>{
+                        let action = "";
+                        if(tItem.offset == "OPEN")
+                            action += "开";
+                        else 
+                            action += "平";
+
+                        if(tItem.direction == "LONG")
+                            action += "多";
+                        else 
+                            action += "空";
+
+                        tItem.action = action;
+                    });
+                    this.trades = resObj.trades;
+                    this.trades.reverse();
+                }
+
+                this.loading.trade = false;
+            }); 
+        },
+        queryRounds: function(){
+            let straid = this.straInfo.id;
+            let btid = this.btInfo.id;
+            this.loading.round = false;
+            this.$api.getBtRounds(straid, btid, (resObj)=>{
+                if (resObj.result < 0) {
+                    this.$notify.error("查询回合出错：" + resObj.message);
+                } else {
+                    this.rounds = resObj.rounds;
+                    this.rounds.reverse();
+                }
+
+                this.loading.round = false;
+            });
+        },
+        queryFunds: function(){
+            let straid = this.straInfo.id;
+            let btid = this.btInfo.id;
+            this.loading.fund = true;
+            this.$api.getBtFunds(straid, btid, (resObj)=>{
+                if (resObj.result < 0) {
+                    this.$notify.error("查询绩效出错：" + resObj.message);
+                } else {
+                    this.funds = resObj.funds;                            
+                    this.funds.reverse();
+                    this.paintTrend();
+                }
+                this.loading.fund = false;
+            });
         },
         getTrdSum: function(param){
             const { columns, data } = param;
@@ -784,7 +870,7 @@ export default {
             let dates = [],
                 prices = [];
             
-            let baseamt = parseInt(self.capital);
+            let baseamt = parseInt(self.btInfo.capital);
             for(let idx = self.funds.length-1; idx >= 0; idx--) {
                 let item = self.funds[idx];
                 dates.push(item.date);
@@ -813,14 +899,8 @@ export default {
         }
     },
     mounted() {
-        this.$nextTick(()=>{
-            setTimeout(()=>{
-                this.paintChart();
-                this.paintTrend();
-            },300);
-        });
-
         window.onresize = function(){
+            let self = this;
             if (!self.zooming) {
                 self.zooming = true
                 setTimeout(function () {
