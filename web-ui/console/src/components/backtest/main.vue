@@ -36,11 +36,11 @@
                                 <el-row  class="stra-line">
                                     <el-col :span="12">
                                         <span class="stra-label">年化：</span>
-                                        <span class="stra-return">{{item.perform.return.toFixed(2)}}%</span>
+                                        <span class="stra-return">{{item.perform.annual_return.toFixed(2)}}%</span>
                                     </el-col>
                                     <el-col :span="12">
                                         <span class="stra-label">最大回撤：</span>
-                                        <span class="stra-mdd">{{item.perform.mdd.toFixed(2)}}%</span>
+                                        <span class="stra-mdd">{{item.perform.max_falldown.toFixed(2)}}%</span>
                                     </el-col>
                                 </el-row>
                             </div>
@@ -50,7 +50,7 @@
             </div>
             <div style="height:100%;border-left: 1px solid #E4E7ED;flex: 1 0;">
                 <div style="height:100%;display:flex;flex-direction:column;">
-                    <div style="flex:0 0 44px;margin:2px 4px 0px 4px;">
+                    <div style="flex:0 44px;margin:2px 4px 0px 4px;">
                         <el-tabs :value="selData" type="card" style="height:100%;" @tab-click="handleClickTab">
                             <el-tab-pane label="策略查看" name="editor">
                             </el-tab-pane>
@@ -58,7 +58,7 @@
                             </el-tab-pane>
                         </el-tabs>
                     </div>
-                    <div style="flex:1 0;overflow:auto;margin:4px;">
+                    <div style="flex:1;overflow:auto;margin:4px;">
                         <div style="height:100%;display:flex;flex-direction:column;" v-show="selData=='editor'">
                             <div style="flex:2;width:100%;overflow:auto;">
                                 <div style="height:100%;display:flex;flex-direction:column;">
@@ -99,74 +99,90 @@
                                     :data="backtests"
                                     class="table">
                                     <el-table-column
-                                        prop="time"
+                                        prop="runtime"
                                         label="回测时间"
                                         width="150">
                                     </el-table-column>
                                     <el-table-column
-                                        prop="stime"
                                         label="开始时间"
-                                        width="130">
+                                        width="140">
+                                        <template slot-scope="scope">
+                                            <span>{{fmtTime(scope.row.state.stime)}}</span>
+                                        </template>
                                     </el-table-column>
                                     <el-table-column
-                                        prop="etime"
                                         label="结束时间"
-                                        width="130">
+                                        width="140">
+                                        <template slot-scope="scope">
+                                            <span>{{fmtTime(scope.row.state.etime)}}</span>
+                                        </template>
                                     </el-table-column>
                                     <el-table-column
-                                        prop="return"
                                         label="累计收益率%"
                                         width="110">
+                                        <template slot-scope="scope">
+                                            <span>{{scope.row.perform.total_return.toFixed(2)}}</span>
+                                        </template>
                                     </el-table-column>
                                     <el-table-column
-                                        prop="ar"
                                         label="年化收益率%"
                                         width="110">
+                                        <template slot-scope="scope">
+                                            <span>{{scope.row.perform.annual_return.toFixed(2)}}</span>
+                                        </template>
                                     </el-table-column>
                                     <el-table-column
-                                        prop="mdd"
                                         label="最大回撤%"
                                         width="90">
+                                        <template slot-scope="scope">
+                                            <span>{{scope.row.perform.max_falldown.toFixed(2)}}</span>
+                                        </template>
                                     </el-table-column>
                                     <el-table-column
-                                        prop="sharpe"
                                         label="夏普率"
                                         width="72">
+                                        <template slot-scope="scope">
+                                            <span>{{scope.row.perform.sharpe_ratio.toFixed(2)}}</span>
+                                        </template>
                                     </el-table-column>
                                     <el-table-column
-                                        prop="calma"
                                         label="卡尔玛比率"
                                         width="100">
+                                        <template slot-scope="scope">
+                                            <span>{{scope.row.perform.calmar_ratio.toFixed(2)}}</span>
+                                        </template>
                                     </el-table-column>
                                     <el-table-column
                                         label="回测进度">
                                          <template slot-scope="scope">
-                                            <el-progress :percentage="scope.row.progress" color="#409eff"></el-progress>
+                                            <el-progress :percentage="scope.row.state.progress" color="#409eff"></el-progress>
                                         </template>
                                     </el-table-column>
                                     <el-table-column
-                                        prop="elapse"
                                         label="耗时s"
                                         width="60">
+                                        <template slot-scope="scope">
+                                            <span>{{(scope.row.state.elapse/1000000000).toFixed(2)}}</span>
+                                        </template>
                                     </el-table-column>
                                     <el-table-column
                                         label="操作"
                                         width="60">
-                                        <template>
+                                        <template slot-scope="scope">
                                             <el-tooltip placement="top">
                                                 <div slot="content">删除该回测记录</div>
-                                                <i class="el-icon-delete btopt-btn"></i>
+                                                <i class="el-icon-delete btopt-btn" @click="onDelBacktest(scope.row)"></i>
                                             </el-tooltip>
                                             <el-tooltip placement="top">
                                                 <div slot="content">查看回测详情</div>
-                                                <i class="el-icon-view btopt-btn"></i>
+                                                <i class="el-icon-view btopt-btn" @click="onViewBacktest(scope.row)"></i>
                                             </el-tooltip>
                                         </template>
                                     </el-table-column>
                                 </el-table>
                             </div>
                         </div>
-                        <BTComp style="height:100%;" v-show="selData=='backtest'">
+                        <BTComp style="height:100%;" v-show="selData=='backtest'" :btInfo="curBT" :straInfo="curStra">
                         </BTComp>
                     </div>
                 </div>
@@ -300,18 +316,7 @@ export default {
             showBTCfg: false,
             curStra:null,
             curBT:null,
-            backtests:[{
-                time:"2021.08.12 17:03:45",
-                stime:"2021.07.01 09:00",
-                etime:"2021.08.12 15:00",
-                return:9.46,
-                ar:16.83,
-                mdd:3.17,
-                sharpe:3.2795,
-                calma:3.5946,
-                progress: 100,
-                elapse:48
-            }],
+            backtests:[],
             edit: false,
             content:"",
             content_bak:"",
@@ -339,6 +344,48 @@ export default {
         };
     },
     methods: {
+        fmtTime: function(t){
+            t = t+''
+            return t.substr(0,4)+"."+t.substr(4,2)+"."+t.substr(6,2)+" "+t.substr(8,2)+":"+t.substr(10,2);
+        },
+        onDelBacktest: function(btInfo){
+            if(btInfo.progress != 100){
+                this.$message({
+                    message:"回测任务尚未结束，无法删除",
+                    type:"danger"
+                });
+                return;
+            }
+
+            this.$confirm('确定要删除该回测记录吗', '删除回测', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消'
+            }).then(() => {
+
+                this.$api.delBacktest(btInfo.id, (resObj)=>{
+                    if(resObj.result < 0){
+                        this.$message.error("回测任务删除失败:" + resObj.message);
+                    } else {
+                        this.$message({
+                            message:"回测任务删除成功",
+                            type:"success"
+                        });
+                        for(let idx = 0; idx < this.backtests.length; idx++){
+                            if(this.backtests[idx].id == btInfo.id){
+                                this.backtests.splice(idx, 1);
+                                break;
+                            }
+                        }
+                    }
+                });
+            }).catch(() => {
+                        
+            });
+        },
+        onViewBacktest: function(btInfo){
+            this.curBT = btInfo;
+            this.selData = "backtest"
+        },
         onAddStrategy: function(){
             this.$prompt('请输入策略名称', '新建策略', {
                 confirmButtonText: '确定',
@@ -427,6 +474,14 @@ export default {
                 } else {
                     this.content_bak = resObj.content;
                     this.content = resObj.content;
+                }
+            });
+
+            this.$api.getBacktests(strInfo.id, (resObj)=>{
+                if(resObj.result < 0){
+                    this.$message.error("拉取策略回测记录失败:" + resObj.message);
+                } else {
+                    this.backtests = resObj.backtests;
                 }
             });
         },

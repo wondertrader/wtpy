@@ -1042,7 +1042,7 @@ export default function () {
         let reqInfo = {
             straid: straid
         };
-        $.post("/bt/setcode",
+        $.post("/bt/qrystrabts",
 			JSON.stringify(reqInfo),
 			function (data, textStatus) {
 				if (textStatus != 'success') {
@@ -1071,6 +1071,100 @@ export default function () {
             slippage: slippage
         };
         $.post("/bt/runstrabt",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
+
+    self.delBacktest = function(btid, cb){
+        let reqInfo = {
+            btid: btid
+        };
+        $.post("/bt/delstrabt",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
+
+    self.getBtSignals = function(straid, btid, cb){
+        let reqInfo = {
+            straid: straid, 
+            btid: btid
+        };
+        $.post("/bt/qrybtsigs",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
+
+    self.getBtTrades = function(straid, btid, cb){
+        let reqInfo = {
+            straid: straid, 
+            btid: btid
+        };
+        $.post("/bt/qrybttrds",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
+
+    self.getBtRounds = function(straid, btid, cb){
+        let reqInfo = {
+            straid: straid, 
+            btid: btid
+        };
+        $.post("/bt/qrybtrnds",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
+
+    self.getBtFunds = function(straid, btid, cb){
+        let reqInfo = {
+            straid: straid, 
+            btid: btid
+        };
+        $.post("/bt/qrybtfunds",
 			JSON.stringify(reqInfo),
 			function (data, textStatus) {
 				if (textStatus != 'success') {
