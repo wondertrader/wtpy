@@ -80,7 +80,7 @@ class EventReceiver(WtMQClient):
         mq.destroy_mq_client(self)
 
 TOPIC_BT_EVENT  = "BT_EVENT"    # 回测环境下的事件，主要通知回测的启动和结束
-TOPIC_BT_PROG   = "BT_STATE"    # 回测的状态
+TOPIC_BT_STATE  = "BT_STATE"    # 回测的状态
 TOPIC_BT_FUND   = "BT_FUND"     # 每日资金变化
 
 class BtEventSink:
@@ -124,7 +124,7 @@ class BtEventReceiver(WtMQClient):
             elif topic == TOPIC_BT_STATE:
                 msgObj = json.loads(message)
                 self._sink.on_state(msgObj)
-            elif topic == TOPIC_RT_FUND:
+            elif topic == TOPIC_BT_FUND:
                 msgObj = json.loads(message)
                 self._sink.on_fund(msgObj)
 
