@@ -1177,4 +1177,25 @@ export default function () {
 				}
 			}, 'json');
     };
+
+    self.getBtBars = function(code,period,stime,etime, cb){
+        let reqInfo = {
+            code: code, 
+            period: period,
+            stime: stime,
+            etime: etime
+        };
+        $.post("/bt/qrybars",
+			JSON.stringify(reqInfo),
+			function (data, textStatus) {
+				if (textStatus != 'success') {
+					cb({
+						result: -9999,
+						message: textStatus
+					});
+				} else {
+					cb(data);
+				}
+			}, 'json');
+    };
 };
