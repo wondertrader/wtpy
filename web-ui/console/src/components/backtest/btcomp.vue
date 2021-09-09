@@ -16,19 +16,97 @@
                 </el-tab-pane>
             </el-tabs>
         </div>
-        <div style="flex: 1;overflow:auto;">
-            <div style="height:100%;overflow:auto;display:flex;flex-direction:column;" v-show="selCat=='kline'">
-                <div id="bt_kline" style="height:100%;" >
+        <div style="flex: 1;overflow:auto;width:100%;">
+            <div style="height:100%;width:100%;overflow:auto;" v-show="selCat=='kline'">
+                <div id="bt_kline" style="height:100%;width:100%;" >
                     <p>这里绘制K线和信号列表</p>
                 </div>
             </div>
-            <div style="height:100%;overflow:auto;display:flex;flex-direction:column;" v-show="selCat=='summary'">
-                <div style="flex:0 30%;">
-                    <p>这里是策略绩效指标</p>
+            <div style="height:100%;width:100%;display:flex;flex-direction:column;" v-show="selCat=='summary'">
+                <div style="flex:0 200px;width:100%;">
+                    <el-row>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">回测天数</p>
+                                <p class="panel-val">{{btInfo?btInfo.perform.days:0}}天</p>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">开始时间</p>
+                                <p class="panel-val">{{btInfo?fmtBtTime(btInfo.state.stime):"-"}}</p>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">结束时间</p>
+                                <p class="panel-val">{{btInfo?fmtBtTime(btInfo.state.etime):"-"}}</p>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">初始资金</p>
+                                <p class="panel-val">{{btInfo?btInfo.capital.toFixed(1):0}}</p>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">总收益率</p>
+                                <p class="panel-val">{{btInfo?btInfo.perform.total_return.toFixed(2):"0.00"}}%</p>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">最大回撤</p>
+                                <p class="panel-val">{{btInfo?btInfo.perform.max_falldown.toFixed(2):"0.00"}}%</p>
+                            </div>
+                        </el-col>
+                    </el-row>
+                    <div class="divider"></div>
+                    <el-row>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">年化收益率</p>
+                                <p class="panel-val">{{btInfo?btInfo.perform.annual_return.toFixed(2):"0.00"}}%</p>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">胜率</p>
+                                <p class="panel-val">{{btInfo?btInfo.perform.win_rate.toFixed(2):"0.00"}}%</p>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">最大收益率</p>
+                                <p class="panel-val">{{btInfo?btInfo.perform.max_profratio.toFixed(2):"0.00"}}%</p>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">夏普率</p>
+                                <p class="panel-val">{{btInfo?btInfo.perform.sharpe_ratio.toFixed(2):"0.00"}}</p>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">索提诺比率</p>
+                                <p class="panel-val">{{btInfo?btInfo.perform.sortino_ratio.toFixed(2):"0.00"}}%</p>
+                            </div>
+                        </el-col>
+                        <el-col :span="4">
+                            <div class="panel">
+                                <p class="panel-tag">卡尔玛比率</p>
+                                <p class="panel-val">{{btInfo?btInfo.perform.calmar_ratio.toFixed(2):"0.00"}}%</p>
+                            </div>
+                        </el-col>
+                    </el-row>
                 </div>
-                <div style="flex:1 1;">
-                    <div id="bt_fund" style="height:100%;" >
+                <div style="flex:1;width:100%;">
+                    <div style="height:100%;width:100%;">
+                    <div id="bt_fund" style="height:100%;width:100%;" >
                         <p>这里绘制每日收益曲线</p>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -288,15 +366,49 @@ export default {
             funds:[],
             trades:[],
             kChart:null,
-            tChart:null
+            tChart:null,
+            bars:[]
         };
     },
     methods: {
+        fmtBtTime: function(t){
+            t = t+''
+            return t.substr(0,4)+"."+t.substr(4,2)+"."+t.substr(6,2)+" "+t.substr(8,2)+":"+t.substr(10,2);
+        },
         onCatSel: function(tab, event){
             if(this.selCat == tab.name)
                 return;
 
             this.selCat = tab.name;
+
+            if(tab.name == "kline" && this.kChart){
+                setTimeout(()=>{
+                    this.kChart.resize();
+                }, 300);
+            } else if(tab.name == "summary" && this.tChart){
+                setTimeout(()=>{
+                    this.tChart.resize();
+                }, 300);
+            }
+                
+        },
+        queryBars: function(){
+            if(this.btInfo == null)
+                return;
+
+            let code = this.btInfo.state.code;
+            let stime = this.btInfo.state.stime;
+            let etime = this.btInfo.state.etime;
+            let period = this.btInfo.state.period;
+
+            this.$api.getBtBars(code, period, stime, etime, (resObj)=>{
+                if (resObj.result < 0) {
+                    this.$notify.error("拉取K线出错：" + resObj.message);
+                } else {
+                    this.bars = resObj.bars;
+                    this.paintChart(false);
+                }
+            });
         },
         querySignals: function(){
             let straid = this.straInfo.id;
@@ -340,6 +452,10 @@ export default {
                 }
 
                 this.loading.trade = false;
+
+                setTimeout(()=>{
+                    this.queryBars();
+                }, 300);
             }); 
         },
         queryRounds: function(){
@@ -469,8 +585,9 @@ export default {
 
             return sums;
         },
-        paintChart: function(bars){
-            bars = bars || [];
+        paintChart: function(isDay){
+            let bars = this.bars || [];
+            isDay = isDay || false;
             let self = this;
             if(self.kChart == null) //K线图
                 self.kChart = this.$echarts.init(document.getElementById("bt_kline"));
@@ -481,49 +598,45 @@ export default {
             let downBorderColor = "#008F28";
 
             // 数据意义：开盘(open)，收盘(close)，最低(lowest)，最高(highest)
-            let cats = [], vals = [], ma5 = [], ma10 = [], ma20 = [], closes = [];
+            let cats = [], vals = [];
             bars.forEach((bItem, idx)=>{
                 let curDt = bItem.date + '';
-                cats.push(curDt.substr(0,4) + "/" + parseInt(curDt.substr(4,2)) + "/" + parseInt(curDt.substr(6,2)))
+                curDt = curDt.substr(0,4) + "/" + parseInt(curDt.substr(4,2)) + "/" + parseInt(curDt.substr(6,2));
+                if(!isDay){
+                    let curTm = bItem.time%10000 + '';
+                    if(curTm.length == 3)
+                        curTm = "0"+curTm;
+                    curDt += " " + curTm.substr(0,2) + ":" + curTm.substr(2,2);
+                }
+                
+                cats.push(curDt);
                 vals.push([bItem.open, bItem.close, bItem.low, bItem.high]);
-                closes.push(bItem.close);
-
-                let count = closes.length;
-
-                if(count < 5)
-                    ma5.push('-');
-                    else{
-                    var sum = 0;
-                    for (var j = 0; j < 5; j++) {
-                        sum += closes[count - 1 - j];
-                    }
-                    ma5.push(sum / 5);
-                }
-
-                if(closes.length < 10)
-                    ma10.push('-');
-                    else{
-                    var sum = 0;
-                    for (var j = 0; j < 10; j++) {
-                        sum += closes[count - 1 - j];
-                    }
-                    ma10.push(sum / 10);
-                }
-
-                if(closes.length < 20)
-                    ma20.push('-');
-                    else{
-                    var sum = 0;
-                    for (var j = 0; j < 20; j++) {
-                        sum += closes[count - 1 - j];
-                    }
-                    ma20.push(sum / 20);
-                }
             });
+
+            let trades = this.trades;
+            let pts = [];
+            trades.forEach((item)=>{
+                let curDt = item.time + "";
+                curDt = curDt.substr(0,4) + "/" + parseInt(curDt.substr(4,2)) + "/" + parseInt(curDt.substr(6,2)) + " " + curDt.substr(8,2) + ":" + curDt.substr(10,2);
+                let isBuy = (item.action == "开多" || item.action == "平空" || item.action == "OL" || item.action == "CS");
+                let isEnter = (item.action[0] == "开" || item.action == "O");
+                pts.push({
+                    value:[curDt, item.price],
+                    symbol:'triangle',
+                    symbolRotate: isBuy?0:180,
+                    symbolOffset: [0,isBuy?'50%':'-50%'],
+                    itemStyle:{
+                        color:isBuy?"#f00":"#0f0"
+                    },
+                    data:item
+                });
+            });
+
+            let title = this.btInfo.state.code + " " + this.btInfo.state.period;
 
             let option = {
                 title: {
-                    show: false
+                    text: title
                 },
                 tooltip: {
                     trigger: "axis",
@@ -543,14 +656,10 @@ export default {
                         tip += params[0].marker + "低: " + datas[3].toFixed(2) + "<br/>";
                         tip += params[0].marker + "收: " + datas[2].toFixed(2) + "<br/>";
 
-                        if(params[1].data != "-")
-                            tip += params[1].marker + "MA5: " + params[1].data.toFixed(2) + "<br/>";
-
-                        if(params[2].data != "-")
-                            tip += params[2].marker + "MA10: " + params[2].data.toFixed(2) + "<br/>";
-
-                        if(params[3].data != "-")
-                            tip += params[3].marker + "MA20: " + params[3].data.toFixed(2) + "<br/>";
+                        if(params.length > 1){
+                            let data = params[1].data.data;
+                            tip += params[1].marker + data.action + ": " + data.volume + "<br/>";
+                        }
 
                         return tip;
                     }
@@ -561,57 +670,39 @@ export default {
                         backgroundColor: '#777'
                     }
                 },
-                legend: {
-                    data: ["K线", 'MA5', 'MA10', 'MA20']
+                grid: {
+                    left: "4%",
+                    right: "4%",
+                    bottom: "10%"
                 },
-                grid: [
-                    {
-                        left: "4%",
-                        right: "4%",
-                        height: "50%"
-                    },
-                    {
-                        left: "4%",
-                        right: "4%",
-                        top: "63%",
-                        height: "25%"
+                xAxis:{
+                    type: "category",
+                    data: cats,
+                    scale: true,
+                    boundaryGap: true,
+                    axisLine: { onZero: false },
+                    splitLine: { show: false },
+                    splitNumber: 20,
+                    min: "dataMin",
+                    max: "dataMax"
+                },
+                yAxis:{
+                    scale: true,
+                    splitArea: {
+                        show: true
                     }
-                ],
-                xAxis: [
-                    {
-                        type: "category",
-                        data: cats,
-                        scale: true,
-                        boundaryGap: true,
-                        axisLine: { onZero: false },
-                        splitLine: { show: false },
-                        splitNumber: 20,
-                        min: "dataMin",
-                        max: "dataMax",
-                        show: false
-                    }
-                ],
-                yAxis: [
-                    {
-                        scale: true,
-                        splitArea: {
-                            show: true
-                        }
-                    }
-                ],
+                },
                 dataZoom: [
                     {
                         type: "inside",
-                        xAxisIndex: [0, 1],
-                        start: 50,
+                        start: 90,
                         end: 100
                     },
                     {
                         show: true,
-                        xAxisIndex: [0, 1],
                         type: "slider",
                         y: "95%",
-                        start: 50,
+                        start: 90,
                         end: 100
                     }
                 ],
@@ -627,32 +718,6 @@ export default {
                                 color0: downColor,
                                 borderColor: upBorderColor,
                                 borderColor0: downBorderColor
-                            }
-                        },
-                        markPoint: {
-                            label: {
-                                normal: {
-                                    formatter: function (param) {
-                                        return param != null ? Math.round(param.value).toFixed(2) : '';
-                                    }
-                                }
-                            },
-                            data: [
-                                {
-                                    name: '最高价',
-                                    type: 'max',
-                                    valueDim: 'highest'
-                                },
-                                {
-                                    name: '最低价',
-                                    type: 'min',
-                                    valueDim: 'lowest'
-                                }
-                            ],
-                            tooltip: {
-                                formatter: function (param) {
-                                    return param.name + '<br>' + (param.data.coord || '');
-                                }
                             }
                         },
                         markLine: {
@@ -672,43 +737,14 @@ export default {
                         }
                     },
                     {
-                        name: 'MA5',
-                        type: 'line',
-                        yAxisIndex : '0',
-                        data: ma5,
-                        smooth: true,
-                        showSymbol: false,
-                        lineStyle: {
-                            normal: {opacity: 0.5}
-                        }
-                    },
-                    {
-                        name: 'MA10',
-                        type: 'line',
-                        yAxisIndex : '0',
-                        data: ma10,
-                        smooth: true,
-                        showSymbol: false,
-                        lineStyle: {
-                            normal: {opacity: 0.5}
-                        }
-                    },
-                    {
-                        name: 'MA20',
-                        type: 'line',
-                        yAxisIndex : '0',
-                        data: ma20,
-                        smooth: true,
-                        showSymbol: false,
-                        lineStyle: {
-                            normal: {opacity: 0.5}
-                        }
+                        symbolSize: 20,
+                        data: pts,
+                        type: 'scatter'
                     }
                 ]
             };
 
-            console.log(self.kChart);
-            self.nvchart.setOption(option);
+            self.kChart.setOption(option);
         },
         fmtDate:function(val){
             let ret = val + "";
@@ -904,8 +940,10 @@ export default {
             if (!self.zooming) {
                 self.zooming = true
                 setTimeout(function () {
-                    if(self.kChart) self.kChart.resize();
-                    if(self.tChart) self.tChart.resize();
+                    if(self.kChart) 
+                        self.kChart.resize();
+                    if(self.tChart) 
+                        self.tChart.resize();
                     self.zooming = false;
                 }, 300);
             }
@@ -916,5 +954,26 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+    .panel{
+        align-items: center;
+        height:100%;
+        border-right: solid 1px #DCDFE6;
+    }
 
+    .panel-tag{
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .panel-val{
+        text-align: center;
+    }
+
+    .divider{
+        display: block;
+        height: 1px;
+        width: 100%;
+        margin: 4px 0;
+        background-color: #DCDFE6;
+    }
 </style>
