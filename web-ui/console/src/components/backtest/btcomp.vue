@@ -28,37 +28,37 @@
                         <el-col :span="4">
                             <div class="panel">
                                 <p class="panel-tag">回测天数</p>
-                                <p class="panel-val">{{btInfo?btInfo.perform.days:0}}天</p>
+                                <p class="panel-val text-info">{{btInfo?btInfo.perform.days:0}}天</p>
                             </div>
                         </el-col>
                         <el-col :span="4">
                             <div class="panel">
                                 <p class="panel-tag">开始时间</p>
-                                <p class="panel-val">{{btInfo?fmtBtTime(btInfo.state.stime):"-"}}</p>
+                                <p class="panel-val text-info">{{btInfo?fmtBtTime(btInfo.state.stime):"-"}}</p>
                             </div>
                         </el-col>
                         <el-col :span="4">
                             <div class="panel">
                                 <p class="panel-tag">结束时间</p>
-                                <p class="panel-val">{{btInfo?fmtBtTime(btInfo.state.etime):"-"}}</p>
+                                <p class="panel-val text-info">{{btInfo?fmtBtTime(btInfo.state.etime):"-"}}</p>
                             </div>
                         </el-col>
                         <el-col :span="4">
                             <div class="panel">
                                 <p class="panel-tag">初始资金</p>
-                                <p class="panel-val">{{btInfo?btInfo.capital.toFixed(1):0}}</p>
+                                <p class="panel-val text-info">{{btInfo?btInfo.capital.toFixed(1):0}}</p>
                             </div>
                         </el-col>
                         <el-col :span="4">
                             <div class="panel">
                                 <p class="panel-tag">总收益率</p>
-                                <p class="panel-val">{{btInfo?btInfo.perform.total_return.toFixed(2):"0.00"}}%</p>
+                                <p class="panel-val" :class="getClass(btInfo?btInfo.perform.total_return:0)">{{btInfo?btInfo.perform.total_return.toFixed(2):"0.00"}}%</p>
                             </div>
                         </el-col>
                         <el-col :span="4">
                             <div class="panel">
-                                <p class="panel-tag">最大回撤</p>
-                                <p class="panel-val">{{btInfo?btInfo.perform.max_falldown.toFixed(2):"0.00"}}%</p>
+                                <p class="panel-tag">胜率</p>
+                                <p class="panel-val text-danger">{{btInfo?btInfo.perform.win_rate.toFixed(2):"0.00"}}%</p>
                             </div>
                         </el-col>
                     </el-row>
@@ -67,41 +67,42 @@
                         <el-col :span="4">
                             <div class="panel">
                                 <p class="panel-tag">年化收益率</p>
-                                <p class="panel-val">{{btInfo?btInfo.perform.annual_return.toFixed(2):"0.00"}}%</p>
+                                <p class="panel-val" :class="getClass(btInfo?btInfo.perform.annual_return:0)">{{btInfo?btInfo.perform.annual_return.toFixed(2):"0.00"}}%</p>
                             </div>
                         </el-col>
                         <el-col :span="4">
                             <div class="panel">
-                                <p class="panel-tag">胜率</p>
-                                <p class="panel-val">{{btInfo?btInfo.perform.win_rate.toFixed(2):"0.00"}}%</p>
+                                <p class="panel-tag">最大回撤</p>
+                                <p class="panel-val text-success">{{btInfo?btInfo.perform.max_falldown.toFixed(2):"0.00"}}%</p>
                             </div>
                         </el-col>
                         <el-col :span="4">
                             <div class="panel">
-                                <p class="panel-tag">最大收益率</p>
-                                <p class="panel-val">{{btInfo?btInfo.perform.max_profratio.toFixed(2):"0.00"}}%</p>
+                                <p class="panel-tag">最大盈利</p>
+                                <p class="panel-val text-danger">{{btInfo?btInfo.perform.max_profratio.toFixed(2):"0.00"}}%</p>
                             </div>
                         </el-col>
                         <el-col :span="4">
                             <div class="panel">
                                 <p class="panel-tag">夏普率</p>
-                                <p class="panel-val">{{btInfo?btInfo.perform.sharpe_ratio.toFixed(2):"0.00"}}</p>
+                                <p class="panel-val text-info">{{btInfo?btInfo.perform.sharpe_ratio.toFixed(2):"0.00"}}</p>
                             </div>
                         </el-col>
                         <el-col :span="4">
                             <div class="panel">
                                 <p class="panel-tag">索提诺比率</p>
-                                <p class="panel-val">{{btInfo?btInfo.perform.sortino_ratio.toFixed(2):"0.00"}}%</p>
+                                <p class="panel-val text-info">{{btInfo?btInfo.perform.sortino_ratio.toFixed(2):"0.00"}}</p>
                             </div>
                         </el-col>
                         <el-col :span="4">
                             <div class="panel">
                                 <p class="panel-tag">卡尔玛比率</p>
-                                <p class="panel-val">{{btInfo?btInfo.perform.calmar_ratio.toFixed(2):"0.00"}}%</p>
+                                <p class="panel-val text-info">{{btInfo?btInfo.perform.calmar_ratio.toFixed(2):"0.00"}}</p>
                             </div>
                         </el-col>
                     </el-row>
                 </div>
+                <div class="divider"></div>
                 <div style="flex:1;width:100%;">
                     <div style="height:100%;width:100%;">
                     <div id="bt_fund" style="height:100%;width:100%;" >
@@ -209,6 +210,20 @@
                         width="100">
                         <template slot-scope="scope">
                             <span :class="scope.row.profit>=0?'text-danger':'text-success'">{{scope.row.profit.toFixed(1)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="潜在盈利"
+                        width="100">
+                        <template slot-scope="scope">
+                            <span class="text-danger">{{scope.row.maxprofit.toFixed(1)}}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        label="潜在亏损"
+                        width="100">
+                        <template slot-scope="scope">
+                            <span class="text-success">{{scope.row.maxloss.toFixed(1)}}</span>
                         </template>
                     </el-table-column>
                     <el-table-column
@@ -613,23 +628,52 @@ export default {
                 vals.push([bItem.open, bItem.close, bItem.low, bItem.high]);
             });
 
-            let trades = this.trades;
+            let trades = JSON.parse(JSON.stringify(this.trades)).reverse();
             let pts = [];
+            let links = [];
+            let lastDt = "";
             trades.forEach((item)=>{
                 let curDt = item.time + "";
                 curDt = curDt.substr(0,4) + "/" + parseInt(curDt.substr(4,2)) + "/" + parseInt(curDt.substr(6,2)) + " " + curDt.substr(8,2) + ":" + curDt.substr(10,2);
                 let isBuy = (item.action == "开多" || item.action == "平空" || item.action == "OL" || item.action == "CS");
-                let isEnter = (item.action[0] == "开" || item.action == "O");
-                pts.push({
-                    value:[curDt, item.price],
-                    symbol:'triangle',
-                    symbolRotate: isBuy?0:180,
-                    symbolOffset: [0,isBuy?'50%':'-50%'],
-                    itemStyle:{
-                        color:isBuy?"#f00":"#0f0"
-                    },
-                    data:item
-                });
+                let isEnter = (item.action[0] == "开" || item.action[0] == "O");
+                if(lastDt == curDt){
+                    let lastPt = pts[pts.length-1];
+                    lastPt.data.volume += item.volume;
+                    lastPt.data.flag += (isEnter?1:2);
+                } else {
+                    pts.push({
+                        value:[curDt, item.price],
+                        symbol:'triangle',
+                        symbolRotate: isBuy?0:180,
+                        symbolOffset: [0, isBuy?'50%':'-50%'],
+                        itemStyle:{
+                            color:isBuy?"#f00":"#0f0"
+                        },            
+                        data:{
+                            isBuy: isBuy,
+                            volume: item.volume,
+                            price: item.price,
+                            flag: (isEnter?1:2)
+                        }
+                    });
+                }
+                let lastPt = pts[pts.length-1];
+                let prevPt = pts[pts.length-2];
+                if(lastPt.data.flag >= 2){
+                    let isProfit = (lastPt.data.price-prevPt.data.price)*(isBuy?-1:1) >= 0;
+                    links.push({
+                        source:pts.length-2,
+                        target:pts.length-1,
+                        lineStyle:{
+                            color:isProfit?"#f00":"#0f0",
+                            type:"solid",
+                            width:1
+                        }
+                    });
+                }
+                                
+                lastDt = curDt;
             });
 
             let title = this.btInfo.state.code + " " + this.btInfo.state.period;
@@ -637,6 +681,14 @@ export default {
             let option = {
                 title: {
                     text: title
+                },
+                toolbox:{
+                    show:true,
+                    orient:'horizontal',
+                    feature: {
+                        saveAsImage: {},
+                        restore:{}
+                    }
                 },
                 tooltip: {
                     trigger: "axis",
@@ -658,7 +710,27 @@ export default {
 
                         if(params.length > 1){
                             let data = params[1].data.data;
-                            tip += params[1].marker + data.action + ": " + data.volume + "<br/>";
+
+                            let action = (function(item){
+                                if(item.isBuy){
+                                    if(item.flag == 3){
+                                        return "翻多: +";
+                                    } else if(item.flag == 2){
+                                        return "平空: +";
+                                    } else {
+                                        return "开多: +";
+                                    }
+                                } else {
+                                    if(item.flag == 3){
+                                        return "翻空: -";
+                                    } else if(item.flag == 2){
+                                        return "平多: -";
+                                    } else {
+                                        return "开空: -";
+                                    }
+                                }
+                            })(data);
+                            tip += params[1].marker + action + data.volume + "@" + data.price + "<br/>";
                         }
 
                         return tip;
@@ -737,9 +809,13 @@ export default {
                         }
                     },
                     {
-                        symbolSize: 20,
+                        type: 'graph',
+                        layout: 'none',
+                        coordinateSystem: 'cartesian2d',
                         data: pts,
-                        type: 'scatter'
+                        links:links,
+                        symbolSize:20,
+                        zlevel:9
                     }
                 ]
             };
@@ -866,7 +942,6 @@ export default {
                 series: [{
                     name: '净值',
                     type: 'line',
-                    smooth: true,
                     stack: '净值',
                     areaStyle: {
                         normal: {
@@ -932,6 +1007,12 @@ export default {
             options.yAxis[0].min = minPx;
 
             this.tChart.setOption(options);
+        },
+        getClass: function(v){
+            if(v >= 0)
+                return "text-danger";
+            else
+                return "text-success";
         }
     },
     mounted() {
@@ -975,5 +1056,10 @@ export default {
         width: 100%;
         margin: 4px 0;
         background-color: #DCDFE6;
+    }
+
+    .table{
+        width:100%;
+        height:100%;
     }
 </style>

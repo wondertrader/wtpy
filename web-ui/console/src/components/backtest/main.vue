@@ -59,7 +59,7 @@
                         </el-tabs>
                     </div>
                     <div style="flex:1;overflow:auto;margin:4px;">
-                        <div style="height:100%;display:flex;flex-direction:column;" v-show="selData=='editor'">
+                        <div style="height:100%;width:100%;display:flex;flex-direction:column;" v-show="selData=='editor'">
                             <div style="flex:2;width:100%;overflow:auto;">
                                 <div style="height:100%;display:flex;flex-direction:column;">
                                     <div style="flex:0;">
@@ -92,98 +92,103 @@
                                     </div>
                                 </div>
                             </div>
-                            <div style="flex:1;">
-                                <el-table
-                                    border
-                                    stripe
-                                    :data="backtests"
-                                    class="table">
-                                    <el-table-column
-                                        prop="runtime"
-                                        label="回测时间"
-                                        width="150">
-                                    </el-table-column>
-                                    <el-table-column
-                                        label="开始时间"
-                                        width="140">
-                                        <template slot-scope="scope">
-                                            <span>{{fmtTime(scope.row.state.stime)}}</span>
-                                        </template>
-                                    </el-table-column>
-                                    <el-table-column
-                                        label="结束时间"
-                                        width="140">
-                                        <template slot-scope="scope">
-                                            <span>{{fmtTime(scope.row.state.etime)}}</span>
-                                        </template>
-                                    </el-table-column>
-                                    <el-table-column
-                                        label="累计收益率%"
-                                        width="110">
-                                        <template slot-scope="scope">
-                                            <span>{{scope.row.perform.total_return.toFixed(2)}}</span>
-                                        </template>
-                                    </el-table-column>
-                                    <el-table-column
-                                        label="年化收益率%"
-                                        width="110">
-                                        <template slot-scope="scope">
-                                            <span>{{scope.row.perform.annual_return.toFixed(2)}}</span>
-                                        </template>
-                                    </el-table-column>
-                                    <el-table-column
-                                        label="最大回撤%"
-                                        width="90">
-                                        <template slot-scope="scope">
-                                            <span>{{scope.row.perform.max_falldown.toFixed(2)}}</span>
-                                        </template>
-                                    </el-table-column>
-                                    <el-table-column
-                                        label="夏普率"
-                                        width="72">
-                                        <template slot-scope="scope">
-                                            <span>{{scope.row.perform.sharpe_ratio.toFixed(2)}}</span>
-                                        </template>
-                                    </el-table-column>
-                                    <el-table-column
-                                        label="卡尔玛比率"
-                                        width="100">
-                                        <template slot-scope="scope">
-                                            <span>{{scope.row.perform.calmar_ratio.toFixed(2)}}</span>
-                                        </template>
-                                    </el-table-column>
-                                    <el-table-column
-                                        label="回测进度">
-                                         <template slot-scope="scope">
-                                            <el-progress :percentage="scope.row.state.progress" color="#409eff"></el-progress>
-                                        </template>
-                                    </el-table-column>
-                                    <el-table-column
-                                        label="耗时s"
-                                        width="60">
-                                        <template slot-scope="scope">
-                                            <span>{{(scope.row.state.elapse/1000000000).toFixed(2)}}</span>
-                                        </template>
-                                    </el-table-column>
-                                    <el-table-column
-                                        label="操作"
-                                        width="60">
-                                        <template slot-scope="scope">
-                                            <el-tooltip placement="top">
-                                                <div slot="content">删除该回测记录</div>
-                                                <i class="el-icon-delete btopt-btn" @click="onDelBacktest(scope.row)"></i>
-                                            </el-tooltip>
-                                            <el-tooltip placement="top">
-                                                <div slot="content">查看回测详情</div>
-                                                <i class="el-icon-view btopt-btn" @click="onViewBacktest(scope.row)"></i>
-                                            </el-tooltip>
-                                        </template>
-                                    </el-table-column>
-                                </el-table>
+                            <div class="divider"></div>
+                            <div style="flex:1;overflow:auto;">
+                                <div style="max-height:100%;overflow:auto;">
+                                    <el-table
+                                        border
+                                        stripe
+                                        :data="backtests"
+                                        class="table">
+                                        <el-table-column
+                                            prop="runtime"
+                                            label="回测时间"
+                                            width="150">
+                                        </el-table-column>
+                                        <el-table-column
+                                            label="开始时间"
+                                            width="140">
+                                            <template slot-scope="scope">
+                                                <span>{{fmtTime(scope.row.state.stime)}}</span>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                            label="结束时间"
+                                            width="140">
+                                            <template slot-scope="scope">
+                                                <span>{{fmtTime(scope.row.state.etime)}}</span>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                            label="累计收益率%"
+                                            width="110">
+                                            <template slot-scope="scope">
+                                                <span>{{scope.row.perform.total_return.toFixed(2)}}</span>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                            label="年化收益率%"
+                                            width="110">
+                                            <template slot-scope="scope">
+                                                <span>{{scope.row.perform.annual_return.toFixed(2)}}</span>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                            label="最大回撤%"
+                                            width="90">
+                                            <template slot-scope="scope">
+                                                <span>{{scope.row.perform.max_falldown.toFixed(2)}}</span>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                            label="夏普率"
+                                            width="72">
+                                            <template slot-scope="scope">
+                                                <span>{{scope.row.perform.sharpe_ratio.toFixed(2)}}</span>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                            label="卡尔玛比率"
+                                            width="100">
+                                            <template slot-scope="scope">
+                                                <span>{{scope.row.perform.calmar_ratio.toFixed(2)}}</span>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                            label="回测进度">
+                                            <template slot-scope="scope">
+                                                <el-progress :percentage="scope.row.state.progress" color="#409eff"></el-progress>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                            label="耗时s"
+                                            width="60">
+                                            <template slot-scope="scope">
+                                                <span>{{(scope.row.state.elapse/1000000000).toFixed(2)}}</span>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                            label="操作"
+                                            width="60">
+                                            <template slot-scope="scope">
+                                                <el-tooltip placement="top">
+                                                    <div slot="content">删除该回测记录</div>
+                                                    <i class="el-icon-delete btopt-btn" @click="onDelBacktest(scope.row)"></i>
+                                                </el-tooltip>
+                                                <el-tooltip placement="top">
+                                                    <div slot="content">查看回测详情</div>
+                                                    <i class="el-icon-view btopt-btn" @click="onViewBacktest(scope.row)"></i>
+                                                </el-tooltip>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+                                </div>
                             </div>
                         </div>
-                        <BTComp style="height:100%;" v-show="selData=='backtest'" :btInfo="curBT" :straInfo="curStra">
-                        </BTComp>
+                        <div style="height:100%;width:100%;" v-show="selData=='backtest'">
+                            <BTComp style="height:100%;" :btInfo="curBT" :straInfo="curStra">
+                            </BTComp>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -635,6 +640,11 @@ export default {
     width: 100%;
     margin: 4px 0;
     background-color: #DCDFE6;
+}
+
+.table{
+    width:100%;
+    height:100%;
 }
 </style>
 
