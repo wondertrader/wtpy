@@ -510,8 +510,10 @@ class WtBtMon(BtTaskSink):
                 "closeprice": float(cells[5]),
                 "qty": float(cells[6]),
                 "profit": float(cells[7]),
-                "entertag": cells[9],
-                "exittag": cells[10]
+                "maxprofit": float(cells[8]),
+                "maxloss": float(cells[9]),
+                "entertag": cells[11],
+                "exittag": cells[12]
             }
 
             items.append(item)
