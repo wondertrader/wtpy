@@ -5,6 +5,7 @@ from wtpy.HftContext import HftContext
 from wtpy.StrategyDefs import BaseCtaStrategy, BaseSelStrategy, BaseHftStrategy
 from wtpy.ExtToolDefs import BaseIndexWriter
 from wtpy.WtCoreDefs import EngineType
+from wtpy.WtUtilDefs import singleton
 
 from .ProductMgr import ProductMgr, ProductInfo
 from .SessionMgr import SessionMgr, SessionInfo
@@ -15,14 +16,6 @@ from .CodeHelper import CodeHelper
 import os
 import json
 
-def singleton(cls):
-    instances = {}
-    def getinstance(*args,**kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args,**kwargs)
-        return instances[cls]
-    return getinstance
-
 
 @singleton
 class WtBtEngine:
@@ -30,7 +23,7 @@ class WtBtEngine:
     def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False):
         self.is_backtest = True
 
-        self.__wrapper__ = WtBtWrapper()  #api接口转换器
+        self.__wrapper__ = WtBtWrapper(self)  #api接口转换器
         self.__context__ = None      #策略ctx映射表
         self.__config__ = dict()        #框架配置项
         self.__cfg_commited__ = False   #配置是否已提交
@@ -40,11 +33,11 @@ class WtBtEngine:
         self.__dump_config__ = bDumpCfg #是否保存最终配置
 
         if eType == eType.ET_CTA:
-            self.__wrapper__.initialize_cta(self, logCfg, isFile)   #初始化CTA环境
+            self.__wrapper__.initialize_cta(logCfg, isFile)   #初始化CTA环境
         elif eType == eType.ET_HFT:
-            self.__wrapper__.initialize_hft(self, logCfg, isFile)   #初始化HFT环境
+            self.__wrapper__.initialize_hft(logCfg, isFile)   #初始化HFT环境
         elif eType == eType.ET_SEL:
-            self.__wrapper__.initialize_sel(self, logCfg, isFile)   #初始化SEL环境
+            self.__wrapper__.initialize_sel(logCfg, isFile)   #初始化SEL环境
 
     def __check_config__(self):
         '''
@@ -223,6 +216,14 @@ class WtBtEngine:
         '''
         return self.contractMgr.getTotalCodes()
 
+    def set_time_range(self, beginTime:int, endTime:int):
+        '''
+        设置回测时间\r
+        @beginTime  开始时间，格式如yyyymmddHHMM
+        @endTime    结束时间，格式如yyyymmddHHMM
+        '''
+        self.__wrapper__.set_time_range(beginTime, endTime)
+
     def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0):
         '''
         添加策略\n
@@ -250,28 +251,29 @@ class WtBtEngine:
     def get_context(self, id:int):
         return self.__context__
 
-    def run_backtest(self):
+    def run_backtest(self, bAsync:bool = False):
         '''
         运行框架
+
+        @bAsync 是否异步运行，默认为false
         '''
         if not self.__cfg_commited__:   #如果配置没有提交，则自动提交一下
             self.commitBTConfig()
 
-        self.__wrapper__.run_backtest()
+        self.__wrapper__.run_backtest(bNeedDump = True, bAsync = bAsync)
+
+
+    def stop_backtest(self):
+        '''
+        手动停止回测
+        '''
+        self.__wrapper__.stop_backtest()
 
     def release_backtest(self):
         '''
         释放框架
         '''
         self.__wrapper__.release_backtest()
-
-    def dump_kline(self, code:str, period:str, filename:str):
-        '''
-        将K线导出到文件\n
-        @code   合约代码，格式如SHFE.rb.HOT\n
-        @period 周期，一般使用d/m1/m5
-        '''
-        self.__wrapper__.dump_kline(code, period, filename)
 
     def on_init(self):
         return
@@ -284,3 +286,12 @@ class WtBtEngine:
 
     def on_session_end(self, date:int):
         return
+
+    def on_backtest_end(self):
+        self.__context__.on_backtest_end()
+
+    def clear_cache(self):
+        '''
+        清除缓存的数据，即加已经加载到内存中的数据全部清除
+        '''
+        self.__wrapper__.clear_cache()
