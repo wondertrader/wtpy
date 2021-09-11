@@ -6,23 +6,14 @@ from wtpy.StrategyDefs import BaseCtaStrategy, BaseSelStrategy, BaseHftStrategy
 from wtpy.ExtToolDefs import BaseIndexWriter, BaseDataReporter
 from wtpy.WtCoreDefs import EngineType
 from wtpy.ExtModuleDefs import BaseExtParser, BaseExtExecuter
+from wtpy.WtUtilDefs import singleton
 
 from .ProductMgr import ProductMgr, ProductInfo
 from .SessionMgr import SessionMgr, SessionInfo
 from .ContractMgr import ContractMgr, ContractInfo
 from .CodeHelper import CodeHelper
 
-import os
 import json
-
-def singleton(cls):
-    instances = {}
-    def getinstance(*args,**kwargs):
-        if cls not in instances:
-            instances[cls] = cls(*args,**kwargs)
-        return instances[cls]
-    return getinstance
-
 
 @singleton
 class WtEngine:
@@ -40,7 +31,7 @@ class WtEngine:
         '''
         self.is_backtest = False
 
-        self.__wrapper__ = WtWrapper()  #api接口转换器
+        self.__wrapper__ = WtWrapper(self)  #api接口转换器
         self.__cta_ctxs__ = dict()      #CTA策略ctx映射表
         self.__sel_ctxs__ = dict()      #SEL策略ctx映射表
         self.__hft_ctxs__ = dict()      #HFT策略ctx映射表
@@ -57,11 +48,11 @@ class WtEngine:
 
         self.__engine_type = eType
         if eType == EngineType.ET_CTA:
-            self.__wrapper__.initialize_cta(self, logCfg=logCfg, isFile=True, genDir=genDir)
+            self.__wrapper__.initialize_cta(logCfg=logCfg, isFile=True, genDir=genDir)
         elif eType == EngineType.ET_HFT:
-            self.__wrapper__.initialize_hft(self, logCfg=logCfg, isFile=True, genDir=genDir)
+            self.__wrapper__.initialize_hft(logCfg=logCfg, isFile=True, genDir=genDir)
         elif eType == EngineType.ET_SEL:
-            self.__wrapper__.initialize_sel(self, logCfg=logCfg, isFile=True, genDir=genDir)
+            self.__wrapper__.initialize_sel(logCfg=logCfg, isFile=True, genDir=genDir)
 
     def __check_config__(self):
         '''

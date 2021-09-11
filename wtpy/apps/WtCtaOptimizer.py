@@ -432,8 +432,11 @@ class WtCtaOptimizer:
 
     def analyzer(self, out_marker_file:str = "strategies.json", init_capital=500000, rf=0.02, annual_trading_days=240):
         for straname in json.load(open(out_marker_file, mode='r')).keys():
-            analyst = WtBtAnalyst()
-            analyst.add_strategy(straname, folder="./outputs_bt/%s/"%straname, init_capital=init_capital, rf=rf, annual_trading_days=annual_trading_days)
-            analyst.run()
+            try:
+                analyst = WtBtAnalyst()
+                analyst.add_strategy(straname, folder="./outputs_bt/%s/"%straname, init_capital=init_capital, rf=rf, annual_trading_days=annual_trading_days)
+                analyst.run()
+            except:
+                pass
 
                 

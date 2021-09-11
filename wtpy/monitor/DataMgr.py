@@ -42,8 +42,9 @@ class DataMgr:
             grpInfo["path"] = row[3]
             grpInfo["info"] = row[4]
             grpInfo["gtype"] = row[5]
-            grpInfo["datmod"] = 'mannual'
+            grpInfo["datmod"] = row[6]
             grpInfo["env"] = row[7]
+            grpInfo["mqurl"] = row[8]
             self.__config__["groups"][grpInfo["id"]] = grpInfo
 
         for row in cur.execute("SELECT * FROM users;"):
@@ -95,6 +96,7 @@ class DataMgr:
             sql += "[gtype] VARCHAR(10) NOT NULL DEFAULT 'cta',\n"
             sql += "[datmod] VARCHAR(10) NOT NULL DEFAULT 'mannual',\n"
             sql += "[env] VARCHAR(20) NOT NULL DEFAULT 'product',\n"
+            sql += "[mqurl] VARCHAR(255) NOT NULL DEFAULT '',\n"
             sql += "[createtime] DATETIME default (datetime('now', 'localtime')),\n"
             sql += "[modifytime] DATETIME default (datetime('now', 'localtime')));"
             cur.execute(sql)
@@ -114,6 +116,7 @@ class DataMgr:
             sql += "[redirect] VARCHAR(20) DEFAULT 'false',\n"
             sql += "[schedule] VARCHAR(20) DEFAULT 'false',\n"
             sql += "[weekflag] VARCHAR(20) DEFAULT '000000',\n"
+            sql += "[mqurl] VARCHAR(255) NOT NULL DEFAULT '',\n"
             sql += "[task1] VARCHAR(100) NOT NULL DEFAULT '{\"active\": true,\"time\": 0,\"action\": 0}',\n"
             sql += "[task2] VARCHAR(100) NOT NULL DEFAULT '{\"active\": true,\"time\": 0,\"action\": 0}',\n"
             sql += "[task3] VARCHAR(100) NOT NULL DEFAULT '{\"active\": true,\"time\": 0,\"action\": 0}',\n"
@@ -274,9 +277,11 @@ class DataMgr:
             cur = self.__db_conn__.cursor()
             sql = ''
             if isNewGrp:
-                sql = "INSERT INTO groups(groupid,name,path,info,gtype,datmod,env) VALUES('%s','%s','%s','%s','%s','%s','%s');" % (grpid, grpInfo["name"], grpInfo["path"], grpInfo["info"], grpInfo["gtype"], grpInfo["datmod"], grpInfo["env"])
+                sql = "INSERT INTO groups(groupid,name,path,info,gtype,datmod,env,mqurl) VALUES('%s','%s','%s','%s','%s','%s','%s','%s');" \
+                    % (grpid, grpInfo["name"], grpInfo["path"], grpInfo["info"], grpInfo["gtype"], grpInfo["datmod"], grpInfo["env"], grpInfo["mqurl"])
             else:
-                sql = "UPDATE groups SET name='%s',path='%s',info='%s',gtype='%s',datmod='%s',env='%s',modifytime=datetime('now','localtime') WHERE groupid='%s';" % (grpInfo["name"], grpInfo["path"], grpInfo["info"], grpInfo["gtype"], grpInfo["datmod"], grpInfo["env"], grpid)
+                sql = "UPDATE groups SET name='%s',path='%s',info='%s',gtype='%s',datmod='%s',env='%s',mqurl='%s',modifytime=datetime('now','localtime') WHERE groupid='%s';" \
+                    % (grpInfo["name"], grpInfo["path"], grpInfo["info"], grpInfo["gtype"], grpInfo["datmod"], grpInfo["env"], grpInfo["mqurl"], grpid)
             cur.execute(sql)
             self.__db_conn__.commit()
             bSucc = True
@@ -328,6 +333,13 @@ class DataMgr:
 
         self.__config__["users"][loginid] = usrInfo
 
+    def mod_user_pwd(self, loginid:str, newpwd:str, admin:str):
+        cur = self.__db_conn__.cursor()
+        cur.execute("UPDATE users SET passwd=?,modifyby=?,modifytime=datetime('now','localtime') WHERE loginid=?;", 
+                (newpwd,admin,loginid))
+        self.__db_conn__.commit()
+        self.__config__["users"][loginid]["passwd"]=newpwd
+
 
     def del_user(self, loginid, admin):
         if loginid in self.__config__["users"]:
@@ -357,7 +369,8 @@ class DataMgr:
                 "role":"superman",
                 "passwd":"25ed305a56504e95fd1ca9900a1da174",
                 "iplist":"",
-                "remark":"内置超管账号"
+                "remark":"内置超管账号",
+                'builtin':True
             }
         else:
             return None
@@ -1017,42 +1030,43 @@ class DataMgr:
         
         filepath = os.path.join(grpInfo["path"], 'filters.json')
         if not os.path.exists(filepath):
-            return {}
+            filters = {}
         else:
-            gpCache = self.__grp_cache__[grpid]
-            filters = dict()
+            filters = {}
             f = open(filepath, "r")
             try:
                 content = f.read()
                 filters = json.loads(content)
-
-                if "executer_filters" not in filters:
-                    filters["executer_filters"] = dict()
-                if "strategy_filters" not in filters:
-                    filters["strategy_filters"] = dict()
-                if "code_filters" not in filters:
-                    filters["code_filters"] = dict()
-
-                for sid in gpCache["strategies"]:
-                    if sid not in filters['strategy_filters']:
-                        filters['strategy_filters'][sid] = False
-                
-                for eid in gpCache["executers"]:
-                    if eid not in filters['executer_filters']:
-                        filters['executer_filters'][eid] = False
-
-                for id in filters['strategy_filters'].keys():
-                    if type(filters['strategy_filters'][id]) != bool:
-                        filters['strategy_filters'][id] = True
-
-                for id in filters['code_filters'].keys():
-                    if type(filters['code_filters'][id]) != bool:
-                        filters['code_filters'][id] = True
             except:
                 pass
 
             f.close()
-            return filters
+
+        gpCache = self.__grp_cache__[grpid]
+        if "executer_filters" not in filters:
+            filters["executer_filters"] = dict()
+        if "strategy_filters" not in filters:
+            filters["strategy_filters"] = dict()
+        if "code_filters" not in filters:
+            filters["code_filters"] = dict()
+
+        for sid in gpCache["strategies"]:
+            if sid not in filters['strategy_filters']:
+                filters['strategy_filters'][sid] = False
+        
+        for eid in gpCache["executers"]:
+            if eid not in filters['executer_filters']:
+                filters['executer_filters'][eid] = False
+
+        for id in filters['strategy_filters'].keys():
+            if type(filters['strategy_filters'][id]) != bool:
+                filters['strategy_filters'][id] = True
+
+        for id in filters['code_filters'].keys():
+            if type(filters['code_filters'][id]) != bool:
+                filters['code_filters'][id] = True
+
+        return filters
 
     def set_group_filters(self, grpid:str, filters:dict):
         if grpid not in self.__config__["groups"]:

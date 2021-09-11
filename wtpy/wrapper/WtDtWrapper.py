@@ -1,8 +1,18 @@
-from ctypes import cdll, c_int, c_char_p, c_longlong, c_bool, c_void_p, c_ulong, c_uint, c_uint64, c_double
+'''
+Descripttion: Automatically generated file comment
+version: 
+Author: Wesley
+Date: 2021-07-27 09:53:43
+LastEditors: Wesley
+LastEditTime: 2021-08-13 15:26:16
+'''
+from ctypes import cdll, c_char_p
 from .PlatformHelper import PlatformHelper as ph
+from wtpy.WtUtilDefs import singleton
 import os
 
 # Python对接C接口的库
+@singleton
 class WtDtWrapper:
     '''
     Wt平台数据组件C接口底层对接模块
@@ -15,24 +25,10 @@ class WtDtWrapper:
     # 构造函数，传入动态库名
     def __init__(self):
         paths = os.path.split(__file__)
-        if ph.isWindows(): #windows平台
-            if ph.isPythonX64():
-                dllname = "x64/WtDtPorter.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-            else:
-                dllname = "x86/WtDtPorter.dll"
-                a = (paths[:-1] + (dllname,))
-                _path = os.path.join(*a)
-                self.api = cdll.LoadLibrary(_path)
-        else:#Linux平台
-            dllname = "linux/libWtDtPorter.so"
-            a = (paths[:-1] + (dllname,))
-            _path = os.path.join(*a)
-            print(_path)
-            self.api = cdll.LoadLibrary(_path)
-            print(self.api)
+        dllname = ph.getModule("WtDtPorter")
+        a = (paths[:-1] + (dllname,))
+        _path = os.path.join(*a)
+        self.api = cdll.LoadLibrary(_path)
         self.api.get_version.restype = c_char_p
         self.ver = bytes.decode(self.api.get_version())
 

@@ -59,26 +59,30 @@ class SelContext:
         '''
         self.__stra_info__.on_session_end(self, curTDate)
 
-    def on_getticks(self, stdCode:str, curTick:dict, isLast:bool):
+    def on_backtest_end(self):
+        '''
+        回测结束事件
+        '''
+        self.__stra_info__.on_backtest_end(self)
+
+    def on_getticks(self, stdCode:str, newTicks:list, isLast:bool):
         key = stdCode
 
         ticks = self.__tick_cache__[key]
-            
-        if curTick is not None:          
-            ticks.append_tick(curTick)
+        for newTick in newTicks:
+            ticks.append_item(newTick)
 
     def on_getpositions(self, stdCode:str, qty:float, isLast:bool):
         if len(stdCode) == 0:
             return
         self.__pos_cache__[stdCode] = qty
 
-    def on_getbars(self, stdCode:str, period:str, curBar:dict, isLast:bool):
+    def on_getbars(self, stdCode:str, period:str, newBars:list, isLast:bool):
         key = "%s#%s" % (stdCode, period)
 
         bars = self.__bar_cache__[key]
-            
-        if curBar is not None:          
-            bars.append_bar(curBar)
+        for newBar in newBars:
+            bars.append_bar(newBar)
 
     def on_tick(self, stdCode:str, newTick):
         self.__stra_info__.on_tick(self, stdCode, newTick)
