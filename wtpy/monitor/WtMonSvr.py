@@ -14,6 +14,7 @@ from .PushSvr import PushServer
 from .WatchDog import WatchDog, WatcherSink
 from .EventReceiver import EventReceiver, EventSink
 from .WtBtMon import WtBtMon
+from wtpy import WtDtServo
 
 def pack_rsp(obj):
     rsp = make_response(json.dumps(obj))
@@ -232,6 +233,7 @@ class WtMonSvr(WatcherSink):
         self.__data_mgr__ = DataMgr('data.db', logger=self.logger)
 
         self.__bt_mon__:WtBtMon = None
+        self.__dt_servo__:WtDtServo = None
 
         # 看门狗模块，主要用于调度各个组合启动关闭
         self._dog = WatchDog(sink=self, db=self.__data_mgr__.get_db(), logger=self.logger)
@@ -253,7 +255,61 @@ class WtMonSvr(WatcherSink):
         self.__bt_mon__ = btMon
         self.init_bt_apis(self.app)
 
+    def set_dt_servo(self, dtServo:WtDtServo):
+        self.__dt_servo__ = dtServo
+
     def init_bt_apis(self, app:Flask):
+
+        # 拉取K线数据
+        @app.route("/bt/qrybars", methods=["POST"])
+        def qry_bt_bars():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, userInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(userInfo)
+
+            user = userInfo["loginid"]
+            role = userInfo["role"]
+            if role not in ['researcher','superman']:
+                ret = {
+                    "result":-1,
+                    "message":"没有权限"
+                }
+                return pack_rsp(ret)
+
+            if self.__dt_servo__ is None:
+                ret = {
+                    "result":-2,
+                    "message":"没有配置数据伺服"
+                }
+                return pack_rsp(ret)
+
+            stdCode = get_param(json_data, "code")
+            period = get_param(json_data, "period")
+            fromTime = get_param(json_data, "stime", int, None)
+            dataCount = get_param(json_data, "count", int, None)
+            endTime = get_param(json_data, "etime", int)
+
+            bars = self.__dt_servo__.get_bars(stdCode=stdCode, period=period, fromTime=fromTime, dataCount=dataCount, endTime=endTime)
+            if bars is None:
+                ret = {
+                    "result":-2,
+                    "message":"Data not found"
+                }
+            else:
+                bar_list = [curBar.to_dict  for curBar in bars]
+                
+                ret = {
+                    "result":0,
+                    "message":"Ok",
+                    "bars": bar_list
+                }
+
+            return pack_rsp(ret)
+
         
         # 拉取用户策略列表
         @app.route("/bt/qrystras", methods=["POST"])
