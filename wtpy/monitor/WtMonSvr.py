@@ -67,7 +67,7 @@ def check_auth():
 
     # session里有用户信息，则要读取
     exptime = session.get("expiretime")
-    now = datetime.datetime.now()
+    now = datetime.datetime.now().strftime("%Y.%m.%d %H:%M:%S")
     if now > exptime:
         return False, {
             "result":-999,
@@ -936,7 +936,7 @@ class WtMonSvr(WatcherSink):
 
                         exptime = now + datetime.timedelta(minutes=360)  #360分钟令牌超时
                         session["userinfo"] = usrInf
-                        session["expiretime"] = exptime
+                        session["expiretime"] = exptime.strftime("%Y.%m.%d %H:%M:%S")
 
                         ret = {
                             "result":0,
