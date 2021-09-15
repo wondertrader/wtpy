@@ -157,3 +157,21 @@
 * 完善了绩效分析模块的兼容性
 * webui完善
 * 其他代码级的优化和完善
+
+### 0.7.0
+* C++底层更新到2021/09/12发布的v0.7.0版本
+* 新增一个WtDataServo模块，分为两种实现方式， 一种是调用本地底层WtDtServo模块，直接访问数据文件，根据需要可开启web接口，另外一种是直接访问第一种实现方式提供的web接口拉取数据，详情可以参考/demos/test_dataservo
+* 优化了WtWrapper和WtBtWrapper，将原来的global变量全部改成局部变量，可以提升运行效率
+* 通过singleton修饰器限定Wrapper为单例，和底层统一
+* 新增一个WtMsgQue模块，通过WtMQWrapper模块调用底层的WtMsgQue模块
+* EventReceiver模块改成调用WtMsgQue来实现，并按照回测和实盘框架分别实现EventReceiver
+* WatchDog启动和监控进程的机制进行了优化，不再使用threading挂载进程句柄的方式，而是利用cmdline和processid进行检查和监控，这样WtMonSvr重启之后，就可以重新根据命令行挂在已经在运行的进程
+* WtMonSvr新增回测管理模块WtBtMon，用于提供回测相关的接口服务
+* WtMonSvr完善了组合配置文件查询和修改的接口
+* WtMonSvr完善了组合风控过滤器filters.json的读取机制
+* WtMonSvr新增了用户修改密码和管理员重设用户密码的接口
+* PushSvr根据EventReceiver收到的数据，进行了适配，完善了消息推送的机制
+* WtBtAnalyst模块新增了run_simple接口，用于只进行最简单的每日资金分析，并将结果输出到summary.json文件
+* apps下新增了一个WtHotPicker.py模块，用于确定主力合约和次主力合约
+* 其他配合底层的优化和调整
+* webui剥离出来，单独发布到wtconsole仓库
