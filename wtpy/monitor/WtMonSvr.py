@@ -7,6 +7,7 @@ import hashlib
 import sys
 import base64
 import chardet
+import pytz
 
 from .WtLogger import WtLogger
 from .DataMgr import DataMgr, backup_file
@@ -67,7 +68,7 @@ def check_auth():
 
     # session里有用户信息，则要读取
     exptime = session.get("expiretime")
-    now = datetime.datetime.now().strftime("%Y.%m.%d %H:%M:%S")
+    now = datetime.datetime.now().replace(tzinfo=pytz.timezone('UTC')).strftime("%Y.%m.%d %H:%M:%S")
     if now > exptime:
         return False, {
             "result":-999,
@@ -936,7 +937,7 @@ class WtMonSvr(WatcherSink):
 
                         exptime = now + datetime.timedelta(minutes=360)  #360分钟令牌超时
                         session["userinfo"] = usrInf
-                        session["expiretime"] = exptime.strftime("%Y.%m.%d %H:%M:%S")
+                        session["expiretime"] = exptime.replace(tzinfo=pytz.timezone('UTC')).strftime("%Y.%m.%d %H:%M:%S")
 
                         ret = {
                             "result":0,
