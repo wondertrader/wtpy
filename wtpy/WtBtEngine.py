@@ -224,20 +224,23 @@ class WtBtEngine:
         '''
         self.__wrapper__.set_time_range(beginTime, endTime)
 
-    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0):
+    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False):
         '''
         添加策略\n
         @strategy   策略对象
+        @slippage   滑点大小
+        @hook       是否安装钩子，主要用于单步控制重算
         '''
-        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage)
+        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook)
         self.__context__ = CtaContext(ctxid, strategy, self.__wrapper__, self)
 
-    def set_hft_strategy(self, strategy:BaseHftStrategy):
+    def set_hft_strategy(self, strategy:BaseHftStrategy, hook:bool = False):
         '''
         添加策略\n
         @strategy   策略对象
+        @hook       是否安装钩子，主要用于单步控制重算
         '''
-        ctxid = self.__wrapper__.init_hft_mocker(strategy.name())
+        ctxid = self.__wrapper__.init_hft_mocker(strategy.name(), hook)
         self.__context__ = HftContext(ctxid, strategy, self.__wrapper__, self)
 
     def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING", slippage:int = 0):
@@ -262,6 +265,17 @@ class WtBtEngine:
 
         self.__wrapper__.run_backtest(bNeedDump = True, bAsync = bAsync)
 
+    def cta_step(self):
+        '''
+        CTA策略单步执行
+        '''
+        self.__wrapper__.cta_step(self.__context__.id)
+
+    def hft_step(self):
+        '''
+        HFT策略单步执行
+        '''
+        self.__wrapper__.hft_step(self.__context__.id)
 
     def stop_backtest(self):
         '''
