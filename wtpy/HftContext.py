@@ -30,6 +30,10 @@ class HftContext:
 
         self.is_backtest = self.__engine__.is_backtest
 
+    @property
+    def id(self):
+        return self.__id__
+
     def on_init(self):
         '''
         初始化,一般用于系统启动的时候

@@ -706,7 +706,7 @@ class DataMgr:
 
         trdCache = self.__grp_cache__[grpid]["corders"][chnlid]
 
-        f = open(trdCache["file"], "r")
+        f = open(trdCache["file"], "r",encoding="gb2312",errors="ignore")
         last_row = trdCache["lastrow"]
         lines = f.readlines()
         f.close()
@@ -760,7 +760,7 @@ class DataMgr:
 
         trdCache = self.__grp_cache__[grpid]["ctrades"][chnlid]
 
-        f = open(trdCache["file"], "r")
+        f = open(trdCache["file"], "r",encoding="gb2312")
         last_row = trdCache["lastrow"]
         lines = f.readlines()
         f.close()
