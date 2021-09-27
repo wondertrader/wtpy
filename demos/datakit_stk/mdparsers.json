@@ -2,6 +2,7 @@
     "parsers":[
         {
             "active":true,
+            "id":"parser",
             "module":"ParserXTP.dll",
             "host":"120.27.164.138",
             "port":"6002",
