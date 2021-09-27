@@ -24,6 +24,9 @@ class WtDtEngine:
         self.__wrapper__.run_datakit()
 
     def add_exetended_parser(self, parser:BaseExtParser):
+        '''
+        添加扩展parser
+        '''
         id = parser.id()
         if id not in self.__ext_parsers__:
             self.__ext_parsers__[id] = parser
@@ -31,9 +34,15 @@ class WtDtEngine:
                 self.__ext_parsers__.pop(id)
 
     def get_extended_parser(self, id:str)->BaseExtParser:
+        '''
+        根据id获取扩展parser
+        '''
         if id not in self.__ext_parsers__:
             return None
         return self.__ext_parsers__[id]
 
     def push_quote_from_extended_parser(self, id:str, newTick, bNeedSlice:bool):
+        '''
+        向底层推送tick数据
+        '''
         self.__wrapper__.push_quote_from_exetended_parser(id, newTick, bNeedSlice)
