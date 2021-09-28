@@ -760,12 +760,12 @@ class WtBtWrapper:
         '''
         self.api.cta_sub_ticks(id, bytes(stdCode, encoding = "utf8"))
 
-    def cta_step(self, id:int):
+    def cta_step(self, id:int) -> bool:
         '''
         单步执行
         @id         策略id
         '''
-        self.api.cta_step(id)
+        return self.api.cta_step(id)
 
     
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
