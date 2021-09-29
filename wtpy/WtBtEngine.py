@@ -265,11 +265,11 @@ class WtBtEngine:
 
         self.__wrapper__.run_backtest(bNeedDump = True, bAsync = bAsync)
 
-    def cta_step(self):
+    def cta_step(self) -> bool:
         '''
         CTA策略单步执行
         '''
-        self.__wrapper__.cta_step(self.__context__.id)
+        return self.__wrapper__.cta_step(self.__context__.id)
 
     def hft_step(self):
         '''

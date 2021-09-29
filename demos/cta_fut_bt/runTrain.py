@@ -30,6 +30,9 @@ class EnvStrategy(BaseCtaStrategy):
         self.obs += 1
         self.reward += 1
 
+    def on_backtest_end(self, context: CtaContext):
+        print('on_backtest_end')
+
 
 
 class WtEnv():
@@ -68,11 +71,12 @@ class WtEnv():
         self._strategy.action = action
 
         # 单步触发oncalc
-        self._engine_.cta_step()
+        bSucc = self._engine_.cta_step()
 
         obs = self._strategy.obs # todo 怎么从取得oncalc里的obs数据
         reward = self._strategy.reward # todo 怎么从取得reward里的obs数据
         done = True if np.random.randint(1, 100)==99 else False #是否结束
+        done = not bSucc
         return obs, reward, done, {}
     
     def close(self) -> None:
