@@ -2,8 +2,8 @@ from ctypes import cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, POINTER,
 from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
-from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST
-from wtpy.WtCoreDefs import EVENT_ENGINE_INIT, EVENT_SESSION_BEGIN, EVENT_SESSION_END, EVENT_ENGINE_SCHDL
+from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST, CB_ENGINE_EVENT
+from wtpy.WtCoreDefs import EVENT_ENGINE_INIT, EVENT_SESSION_BEGIN, EVENT_SESSION_END, EVENT_ENGINE_SCHDL, EVENT_BACKTEST_END
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, WTSOrdQueStruct, WTSOrdDtlStruct, WTSTransStruct
 from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
@@ -472,8 +472,9 @@ class WtBtWrapper:
         self.cb_stra_bar = CB_STRATEGY_BAR(self.on_stra_bar)
         self.cb_session_event = CB_SESSION_EVENT(self.on_session_event)
 
+        self.cb_engine_event = CB_ENGINE_EVENT(self.on_engine_event)
         try:
-            # 回测不需要 self.api.register_evt_callback(cb_engine_event)
+            self.api.register_evt_callback(self.cb_engine_event)
             self.api.register_cta_callbacks(self.cb_stra_init, self.cb_stra_tick, 
                 self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event)
             self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
@@ -499,8 +500,10 @@ class WtBtWrapper:
         self.cb_hftstra_order_queue = CB_HFTSTRA_ORDQUE(self.on_hftstra_order_queue)
         self.cb_hftstra_transaction = CB_HFTSTRA_TRANS(self.on_hftstra_transaction)
 
+        self.cb_engine_event = CB_ENGINE_EVENT(self.on_engine_event)
+
         try:
-            # 回测不需要 self.api.register_evt_callback(cb_engine_event)
+            self.api.register_evt_callback(self.cb_engine_event)
             self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
             self.api.register_hft_callbacks(self.cb_stra_init, self.cb_stra_tick, self.cb_stra_bar, 
                 self.cb_hftstra_channel_evt, self.cb_hftstra_order, self.cb_hftstra_trade, 
@@ -522,8 +525,10 @@ class WtBtWrapper:
         self.cb_stra_bar = CB_STRATEGY_BAR(self.on_stra_bar)
         self.cb_session_event = CB_SESSION_EVENT(self.on_session_event)
 
+        self.cb_engine_event = CB_ENGINE_EVENT(self.on_engine_event)
+
         try:
-            # 回测不需要 self.api.register_evt_callback(cb_engine_event)
+            self.api.register_evt_callback(self.cb_engine_event)
             self.api.register_sel_callbacks(self.cb_stra_init, self.cb_stra_tick, 
                 self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event)
             self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
