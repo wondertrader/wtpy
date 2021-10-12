@@ -302,6 +302,9 @@ class WtBtEngine:
         return
 
     def on_backtest_end(self):
+        if self.__context__ is None:
+            return
+
         self.__context__.on_backtest_end()
 
     def clear_cache(self):
