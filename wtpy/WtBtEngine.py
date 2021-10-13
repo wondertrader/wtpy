@@ -224,14 +224,14 @@ class WtBtEngine:
         '''
         self.__wrapper__.set_time_range(beginTime, endTime)
 
-    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False):
+    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False, persistData:bool = True):
         '''
         添加策略\n
         @strategy   策略对象
         @slippage   滑点大小
         @hook       是否安装钩子，主要用于单步控制重算
         '''
-        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook)
+        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData)
         self.__context__ = CtaContext(ctxid, strategy, self.__wrapper__, self)
 
     def set_hft_strategy(self, strategy:BaseHftStrategy, hook:bool = False):
@@ -254,7 +254,7 @@ class WtBtEngine:
     def get_context(self, id:int):
         return self.__context__
 
-    def run_backtest(self, bAsync:bool = False):
+    def run_backtest(self, bAsync:bool = False, bNeedDump:bool = True):
         '''
         运行框架
 
@@ -263,7 +263,7 @@ class WtBtEngine:
         if not self.__cfg_commited__:   #如果配置没有提交，则自动提交一下
             self.commitBTConfig()
 
-        self.__wrapper__.run_backtest(bNeedDump = True, bAsync = bAsync)
+        self.__wrapper__.run_backtest(bNeedDump = bNeedDump, bAsync = bAsync)
 
     def cta_step(self) -> bool:
         '''
