@@ -1415,6 +1415,7 @@ class WtBtAnalyst:
             
             filename = folder + 'summary.json'
             sumObj = summary_analyze(df_funds, capital=init_capital, rf=rf, period=annual_days)
+            sumObj["name"] = sname
             f = open(filename,"w")
-            f.write(json.dumps(sumObj, indent=4))
+            f.write(json.dumps(sumObj, indent=4, ensure_ascii=True))
             f.close()
