@@ -154,6 +154,13 @@ class WtBtWrapper:
             ctx.on_calculate()
         return
 
+    def on_stra_calc_done(self, id:int, curDate:int, curTime:int):
+        engine = self._engine
+        ctx = engine.get_context(id)
+        if ctx is not None:
+            ctx.on_calculate_done()
+        return
+
     def on_stra_bar(self, id:int, stdCode:str, period:str, newBar:POINTER(WTSBarStruct)):
         period = bytes.decode(period)
         engine = self._engine
@@ -469,6 +476,7 @@ class WtBtWrapper:
         self.cb_stra_init = CB_STRATEGY_INIT(self.on_stra_init)
         self.cb_stra_tick = CB_STRATEGY_TICK(self.on_stra_tick)
         self.cb_stra_calc = CB_STRATEGY_CALC(self.on_stra_calc)
+        self.cb_stra_calc_done = CB_STRATEGY_CALC(self.on_stra_calc_done)
         self.cb_stra_bar = CB_STRATEGY_BAR(self.on_stra_bar)
         self.cb_session_event = CB_SESSION_EVENT(self.on_session_event)
 
@@ -476,7 +484,7 @@ class WtBtWrapper:
         try:
             self.api.register_evt_callback(self.cb_engine_event)
             self.api.register_cta_callbacks(self.cb_stra_init, self.cb_stra_tick, 
-                self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event)
+                self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_calc_done)
             self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
@@ -509,7 +517,6 @@ class WtBtWrapper:
                 self.cb_hftstra_channel_evt, self.cb_hftstra_order, self.cb_hftstra_trade, 
                 self.cb_hftstra_entrust, self.cb_hftstra_order_detail, self.cb_hftstra_order_queue, 
                 self.cb_hftstra_transaction, self.cb_session_event)
-            # 回测不需要 self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
 
@@ -522,6 +529,7 @@ class WtBtWrapper:
         self.cb_stra_init = CB_STRATEGY_INIT(self.on_stra_init)
         self.cb_stra_tick = CB_STRATEGY_TICK(self.on_stra_tick)
         self.cb_stra_calc = CB_STRATEGY_CALC(self.on_stra_calc)
+        self.cb_stra_calc_done = CB_STRATEGY_CALC(self.on_stra_calc_done)
         self.cb_stra_bar = CB_STRATEGY_BAR(self.on_stra_bar)
         self.cb_session_event = CB_SESSION_EVENT(self.on_session_event)
 
@@ -530,9 +538,8 @@ class WtBtWrapper:
         try:
             self.api.register_evt_callback(self.cb_engine_event)
             self.api.register_sel_callbacks(self.cb_stra_init, self.cb_stra_tick, 
-                self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event)
+                self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_calc_done)
             self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
-            # 回测不需要 self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile)
         except OSError as oe:
             print(oe)
 

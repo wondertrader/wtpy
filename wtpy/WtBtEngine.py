@@ -265,9 +265,11 @@ class WtBtEngine:
 
         self.__wrapper__.run_backtest(bNeedDump = bNeedDump, bAsync = bAsync)
 
-    def cta_step(self) -> bool:
+    def cta_step(self, remark:str = "") -> bool:
         '''
         CTA策略单步执行
+
+        @remark 单步备注信息，没有实际作用，主要用于外部调用区分步骤
         '''
         return self.__wrapper__.cta_step(self.__context__.id)
 

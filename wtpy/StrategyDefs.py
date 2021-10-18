@@ -46,6 +46,14 @@ class BaseCtaStrategy:
         '''
         return
 
+    def on_calculate_done(self, context:CtaContext):
+        '''
+        K线闭合时调用，一般作为策略的核心计算模块
+
+        @context    策略运行上下文
+        '''
+        return
+
 
     def on_tick(self, context:CtaContext, stdCode:str, newTick:dict):
         '''
@@ -268,6 +276,13 @@ class BaseSelStrategy:
         return
     
     def on_calculate(self, context:SelContext):
+        '''
+        K线闭合时调用，一般作为策略的核心计算模块
+        @context    策略运行上下文
+        '''
+        return
+
+    def on_calculate_done(self, context:SelContext):
         '''
         K线闭合时调用，一般作为策略的核心计算模块
         @context    策略运行上下文
