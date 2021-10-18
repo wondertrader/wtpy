@@ -399,7 +399,7 @@ class WtCtaOptimizer:
             total_summary.append(obj_summary)
 
         df_summary = df(total_summary)
-        df_summary = df_summary.drop(labels=["name"], axis='columns')
+        # df_summary = df_summary.drop(labels=["name"], axis='columns')
         df_summary.to_csv(out_summary_file, encoding='utf-8-sig')
 
     def analyze(self, out_marker_file:str = "strategies.json", out_summary_file:str = "total_summary.csv"):
@@ -417,7 +417,7 @@ class WtCtaOptimizer:
                 print("%s不存在，请检查数据" % (filename))
                 continue
                 
-            time_range = (obj_stras["start_time"],obj_stras["end_time"])
+            time_range = (params["start_time"],params["end_time"])
             self.__ayalyze_result__(straName, time_range, params)
             
             f = open(filename, "r")
