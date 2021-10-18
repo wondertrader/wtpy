@@ -30,6 +30,9 @@ class EnvStrategy(BaseCtaStrategy):
         self.obs += 1
         self.reward += 1
 
+    def on_calculate_done(self, context: CtaContext):
+        print('on_calculate_done action%s'%self.action)
+
     def on_backtest_end(self, context: CtaContext):
         print('on_backtest_end')
 
@@ -67,9 +70,6 @@ class WtEnv():
         return self._strategy.obs
 
     def step(self, action:np.ndarray) -> tuple:
-        #todo  怎么把action传入oncalc里
-        self._strategy.action = action
-
         # 单步触发oncalc
         bSucc = self._engine_.cta_step()
 
@@ -77,6 +77,16 @@ class WtEnv():
         reward = self._strategy.reward # todo 怎么从取得reward里的obs数据
         done = True if np.random.randint(1, 100)==99 else False #是否结束
         done = not bSucc
+        return obs, reward, done, {}
+        print("state updated")
+
+         #todo  怎么把action传入oncalc里
+        self._strategy.action = action
+        print("action updated, Go!")
+        
+        bSucc = self._engine_.cta_step()
+        print("action executed")
+
         return obs, reward, done, {}
     
     def close(self) -> None:
