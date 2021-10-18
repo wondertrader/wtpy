@@ -118,6 +118,9 @@ class CtaContext:
     def on_calculate(self):
         self.__stra_info__.on_calculate(self)
 
+    def on_calculate_done(self):
+        self.__stra_info__.on_calculate_done(self)
+
     def stra_log_text(self, message:str):
         '''
         输出日志
