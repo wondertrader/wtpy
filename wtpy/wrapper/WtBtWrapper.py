@@ -232,7 +232,7 @@ class WtBtWrapper:
         tsSize = sizeof(WTSTickStruct)
         addr = addressof(curTick.contents) # 获取内存地址
         ticks = [None]*count # 预先分配list的长度
-        for i in range(count):
+        for idx in range(count):
             realTick = WTSTickStruct.from_address(addr)   # 从内存中直接解析成WTSTickStruct
             tick = dict()
             tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
@@ -262,7 +262,7 @@ class WtBtWrapper:
                     tick["askprice"].append(realTick.ask_prices[i])
                     tick["askqty"].append(realTick.ask_qty[i])
 
-            ticks[i] = tick
+            ticks[idx] = tick
             addr += tsSize
 
         if ctx is not None:
