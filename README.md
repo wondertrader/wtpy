@@ -175,3 +175,9 @@
 * apps下新增了一个WtHotPicker.py模块，用于确定主力合约和次主力合约
 * 其他配合底层的优化和调整
 * webui剥离出来，单独发布到wtconsole仓库
+
+### 0.7.1
+* C++底层更新到2021/10/24发布的v0.7.1版本
+* 回测框架C++底层增加了单步控制机制，用于控制回测进度，主要为了配合强化学习框架的调用习惯
+* WtDtEngine支持扩展Parser的接入，可以参考/demos/datakit_fut/testExtParser.py
+* 其他配合底层的优化和调整
