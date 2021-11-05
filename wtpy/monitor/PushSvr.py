@@ -1,11 +1,3 @@
-'''
-Descripttion: Automatically generated file comment
-version: 
-Author: Wesley
-Date: 2021-08-05 18:49:24
-LastEditors: Wesley
-LastEditTime: 2021-08-16 14:01:24
-'''
 from flask_socketio import SocketIO, emit
 from flask import session, sessions
 
@@ -20,7 +12,7 @@ def get_param(json_data, key:str, type=str, defVal = ""):
 class PushServer:
 
     def __init__(self, app, dataMgr, logger:WtLogger = None):
-        sockio = SocketIO(app)
+        sockio:SocketIO = SocketIO(app)
         self.sockio = sockio
         self.app = app
         self.dataMgr = dataMgr
@@ -28,8 +20,6 @@ class PushServer:
 
         @sockio.on('connect', namespace='/')
         def on_connect():
-            # emit('my response', {'data': 'Connected'})
-            print(session)
             usrInfo = session.get("userinfo")
             if usrInfo is not None:
                 self.logger.info("%s connected" % usrInfo["loginid"])
@@ -46,8 +36,7 @@ class PushServer:
             if len(groupid) == 0:
                 emit('setgroup', {"result":-2, "message":"组合ID不能为空"})
             else:
-                session["groupid"] = groupid
-                
+                session["groupid"] = groupid         
 
     def run(self, port:int, host:str):
         self.sockio.run(self.app, host, port)
