@@ -220,16 +220,15 @@ class WtWrapper:
         @curTick    最新一笔Tick\n
         @isLast     是否是最后一条
         '''
-
         engine = self._engine
         ctx = engine.get_context(id)
 
         tsSize = sizeof(WTSTickStruct)
         addr = addressof(curTick.contents) # 获取内存地址
         ticks = [None]*count # 预先分配list的长度
-        for i in range(count):
+        for idx in range(count):
             realTick = WTSTickStruct.from_address(addr)   # 从内存中直接解析成WTSTickStruct
-
+            tick = dict()
             tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
             tick["open"] = realTick.open
             tick["high"] = realTick.high
@@ -256,8 +255,7 @@ class WtWrapper:
                 if realTick.ask_qty[i] != 0:
                     tick["askprice"].append(realTick.ask_prices[i])
                     tick["askqty"].append(realTick.ask_qty[i])
-
-            ticks[i] = tick
+            ticks[idx] = tick
             addr += tsSize
 
         if ctx is not None:

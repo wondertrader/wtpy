@@ -4,7 +4,7 @@ from Strategies.DualThrust import StraDualThrust
 
 def runBaseOptimizer():
     # 新建一个优化器，并设置最大工作进程数为8
-    optimizer = WtCtaOptimizer(worker_num=4)
+    optimizer = WtCtaOptimizer(worker_num=8)
 
     # 设置要使用的策略，只需要传入策略类型即可，同时设置策略ID的前缀，用于区分每个策略的实例
     optimizer.set_strategy(StraDualThrust, "Dt_IF_")
@@ -111,5 +111,5 @@ def runStopAllOptimizer():
 
 
 if __name__ == "__main__":
-    runStopAllOptimizer()
+    runBaseOptimizer()
     kw = input('press any key to exit\n')
