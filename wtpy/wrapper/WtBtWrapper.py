@@ -73,8 +73,8 @@ class WtBtWrapper:
         self.api.hft_sell.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
         # 回测不需要 self.api.hft_cancel_all.restype = c_char_p
 
-        self.api.set_time_range.argtype = [c_uint64, c_uint64]
-        self.api.enable_tick.argtype = [c_bool]
+        self.api.set_time_range.argtypes = [c_uint64, c_uint64]
+        self.api.enable_tick.argtypes = [c_bool]
 
     def on_engine_event(self, evtid:int, evtDate:int, evtTime:int):
         engine = self._engine
