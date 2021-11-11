@@ -20,7 +20,7 @@ import json
 @singleton
 class WtBtEngine:
 
-    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False):
+    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False, outDir:str = "./outputs_bt"):
         self.is_backtest = True
 
         self.__wrapper__ = WtBtWrapper(self)  #api接口转换器
@@ -33,11 +33,11 @@ class WtBtEngine:
         self.__dump_config__ = bDumpCfg #是否保存最终配置
 
         if eType == eType.ET_CTA:
-            self.__wrapper__.initialize_cta(logCfg, isFile)   #初始化CTA环境
+            self.__wrapper__.initialize_cta(logCfg, isFile, outDir)   #初始化CTA环境
         elif eType == eType.ET_HFT:
-            self.__wrapper__.initialize_hft(logCfg, isFile)   #初始化HFT环境
+            self.__wrapper__.initialize_hft(logCfg, isFile, outDir)   #初始化HFT环境
         elif eType == eType.ET_SEL:
-            self.__wrapper__.initialize_sel(logCfg, isFile)   #初始化SEL环境
+            self.__wrapper__.initialize_sel(logCfg, isFile, outDir)   #初始化SEL环境
 
     def __check_config__(self):
         '''
