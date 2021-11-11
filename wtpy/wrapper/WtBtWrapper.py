@@ -469,7 +469,7 @@ class WtBtWrapper:
         self.api.config_backtest(bytes(cfgfile, encoding = "utf8"), isFile)
     ### 实盘和回测有差异 ###
 
-    def initialize_cta(self, logCfg:str = "logcfgbt.json", isFile:bool = True):
+    def initialize_cta(self, logCfg:str = "logcfgbt.json", isFile:bool = True, outDir:str = "./outputs_bt"):
         '''
         C接口初始化
         '''
@@ -485,13 +485,13 @@ class WtBtWrapper:
             self.api.register_evt_callback(self.cb_engine_event)
             self.api.register_cta_callbacks(self.cb_stra_init, self.cb_stra_tick, 
                 self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_calc_done)
-            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
+            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile, bytes(outDir, encoding = "utf8"))
         except OSError as oe:
             print(oe)
 
         self.write_log(102, "WonderTrader CTA backtest framework initialzied，version：%s" % (self.ver))
 
-    def initialize_hft(self, logCfg:str = "logcfgbt.json", isFile:bool = True):
+    def initialize_hft(self, logCfg:str = "logcfgbt.json", isFile:bool = True, outDir:str = "./outputs_bt"):
         '''
         C接口初始化
         '''
@@ -512,17 +512,17 @@ class WtBtWrapper:
 
         try:
             self.api.register_evt_callback(self.cb_engine_event)
-            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
             self.api.register_hft_callbacks(self.cb_stra_init, self.cb_stra_tick, self.cb_stra_bar, 
                 self.cb_hftstra_channel_evt, self.cb_hftstra_order, self.cb_hftstra_trade, 
                 self.cb_hftstra_entrust, self.cb_hftstra_order_detail, self.cb_hftstra_order_queue, 
                 self.cb_hftstra_transaction, self.cb_session_event)
+            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile, bytes(outDir, encoding = "utf8"))
         except OSError as oe:
             print(oe)
 
         self.write_log(102, "WonderTrader HFT backtest framework initialzied，version：%s" % (self.ver))
 
-    def initialize_sel(self, logCfg:str = "logcfgbt.json", isFile:bool = True):
+    def initialize_sel(self, logCfg:str = "logcfgbt.json", isFile:bool = True, outDir:str = "./outputs_bt"):
         '''
         C接口初始化
         '''
@@ -539,7 +539,7 @@ class WtBtWrapper:
             self.api.register_evt_callback(self.cb_engine_event)
             self.api.register_sel_callbacks(self.cb_stra_init, self.cb_stra_tick, 
                 self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_calc_done)
-            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
+            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile, bytes(outDir, encoding = "utf8"))
         except OSError as oe:
             print(oe)
 
