@@ -2096,6 +2096,62 @@ class WtMonSvr(WatcherSink):
                     
 
             return pack_rsp(ret)
+
+        # 查询组合成交
+        @app.route("/mgr/qryporttrd", methods=["POST"])
+        def qry_group_trades():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "trades": self.__data_mgr__.get_group_trades(gid)
+                }
+                    
+
+            return pack_rsp(ret)
+
+        # 查询组合回合
+        @app.route("/mgr/qryportrnd", methods=["POST"])
+        def qry_group_rounds():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            bSucc, usrInfo = check_auth()
+            if not bSucc:
+                return pack_rsp(usrInfo)
+
+            gid = get_param(json_data, "groupid")
+
+            if not self.__data_mgr__.has_group(gid):
+                ret = {
+                    "result":-1,
+                    "message":"组合不存在"
+                }
+            else:
+                ret = {
+                    "result":0,
+                    "message":"",
+                    "rounds": self.__data_mgr__.get_group_rounds(gid)
+                }
+                    
+
+            return pack_rsp(ret)
         
         # 查询组合资金
         @app.route("/mgr/qryportfunds", methods=["POST"])
