@@ -4,7 +4,8 @@ import numpy as np
 from dateutil.parser import parse
 from collections import Counter
 from datetime import datetime
-
+import matplotlib.pyplot as plt
+from io import BytesIO
 import math
 import json
 from xlsxwriter import Workbook
@@ -14,12 +15,16 @@ class Calculate():
     '''
     绩效比率计算
     '''
-    def __init__(self, ret, mar, rf, period, trade):
+    def __init__(self, ret, mar, rf, period, trade,capital,ret_day=[],trade_day=0,profit=0):
         """
-        :param ret: 收益率序列
+        :param ret: 收益率序列(单笔)
         :param mar: 最低可接受回报
         :param rf: 无风险利率
         :param period: 年交易日（用来年化）240
+        :param capital: 初始本金
+        :param ret_day: 收益率序列（每日）
+        :param trade_day: 交易天数
+        :param profit: 每笔利润
         """
         self.ret = ret
         self.mar = mar
@@ -27,30 +32,49 @@ class Calculate():
         self.trade = math.ceil(trade)
         self.period = period
         self.daily_rf = (self.rf + 1) ** (1 / self.period) - 1
+        self.capital = capital
+        self.ret_day = ret_day
+        self.trade_day = trade_day
+        self.profit = profit
 
     # 潜在上行比率
     def calculate_upside_ratio(self):
-        acess_return = np.sum(self.ret - self.mar)
-        downside_std = self.ret[self.ret.apply(lambda x: x < 0)].std()
+        upside = self.ret_day - self.daily_rf
+        acess_return = upside[upside > 0].sum() / self.trade_day
+        downside_std = math.sqrt((upside[upside < 0] ** 2).sum()/self.trade_day)
+        if len(upside[upside < 0]) ==0:
+            return 9999
         upside_ratio = acess_return / downside_std
         return upside_ratio
 
     # 夏普率
     def sharp_ratio(self):
-        expect_return = self.ret.mean()
-        std = self.ret.std()
-        sharp_ratio = (expect_return - self.daily_rf) / std
+        expect_return = self.ret_day.mean()
+        std = self.ret_day.std()
+        sharp_ratio = (expect_return - self.daily_rf) / std * np.sqrt(self.period)
         return sharp_ratio
 
     # 索提诺比率
     def sortion_ratio(self):
-        expect_return = self.ret.mean()
-        downside_std = self.ret[self.ret.apply(lambda x: x < 0)].std()
-        sortion_ratio = (expect_return - self.daily_rf) / downside_std
+        expect_return = self.ret_day.mean()
+        downside = self.ret_day-self.daily_rf
+        downside_std = downside[downside < 0].std()
+        # downside_std = self.ret[self.ret.apply(lambda x: x < 0)].std()
+        sortion_ratio = (expect_return - self.daily_rf) / downside_std * np.sqrt(self.period)
         return sortion_ratio
 
-    # 最大回撤
+    # 最大回撤值
     def maxDrawdown(self):
+        ret = (self.ret + 1).cumprod()
+        i = np.argmax((np.maximum.accumulate(ret) - ret) / np.maximum.accumulate(ret))
+        if i == 0:
+            return 0
+        j = np.argmax(ret[:i])
+        # return (ret[j] - ret[i]) / ret[j]
+        return self.capital * ret[j] * (ret[j] - ret[i]) / ret[j]
+
+    # 最大回撤比例
+    def maxDrawdown_ratio(self):
         ret = (self.ret + 1).cumprod()
         i = np.argmax((np.maximum.accumulate(ret) - ret) / np.maximum.accumulate(ret))
         if i == 0:
@@ -68,16 +92,15 @@ class Calculate():
 
     # 卡尔马比率
     def calmar_ratio(self):
-        maxdrawdown = Calculate.maxDrawdown(self)
+        maxdrawdown = Calculate.maxDrawdown_ratio(self)
         annual_return = Calculate.get_annual_return(self)
         calmar_ratio = annual_return / maxdrawdown
         return calmar_ratio
 
     # 斯特林比率
     def sterling_a_ratio(self):
-        average_drawdown = abs(self.ret.where(self.ret < 0, 0).mean())
         annual_return = Calculate.get_annual_return(self)
-        sterling_a_ratio = (annual_return - self.rf) / average_drawdown
+        sterling_a_ratio = annual_return / abs(Calculate.maxDrawdown_ratio(self)- 0.1)
         return sterling_a_ratio
 
     # 单笔最大回撤
@@ -89,6 +112,12 @@ class Calculate():
         single_largest_mxd = abs(single_largest_mdd.min())
         return single_largest_mxd
 
+    # 单笔最大回撤值
+    def single_largest_maxdrawdown_value(self):
+        i = np.argmin(self.ret)
+        single_largest_mxd = abs(self.profit[i])
+        return single_largest_mxd
+
     # 单笔最大回撤索引
     def single_maxdrawdown_time(self):
         i = np.argmin(self.ret)
@@ -96,7 +125,7 @@ class Calculate():
 
     # 年化收益率
     def get_annual_return(self):
-        annual_return = 0 if self.trade==0 else ((1 + self.ret.sum()) ** (self.period / self.trade) - 1)
+        annual_return = 0 if self.trade_day==0 else (1+self.ret_day).cumprod()[len(self.ret_day)-1] ** (self.period / self.trade_day) - 1
         return annual_return
 
     # 月化收益率
@@ -107,7 +136,7 @@ class Calculate():
 
     # 月平均收益
     def monthly_average_return(self):
-        monthly = self.ret.mean() * (self.period / 12)
+        monthly = self.ret_day.mean() * (self.period / 12)
         return monthly
 
     # 衰落时间
@@ -146,6 +175,8 @@ def continue_trading_analysis(data, x_value) -> dict:
     win_time = 0
     ltimes = 0
     loss_time = 0
+    con_win_profit = []
+    con_lose_loss = []
     for i in range(len(data)-1):
         sss = data['profit'][i]
         if sss > 0:
@@ -154,18 +185,33 @@ def continue_trading_analysis(data, x_value) -> dict:
             rem = i
             if times > win_time:
                 win_time = times
-                con_win_p_end = rem
+                # con_win_p_end = []
+                # con_win_p_end.append(rem)
+                con_win_profit.append((data['profit'].loc[rem - win_time + 1:rem]).sum())
+            elif times == win_time:
+                # con_win_p_end.append(rem)
+                con_win_profit.append((data['profit'].loc[rem - win_time + 1:rem]).sum())
         else:
             times = 0
             ltimes += 1
             rem = i
             if ltimes > loss_time:
                 loss_time = ltimes
-                con_loss_p_end = rem
-
+                # con_loss_p_end = []
+                # con_loss_p_end.append(rem)
+                con_lose_loss.append((data['profit'].loc[rem - loss_time + 1:rem]).sum())
+            elif ltimes == loss_time:
+                # con_loss_p_end.append(rem)
+                con_lose_loss.append((data['profit'].loc[rem - loss_time + 1:rem]).sum())
     capital = 500000
-    con_win_profit = (data['profit'].loc[con_win_p_end-win_time + 1:con_win_p_end]).sum()
-    con_lose_loss = (data['profit'].loc[con_loss_p_end-loss_time + 1:con_loss_p_end]).sum()
+
+    # for rem in con_win_p_end:
+    #     con_win_profit.append((data['profit'].loc[rem-win_time + 1:rem]).sum())
+    con_win_profit = max(con_win_profit)
+
+    # for rem in con_loss_p_end:
+    #     con_lose_loss.append((data['profit'].loc[rem-loss_time + 1 :rem]).sum())
+    con_lose_loss = min(con_lose_loss)
     # con_win_p_end, win_time 连续盈利结束位置，连续盈利最大次数
     # con_loss_p_end，loss_time 连续亏损结束位置，连续亏损最大次数
 
@@ -194,31 +240,60 @@ def extreme_trading(data, time_of_std=1):
     '''
     std = data['profit'].std()
     df_wins = data[data["profit"] > 0]
+    df_wins_std = df_wins['profit'].std()
     df_loses = data[data["profit"] <= 0]
+    df_loses_std = df_loses['profit'].std()
     winamout = df_wins["profit"].sum()  # 毛盈利
     loseamount = df_loses["profit"].sum()  # 毛亏损
     trdnetprofit = winamout + loseamount  # 交易净盈亏
     totaltimes = len(data)  # 总交易次数
     avgprof = trdnetprofit / totaltimes if totaltimes > 0 else 0  # 单次平均盈亏
-
+    avgprof_win = winamout / len(df_wins)
+    avgprof_lose = loseamount / len(df_loses)
     # 单笔盈利 + 标准差
     sin_profit_plstd = avgprof + (std * time_of_std)
+    sin_profit_plstd_win = avgprof_win + (df_wins_std * time_of_std)
+    sin_profit_plstd_lose = avgprof_lose + (df_loses_std * time_of_std)
     # 单笔盈利 - 标准差
     sin_profit_mistd = avgprof - (std * time_of_std)
-
+    sin_profit_mistd_win = avgprof_win - (df_wins_std * time_of_std)
+    sin_profit_mistd_lose = avgprof_lose - (df_loses_std * time_of_std)
     # 极端交易数量
     extreme_result = data[data['profit'].apply(lambda x: x > sin_profit_plstd or x < sin_profit_mistd)]
     extreme_num = len(extreme_result)
-
+    extreme_num_win = len(extreme_result[extreme_result['profit'] > 0])
+    extreme_num_lose = len(extreme_result[extreme_result['profit'] < 0])
     # 极端交易盈亏 1 Std. Deviation of Avg. Trade
     extreme_profit = 0 if extreme_num==0 else extreme_result['profit'].sum()
+    extreme_profit_win = 0 if extreme_num_win ==0 else extreme_result[extreme_result['profit'] > 0]['profit'].sum()
+    extreme_profit_lose = 0 if extreme_num_lose == 0 else extreme_result[extreme_result['profit'] < 0]['profit'].sum()
+    # 极端盈利交易计算
 
-    result = {'1 Std. Deviation of Avg. Trade': nomalize_val(std),
-              '单笔净利 +1倍标准差': nomalize_val(sin_profit_plstd),
-              '单笔盈利 - 标准差': nomalize_val(sin_profit_mistd),
-              '极端交易数量': extreme_num,
-              '极端交易盈亏': extreme_profit
-              }
+    result = {'总计':{
+            '1 Std. Deviation of Avg. Trade': nomalize_val(std),
+            '单笔净利 +1倍标准差': nomalize_val(sin_profit_plstd),
+            '单笔净利 -1倍标准差': nomalize_val(sin_profit_mistd),
+            '极端交易数量': extreme_num,
+            '极端交易盈亏': extreme_profit
+        },
+        '极端盈利':{
+            '1 Std. Deviation of Avg. Trade': nomalize_val(df_wins_std),
+            '单笔净利 +1倍标准差': nomalize_val(sin_profit_plstd_win),
+            '单笔净利 -1倍标准差': nomalize_val(sin_profit_mistd_win),
+            '极端交易数量': extreme_num_win,
+            '极端交易盈亏': extreme_profit_win
+        },
+        '极端亏损':{
+            '1 Std. Deviation of Avg. Trade': nomalize_val(df_loses_std),
+            '单笔净利 +1倍标准差': nomalize_val(sin_profit_plstd_lose),
+            '单笔净利 -1倍标准差': nomalize_val(sin_profit_mistd_lose),
+            '极端交易数量': extreme_num_lose,
+            '极端交易盈亏': extreme_profit_lose
+        }
+    }
+
+    result = pd.DataFrame(result)
+
     return result
 
 
@@ -324,29 +399,19 @@ def stat_closes_by_year(df_closes:df, capital) -> df:
     res = profit[['profit', 'gross_profit', 'gross_loss', 'times', 'win_rate','profit_ratio']]
     return res.iloc[::-1]
 
-def time_analysis(df_closes:df) -> dict:
+def time_analysis(df_closes:df,df_funds:df) -> dict:
     '''
     时间分析
     '''
-    trading_time = df_closes['closebarno'][len(df_closes) - 1] * 5
-
-    def time_trans(x):
-        d = x // (24 * 60)
-        h = x % (24 * 60) // 60
-        m = x % (24 * 60) % 60
-        return str(d), str(h), str(m)
-    # 转化为日，时，分
-    s_trading_time = time_trans(trading_time)
+    trading_time = df_closes['closebarno'][len(df_closes) - 1]
 
     # 策略运行时间
-    str_time = (df_closes['closebarno'] - df_closes['openbarno']).sum() * 5
-    s_str_time = time_trans(str_time)
+    str_time = (df_closes['closebarno'] - df_closes['openbarno']).sum()
     # 比率
     porition = str_time / trading_time * 100
 
     # 最大空仓时间
-    empty_time = (df_closes['openbarno'].shift(-1) - df_closes['closebarno']).max() * 5
-    s_empty_time = time_trans(empty_time)
+    empty_time = (df_closes['openbarno'].shift(-1) - df_closes['closebarno']).max()
 
     capital = 500000
     df_closes['principal'] = df_closes['totalprofit'] + capital
@@ -357,7 +422,7 @@ def time_analysis(df_closes:df) -> dict:
     rf = 0.02
     period = 240
     trade = input_data['closebarno'][len(input_data) - 1] / 47
-    factors = Calculate(ret, mar, rf, period, trade)
+    factors = Calculate(ret, mar, rf, period, trade,capital)
 
     single_drawdown_date = factors.single_maxdrawdown_time()
     signe_drawdown_date = parse(str(input_data['opentime'][single_drawdown_date]))
@@ -377,10 +442,10 @@ def time_analysis(df_closes:df) -> dict:
     loss_time_index = np.argmin(input_data['profit'])
     loss_time = parse(str(input_data['opentime'][loss_time_index]))
 
-    result = {'交易周期': '(%s)' % ','.join(s_trading_time),
-              '策略运行时间': '(%s)' % ','.join(s_str_time),
-              '策略运行时间%': porition,
-              '最长空仓时间': '(%s)' % ','.join(s_empty_time),
+    result = {'交易周期': str(trading_time) + '根K线',
+              '策略运行时间': str(str_time) + '根K线',
+              '策略运行时间%': str(round(porition,2)) + '%',
+              '最长空仓时间': str(empty_time) + '根K线',
               '策略最大回撤开始时间': start_time.strftime("%Y/%m/%d %H:%M"),
               '策略最大回撤结束时间': end_time.strftime("%Y/%m/%d %H:%M"),
               '单笔最大回撤时间': signe_drawdown_date.strftime("%Y/%m/%d %H:%M"),
@@ -388,14 +453,20 @@ def time_analysis(df_closes:df) -> dict:
 
     return result
 
-def ratio_calculate(data, after_merge, capital = 500000, rf = 0, period = 240) -> dict:
+def ratio_calculate(data, data2,after_merge, capital = 500000, rf = 0, period = 240) -> dict:
     data['principal'] = data['totalprofit'] + capital
     data['principal'] = data['principal'].shift(1)
+    profit = data['profit']
+    data2['principal'] = data2['dynbalance'] + capital
+    data2['principal2'] = data2['principal'].shift(1)
     input_data = data.fillna(value=capital)
+    input_data2 = data2.fillna(value=capital)
     ret = input_data['profit'] / input_data['principal']
+    ret_day =input_data2['principal']/input_data2['principal2'] -1
+    trade_day = data2.shape[0]
     mar = 0
     trade = input_data['closebarno'][len(input_data) - 1] / 47
-    factors = Calculate(ret, mar, rf, period, trade)
+    factors = Calculate(ret, mar, rf, period, trade,capital,ret_day,trade_day,profit)
     # 潜在上涨比率
     potential_upside_ratio = factors.calculate_upside_ratio()
     # 夏普比率
@@ -406,17 +477,17 @@ def ratio_calculate(data, after_merge, capital = 500000, rf = 0, period = 240) -
     calmar_ratio = factors.calmar_ratio()
     # 斯特林比率
     sterling_ratio = factors.sterling_a_ratio()
-    result1 = performance_summary(data, after_merge)
+    result1 = performance_summary(data, after_merge,data2=data2)
     # 净利/单笔最大亏损
     net_s_loss = result1.get('净利') / result1.get('单笔最大亏损')
     # 净利/单笔最大回撤
-    net_s_drawdown = result1.get('净利') / factors.single_largest_maxdrawdown()
+    net_s_drawdown = result1.get('净利') / factors.single_largest_maxdrawdown_value()
     # 净利/ 策略最大回撤
     net_strategy_drawdown =  result1.get('净利') / factors.maxDrawdown()
     # 调整净利/单笔最大亏损
     adjust_s_loss = result1.get('调整净利') / result1.get('单笔最大亏损')
     # 调整净利/单笔最大回撤
-    adjust_s_drawdown = result1.get('调整净利') / factors.single_largest_maxdrawdown()
+    adjust_s_drawdown = result1.get('调整净利') / factors.single_largest_maxdrawdown_value()
     # 调整净利/ 策略最大回撤
     adjust_strategy_drawdown = result1.get('调整净利') / factors.maxDrawdown()
 
@@ -434,7 +505,7 @@ def ratio_calculate(data, after_merge, capital = 500000, rf = 0, period = 240) -
 
     return result
 
-def performance_summary(input_data, input_data1, capital = 500000, rf = 0.00, period = 240):
+def performance_summary(input_data, input_data1, capital = 500000, rf = 0.00, period = 240,data2 = []):
     '''
     绩效统计
     '''
@@ -447,8 +518,13 @@ def performance_summary(input_data, input_data1, capital = 500000, rf = 0.00, pe
     trade = len(input_data)
     #trade = input_data['closebarno'][len(input_data)-1] / 47
 
+    data2['principal'] = data2['dynbalance'] + capital
+    data2['principal2'] = data2['principal'].shift(1)
+    input_data2 = data2.fillna(value=capital)
+    ret_day = input_data2['principal'] / input_data2['principal2'] - 1
+    trade_day = data2.shape[0]
     # 指标class
-    factors = Calculate(ret, mar, rf, period, trade)
+    factors = Calculate(ret, mar, rf, period, trade,capital,ret_day,trade_day)
     # 毛利
     profit = input_data[input_data['profit'].apply(lambda x: x >= 0)]
     total_profit = 0 if len(profit)==0 else profit['profit'].sum()
@@ -480,7 +556,7 @@ def performance_summary(input_data, input_data1, capital = 500000, rf = 0.00, pe
     # 平仓交易最大亏损
     trading_loss = single_largest_loss
     # 平仓交易最大亏损比
-    trading_loss_rate = trading_loss / capital
+    trading_loss_rate = -trading_loss / capital
     # 年化收益率
     annual_ret = factors.get_annual_return()
     # 月化收益率
@@ -492,7 +568,7 @@ def performance_summary(input_data, input_data1, capital = 500000, rf = 0.00, pe
     result = {'毛利': total_profit,
               '毛损': total_loss,
               '净利': net_profit,
-              '调整毛利': adjust_net_profit,
+              '调整毛利': total_adjust_profit,
               '调整毛损': total_adjust_loss,
               '调整净利': adjust_net_profit,
               '盈利因子': profit_factor,
@@ -518,7 +594,7 @@ def do_trading_analyze(df_closes, df_funds):
     total_winbarcnts = ay_WinnerBarCnts.sum()
     total_losebarcnts = ay_LoserBarCnts.sum()
 
-    total_fee = df_funds.iloc[-1]["fee"]
+    total_fee = df_closes['fee'].sum()
 
     totaltimes = len(df_closes)  # 总交易次数
     wintimes = len(df_wins)  # 盈利次数
@@ -540,15 +616,15 @@ def do_trading_analyze(df_closes, df_funds):
     # 交易的平均持仓K线根数
     avgtrd_hold_bar = 0 if totaltimes==0 else ((df_closes['closebarno'] - df_closes['openbarno']).sum()) / totaltimes
     # 平均空仓K线根数
-    avb = (df_closes['openbarno'].shift(-1) - df_closes['closebarno']).dropna()
+    avb = (df_closes['openbarno'] - df_closes['closebarno'].shift(1).fillna(value=0))
     avgemphold_bar = 0 if len(df_closes)==0 else avb.sum() / len(df_closes)
 
     # 两笔盈利交易之间的平均空仓K线根数
     win_holdbar_situ = (df_wins['openbarno'].shift(-1) - df_wins['closebarno']).dropna()
-    winempty_avgholdbar = 0 if len(df_wins)==0 else win_holdbar_situ.sum() / len(df_wins)
-    # 两笔亏损交易之间的偶平均空仓K线根数
+    winempty_avgholdbar = 0 if len(df_wins)== 0 or len(df_wins) == 1 else win_holdbar_situ.sum() / (len(df_wins)-1)
+    # 两笔亏损交易之间的平均空仓K线根数
     loss_holdbar_situ = (df_loses['openbarno'].shift(-1) - df_loses['closebarno']).dropna()
-    lossempty_avgholdbar = 0 if len(df_loses)==0 else loss_holdbar_situ.sum() / len(df_loses)
+    lossempty_avgholdbar = 0 if len(df_loses)== 0 or len(df_loses) == 1 else loss_holdbar_situ.sum() / (len(df_loses)-1)
 
     max_consecutive_wins = 0  # 最大连续盈利次数
     max_consecutive_loses = 0  # 最大连续亏损次数
@@ -588,7 +664,7 @@ def do_trading_analyze(df_closes, df_funds):
     summary["最大连续亏损次数"] = max_consecutive_loses
     summary["盈利交易的平均持仓K线根数"] = avg_bars_in_winner
     summary["亏损交易的平均持仓K线根数"] = avg_bars_in_loser
-    summary["账户净盈亏"] = 0 if totaltimes==0 else accnetprofit / totaltimes
+    summary["账户净盈亏"] = 0 if totaltimes==0 else accnetprofit
     summary['单笔最大盈利交易'] = largest_profit
     summary['单笔最大亏损交易'] = largest_loss
     summary['交易的平均持仓K线根数'] = avgtrd_hold_bar
@@ -616,6 +692,7 @@ def trading_analyze(workbook:Workbook, df_closes, df_funds, capital = 500000):
     f_result = df.merge(every_series_profit)
     f_result = f_result.sort_values('index')
     f_result.columns = ['连续次数', '出现次数', '每个序列平均收益']
+    f_result['连续次数'] = f_result['连续次数'] + 1
 
     rr_2 = res.get('连续亏损次数')
     df_2 = pd.DataFrame([rr_2]).T
@@ -629,24 +706,14 @@ def trading_analyze(workbook:Workbook, df_closes, df_funds, capital = 500000):
     f_2_result = df_2.merge(every_series_loss)
     f_2_result = f_2_result.sort_values('index')
     f_2_result.columns = ['连续次数', '出现次数', '每个序列平均亏损']
+    f_2_result['连续次数'] = f_2_result['连续次数'] + 1
 
-    ssaa = 1000
+    ssaa = df_funds['closeprofit'].iloc[-1]
+
     # 连续交易系列分析
     s = continue_trading_analysis(df_closes, ssaa)
     # 极端交易
-    ss = extreme_trading(df_closes)
-    extre_pro = ss.get('单笔净利 +1倍标准差')
-    extre_los = ss.get('单笔盈利 - 标准差')
-    data1 = df_closes[df_closes['profit'].apply(lambda x: x > extre_pro)]
-    data2 = df_closes[df_closes['profit'].apply(lambda x: x < extre_los)]
-    ss_1 = extreme_trading(data1)
-    ss_2 = extreme_trading(data2)
-    ss_1 = pd.DataFrame([ss_1]).T
-    ss_2 = pd.DataFrame([ss_2]).T
-    sss = pd.concat([ss_1, ss_2], axis=1)
-    ss = pd.DataFrame([ss]).T
-    sss = pd.concat([ss, sss], axis=1)
-    sss.columns = ['总计', '极端盈利', '极端亏损']
+    sss = extreme_trading(df_closes)
 
     title_format = workbook.add_format({
         'font_size':    16,
@@ -675,6 +742,7 @@ def trading_analyze(workbook:Workbook, df_closes, df_funds, capital = 500000):
     })
     worksheet = workbook.add_worksheet('交易分析')
 
+    df_closes['fee'] = df_closes['profit'] - df_closes['totalprofit'] + df_closes['totalprofit'].shift(1).fillna(value=0)
     trade_s = do_trading_analyze(df_closes, df_funds)
     data_1 = df_closes[df_closes['direct'].apply(lambda x: 'LONG' in x)]
     trade_s_long = do_trading_analyze(data_1, df_funds)
@@ -716,6 +784,7 @@ def trading_analyze(workbook:Workbook, df_closes, df_funds, capital = 500000):
     worksheet.write_column('B%d'%(next_row+1), f_2_result['出现次数'], value_format)
     worksheet.write_column('C%d'%(next_row+1), f_2_result['每个序列平均亏损'], value_format)
 
+
     # 这里开始画图
     next_row += len(f_2_result) + 3
     worksheet.write_row('A%d'%next_row, ['全部交易'], title_format)
@@ -734,7 +803,8 @@ def trading_analyze(workbook:Workbook, df_closes, df_funds, capital = 500000):
         }
     )
     chart_col.set_title({'name': '收益分布'})
-    worksheet.insert_chart('A%d' % (next_row+2), chart_col)
+    chart_col.set_x_axis({'label_position': 'low'})
+    worksheet.insert_chart('A%d' % (next_row+2), chart_col,{'x_scale': 1.8, 'y_scale': 1.8})
 
     next_row += 30
     worksheet.write_row('A%d'%next_row, ['潜在盈利'], title_format)
@@ -755,7 +825,8 @@ def trading_analyze(workbook:Workbook, df_closes, df_funds, capital = 500000):
         }
     )
     chart_col.set_title({'name': '潜在盈利'})
-    worksheet.insert_chart('A%d' % (next_row+2), chart_col)
+    chart_col.set_x_axis({'label_position': 'low'})
+    worksheet.insert_chart('A%d' % (next_row+2), chart_col,{'x_scale': 1.8, 'y_scale': 1.8})
 
     next_row += 30
     worksheet.write_row('A%d'%next_row, ['潜在亏损'], title_format)
@@ -776,7 +847,8 @@ def trading_analyze(workbook:Workbook, df_closes, df_funds, capital = 500000):
         }
     )
     chart_col.set_title({'name': '潜在亏损'})
-    worksheet.insert_chart('A%d' % (next_row+2), chart_col)
+    chart_col.set_x_axis({'label_position': 'low'})
+    worksheet.insert_chart('A%d' % (next_row+2), chart_col,{'x_scale': 1.8, 'y_scale': 1.8})
 
  
     # 周期分析
@@ -818,7 +890,7 @@ def trading_analyze(workbook:Workbook, df_closes, df_funds, capital = 500000):
     worksheet.write_column('F%d'%(next_row+4), res["times"], value_format)
     worksheet.write_column('G%d'%(next_row+4), res["win_rate"]*100, value_format)
 
-def strategy_analyze(workbook:Workbook, df_closes, df_trades, capital, rf = 0.0, period = 240):
+def strategy_analyze(workbook:Workbook, df_closes, df_trades,df_funds, capital, rf = 0.0, period = 240):
     '''
     策略分析
     '''
@@ -853,15 +925,15 @@ def strategy_analyze(workbook:Workbook, df_closes, df_trades, capital, rf = 0.0,
     after_merge_short = after_merge[after_merge['direct'].apply(lambda x: 'SHORT' in x)].reset_index()
 
     # 全部平仓明细进行绩效分析
-    result1 = performance_summary(df_closes, after_merge, capital=capital, rf=rf, period=period)
+    result1 = performance_summary(df_closes, after_merge, capital=capital, rf=rf, period=period,data2=df_funds)
     # 做多平仓明细进行绩效分析
-    result1_2 = performance_summary(data_long, after_merge_long, capital=capital, rf=rf, period=period)
+    result1_2 = performance_summary(data_long, after_merge_long, capital=capital, rf=rf, period=period,data2= df_funds)
     # 做空平仓明细进行绩效分析
-    result1_3 = performance_summary(data_short,after_merge_short, capital=capital, rf=rf, period=period)
+    result1_3 = performance_summary(data_short,after_merge_short, capital=capital, rf=rf, period=period,data2= df_funds)
     # 绩效比率计算
-    result2 = ratio_calculate(df_closes, after_merge, capital=capital, rf=rf, period=period)
+    result2 = ratio_calculate(df_closes,df_funds, after_merge, capital=capital, rf=rf, period=period)
     # 时间分析
-    result3 = time_analysis(df_closes)
+    result3 = time_analysis(df_closes,df_funds)
 
     result1 = pd.DataFrame(pd.Series(result1), columns=['所有交易'])
     result1 = result1.reset_index().rename(columns={'index': '策略绩效概要'})
@@ -912,49 +984,64 @@ def strategy_analyze(workbook:Workbook, df_closes, df_trades, capital, rf = 0.0,
     worksheet.write_column('A39', result3.keys(), index_format)
     worksheet.write_column('B39', result3.values(), value_format)
 
+    #修正：重算多头、空头交易的年化月化月平均收益率
+    net_profit_long = result1_2.loc[5,'多头交易']
+    net_profit_short = result1_3.loc[5,'空头交易']
+    trade_day = df_funds.shape[0]
+    long_annualp =  ((net_profit_long + capital) / capital) ** (period / trade_day) -1
+    short_annualp = ((net_profit_short + capital) / capital) ** (period / trade_day) - 1
+    long_monthlyp = (long_annualp + 1) ** (1/12) -1
+    short_monthlyp = (short_annualp + 1 ) ** (1/12) -1
+    long_month_average = ((net_profit_long + capital) / capital -1) / trade_day * period / 12
+    short_month_average = ((net_profit_short + capital) / capital -1) / trade_day * period / 12
+    worksheet.write('C17',long_annualp,value_format)
+    worksheet.write('D17',short_annualp,value_format)
+    worksheet.write('C18', long_monthlyp, value_format)
+    worksheet.write('D18', short_monthlyp, value_format)
+    worksheet.write('C19', long_month_average, value_format)
+    worksheet.write('D19', short_month_average, value_format)
+
+
     # 这里开始画图
+
     worksheet.write_row('A49', ['详细权益曲线'], title_format)
     chart_col = workbook.add_chart({'type': 'line'})
     length = len(df_closes)
     sheetName = '交易列表'
+
     chart_col.add_series(
         {
             'name': '详细权益曲线',
-            'categories': '=%s!$G$4:$G$%s' % (sheetName, length+3),
+            'categories': '=%s!$S$4:$S$%s' % (sheetName, length+3),
             'values':   '=%s!$R$4:$R$%s' % (sheetName, length+3),
-            'line': {'color': 'red','width': 1}
+            'line': {'color': 'red', 'width': 1}
         }
     )
     chart_col.set_title({'name': '详细权益曲线'})
-    worksheet.insert_chart('A51', chart_col)
+    chart_col.set_x_axis({'name': '平仓K线编号'})
+    worksheet.insert_chart('A51', chart_col, {'x_scale': 1.8, 'y_scale': 1.8})
 
-    worksheet.write_row('A79', ['详细权益曲线及潜在亏损'], title_format)
-    chart_col = workbook.add_chart({'type': 'line'})
+
+    worksheet.write_row('A79', ['每笔收益'], title_format)
+    chart_col = workbook.add_chart({'type': 'column'})
     chart_col.add_series(
         {
-            'name': '权益曲线',
-            'categories': '=%s!$G$4:$G$%s' % (sheetName, length+3),
-            'values':   '=%s!$R$4:$R$%s' % (sheetName, length+3),
-            'line': {'color': 'red','width': 1}
+            'name': '每笔收益',
+            'categories': '=%s!$A$4:$A$%s' % (sheetName, length+3),
+            'values':   '=%s!$J$4:$J$%s' % (sheetName, length+3),
+            'line': {'color': 'black', 'width': 1}
         }
     )
-    chart_col.add_series(
-        {
-            'name': '潜在亏损',
-            'categories': '=%s!$G$4:$G$%s' % (sheetName, length+3),
-            'values':   '=%s!$P$4:$P$%s' % (sheetName, length+3),
-            'line': {'color': 'green','width': 1}
-        }
-    )
-    chart_col.set_title({'name': '详细权益曲线及潜在亏损'})
-    worksheet.insert_chart('A81', chart_col)
+    chart_col.set_title({'name': '每笔收益'})
+    chart_col.set_x_axis({'label_position': 'low', 'name': '交易编号'})
+    worksheet.insert_chart('A81', chart_col, {'x_scale': 1.8, 'y_scale': 1.8})
 
-    worksheet.write_row('A109', ['潜在盈利与亏损'], title_format)
-    chart_col = workbook.add_chart({'type': 'line'})
+    worksheet.write_row('A109', ['潜在盈利与潜在亏损'], title_format)
+    chart_col = workbook.add_chart({'type': 'column'})
     chart_col.add_series(
         {
             'name': '潜在盈利',
-            'categories': '=%s!$G$4:$G$%s' % (sheetName, length+3),
+            'categories': '=%s!$S$4:$S$%s' % (sheetName, length+3),
             'values':   '=%s!$N$4:$N$%s' % (sheetName, length+3),
             'line': {'color': 'red','width': 1}
         }
@@ -962,13 +1049,57 @@ def strategy_analyze(workbook:Workbook, df_closes, df_trades, capital, rf = 0.0,
     chart_col.add_series(
         {
             'name': '潜在亏损',
-            'categories': '=%s!$G$4:$G$%s' % (sheetName, length+3),
+            'categories': '=%s!$S$4:$S$%s' % (sheetName, length+3),
             'values':   '=%s!$P$4:$P$%s' % (sheetName, length+3),
             'line': {'color': 'green','width': 1}
         }
     )
-    chart_col.set_title({'name': '潜在盈利与亏损'})
-    worksheet.insert_chart('A111', chart_col)
+    chart_col.set_x_axis({'label_position': 'low', 'name': '平仓K线编号'})
+    chart_col.set_title({'name': '潜在盈利与潜在亏损'})
+    worksheet.insert_chart('A111', chart_col, {'x_scale': 1.8, 'y_scale': 1.8})
+
+    # df_closes['entrytime'] = df_closes['opentime'].apply(lambda x: datetime.strptime(str(x), '%Y%m%d%H%M'))
+    # df_closes['exittime'] = df_closes['closetime'].apply(lambda x: datetime.strptime(str(x), '%Y%m%d%H%M'))
+    # df_closes['exittime'] = pd.to_datetime(df_closes['exittime'])
+
+
+    #用matplotlib画图
+    plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+
+    worksheet.write_row('A139', ['详细多头权益曲线'], title_format)
+    df_closes['fee'] = df_closes['profit'] - df_closes['totalprofit'] + df_closes['totalprofit'].shift(1).fillna(value=0)
+    df_temp = pd.DataFrame()
+    df_temp['profit'] = df_closes[df_closes['direct'] == 'LONG']['profit'] - df_closes[df_closes['direct'] == 'LONG']['fee']
+    df_temp['equity'] = df_temp['profit'].expanding().sum() + capital
+    np_temp = np.arange(1, len(df_temp)+1, 1)
+    df_temp['index'] = np_temp
+    plt.plot(df_temp['index'], df_temp['equity'])
+    imgdata = BytesIO()
+    plt.xlabel('多头交易编号')
+    plt.title('详细多头权益曲线')
+    plt.ylabel('权益')
+    plt.savefig(imgdata, format="png")
+    imgdata.seek(0)
+    worksheet.insert_image(141, 0, "", {'image_data': imgdata})
+
+    worksheet.write_row('A169', ['详细空头权益曲线'], title_format)
+    plt.clf()
+    df_temp2 = pd.DataFrame()
+    df_temp2['profit'] = df_closes[df_closes['direct'] == 'SHORT']['profit'] - df_closes[df_closes['direct'] == 'SHORT']['fee']
+    df_temp2['equity'] = df_temp2['profit'].expanding().sum() + capital
+    np_temp2 = np.arange(1, len(df_temp2) + 1, 1)
+    df_temp2['index'] = np_temp2
+    plt.plot(df_temp2['index'], df_temp2['equity'])
+    imgdata = BytesIO()
+    plt.xlabel('空头交易编号')
+    plt.title('详细空头权益曲线')
+    plt.ylabel('权益')
+    plt.savefig(imgdata, format="png")
+    imgdata.seek(0)
+    worksheet.insert_image(
+        171, 0, "",
+        {'image_data': imgdata}
+    )
 
 def output_closes(workbook:Workbook, df_closes:df, capital = 500000):
     worksheet = workbook.add_worksheet('交易列表')
@@ -1003,11 +1134,13 @@ def output_closes(workbook:Workbook, df_closes:df, capital = 500000):
 
     worksheet.write_row('A1', ['交易列表'], title_format)    
     worksheet.write_row('A3', ['编号', '代码','方向','进场时间','进场价格','进场标记','出场时间','出场价格','出场标记',
-    '盈利¤','盈利%','累计盈利¤','累计盈利%','潜在盈利¤','潜在盈利%','潜在亏损¤','潜在亏损%','累计权益'], index_format)
+    '盈利¤','盈利%','累计盈利¤','累计盈利%','潜在盈利¤','潜在盈利%','潜在亏损¤','潜在亏损%','累计权益','平仓K线编号'], index_format)
     df_closes["profit_ratio"] = df_closes["profit"]*100/capital
     df_closes["total_profit_ratio"] = df_closes["totalprofit"]*100/capital
     df_closes["max_profit_ratio"] = df_closes["maxprofit"]*100/capital
     df_closes["max_loss_ratio"] = df_closes["maxloss"]*100/capital
+    df_closes['direct'].replace('SHORT', '空', inplace=True)
+    df_closes['direct'].replace('LONG', '多', inplace=True)
 
     worksheet.write_column('A4', df_closes.index+1, value_format)
     worksheet.write_column('B4', df_closes['code'], value_format)
@@ -1030,6 +1163,7 @@ def output_closes(workbook:Workbook, df_closes:df, capital = 500000):
     worksheet.write_column('P4', df_closes['maxloss'], value_format)
     worksheet.write_column('Q4', df_closes['max_loss_ratio'], value_format)
     worksheet.write_column('R4', df_closes['totalprofit']+capital, value_format)
+    worksheet.write_column('S4', df_closes['closebarno'], value_format)
 
 def summary_analyze(df_funds:df, capital = 5000000, rf = 0, period = 240) -> dict:
     '''
@@ -1366,10 +1500,11 @@ class WtBtAnalyst:
             annual_days = sInfo["atd"]
             rf = sInfo["rf"]
 
-            strategy_analyze(workbook, df_closes.copy(), df_trades.copy(), capital=init_capital, rf=rf, period=annual_days)
+            strategy_analyze(workbook, df_closes.copy(), df_trades.copy(),df_funds.copy(), capital=init_capital, rf=rf, period=annual_days)
             output_closes(workbook, df_closes.copy(), capital=init_capital)
             trading_analyze(workbook, df_closes.copy(), df_funds.copy(), capital=init_capital)
             funds_analyze(workbook, df_funds.copy(), capital=init_capital, rf=rf, period=annual_days)
+
             workbook.close()
 
             print("PnL analyzing of strategy %s done" % (sname))
