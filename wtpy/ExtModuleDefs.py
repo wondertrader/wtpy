@@ -98,29 +98,30 @@ class BaseExtDataLoader:
     def __init__(self):
         pass
 
-    def load_his_bars(self, stdCode:str, period:str, feeder):
+    def load_his_bars(self, stdCode:str, period:str, feeder) -> bool:
         '''
         加载历史K线（回测、实盘）
         @stdCode    合约代码，格式如CFFEX.IF.2106
         @period     周期，m1/m5/d1
         @feeder     回调函数，feed_raw_bars(bars:POINTER(WTSBarStruct), count:int, factor:double)
         '''
-        return
+        return True
 
-    def load_his_tick(self, stdCode:str, uDate:int, feeder):
+    def load_his_tick(self, stdCode:str, uDate:int, feeder) -> bool:
         '''
         加载历史K线（只在回测有效，实盘只提供当日落地的）
         @stdCode    合约代码，格式如CFFEX.IF.2106
         @uDate      日期，格式如yyyymmdd
+        @feeder     回调函数，feed_raw_bars(bars:POINTER(WTSTickStruct), count:int)
         '''
-        return
+        return True
 
 class BaseExtDataDumper:
 
     def __init__(self):
         pass
 
-    def dump_his_bars(self, stdCode:str, period:str, bars, count:int):
+    def dump_his_bars(self, stdCode:str, period:str, bars, count:int) -> bool:
         '''
         加载历史K线（回测、实盘）
         @stdCode    合约代码，格式如CFFEX.IF.2106
@@ -128,9 +129,9 @@ class BaseExtDataDumper:
         @bars       回调函数，WTSBarStruct的指针
         @count      数据条数
         '''
-        return
+        return True
 
-    def dump_his_ticks(self, stdCode:str, uDate:int, ticks, count:int):
+    def dump_his_ticks(self, stdCode:str, uDate:int, ticks, count:int) -> bool:
         '''
         加载历史K线（只在回测有效，实盘只提供当日落地的）
         @stdCode    合约代码，格式如CFFEX.IF.2106
@@ -138,4 +139,4 @@ class BaseExtDataDumper:
         @ticks      回调函数，WTSTickStruct的指针
         @count      数据条数
         '''
-        return
+        return True

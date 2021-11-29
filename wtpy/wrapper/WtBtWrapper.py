@@ -435,7 +435,7 @@ class WtBtWrapper:
         if ctx is not None:
             ctx.on_get_transaction(bytes.decode(stdCode), trans_list, isLast)
 
-    def on_load_his_bars(self, stdCode:str, period:str):
+    def on_load_his_bars(self, stdCode:str, period:str) -> bool:
         engine = self._engine
         loader = engine.get_extended_data_loader()
         if loader is None:
@@ -444,9 +444,9 @@ class WtBtWrapper:
         def feed_raw_bars(bars:POINTER(WTSBarStruct), count:int, factor:double):
             self.feed_raw_bars(bars, count)
 
-        loader.load_his_bars(bytes.decode(stdCode), bytes.decode(period), feed_raw_bars)
+        return loader.load_his_bars(bytes.decode(stdCode), bytes.decode(period), feed_raw_bars)
 
-    def on_load_his_ticks(self, stdCode:str, uDate:int):
+    def on_load_his_ticks(self, stdCode:str, uDate:int) -> bool:
         engine = self._engine
         loader = engine.get_extended_data_loader()
         if loader is None:
@@ -455,7 +455,7 @@ class WtBtWrapper:
         def feed_raw_ticks(ticks:POINTER(WTSTickStruct), count:int):
             self.feed_raw_ticks(ticks, count)
 
-        loader.load_his_ticks(bytes.decode(stdCode), uDate, feed_raw_ticks)
+        return loader.load_his_ticks(bytes.decode(stdCode), uDate, feed_raw_ticks)
 
     def write_log(self, level, message:str, catName:str = ""):
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
