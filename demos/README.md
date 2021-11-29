@@ -20,6 +20,7 @@ Python下的demo目前大概罗列了6个，主要是演示不同环境下不同
 + test_extmodules   python外接行情和执行模块demo
 + test_dataservo    WtDtServo的demo
 + test_hotpicker    WtHotPicker的用法示例
++ test_dataexts     数据扩展模块demo
 
 # 如何使用这些demo
 + 首先确认本地安装的是 *Python3.6* 以上的版本，32位、64位都可以，wtpy子框架会根据Python的版本自动选择对应的底层
