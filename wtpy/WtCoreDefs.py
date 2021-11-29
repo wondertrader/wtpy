@@ -259,3 +259,16 @@ Executer外接实现
 '''
 CB_EXECUTER_INIT = CFUNCTYPE(c_void_p, c_char_p)
 CB_EXECUTER_CMD = CFUNCTYPE(c_void_p, c_char_p, c_char_p, c_double)
+
+
+'''
+DataLoader外接实现
+'''
+FUNC_LOAD_HISBARS = CFUNCTYPE(c_bool, c_char_p, c_char_p)
+FUNC_LOAD_HISTICKS = CFUNCTYPE(c_bool, c_char_p, c_ulong)
+
+'''
+DataDumper外接实现
+'''
+FUNC_DUMP_HISBARS = CFUNCTYPE(c_bool, c_char_p, c_char_p, POINTER(WTSBarStruct), c_uint32)
+FUNC_DUMP_HISTICKS = CFUNCTYPE(c_bool, c_char_p, c_ulong, POINTER(WTSTickStruct), c_uint32)
