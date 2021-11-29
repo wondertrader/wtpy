@@ -162,7 +162,7 @@ class WtDataHelper:
         @firstTick  第一条tick的指针
         @count      一共要写入的数据条数
         '''
-        cb = CB_DTHELPER_TICK_GETTER(getter)
+        # cb = CB_DTHELPER_TICK_GETTER(getter)
         return self.api.store_ticks(bytes(tickFile, encoding="utf8"), firstTick, count, self.cb_dthelper_log)
 
     def resample_bars(self, barFile:str, period:str, times:int, fromTime:int, endTime:int, sessInfo:SessionInfo) -> BarList:
