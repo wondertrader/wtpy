@@ -5,7 +5,7 @@ from wtpy.HftContext import HftContext
 from wtpy.StrategyDefs import BaseCtaStrategy, BaseSelStrategy, BaseHftStrategy
 from wtpy.ExtToolDefs import BaseIndexWriter, BaseDataReporter
 from wtpy.WtCoreDefs import EngineType
-from wtpy.ExtModuleDefs import BaseExtParser, BaseExtExecuter
+from wtpy.ExtModuleDefs import BaseExtParser, BaseExtExecuter, BaseExtDataLoader
 from wtpy.WtUtilDefs import singleton
 
 from .ProductMgr import ProductMgr, ProductInfo
@@ -31,22 +31,24 @@ class WtEngine:
         '''
         self.is_backtest = False
 
-        self.__wrapper__ = WtWrapper(self)  #api接口转换器
+        self.__wrapper__:WtWrapper = WtWrapper(self)  #api接口转换器
         self.__cta_ctxs__ = dict()      #CTA策略ctx映射表
         self.__sel_ctxs__ = dict()      #SEL策略ctx映射表
         self.__hft_ctxs__ = dict()      #HFT策略ctx映射表
         self.__config__ = dict()        #框架配置项
         self.__cfg_commited__ = False   #配置是否已提交
 
-        self.__writer__ = None          #指标输出模块
-        self.__reporter__ = None        #数据提交模块
+        self.__writer__:BaseIndexWriter = None          #指标输出模块
+        self.__reporter__:BaseDataReporter = None        #数据提交模块
+
+        self.__ext_data_loader__:BaseExtDataLoader = None   #扩展历史数据加载器
 
         self.__ext_parsers__ = dict()   #外接的行情接入模块
         self.__ext_executers__ = dict() #外接的执行器
 
         self.__dump_config__ = bDumpCfg #是否保存最终配置
 
-        self.__engine_type = eType
+        self.__engine_type:EngineType = eType
         if eType == EngineType.ET_CTA:
             self.__wrapper__.initialize_cta(logCfg=logCfg, isFile=True, genDir=genDir)
         elif eType == EngineType.ET_HFT:
@@ -70,8 +72,15 @@ class WtEngine:
                 "session":"TRADING"
             }
     
-    def getEngineType(self):
+    def get_engine_type(self) -> EngineType:
         return self.__engine_type
+
+    def set_extended_data_loader(self, loader:BaseExtDataLoader):
+        self.__ext_data_loader__ = loader
+        self.__wrapper__.register_extended_data_loader()
+
+    def get_extended_data_loader(self) -> BaseExtDataLoader:
+        return self.__ext_data_loader__
 
     def add_exetended_parser(self, parser:BaseExtParser):
         id = parser.id()
