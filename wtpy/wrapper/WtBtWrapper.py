@@ -441,10 +441,7 @@ class WtBtWrapper:
         if loader is None:
             return False
 
-        def feed_raw_bars(bars:POINTER(WTSBarStruct), count:int, factor:double):
-            self.feed_raw_bars(bars, count)
-
-        return loader.load_his_bars(bytes.decode(stdCode), bytes.decode(period), feed_raw_bars)
+        return loader.load_his_bars(bytes.decode(stdCode), bytes.decode(period), self.api.feed_raw_bars)
 
     def on_load_his_ticks(self, stdCode:str, uDate:int) -> bool:
         engine = self._engine
