@@ -3,7 +3,7 @@
         {
             "active":true,
             "id":"simnow",
-            "module":"TraderXTP.dll",
+            "module":"TraderXTP",
             "host":"120.27.164.69",
             "port":"6001",
             "user":"你的XTP仿真账号",

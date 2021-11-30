@@ -1,16 +1,16 @@
 {
     "replayer":{
         "mode":"csv",
-		"path":"./storage/",
+		"path":"../storage/",
         "stime":202101040931,
         "etime":202101121500,
 		"tick":true,
         "basefiles":{
-            "session":"./common/sessions.json",
-            "commodity":"./common/commodities.json",
-            "contract":"./common/contracts.json",
-            "holiday":"./common/holidays.json",
-            "hot":"./common/hots.json"
+            "session":"../common/sessions.json",
+            "commodity":"../common/commodities.json",
+            "contract":"../common/contracts.json",
+            "holiday":"../common/holidays.json",
+            "hot":"../common/hots.json"
         },
         "fees":"fees.json",
 		"adjfactor":"adjfactors.json"

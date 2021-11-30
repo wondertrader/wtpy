@@ -1,10 +1,10 @@
 {
     "basefiles":{
-        "session":"./common/sessions.json",
-        "commodity":"./common/commodities.json",
-        "contract":"./common/contracts.json",
-        "holiday":"./common/holidays.json",
-        "hot":"./common/hots.json"
+        "session":"../common/sessions.json",
+        "commodity":"../common/commodities.json",
+        "contract":"../common/contracts.json",
+        "holiday":"../common/holidays.json",
+        "hot":"../common/hots.json"
     },
     "env":{
         "name":"hft",
@@ -13,10 +13,10 @@
             "session":"TRADING"
         },
         "filters":"filters.json",
-        "fees":"fees.json",
+        "fees":"../common/fees.json",
         "riskmon":{
             "active":false,
-            "module":"WtRiskMonFact.dll",
+            "module":"WtRiskMonFact",
             "name":"SimpleRiskMon",
             "calc_span":5,
             "risk_span": 30,
@@ -31,7 +31,7 @@
     },
     "data":{
         "store":{
-            "path":"./FUT_Data/"
+            "path":"../FUT_Data/"
         }
     },
     "executers":[

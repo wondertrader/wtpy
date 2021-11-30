@@ -72,10 +72,10 @@ def test_in_bt():
     # 初始化之前，向回测框架注册加载器
     # engine.set_extended_data_loader(MyDataLoader())
 
-    engine.init('./common/', "configbt.json")
+    engine.init('../common/', "configbt.json")
 
     engine.configBacktest(201909100930,201912011500)
-    engine.configBTStorage(mode="csv", path="./storage/")
+    engine.configBTStorage(mode="csv", path="../storage/")
     engine.commitBTConfig()
 
     straInfo = StraDualThrust(name='pydt_IF', code="CFFEX.IF.HOT", barCnt=50, period="m5", days=30, k1=0.1, k2=0.1, isForStk=False)
@@ -96,7 +96,7 @@ def test_in_rt():
     # 初始化之前，向实盘框架注册加载器
     engine.set_extended_data_loader(MyDataLoader())
 
-    engine.init('./common/', "config.json")
+    engine.init('../common/', "config.json")
     
     straInfo = StraDualThrust(name='pydt_au', code="SHFE.au.HOT", barCnt=50, period="m5", days=30, k1=0.2, k2=0.2, isForStk=False)
     engine.add_cta_strategy(straInfo)

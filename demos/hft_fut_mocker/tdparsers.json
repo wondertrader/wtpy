@@ -3,7 +3,7 @@
         {
             "active":true,
             "id":"parser0",
-            "module":"ParserUDP.dll",
+            "module":"ParserUDP",
             "host":"127.0.0.1",
             "bport":9001,
             "sport":3997,

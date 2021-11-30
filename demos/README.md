@@ -1,6 +1,6 @@
 # Python Demos
 
-Python下的demo目前大概罗列了6个，主要是演示不同环境下不同组件的使用<br>
+Python下的demo主要演示不同环境下不同组件的使用<br>
 提供了一个示例策略，DualThrust，股票和期货都用这个策略
 + cta_arbitrage_bt  期货套利回测demo
 + cta_fut           期货CTA实盘demo，配置的是SIMNOW通道
@@ -16,11 +16,12 @@ Python下的demo目前大概罗列了6个，主要是演示不同环境下不同
 + hft_fut_bt        期货高频回测demo
 + hft_fut_mocker    期货高频本地仿真demo
 + sel_fut_bt        期货SEL引擎回测demo
++ test_dataexts     数据扩展模块demo
 + test_datahelper   数据辅助模块demo
 + test_extmodules   python外接行情和执行模块demo
 + test_dataservo    WtDtServo的demo
 + test_hotpicker    WtHotPicker的用法示例
-+ test_dataexts     数据扩展模块demo
++ test_monitor      WtMonSvr的用法示例
 
 # 如何使用这些demo
 + 首先确认本地安装的是 *Python3.6* 以上的版本，32位、64位都可以，wtpy子框架会根据Python的版本自动选择对应的底层

@@ -1,9 +1,9 @@
 {
     "basefiles":{
-        "session":"./common/sessions.json",
-        "commodity":"./common/stk_comms.json",
-        "contract":"./common/stocks.json",
-        "holiday":"./common/holidays.json"
+        "session":"../common/sessions.json",
+        "commodity":"../common/stk_comms.json",
+        "contract":"../common/stocks.json",
+        "holiday":"../common/holidays.json"
     },
     "env":{
         "name":"cta",
@@ -12,10 +12,10 @@
             "session":"TRADING"
         },
         "filters":"filters.json",
-        "fees":"fees_stk.json",
+        "fees":"../common/fees_stk.json",
         "riskmon":{
             "active":true,
-            "module":"WtRiskMonFact.dll",
+            "module":"WtRiskMonFact",
             "name":"SimpleRiskMon",
             "calc_span":5,
             "risk_span": 30,
@@ -30,7 +30,7 @@
     },
     "data":{
         "store":{
-            "path":"./STK_Data/"
+            "path":"../STK_Data/"
         }
     },
     "executers":[

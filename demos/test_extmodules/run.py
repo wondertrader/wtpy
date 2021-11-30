@@ -81,7 +81,7 @@ class MyParser(BaseExtParser):
 if __name__ == "__main__":
     #创建一个运行环境，并加入策略
     engine = WtEngine(EngineType.ET_CTA)
-    engine.init('./common/', "config.json")
+    engine.init('../common/', "config.json")
     
     straInfo = StraDualThrust(name='pydt_au', code="SHFE.au.HOT", barCnt=50, period="m5", days=30, k1=0.2, k2=0.2, isForStk=False)
     engine.add_cta_strategy(straInfo)

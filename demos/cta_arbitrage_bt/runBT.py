@@ -6,9 +6,9 @@ from Strategies.T1 import StraT1
 if __name__ == "__main__":
     #创建一个运行环境，并加入策略
     engine = WtBtEngine(EngineType.ET_CTA)
-    engine.init('.\\Common\\', "configbt.json")
+    engine.init('../common/', "configbt.json")
     engine.configBacktest(201902010900,202102101500)
-    engine.configBTStorage(mode="csv", path=".\\storage\\")
+    engine.configBTStorage(mode="csv", path="../storage/")
     engine.commitBTConfig()
 
     straInfo = StraT1(name='t1_rb_i', code1="SHFE.rb.HOT", code2="DCE.i.HOT", bar_cnt=400, period="m1", N=360, threshold=0.9)
