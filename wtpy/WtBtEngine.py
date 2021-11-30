@@ -6,6 +6,7 @@ from wtpy.StrategyDefs import BaseCtaStrategy, BaseSelStrategy, BaseHftStrategy
 from wtpy.ExtToolDefs import BaseIndexWriter
 from wtpy.WtCoreDefs import EngineType
 from wtpy.WtUtilDefs import singleton
+from wtpy.ExtModuleDefs import BaseExtDataLoader
 
 from .ProductMgr import ProductMgr, ProductInfo
 from .SessionMgr import SessionMgr, SessionInfo
@@ -31,6 +32,8 @@ class WtBtEngine:
         self.__idx_writer__ = None  #指标输出模块
 
         self.__dump_config__ = bDumpCfg #是否保存最终配置
+
+        self.__ext_data_loader__:BaseExtDataLoader = None   #扩展历史数据加载器
 
         if eType == eType.ET_CTA:
             self.__wrapper__.initialize_cta(logCfg, isFile, outDir)   #初始化CTA环境
@@ -157,6 +160,12 @@ class WtBtEngine:
         self.__config__["hft"]["strategy"]["name"] = typeName
         self.__config__["hft"]["strategy"]["params"] = params
 
+    def set_extended_data_loader(self, loader:BaseExtDataLoader):
+        self.__ext_data_loader__ = loader
+        self.__wrapper__.register_extended_data_loader()
+
+    def get_extended_data_loader(self) -> BaseExtDataLoader:
+        return self.__ext_data_loader__
 
     def commitBTConfig(self):
         '''

@@ -3,6 +3,7 @@ from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
 from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST, CB_ENGINE_EVENT
+from wtpy.WtCoreDefs import FUNC_LOAD_HISBARS, FUNC_LOAD_HISTICKS
 from wtpy.WtCoreDefs import EVENT_ENGINE_INIT, EVENT_SESSION_BEGIN, EVENT_SESSION_END, EVENT_ENGINE_SCHDL, EVENT_BACKTEST_END
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, WTSOrdQueStruct, WTSOrdDtlStruct, WTSTransStruct
 from .PlatformHelper import PlatformHelper as ph
@@ -434,6 +435,25 @@ class WtBtWrapper:
         if ctx is not None:
             ctx.on_get_transaction(bytes.decode(stdCode), trans_list, isLast)
 
+    def on_load_his_bars(self, stdCode:str, period:str) -> bool:
+        engine = self._engine
+        loader = engine.get_extended_data_loader()
+        if loader is None:
+            return False
+
+        return loader.load_his_bars(bytes.decode(stdCode), bytes.decode(period), self.api.feed_raw_bars)
+
+    def on_load_his_ticks(self, stdCode:str, uDate:int) -> bool:
+        engine = self._engine
+        loader = engine.get_extended_data_loader()
+        if loader is None:
+            return False
+
+        def feed_raw_ticks(ticks:POINTER(WTSTickStruct), count:int):
+            self.feed_raw_ticks(ticks, count)
+
+        return loader.load_his_ticks(bytes.decode(stdCode), uDate, feed_raw_ticks)
+
     def write_log(self, level, message:str, catName:str = ""):
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
 
@@ -544,6 +564,14 @@ class WtBtWrapper:
             print(oe)
 
         self.write_log(102, "WonderTrader SEL backtest framework initialzied，version：%s" % (self.ver))
+
+    def register_extended_data_loader(self):
+        '''
+        注册扩展历史数据加载器
+        '''
+        self.cb_load_hisbars = FUNC_LOAD_HISBARS(self.on_load_his_bars)
+        self.cb_load_histicks = FUNC_LOAD_HISTICKS(self.on_load_his_ticks)
+        self.api.register_ext_data_loader(self.cb_load_hisbars, self.cb_load_histicks)
 
     def cta_enter_long(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''

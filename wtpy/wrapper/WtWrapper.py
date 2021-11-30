@@ -5,6 +5,7 @@ from wtpy.WtCoreDefs import EVENT_PARSER_CONNECT, EVENT_PARSER_DISCONNECT, EVENT
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
 from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST, CB_ENGINE_EVENT
+from wtpy.WtCoreDefs import FUNC_LOAD_HISBARS, FUNC_LOAD_HISTICKS
 from wtpy.WtCoreDefs import EVENT_ENGINE_INIT, EVENT_SESSION_BEGIN, EVENT_SESSION_END, EVENT_ENGINE_SCHDL
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, WTSOrdQueStruct, WTSOrdDtlStruct, WTSTransStruct
 from wtpy.WtUtilDefs import singleton
@@ -472,6 +473,28 @@ class WtWrapper:
 
         executer.set_position(stdCode, targetPos)
 
+    def on_load_his_bars(self, stdCode:str, period:str):
+        engine = self._engine
+        loader = engine.get_extended_data_loader()
+        if loader is None:
+            return False
+
+        def feed_raw_bars(bars:POINTER(WTSBarStruct), count:int, factor:double):
+            self.feed_raw_bars(bars, count)
+
+        loader.load_his_bars(bytes.decode(stdCode), bytes.decode(period), feed_raw_bars)
+
+    def on_load_his_ticks(self, stdCode:str, uDate:int):
+        engine = self._engine
+        loader = engine.get_extended_data_loader()
+        if loader is None:
+            return False
+
+        def feed_raw_ticks(ticks:POINTER(WTSTickStruct), count:int):
+            self.feed_raw_ticks(ticks, count)
+
+        loader.load_his_ticks(bytes.decode(stdCode), uDate, feed_raw_ticks)
+
     def write_log(self, level, message:str, catName:str = ""):
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
 
@@ -502,6 +525,14 @@ class WtWrapper:
 
         self.api.register_parser_callbacks(self.cb_parser_event, self.cb_parser_subcmd)
         self.api.register_exec_callbacks(self.cb_executer_init, self.cb_executer_cmd)
+
+    def register_extended_data_loader(self):
+        '''
+        注册扩展历史数据加载器
+        '''
+        self.cb_load_hisbars = FUNC_LOAD_HISBARS(self.on_load_his_bars)
+        self.cb_load_histicks = FUNC_LOAD_HISTICKS(self.on_load_his_ticks)
+        self.api.register_ext_data_loader(self.cb_load_hisbars, self.cb_load_histicks)
 
     ### 实盘和回测有差异 ###
     def initialize_cta(self, logCfg:str = "logcfg.json", isFile:bool = True, genDir:str = 'generated'):
