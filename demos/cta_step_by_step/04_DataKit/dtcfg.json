@@ -1,12 +1,12 @@
 {
     "basefiles":{
-        "session":"./Common/sessions.json",
-        "commodity":"./Common/commodities.json",
-        "contract":"./Common/contracts.json",
-        "holiday":"./Common/holidays.json"
+        "session":"../common/sessions.json",
+        "commodity":"../common/commodities.json",
+        "contract":"../common/contracts.json",
+        "holiday":"../common/holidays.json"
     },
     "writer":{
-        "path":"./Storage/",
+        "path":"./storage/",
         "savelog":false,
         "async":false,
         "groupsize":1000
@@ -14,7 +14,7 @@
     "parsers":[
         {
             "active":true,
-            "module":"ParserCTP.dll",
+            "module":"ParserCTP",
             "front":"tcp://180.168.146.187:10111",
             "broker":"9999",
             "user":"yourusername",

@@ -1,12 +1,12 @@
 {
     "basefiles":{
-        "session":"./common/sessions.json",
-        "commodity":"./common/stk_comms.json",
-        "contract":"./common/stocks.json",
-        "holiday":"./common/holidays.json"
+        "session":"../common/sessions.json",
+        "commodity":"../common/stk_comms.json",
+        "contract":"../common/stocks.json",
+        "holiday":"../common/holidays.json"
     },
     "writer":{
-        "path":"./STK_Data",
+        "path":"../STK_Data",
         "savelog":false,
         "async":true,
         "groupsize":20

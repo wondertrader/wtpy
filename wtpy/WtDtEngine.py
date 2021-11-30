@@ -1,5 +1,5 @@
 from wtpy.wrapper import WtDtWrapper
-from wtpy.ExtModuleDefs import BaseExtParser
+from wtpy.ExtModuleDefs import BaseExtParser, BaseExtDataDumper
 from wtpy.WtUtilDefs import singleton
 
 @singleton
@@ -8,6 +8,8 @@ class WtDtEngine:
     def __init__(self):
         self.__wrapper__ = WtDtWrapper()  #api接口转换器
         self.__ext_parsers__ = dict()   #外接的行情接入模块
+
+        self.__ext_dumper__:BaseExtDataDumper = None  # 扩展数据Dumper
 
     def initialize(self, cfgfile:str = "dtcfg.json", logprofile:str = "logcfgdt.json"):
         '''
@@ -46,3 +48,10 @@ class WtDtEngine:
         向底层推送tick数据
         '''
         self.__wrapper__.push_quote_from_exetended_parser(id, newTick, bNeedSlice)
+
+    def set_extended_data_dumper(self, dumper:BaseExtDataDumper):
+        self.__ext_dumper__ = dumper
+        self.__wrapper__.register_extended_data_dumper()
+    
+    def get_extended_data_dumper(self) -> BaseExtDataDumper:
+        return self.__ext_dumper__

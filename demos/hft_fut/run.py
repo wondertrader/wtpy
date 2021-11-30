@@ -6,7 +6,7 @@ if __name__ == "__main__":
     engine = WtEngine(EngineType.ET_HFT)
 
     #初始化执行环境，传入
-    engine.init(folder = '.\\Common\\', cfgfile = "config.json")
+    engine.init(folder = '../common/', cfgfile = "config.json")
 
     #设置数据存储目录
     # engine.configStorage(module="", path="D:\\WTP_Data\\")

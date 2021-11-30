@@ -3,7 +3,7 @@
         {
             "active":false,
             "id":"parser2",
-            "module":"ParserUDP.dll",
+            "module":"ParserUDP",
             "host":"127.0.0.1",
             "bport":9001,
             "sport":3997,
@@ -12,7 +12,7 @@
         {
 			"id":"parser0",
             "active":true,
-            "module":"ParserCTP.dll",
+            "module":"ParserCTP",
             "front":"tcp://180.168.146.187:10111",
             "broker":"9999",
             "user":"你的SIMNOW账号",

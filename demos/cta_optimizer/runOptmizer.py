@@ -23,7 +23,7 @@ def runBaseOptimizer():
     optimizer.add_mutable_param(name="k2", start_val=0.1, end_val=1.0, step_val=0.1, ndigits = 1)
 
     # 配置回测环境，主要是将直接回测的一些参数通过这种方式动态传递，优化器中会在每个子进程动态构造回测引擎
-    optimizer.config_backtest_env(deps_dir='./common/', cfgfile='configbt.json', storage_type="csv", storage_path="./storage/")
+    optimizer.config_backtest_env(deps_dir='../common/', cfgfile='configbt.json', storage_type="csv", storage_path="../storage/")
     optimizer.config_backtest_time(start_time=201909100930, end_time=202009251500)
     optimizer.config_backtest_time(start_time=201909260930, end_time=202010121500)
 
@@ -51,7 +51,7 @@ def runStopLossOptimizer():
     optimizer.add_mutable_param(name="slTicks", start_val=-10, end_val=0, step_val=0.2, ndigits = 1)
 
     # 配置回测环境，主要是将直接回测的一些参数通过这种方式动态传递，优化器中会在每个子进程动态构造回测引擎
-    optimizer.config_backtest_env(deps_dir='./common/', cfgfile='configbt.json', storage_type="csv", storage_path="./storage/")
+    optimizer.config_backtest_env(deps_dir='../common/', cfgfile='configbt.json', storage_type="csv", storage_path="../storage/")
     optimizer.config_backtest_time(start_time=201909100930, end_time=202010121500)
 
     # 启动优化器
@@ -76,7 +76,7 @@ def runStopProfOptimizer():
     optimizer.add_mutable_param(name="spTicks", start_val=0, end_val=500, step_val=5, ndigits = 0)
 
     # 配置回测环境，主要是将直接回测的一些参数通过这种方式动态传递，优化器中会在每个子进程动态构造回测引擎
-    optimizer.config_backtest_env(deps_dir='./common/', cfgfile='configbt.json', storage_type="csv", storage_path="./storage/")
+    optimizer.config_backtest_env(deps_dir='../common/', cfgfile='configbt.json', storage_type="csv", storage_path="../storage/")
     optimizer.config_backtest_time(start_time=201909100930, end_time=202010121500)
 
     # 启动优化器
@@ -102,7 +102,7 @@ def runStopAllOptimizer():
     optimizer.add_mutable_param(name="spTicks", start_val=150, end_val=230, step_val=2, ndigits = 1)
 
     # 配置回测环境，主要是将直接回测的一些参数通过这种方式动态传递，优化器中会在每个子进程动态构造回测引擎
-    optimizer.config_backtest_env(deps_dir='./common/', cfgfile='configbt.json', storage_type="csv", storage_path="./storage/")
+    optimizer.config_backtest_env(deps_dir='../common/', cfgfile='configbt.json', storage_type="csv", storage_path="../storage/")
     optimizer.config_backtest_time(start_time=201909100930, end_time=202010121500)
 
     # 启动优化器

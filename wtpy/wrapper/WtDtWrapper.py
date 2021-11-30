@@ -9,7 +9,7 @@ LastEditTime: 2021-08-13 15:26:16
 from ctypes import cdll, c_char_p, c_bool, POINTER
 from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
-from wtpy.WtCoreDefs import WTSTickStruct, CB_PARSER_EVENT, CB_PARSER_SUBCMD
+from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, CB_PARSER_EVENT, CB_PARSER_SUBCMD, FUNC_DUMP_HISBARS, FUNC_DUMP_HISTICKS
 from wtpy.WtCoreDefs import EVENT_PARSER_CONNECT, EVENT_PARSER_DISCONNECT, EVENT_PARSER_INIT, EVENT_PARSER_RELEASE
 import os
 
@@ -73,6 +73,12 @@ class WtDtWrapper:
         self.api.register_parser_callbacks(self.cb_parser_event, self.cb_parser_subcmd)
         self.api.register_exec_callbacks(self.cb_executer_init, self.cb_executer_cmd)
 
+    def register_extended_data_dumper(self):
+        self.cb_bars_dumper = FUNC_DUMP_HISBARS(self.dump_his_bars)
+        self.cb_ticks_dumper = FUNC_DUMP_HISTICKS(self.dump_his_ticks)
+
+        self.api.register_parser_callbacks(self.cb_parser_event, self.cb_parser_subcmd)
+
     def on_parser_event(self, evtId:int, id:str):
         id = bytes.decode(id)
         engine = self._engine
@@ -100,3 +106,24 @@ class WtDtWrapper:
             parser.subscribe(fullCode)
         else:
             parser.unsubscribe(fullCode)
+
+    def dump_his_bars(self, fullCode:str, period:str, bars:POINTER(WTSBarStruct), count:int) -> bool:
+        engine = self._engine
+        dumper = engine.get_extended_data_dumper()
+        if dumper is None:
+            return False
+
+        fullCode = bytes.decode(fullCode)
+        period = bytes.decode(period)
+
+        return dumper.dump_his_bars(fullCode, period, bars, count)
+
+    def dump_his_ticks(self, fullCode:str, uDate:int, ticks:POINTER(WTSTickStruct), count:int) -> bool:
+        engine = self._engine
+        dumper = engine.get_extended_data_dumper()
+        if dumper is None:
+            return False
+
+        fullCode = bytes.decode(fullCode)
+
+        return dumper.dump_his_ticks(fullCode, uDate, ticks, count)

@@ -3,7 +3,7 @@
         {
             "active":true,
             "id":"mocker",
-            "module":"TraderMocker.dll",
+            "module":"TraderMocker",
             "front":"mocker://localhost",
             "mockerid":9999,
             "span":100,

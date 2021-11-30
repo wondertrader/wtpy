@@ -84,7 +84,7 @@ if __name__ == "__main__":
     myExecuter = MyExecuter('exec', 1)
     #创建一个运行环境，并加入策略
     env = WtEngine(EngineType.ET_CTA)
-    env.init('.\\Common\\', "config.json")
+    env.init('../common/', "config.json")
     env.commitConfig()
     env.add_exetended_parser(myParser)
     env.add_exetended_executer(myExecuter)

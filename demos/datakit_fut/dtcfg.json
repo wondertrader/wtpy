@@ -1,12 +1,12 @@
 {
     "basefiles":{
-        "session":"./common/sessions.json",
-        "commodity":"./common/commodities.json",
-        "contract":"./common/contracts.json",
-        "holiday":"./common/holidays.json"
+        "session":"../common/sessions.json",
+        "commodity":"../common/commodities.json",
+        "contract":"../common/contracts.json",
+        "holiday":"../common/holidays.json"
     },
     "writer":{
-        "path":"./FUT_Data",
+        "path":"../FUT_Data",
         "savelog":true,
         "async":true,
         "groupsize":100

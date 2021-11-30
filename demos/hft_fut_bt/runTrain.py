@@ -41,9 +41,9 @@ class WtEnv():
 
         #创建一个运行环境
         self._engine_:WtBtEngine = WtBtEngine(EngineType.ET_HFT)
-        self._engine_.init('./common/', "configbt.json")
+        self._engine_.init('../common/', "configbt.json")
         self._engine_.configBacktest(202101040900,202101181500)
-        self._engine_.configBTStorage(mode="csv", path="./storage/")
+        self._engine_.configBTStorage(mode="csv", path="../storage/")
         self._engine_.commitBTConfig()
 
     def reset(self) -> np.ndarray:
