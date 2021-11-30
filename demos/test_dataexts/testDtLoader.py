@@ -2,6 +2,8 @@ from wtpy.ExtModuleDefs import BaseExtDataLoader
 from ctypes import POINTER
 from wtpy.WtCoreDefs import WTSBarStruct, WTSTickStruct
 
+import pandas as pd
+
 import random
 
 from wtpy import WtEngine,WtBtEngine,EngineType
@@ -18,16 +20,33 @@ class MyDataLoader(BaseExtDataLoader):
         @feeder     回调函数，feed_raw_bars(bars:POINTER(WTSBarStruct), count:int, factor:double)
         '''
         print("loading %s bars of %s from extended loader" % (period, stdCode))
-        BarArray = WTSBarStruct*100
-        ayBars = BarArray()
-        for i in range(100):
-            curBar:WTSBarStruct = ayBars[i]
-            curBar.open = i*4
-            curBar.high = i*4 + 1
-            curBar.low = i*4 + 2
-            curBar.close = i*4 + 3
 
-        feeder(ayBars, 100, 1.0)
+        df = pd.read_csv('./storage/csv/CFFEX.IF.HOT_m5.csv')
+        df = df.rename(columns={
+            '<Date>':'date',
+            ' <Time>':'time',
+            ' <Open>':'open',
+            ' <High>':'high',
+            ' <Low>':'low',
+            ' <Close>':'close',
+            ' <Volume>':'vol',
+            })
+        df['date'] = df['date'].astype('datetime64').dt.strftime('%Y%m%d').astype('int64')
+        df['time'] = (df['date']-19900000)*10000 + df['time'].str.replace(':', '').str[:-2].astype('int')
+
+        BUFFER = WTSBarStruct*len(df)
+        buffer = BUFFER()
+
+        def assign(procession, buffer):
+            tuple(map(lambda x: setattr(buffer[x[0]], procession.name, x[1]), enumerate(procession)))
+
+
+        df.apply(assign, buffer=buffer)
+        print(df)
+        print(buffer[0].to_dict)
+        print(buffer[-1].to_dict)
+
+        feeder(buffer, len(df))
         return True
 
     def load_his_tick(self, stdCode:str, uDate:int, feeder) -> bool:
@@ -51,7 +70,7 @@ def test_in_bt():
     engine = WtBtEngine(EngineType.ET_CTA)
 
     # 初始化之前，向回测框架注册加载器
-    engine.set_extended_data_loader(MyDataLoader())
+    # engine.set_extended_data_loader(MyDataLoader())
 
     engine.init('./common/', "configbt.json")
 
@@ -85,3 +104,5 @@ def test_in_rt():
     engine.run()
 
     kw = input('press any key to exit\n')
+
+test_in_bt()
