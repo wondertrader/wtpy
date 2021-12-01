@@ -270,5 +270,5 @@ FUNC_LOAD_HISTICKS = CFUNCTYPE(c_bool, c_char_p, c_ulong)
 '''
 DataDumper外接实现
 '''
-FUNC_DUMP_HISBARS = CFUNCTYPE(c_bool, c_char_p, c_char_p, POINTER(WTSBarStruct), c_uint32)
-FUNC_DUMP_HISTICKS = CFUNCTYPE(c_bool, c_char_p, c_ulong, POINTER(WTSTickStruct), c_uint32)
+FUNC_DUMP_HISBARS = CFUNCTYPE(c_bool, c_char_p, c_char_p, c_char_p, POINTER(WTSBarStruct), c_uint32)
+FUNC_DUMP_HISTICKS = CFUNCTYPE(c_bool, c_char_p, c_char_p, c_ulong, POINTER(WTSTickStruct), c_uint32)

@@ -565,13 +565,14 @@ class WtBtWrapper:
 
         self.write_log(102, "WonderTrader SEL backtest framework initialzied，version：%s" % (self.ver))
 
-    def register_extended_data_loader(self):
+    def register_extended_data_loader(self, bAutoTrans:bool = True):
         '''
         注册扩展历史数据加载器
+        @bAutoTrans 是否自动转储
         '''
         self.cb_load_hisbars = FUNC_LOAD_HISBARS(self.on_load_his_bars)
         self.cb_load_histicks = FUNC_LOAD_HISTICKS(self.on_load_his_ticks)
-        self.api.register_ext_data_loader(self.cb_load_hisbars, self.cb_load_histicks)
+        self.api.register_ext_data_loader(self.cb_load_hisbars, self.cb_load_histicks, bAutoTrans)
 
     def cta_enter_long(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''

@@ -23,10 +23,10 @@ class WtEngine:
 
     def __init__(self, eType:EngineType, logCfg:str = "logcfg.json", genDir:str = "generated", bDumpCfg:bool = False):
         '''
-        WtEngine构造函数\n
-        @eType  引擎类型：EngineType.ET_CTA、EngineType.ET_HFT、EngineType.ET_SEL\n
-        @logCfg 日志配置文件\n
-        @genDir 数据输出目录\n
+        WtEngine构造函数
+        @eType  引擎类型：EngineType.ET_CTA、EngineType.ET_HFT、EngineType.ET_SEL
+        @logCfg 日志配置文件
+        @genDir 数据输出目录
         @bDumpCfg   是否保存最终配置文件
         '''
         self.is_backtest = False
@@ -58,7 +58,7 @@ class WtEngine:
 
     def __check_config__(self):
         '''
-        检查设置项\n
+        检查设置项
         主要会补充一些默认设置项
         '''
         if "basefiles" not in self.__config__:
@@ -130,8 +130,8 @@ class WtEngine:
 
     def init(self, folder:str, cfgfile:str = "config.json", commfile:str="commodities.json", contractfile:str="contracts.json"):
         '''
-        初始化\n
-        @folder     基础数据文件目录，\\结尾\n
+        初始化
+        @folder     基础数据文件目录，\\结尾
         @cfgfile    配置文件，json格式
         '''
         f = open(cfgfile, "r")
@@ -191,7 +191,7 @@ class WtEngine:
 
     def configStorage(self, path:str, module:str=""):
         '''
-        配置数据存储\n
+        配置数据存储
         @mode   存储模式，csv-表示从csv直接读取，一般回测使用，wtp-表示使用wt框架自带数据存储
         '''
         self.__config__["data"]["store"]["module"] = module
@@ -199,8 +199,8 @@ class WtEngine:
 
     def commitConfig(self):
         '''
-        提交配置\n
-        只有第一次调用会生效，不可重复调用\n
+        提交配置
+        只有第一次调用会生效，不可重复调用
         如果执行run之前没有调用，run会自动调用该方法
         '''
         if self.__cfg_commited__:
@@ -217,24 +217,24 @@ class WtEngine:
 
     def regCtaStraFactories(self, factFolder:str):
         '''
-        向底层模块注册CTA工厂模块目录\n
-        !!!CTA策略只会被CTA引擎加载!!!\n
+        向底层模块注册CTA工厂模块目录
+        !!!CTA策略只会被CTA引擎加载!!!
         @factFolder 工厂模块所在的目录
         '''
         return self.__wrapper__.reg_cta_factories(factFolder)
 
     def regHftStraFactories(self, factFolder:str):
         '''
-        向底层模块注册HFT工厂模块目录\n
-        !!!HFT策略只会被HFT引擎加载!!!\n
+        向底层模块注册HFT工厂模块目录
+        !!!HFT策略只会被HFT引擎加载!!!
         @factFolder 工厂模块所在的目录
         '''
         return self.__wrapper__.reg_hft_factories(factFolder)
 
     def regExecuterFactories(self, factFolder:str):
         '''
-        向底层模块注册执行器模块目录\n
-        !!!执行器只在CTA引擎有效!!!\n
+        向底层模块注册执行器模块目录
+        !!!执行器只在CTA引擎有效!!!
         @factFolder 工厂模块所在的目录
         '''
         return self.__wrapper__.reg_exe_factories(factFolder)
@@ -265,7 +265,7 @@ class WtEngine:
 
     def getSessionByCode(self, stdCode:str) -> SessionInfo:
         '''
-        通过合约代码获取交易时间模板\n
+        通过合约代码获取交易时间模板
         @stdCode   合约代码，格式如SHFE.rb.HOT
         '''
         pid = CodeHelper.stdCodeToStdCommID(stdCode)
@@ -277,21 +277,21 @@ class WtEngine:
 
     def getSessionByName(self, sname:str) -> SessionInfo:
         '''
-        通过模板名获取交易时间模板\n
+        通过模板名获取交易时间模板
         @sname  模板名
         '''
         return self.sessionMgr.getSession(sname)
 
     def getProductInfo(self, stdCode:str) -> ProductInfo:
         '''
-        获取品种信息\n
+        获取品种信息
         @stdCode   合约代码，格式如SHFE.rb.HOT
         '''
         return self.productMgr.getProductInfo(stdCode)
 
     def getContractInfo(self, stdCode:str) -> ContractInfo:
         '''
-        获取品种信息\n
+        获取品种信息
         @stdCode   合约代码，格式如SHFE.rb.HOT
         '''
         return self.contractMgr.getContractInfo(stdCode)
@@ -304,7 +304,7 @@ class WtEngine:
 
     def add_cta_strategy(self, strategy:BaseCtaStrategy):
         '''
-        添加CTA策略\n
+        添加CTA策略
         @strategy   策略对象
         '''
         id = self.__wrapper__.create_cta_context(strategy.name())
@@ -312,7 +312,7 @@ class WtEngine:
 
     def add_hft_strategy(self, strategy:BaseHftStrategy, trader:str, agent:bool = True):
         '''
-        添加HFT策略\n
+        添加HFT策略
         @strategy   策略对象
         '''
         id = self.__wrapper__.create_hft_context(strategy.name(), trader, agent)
@@ -324,7 +324,7 @@ class WtEngine:
 
     def get_context(self, id:int):
         '''
-        根据ID获取策略上下文\n
+        根据ID获取策略上下文
         @id     上下文id，一般添加策略的时候会自动生成一个唯一的上下文id
         '''
         if self.__engine_type == EngineType.ET_CTA:
