@@ -154,7 +154,7 @@ class WtCacheMonExchg(WtCacheMon):
             pid = day.getElementsByTagName(
                 "productid")[0].firstChild.data.strip()
 
-            if pid not in ["IF","IH","IC","T",'TF']:
+            if pid not in ["IF","IH","IC","T",'TF','TS']:
                 continue
 
             item = DayData()
@@ -229,7 +229,7 @@ class WtCacheMonExchg(WtCacheMon):
         dataitems = {}
         doc = pq(html)
         # print(doc(#senfe .table  table))
-        items = doc('#senfe')
+        items = doc('table')
         # 去掉第一行标题
         items.remove('tr.tr0')
         # 获取tr   items.find('tr')
