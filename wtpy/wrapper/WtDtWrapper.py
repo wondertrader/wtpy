@@ -37,6 +37,9 @@ class WtDtWrapper:
         self.api.create_ext_parser.restype = c_bool
         self.api.create_ext_parser.argtypes = [c_char_p]
 
+        self.api.create_ext_dumper.restype = c_bool
+        self.api.create_ext_dumper.argtypes = [c_char_p]
+
     def run_datakit(self):
         '''
         启动数据组件
@@ -73,6 +76,9 @@ class WtDtWrapper:
         self.api.register_parser_callbacks(self.cb_parser_event, self.cb_parser_subcmd)
         self.api.register_exec_callbacks(self.cb_executer_init, self.cb_executer_cmd)
 
+    def create_extended_dumper(self, id:str) -> bool:
+        return self.api.create_ext_dumper(bytes(id, encoding = "utf8"))
+
     def register_extended_data_dumper(self):
         self.cb_bars_dumper = FUNC_DUMP_HISBARS(self.dump_his_bars)
         self.cb_ticks_dumper = FUNC_DUMP_HISTICKS(self.dump_his_ticks)
@@ -107,9 +113,10 @@ class WtDtWrapper:
         else:
             parser.unsubscribe(fullCode)
 
-    def dump_his_bars(self, fullCode:str, period:str, bars:POINTER(WTSBarStruct), count:int) -> bool:
+    def dump_his_bars(self, id:str, fullCode:str, period:str, bars:POINTER(WTSBarStruct), count:int) -> bool:
+        id = bytes.decode(id)
         engine = self._engine
-        dumper = engine.get_extended_data_dumper()
+        dumper = engine.get_extended_data_dumper(id)
         if dumper is None:
             return False
 
@@ -118,9 +125,10 @@ class WtDtWrapper:
 
         return dumper.dump_his_bars(fullCode, period, bars, count)
 
-    def dump_his_ticks(self, fullCode:str, uDate:int, ticks:POINTER(WTSTickStruct), count:int) -> bool:
+    def dump_his_ticks(self, id:str, fullCode:str, uDate:int, ticks:POINTER(WTSTickStruct), count:int) -> bool:
+        id = bytes.decode(id)
         engine = self._engine
-        dumper = engine.get_extended_data_dumper()
+        dumper = engine.get_extended_data_dumper(id)
         if dumper is None:
             return False
 

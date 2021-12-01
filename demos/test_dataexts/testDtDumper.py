@@ -3,6 +3,9 @@ from wtpy import WtDtEngine
 from wtpy.ExtModuleDefs import BaseExtDataDumper
 
 class MyDataDumper(BaseExtDataDumper):
+    def __init__(self, id:str):
+        BaseExtDataDumper.__init__(self, id)
+
     def dump_his_bars(self, stdCode:str, period:str, bars, count:int) -> bool:
         '''
         加载历史K线（回测、实盘）
@@ -28,7 +31,7 @@ class MyDataDumper(BaseExtDataDumper):
 def test_ext_dumper():
     #创建一个运行环境，并加入策略
     engine = WtDtEngine()
-    engine.set_extended_data_dumper(MyDataDumper())
+    engine.add_extended_data_dumper(MyDataDumper("dumper"))
     engine.initialize("dtcfg.json", "logcfgdt.json")
     
     engine.run()

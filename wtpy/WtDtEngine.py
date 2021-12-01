@@ -8,8 +8,7 @@ class WtDtEngine:
     def __init__(self):
         self.__wrapper__ = WtDtWrapper()  #api接口转换器
         self.__ext_parsers__ = dict()   #外接的行情接入模块
-
-        self.__ext_dumper__:BaseExtDataDumper = None  # 扩展数据Dumper
+        self.__ext_dumpers__ = dict()   #扩展数据Dumper
 
     def initialize(self, cfgfile:str = "dtcfg.json", logprofile:str = "logcfgdt.json"):
         '''
@@ -49,9 +48,21 @@ class WtDtEngine:
         '''
         self.__wrapper__.push_quote_from_exetended_parser(id, newTick, bNeedSlice)
 
-    def set_extended_data_dumper(self, dumper:BaseExtDataDumper):
-        self.__ext_dumper__ = dumper
+    def add_extended_data_dumper(self, dumper:BaseExtDataDumper):
+        '''
+        添加扩展dumper
+        '''
+        id = dumper.id()
+        if id not in self.__ext_dumpers__:
+            self.__ext_dumpers__[id] = dumper
+            if not self.__wrapper__.create_extended_dumper(id, autoCache):
+                self.__ext_dumpers__.pop(id)
         self.__wrapper__.register_extended_data_dumper()
     
-    def get_extended_data_dumper(self) -> BaseExtDataDumper:
-        return self.__ext_dumper__
+    def get_extended_data_dumper(self, id:str) -> BaseExtDataDumper:
+        '''
+        根据id获取扩展dumper
+        '''
+        if id not in self.__ext_dumpers__:
+            return None
+        return self.__ext_dumpers__[id]

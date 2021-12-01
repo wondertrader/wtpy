@@ -118,8 +118,11 @@ class BaseExtDataLoader:
 
 class BaseExtDataDumper:
 
-    def __init__(self):
-        pass
+    def __init__(self, id:str):
+        self.__id__ = id
+
+    def id(self):
+        return self.__id__
 
     def dump_his_bars(self, stdCode:str, period:str, bars, count:int) -> bool:
         '''
