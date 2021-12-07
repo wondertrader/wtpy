@@ -24,7 +24,7 @@ def getModuleName(lType:LoaderType)->str:
     if lType == LoaderType.LT_CTP:
         filename = "CTPLoader"
     elif lType == LoaderType.LT_CTPMini:
-        filename = "CTPMiniLoader"
+        filename = "MiniLoader"
     elif lType == LoaderType.LT_CTPOpt:
         filename = "CTPOptLoader"
     else:
