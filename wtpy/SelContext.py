@@ -176,7 +176,7 @@ class SelContext:
         '''
         self.__wrapper__.cta_sub_ticks(stdCode)
 
-    def stra_get_position(self, stdCode:str = "", usertag:str = "") -> float:
+    def stra_get_position(self, stdCode:str, usertag:str = "") -> float:
         '''
         读取当前仓位\n
         @stdCode       合约/股票代码\n
