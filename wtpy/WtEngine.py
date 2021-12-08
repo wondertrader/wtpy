@@ -343,14 +343,14 @@ class WtEngine:
 
             return self.__sel_ctxs__[id]
 
-    def run(self):
+    def run(self, bAsync:bool = True):
         '''
         运行框架
         '''
         if not self.__cfg_commited__:   #如果配置没有提交，则自动提交一下
             self.commitConfig()
 
-        self.__wrapper__.run()
+        self.__wrapper__.run(bAsync)
 
     def release(self):
         '''
