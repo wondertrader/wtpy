@@ -499,8 +499,8 @@ class WtWrapper:
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
 
     ### 实盘和回测有差异 ###
-    def run(self):
-        self.api.run_porter(True)
+    def run(self, bAsync:bool = True):
+        self.api.run_porter(bAsync)
 
     def release(self):
         self.api.release_porter()
