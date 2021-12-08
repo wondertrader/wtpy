@@ -40,11 +40,11 @@ class WtDtWrapper:
         self.api.create_ext_dumper.restype = c_bool
         self.api.create_ext_dumper.argtypes = [c_char_p]
 
-    def run_datakit(self):
+    def run_datakit(self, bAsync:bool = False):
         '''
         启动数据组件
         '''
-        self.api.start()
+        self.api.start(bAsync)
 
     def write_log(self, level, message:str, catName:str = ""):
         '''
