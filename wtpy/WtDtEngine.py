@@ -18,11 +18,12 @@ class WtDtEngine:
         '''
         self.__wrapper__.initialize(cfgfile, logprofile)
     
-    def run(self):
+    def run(self, bAsync:bool = False):
         '''
         运行数据引擎
+        @bAsync 是否异步，异步则立即返回，默认False
         '''
-        self.__wrapper__.run_datakit()
+        self.__wrapper__.run_datakit(bAsync)
 
     def add_exetended_parser(self, parser:BaseExtParser):
         '''

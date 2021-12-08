@@ -44,5 +44,10 @@ class ContractLoader:
         self.api = cdll.LoadLibrary(getModuleName(lType))
         self.api.run.argtypes = [ c_char_p]
 
-    def start(self, cfgfile:str = 'config.ini'):
-        self.api.run(bytes(cfgfile, encoding = "utf8"))
+    def start(self, cfgfile:str = 'config.ini', bAsync:bool = False):
+        '''
+        启动合约加载器
+        @cfgfile    配置文件名
+        @bAsync     是否异步，异步则立即返回，默认False
+        '''
+        self.api.run(bytes(cfgfile, encoding = "utf8"), bAsync)
