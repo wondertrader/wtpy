@@ -258,7 +258,7 @@ class HftContext:
         hftData = self.__trans_cache__[code]
         return hftData
 
-    def stra_get_position(self, code:str = ""):
+    def stra_get_position(self, code:str):
         '''
         读取当前仓位\n
         @code       合约/股票代码\n
