@@ -234,14 +234,15 @@ class CtaContext:
         '''
         self.__wrapper__.cta_sub_ticks(self.__id__, stdCode)
 
-    def stra_get_position(self, stdCode:str, usertag:str = ""):
+    def stra_get_position(self, stdCode:str, bonlyvalid:bool = False, usertag:str = ""):
         '''
         读取当前仓位\n
         @stdCode       合约/股票代码\n
+        @bonlyvalid 只读可用持仓，默认为False
         @usertag    入场标记
         @return     正为多仓，负为空仓
         '''
-        return self.__wrapper__.cta_get_position(self.__id__, stdCode, usertag)
+        return self.__wrapper__.cta_get_position(self.__id__, stdCode, bonlyvalid, usertag)
 
     def stra_set_position(self, stdCode:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
         '''

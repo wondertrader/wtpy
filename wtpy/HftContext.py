@@ -258,13 +258,13 @@ class HftContext:
         hftData = self.__trans_cache__[code]
         return hftData
 
-    def stra_get_position(self, code:str):
+    def stra_get_position(self, stdCode:str, bonlyvalid:bool = False):
         '''
         读取当前仓位\n
-        @code       合约/股票代码\n
+        @stdCode    合约/股票代码\n
         @return     正为多仓,负为空仓
         '''
-        return self.__wrapper__.hft_get_position(self.__id__, code)
+        return self.__wrapper__.hft_get_position(self.__id__, code, bonlyvalid)
 
     def stra_get_position_profit(self, code:str = ""):
         '''
