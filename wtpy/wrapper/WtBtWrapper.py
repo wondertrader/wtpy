@@ -655,7 +655,7 @@ class WtBtWrapper:
         '''
         return self.api.cta_get_all_position(id, CB_STRATEGY_GET_POSITION(self.on_stra_get_position))
     
-    def cta_get_position(self, id:int, stdCode:str, usertag:str = ""):
+    def cta_get_position(self, id:int, stdCode:str, bonlyvalid:bool = False, usertag:str = ""):
         '''
         获取持仓
         @id     策略id
@@ -856,7 +856,7 @@ class WtBtWrapper:
         '''
         return self.api.sel_get_all_position(id, CB_STRATEGY_GET_POSITION(self.on_stra_get_position))
 
-    def sel_get_position(self, id:int, stdCode:str, usertag:str = ""):
+    def sel_get_position(self, id:int, stdCode:str, bonlyvalid:bool = False, usertag:str = ""):
         '''
         获取持仓
         @id     策略id
@@ -864,7 +864,7 @@ class WtBtWrapper:
         @usertag    进场标记，如果为空则获取该合约全部持仓
         @return 指定合约的持仓手数，正为多，负为空
         '''
-        return self.api.sel_get_position(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"))
+        return self.api.sel_get_position(id, bytes(stdCode, encoding = "utf8"), bonlyvalid, bytes(usertag, encoding = "utf8"))
 
     def sel_get_price(self, stdCode:str):
         '''
@@ -979,14 +979,14 @@ class WtBtWrapper:
         ret = self.api.hft_load_userdata(id, bytes(key, encoding = "utf8"), bytes(defVal, encoding = "utf8"))
         return bytes.decode(ret)
 
-    def hft_get_position(self, id:int, stdCode:str):
+    def hft_get_position(self, id:int, stdCode:str, bonlyvalid:bool = False):
         '''
         获取持仓
         @id     策略id
         @stdCode   合约代码
         @return 指定合约的持仓手数，正为多，负为空
         '''
-        return self.api.hft_get_position(id, bytes(stdCode, encoding = "utf8"))
+        return self.api.hft_get_position(id, bytes(stdCode, encoding = "utf8"), bonlyvalid)
 
     def hft_get_position_profit(self, id:int, stdCode:str):
         '''
