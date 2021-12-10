@@ -8,8 +8,9 @@ from flask_compress  import Compress
 import urllib.request
 import io
 import gzip
-
 import json
+
+import os
 
 def pack_rsp(obj):
     rsp = make_response(json.dumps(obj))
@@ -94,18 +95,18 @@ class WtDtServo:
         self.remote_api = WtDtRemoteServo(url)
 
 
-    def setBasefiles(self, commfile:str="./common/commodities.json", contractfile:str="./common/contracts.json", 
-                holidayfile:str="./common/holidays.json", sessionfile:str="./common/sessions.json", hotfile:str="./common/hots.json"):
+    def setBasefiles(self, folder:str="./common/", commfile:str="commodities.json", contractfile:str="contracts.json", 
+                holidayfile:str="holidays.json", sessionfile:str="sessions.json", hotfile:str="hots.json"):
         '''
         C接口初始化
         '''
         self.__check_config__()
 
-        self.__config__["basefiles"]["commodity"] = commfile
-        self.__config__["basefiles"]["contract"] = contractfile
-        self.__config__["basefiles"]["holiday"] = holidayfile
-        self.__config__["basefiles"]["session"] = sessionfile
-        self.__config__["basefiles"]["hot"] = hotfile
+        self.__config__["basefiles"]["commodity"] = os.path.join(folder, commfile)
+        self.__config__["basefiles"]["contract"] = os.path.join(folder, contractfile)
+        self.__config__["basefiles"]["holiday"] = os.path.join(folder, holidayfile)
+        self.__config__["basefiles"]["session"] = os.path.join(folder, sessionfile)
+        self.__config__["basefiles"]["hot"] = os.path.join(folder, hotfile)
 
     def setStorage(self, path:str = "./storage/"):
         self.__config__["data"]["store"]["path"] = path
