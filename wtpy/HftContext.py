@@ -264,7 +264,7 @@ class HftContext:
         @stdCode    合约/股票代码\n
         @return     正为多仓,负为空仓
         '''
-        return self.__wrapper__.hft_get_position(self.__id__, code, bonlyvalid)
+        return self.__wrapper__.hft_get_position(self.__id__, stdCode, bonlyvalid)
 
     def stra_get_position_profit(self, code:str = ""):
         '''

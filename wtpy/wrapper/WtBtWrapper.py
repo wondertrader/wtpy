@@ -663,7 +663,7 @@ class WtBtWrapper:
         @usertag    进场标记，如果为空则获取该合约全部持仓
         @return 指定合约的持仓手数，正为多，负为空
         '''
-        return self.api.cta_get_position(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"))
+        return self.api.cta_get_position(id, bytes(stdCode, encoding = "utf8"), bonlyvalid, bytes(usertag, encoding = "utf8"))
 
     def cta_get_fund_data(self, id:int, flag:int) -> float:
         '''
