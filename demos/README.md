@@ -196,3 +196,23 @@ Python下的demo主要演示不同环境下不同组件的使用<br>
 		>	"filters":["CFFEX.IF","CFFEX.IC","CFFEX.IH"]    //适用品种为IF、IC、IH
 		>}
         >```
+        > 交易所品种配置说明*commodities_stk.json*
+        >```json
+        >{
+        >    "SSE": {
+        >        "ETF": {
+        >            "category": 0, //
+        >            "covermode": 0, //
+        >            "exchg": "SSE", //交易所代码
+        >            "holiday": "CHINA", //中国节假日，详见holidays.json
+        >            "name": "上证ETF", //名称
+        >            "precision": 2, //
+        >            "pricemode": 1, //
+        >            "pricetick": 0.001, //价格变动单位
+        >            "session": "SD0930", //交易时间，详见sessions.json
+        >            "volscale": 1, //
+        >            "trademode": 2 //0、多空 1、T0做多(可转债) 2、T1做多(股票/ETF)
+        >        }
+        >    }
+        >}
+        >```
