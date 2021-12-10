@@ -1,11 +1,7 @@
 from wtpy.wrapper import WtDtServo
 
 dtServo = WtDtServo()
-dtServo.setBasefiles(commfile="../common/commodities.json", 
-                contractfile="../common/contracts.json", 
-                holidayfile="../common/holidays.json", 
-                sessionfile="../common/sessions.json", 
-                hotfile="../common/hots.json")
+dtServo.setBasefiles(folder="../common/")
 dtServo.setStorage("../FUT_DATA/")
 dtServo.commitConfig()
 

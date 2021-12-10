@@ -1,5 +1,5 @@
 from wtpy import WtBtEngine,EngineType
-from Strategies.DualThrust import StraDualThrust
+from Strategies.DualThrust import StraDualThrustStk
 from wtpy.apps import WtBtAnalyst
 
 if __name__ == "__main__":
@@ -10,7 +10,7 @@ if __name__ == "__main__":
     engine.configBTStorage(mode="csv", path="../storage/")
     engine.commitBTConfig()
     
-    straInfo = StraDualThrust(name='pydt_SH510300', code="SSE.510300", barCnt=50, period="m1", days=30, k1=0.1, k2=0.1, isForStk=False)
+    straInfo = StraDualThrustStk(name='pydt_SH510300', code="SSE.510300", barCnt=50, period="m1", days=30, k1=0.1, k2=0.1)
     engine.set_cta_strategy(straInfo)
 
     engine.run_backtest()
