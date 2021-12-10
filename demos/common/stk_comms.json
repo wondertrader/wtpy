@@ -12,7 +12,8 @@
 			"pricemode" : 1,
 			"pricetick" : 0.01,
 			"session" : "SD0930",
-			"volscale" : 1
+			"volscale" : 1,
+			"trademode": 2
 		},
 		"IDX" : 
 		{
@@ -41,7 +42,8 @@
 			"pricemode" : 1,
 			"pricetick" : 0.01,
 			"session" : "SD0930",
-			"volscale" : 1
+			"volscale" : 1,
+			"trademode": 2
 		},
 		"IDX" : 
 		{
