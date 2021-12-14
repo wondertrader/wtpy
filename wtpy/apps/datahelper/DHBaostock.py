@@ -154,7 +154,7 @@ class DHBaostock(BaseDataHelper):
             stocks[exchg][code[3:]] = list()
             rs = bs.query_adjust_factor(code=code, start_date="1990-01-01")
 
-            if rs.error_code == '0':
+            if rs.error_code != '0':
                 print("Error occured: %s" % (rs.error_msg))
                 continue
     
