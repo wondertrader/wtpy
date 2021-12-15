@@ -262,7 +262,10 @@ class WtCacheMonExchg(WtCacheMon):
                 item.hold = int(hold.replace(",",""))
 
             item.month = item.code[len(item.pid):]
-            if item.month[0] == '0':
+            # 这个逻辑是有点问题的，但是没好的办法
+            # 因为郑商所只有3位数字，必须自动补全，不然后面处理会有问题
+            # By Wesley @ 2021.12.15
+            if int(item.month[0]) < 5:
                 item.month = "2" + item.month
             else:
                 item.month = "1" + item.month
