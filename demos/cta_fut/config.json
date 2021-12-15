@@ -48,6 +48,11 @@
                     "pricemode": 0
                 }
             },
+            "clear":{
+                "active":false,
+                "includes":["SHFE.rb"]
+                "excludes":["CFFEX.IF","CFFEX.IC"]
+            },
             "trader":"simnow"
         }
     ],

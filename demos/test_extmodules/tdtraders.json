@@ -3,13 +3,13 @@
         {
             "active":true,
             "id":"simnow",
-            "module":"TraderXTP",
-            "host":"120.27.164.69",
-            "port":"6001",
-            "user":"你的XTP仿真账号",
-            "pass":"你的XTP仿真密码",
-            "acckey":"你的XTP仿真key",
-			"client":1,
+            "module":"TraderCTP",
+            "front":"tcp://180.168.146.187:10201",
+            "broker":"9999",
+            "user":"你的SIMNOW账号",
+            "pass":"你的SIMNOW密码",
+            "appid":"simnow_client_test",
+            "authcode":"0000000000000000",
             "quick":true,
             "riskmon":
             {
