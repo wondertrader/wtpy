@@ -229,11 +229,11 @@ class WtCacheMonExchg(WtCacheMon):
         dataitems = {}
         doc = pq(html)
         # print(doc(#senfe .table  table))
-        items = doc('#table')
+        items = doc('#tab1')
         # 去掉第一行标题
         items.remove('tr.tr0')
         # 获取tr   items.find('tr')
-        lis = items('tr')
+        lis = items('tbody>tr')
         # print(lis)
         # tr行数
         trcount = len(lis)
