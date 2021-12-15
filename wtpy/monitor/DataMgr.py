@@ -876,7 +876,6 @@ class DataMgr:
             channels.append(chnlid)
         else:
             channels = self.__grp_cache__[grpid]["channels"]
-            print(channels)
 
         for cid in channels:
             if cid not in self.__grp_cache__[grpid]["channels"]:
@@ -898,7 +897,6 @@ class DataMgr:
                 pass
 
             f.close()
-        print(ret)
         return ret
 
     def get_actions(self, sdate, edate):
@@ -930,7 +928,6 @@ class DataMgr:
         
         filepath = "./generated/portfolio/trades.csv"
         filepath = os.path.join(grpInfo["path"], filepath)
-        print(filepath)
         if not os.path.exists(filepath):
             return []
         else:
@@ -947,7 +944,6 @@ class DataMgr:
         lines = f.readlines()
         f.close()
         lines = lines[1+last_row:]
-        print(lines)
 
         for line in lines:
             cells = line.split(",")
@@ -995,7 +991,6 @@ class DataMgr:
         lines = f.readlines()
         f.close()
         lines = lines[1+last_row:]
-        print(lines)
 
         for line in lines:
             cells = line.split(",")
