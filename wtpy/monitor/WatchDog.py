@@ -83,6 +83,7 @@ class AppInfo(EventSink):
         self._state = AppState.AS_NotRunning
         self._procid = None
         self._sink = sink
+        self._mem = 0
 
         self._evt_receiver = None
 
@@ -138,6 +139,7 @@ class AppInfo(EventSink):
                     cmdLine = ' '.join(cmdLine)
                     if self.cmd_line.upper() == cmdLine.upper():
                         self._procid = pid
+                        self._mem = pInfo.memory_info().rss
                         self.__logger__.info("应用%s挂载成功，进程ID: %d" % (self._id, self._procid))
      
                         if self._mq_url != '':
@@ -152,6 +154,9 @@ class AppInfo(EventSink):
                 except:
                     pass
             return False
+        else:
+            pInfo = psutil.Process(self._procid)
+            self._mem = pInfo.memory_info().rss
 
         return True
 
@@ -217,6 +222,7 @@ class AppInfo(EventSink):
             self._state = AppState.AS_NotRunning
             self.__logger__.info("应用%s的已停止" % (self._id))
             self._procid = None
+            self._mem = 0
             if self._sink is not None:
                 self._sink.on_stop(self._id)
         
@@ -286,6 +292,10 @@ class AppInfo(EventSink):
 
     def isRunning(self):
         return self._state == AppState.AS_Running
+
+    @property
+    def memory(self):
+        return self._mem
 
     # EventSink.on_order
     def on_order(self, chnl:str, ordInfo:dict):
@@ -361,6 +371,7 @@ class WatchDog:
             bRunning = self.__apps__[appid].isRunning()
             conf = copy.copy(self.__app_conf__[appid])
             conf["running"] = bRunning
+            conf["memory"] = self.__apps__[appid].memory
             ret[appid] = conf
         return ret
 

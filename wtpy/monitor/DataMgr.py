@@ -1084,7 +1084,7 @@ class DataMgr:
             content = f.read()
             json_data = json.loads(content)
             fund = json_data["fund"]
-            if ["date"] > last_date:
+            if fund["date"] > last_date:
                 ret.append({
                     "date": fund["date"],
                     "predynbalance": fund["predynbal"],
