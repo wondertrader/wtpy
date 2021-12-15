@@ -1,4 +1,4 @@
-from wtpy.wrapper import WtDtServo
+from wtpy import WtDtServo
 
 dtServo = WtDtServo()
 dtServo.setBasefiles(folder="../common/")
