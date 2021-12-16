@@ -257,7 +257,8 @@ class WtBtEngine:
 
     def set_time_range(self, beginTime:int, endTime:int):
         '''
-        设置回测时间\r
+        设置回测时间
+        一般用于一个进程中多次回测的时候启动下一轮回测之前重设之间范围
         @beginTime  开始时间，格式如yyyymmddHHMM
         @endTime    结束时间，格式如yyyymmddHHMM
         '''
@@ -265,17 +266,18 @@ class WtBtEngine:
 
     def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False, persistData:bool = True):
         '''
-        添加策略
+        添加CTA策略
         @strategy   策略对象
         @slippage   滑点大小
         @hook       是否安装钩子，主要用于单步控制重算
+        @persistData    回测生成的数据是否落地，默认为True
         '''
         ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData)
         self.__context__ = CtaContext(ctxid, strategy, self.__wrapper__, self)
 
     def set_hft_strategy(self, strategy:BaseHftStrategy, hook:bool = False):
         '''
-        添加策略
+        添加HFT策略
         @strategy   策略对象
         @hook       是否安装钩子，主要用于单步控制重算
         '''
@@ -284,7 +286,7 @@ class WtBtEngine:
 
     def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING", slippage:int = 0):
         '''
-        添加策略
+        添加SEL策略
         @strategy   策略对象
         '''
         ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session, slippage)
@@ -297,7 +299,7 @@ class WtBtEngine:
         '''
         运行框架
 
-        @bAsync 是否异步运行，默认为false
+        @bAsync 是否异步运行，默认为false。如果不启动异步模式，则强化学习的训练环境也不能生效，即使策略下了钩子
         '''
         if not self.__cfg_commited__:   #如果配置没有提交，则自动提交一下
             self.commitBTConfig()
