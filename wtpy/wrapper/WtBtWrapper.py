@@ -167,19 +167,25 @@ class WtBtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         newBar = newBar.contents
-        curBar = dict()
+        # curBar = dict()
+        # if period[0] == 'd':
+        #     curBar["time"] = newBar.date
+        # else:
+        #     curBar["time"] = 1990*100000000 + newBar.time
+        # curBar["bartime"] = curBar["time"]
+        # curBar["open"] = newBar.open
+        # curBar["high"] = newBar.high
+        # curBar["low"] = newBar.low
+        # curBar["close"] = newBar.close
+        # curBar["volume"] = newBar.vol
         if period[0] == 'd':
-            curBar["time"] = newBar.date
+            bartime = newBar.date
         else:
-            curBar["time"] = 1990*100000000 + newBar.time
-        curBar["bartime"] = curBar["time"]
-        curBar["open"] = newBar.open
-        curBar["high"] = newBar.high
-        curBar["low"] = newBar.low
-        curBar["close"] = newBar.close
-        curBar["volume"] = newBar.vol
+            bartime = 1990*100000000 + newBar.time
+        values = list(newBar.values)
+        values[0] = values[1] = bartime
         if ctx is not None:
-            ctx.on_bar(bytes.decode(stdCode), period, curBar)
+            ctx.on_bar(bytes.decode(stdCode), period, tuple(values))
         return
 
 
@@ -201,22 +207,28 @@ class WtBtWrapper:
         bars = [None]*count # 预先分配list的长度
         for i in range(count):
             realBar = WTSBarStruct.from_address(addr)   # 从内存中直接解析成WTSBarStruct
-            bar = dict()
+            # bar = dict()
+            # if period[0] == 'd':
+            #     bar["time"] = realBar.date
+            # else:
+            #     bar["time"] = 1990*100000000 + realBar.time
+            # bar["bartime"] = bar["time"]
+            # bar["open"] = realBar.open
+            # bar["high"] = realBar.high
+            # bar["low"] = realBar.low
+            # bar["close"] = realBar.close
+            # bar["volume"] = realBar.vol
             if period[0] == 'd':
-                bar["time"] = realBar.date
+                bartime = realBar.date
             else:
-                bar["time"] = 1990*100000000 + realBar.time
-            bar["bartime"] = bar["time"]
-            bar["open"] = realBar.open
-            bar["high"] = realBar.high
-            bar["low"] = realBar.low
-            bar["close"] = realBar.close
-            bar["volume"] = realBar.vol
-            bars[i] = bar
+                bartime = 1990*100000000 + realBar.time
+            values = list(realBar.values)
+            values[0] = values[1] = bartime
+            bars[i] = tuple(values)
             addr += bsSize
 
         if ctx is not None:
-            ctx.on_getbars(bytes.decode(stdCode), period, bars, isLast)
+            ctx.on_getbars(bytes.decode(stdCode), period, bars)
 
     def on_stra_get_tick(self, id:int, stdCode:str, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
         '''
