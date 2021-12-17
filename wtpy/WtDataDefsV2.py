@@ -183,6 +183,13 @@ class WtBarRecords(DequeRecord):
     def volumes(self) -> np.ndarray:
         return self['volume',:self.__cursor__]
 
+    @property
+    def bartimes(self) -> np.ndarray:
+        return self['bartime',:self.__cursor__]
+
+    def get_bar(self, iLoc:int = -1) -> dict:
+        return self[iLoc]
+
     def from_struct(self, data: WTSBarStruct) -> int:
         return self.append(
             (
