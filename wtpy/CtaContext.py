@@ -7,6 +7,7 @@ from wtpy.ProductMgr import ProductInfo
 from wtpy.SessionMgr import SessionInfo
 from wtpy.wrapper import WtWrapper
 from wtpy.WtDataDefs import WtKlineData, WtHftData
+from wtpy.WtDataDefsV2 import WtBarRecords
 
 class CtaContext:
     '''
@@ -83,12 +84,12 @@ class CtaContext:
             return
         self.__pos_cache__[stdCode] = qty
 
-    def on_getbars(self, stdCode:str, period:str, newBars:list, isLast:bool):
+    def on_getbars(self, stdCode:str, period:str, newBars:list):
         key = "%s#%s" % (stdCode, period)
 
         bars = self.__bar_cache__[key]
         for newBar in newBars:
-            bars.append_bar(newBar)
+            bars.append(newBar)
 
     def on_tick(self, stdCode:str, newTick):
         self.__stra_info__.on_tick(self, stdCode, newTick)
@@ -108,8 +109,7 @@ class CtaContext:
             return
 
         try:
-            self.__bar_cache__[key].append_bar(newBar)
-            self.__bar_cache__[key].closed = True
+            self.__bar_cache__[key].append(newBar)
             self.__stra_info__.on_bar(self, stdCode, period, newBar)
         except ValueError as ve:
             print(ve)
@@ -212,13 +212,12 @@ class CtaContext:
             #这里做一个数据长度处理
             return self.__bar_cache__[key]
 
-        self.__bar_cache__[key] = WtKlineData(size=count)
+        self.__bar_cache__[key] = WtBarRecords(size=count)
         cnt =  self.__wrapper__.cta_get_bars(self.__id__, stdCode, period, count, isMain)
         if cnt == 0:
             return None
 
         df_bars = self.__bar_cache__[key]
-        df_bars.closed = False
 
     def stra_get_bars(self, stdCode:str, period:str, count:int, isMain:bool = False) -> WtKlineData:
         '''
@@ -234,13 +233,12 @@ class CtaContext:
             #这里做一个数据长度处理
             return self.__bar_cache__[key]
 
-        self.__bar_cache__[key] = WtKlineData(size=count)
+        self.__bar_cache__[key] = WtBarRecords(size=count)
         cnt =  self.__wrapper__.cta_get_bars(self.__id__, stdCode, period, count, isMain)
         if cnt == 0:
             return None
 
         df_bars = self.__bar_cache__[key]
-        df_bars.closed = False
 
         return df_bars
 
