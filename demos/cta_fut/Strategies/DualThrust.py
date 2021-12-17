@@ -68,6 +68,9 @@ class StraDualThrust(BaseCtaStrategy):
         highpx = df_bars.highs[-1]
         lowpx = df_bars.lows[-1]
 
+        lastBar = df_bars.get_bar(-1)
+        timePx = lastBar["bartime"]
+
         '''
         !!!!!这里是重点
         1、首先根据最后一条K线的时间，计算当前的日期
