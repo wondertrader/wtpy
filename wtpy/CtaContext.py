@@ -219,7 +219,7 @@ class CtaContext:
 
         df_bars = self.__bar_cache__[key]
 
-    def stra_get_bars(self, stdCode:str, period:str, count:int, isMain:bool = False) -> WtKlineData:
+    def stra_get_bars(self, stdCode:str, period:str, count:int, isMain:bool = False) -> WtBarRecords:
         '''
         获取历史K线
         @stdCode   合约代码
