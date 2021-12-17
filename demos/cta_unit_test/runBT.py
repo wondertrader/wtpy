@@ -1,7 +1,7 @@
 from wtpy import WtBtEngine,EngineType
 from wtpy.apps import WtBtAnalyst
 
-from Strategies.DualThrust_test import StraDualThrust
+from Strategies.StraCtaUnitTest import StraCtaUnitTest
 from ConsoleIdxWriter import ConsoleIdxWriter
 
 # from Strategies.XIM import XIM
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     engine.commitBTConfig()
     idxWriter = ConsoleIdxWriter()
     engine.set_writer(idxWriter)
-    straInfo = StraDualThrust(name='pydt_IF', code="CFFEX.IF.HOT", barCnt=50, period="m5", days=30, k1=0.1, k2=0.1, isForStk=False)
+    straInfo = StraCtaUnitTest(name='pydt_IF', code="CFFEX.IF.HOT", barCnt=50, period="m5", days=30, k1=0.1, k2=0.1, isForStk=False)
     engine.set_cta_strategy(straInfo)
 
     engine.run_backtest()

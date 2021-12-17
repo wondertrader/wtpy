@@ -2,7 +2,8 @@ from wtpy import BaseCtaStrategy
 from wtpy import CtaContext
 import numpy as np
 
-class StraDualThrust(BaseCtaStrategy):
+
+class StraCtaUnitTest(BaseCtaStrategy):
     
     def __init__(self, name:str, code:str, barCnt:int, period:str, days:int, k1:float, k2:float, isForStk:bool = False):
         BaseCtaStrategy.__init__(self, name)
@@ -21,9 +22,6 @@ class StraDualThrust(BaseCtaStrategy):
         code = self.__code__    #品种代码
         if self.__is_stk__:
             code = code + "Q"
-
-
-
 
         context.stra_get_bars(code, self.__period__, self.__bar_cnt__, isMain = True)
         context.stra_log_text("DualThrust inited")
@@ -93,48 +91,67 @@ class StraDualThrust(BaseCtaStrategy):
             "current_position": curPos
         })
         # 测试各个接口
-        #这里演示了品种信息获取的接口
+        #这里演示了品种信息获取的接口 返回值  ProductInfo对象，可以参考ProductMgr.py模块
         pInfo = context.stra_get_comminfo(code)
         print(pInfo)
-        # 交易时段详情接口测试
+        # 交易时段详情接口测试接口 返回值 品种信息，结构请参考SessionMgr中的SessionInfo
         sinfo = context.stra_get_sessinfo(code)
         print(sinfo)
+        # 获取当前交易日 返回值 int,格式如20180513
         test_tdate = context.stra_get_tdate()
         context.stra_log_text('当前交易日:{}'.format(test_tdate))
+        # 获取当前日期 返回值  当天日期yyyyMMdd，如果是回测模式下，则为回测当时的日期
         test_ndate = context.stra_get_date()
         context.stra_log_text('当前日期:{}'.format(test_ndate))
+        # 获取当前时间 返回值  当前时间，精确到分钟。
         test_time = context.stra_get_time()
         context.stra_log_text('当前时间:{}'.format(test_time))
+        # 输出日志
         context.stra_log_text('输出日志测试:123456')
+        # 获取K线数据 返回值 wtklinedata对象
         tbars = context.stra_get_bars(code, self.__period__, self.__bar_cnt__, True)
         context.stra_log_text('K线数据,最高价:{}'.format(tbars.highs))
+        # 获取tick数据 返回值  wthftdata对象
         test_ticks = context.stra_get_ticks(code, 10)
         context.stra_log_text('tick数据:{}'.format(test_ticks))
+        # 订阅实时行情 返回值  实时行情
         test_sticks = context.stra_sub_ticks(code)
         context.stra_log_text('实时行情:{}'.format(test_sticks))
+        # 获取最新价格 返回值  品种最新的价格。回测时为当时的价格
         test_price = context.stra_get_price(code)
         context.stra_log_text('最新价格:{}'.format(test_price))
+        # 获取持仓部位 返回值 持仓部位，正数则是多头，负数则是空头，0则没有仓位
         test_position = context.stra_get_position(code)
         context.stra_log_text('持仓部位:{}'.format(test_position))
+        # 获取持仓均价 返回值  持仓均价
         test_position_avg = context.stra_get_position_avgpx()
         context.stra_log_text('持仓均价:{}'.format(test_position_avg))
+        # 获取持仓盈亏 返回值  持仓盈亏
         test_position_profit = context.stra_get_position_profit(code)
         context.stra_log_text('持仓盈亏:{}'.format(test_position_profit))
+        # 获取全部持仓 返回值 dict类型的全部持仓
         test_all_position = context.stra_get_all_position()
         context.stra_log_text('全部持仓：{}'.format(test_all_position))
-        test_fund_data = context.stra_get_fund_data(0)
+        # 获取资金数据 返回值 资金数据 flag 0-动态权益，1-总平仓盈亏，2-总浮动盈亏，3-总手续费
+        test_fund_data = context.stra_get_fund_data(flag=0)
         context.stra_log_text('资金数据：{}'.format(test_fund_data))
+        # 获取最后入场时间 返回值  最后一次开仓的时间，格式如201903121047，如果没有持仓，则返回0xffffffffffffffffULL
         test_last_entry = context.stra_get_last_entrytime(code)
         context.stra_log_text('最后入场时间:{}'.format(test_last_entry))
+        # 获取最后出场时间 返回值  最后一次平仓的时间，格式如201903121047，如果没有持仓，则返回0xffffffffffffffffULL
         test_last_exit = context.stra_get_last_exittime(code)
         context.stra_log_text('最后出场时间：{}'.format(test_last_exit))
+        # 获取当前持仓第一次进场时间 返回值  第一次开仓的时间，格式如201903121047，如果没有持仓，则返回0xffffffffffffffffULL
         test_first_entry = context.stra_get_first_entrytime(code)
         context.stra_log_text('当前持仓第一次进场时间:{}'.format(test_first_entry))
+        # 获取指定信号的进场价格 返回值  入场价格
         test_detail_cost = context.stra_get_detail_cost(code, usertag='enterlong')
         context.stra_log_text('指定信号的进场价格：{}'.format(test_detail_cost))
+        # 获取指定信号的进场时间 返回值  进场时间，格式如yyyyMMddhhmm
         test_detail_enter = context.stra_get_detail_entertime(code, usertag='enterlong')
         context.stra_log_text('指定信号进场时间:{}'.format(test_detail_enter))
-        test_detail_profit = context.stra_get_detail_profit(code, usertag='enterlong')
+        # 获取指定信号的持仓盈亏 返回值  持仓盈亏 flag 盈亏记号，0-浮动盈亏，1-最大浮盈，2-最大亏损（负数）
+        test_detail_profit = context.stra_get_detail_profit(code, usertag='enterlong', flag=0)
         context.stra_log_text('指定信号的持仓盈亏:{}'.format(test_detail_profit))
 
         if curPos == 0:
