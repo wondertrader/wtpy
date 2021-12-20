@@ -152,40 +152,16 @@ class WtBarRecords(DequeRecord):
         super().__init__(size=size, fields=dict(
             bartime=np.uint64,
             time=np.uint64,
-            open=np.double,
-            high=np.double,
-            low=np.double,
-            close=np.double,
+            opens=np.double,
+            highs=np.double,
+            lows=np.double,
+            closes=np.double,
             settle=np.double,
             money=np.double,
             volume=np.uint32,
             hold=np.uint32,
             diff=np.int32,
         ))
-
-    @property
-    def opens(self) -> np.ndarray:
-        return self['open',:self.__cursor__]
-
-    @property
-    def highs(self) -> np.ndarray:
-        return self['high',:self.__cursor__]
-
-    @property
-    def lows(self) -> np.ndarray:
-        return self['low',:self.__cursor__]
-
-    @property
-    def closes(self) -> np.ndarray:
-        return self['close',:self.__cursor__]
-
-    @property
-    def volumes(self) -> np.ndarray:
-        return self['volume',:self.__cursor__]
-
-    @property
-    def bartimes(self) -> np.ndarray:
-        return self['bartime',:self.__cursor__]
 
     def get_bar(self, iLoc:int = -1) -> dict:
         return self[iLoc]
