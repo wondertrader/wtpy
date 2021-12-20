@@ -178,14 +178,8 @@ class WtBtWrapper:
         # curBar["low"] = newBar.low
         # curBar["close"] = newBar.close
         # curBar["volume"] = newBar.vol
-        if period[0] == 'd':
-            bartime = newBar.date
-        else:
-            bartime = 1990*100000000 + newBar.time
-        values = list(newBar.values)
-        values[0] = values[1] = bartime
         if ctx is not None:
-            ctx.on_bar(bytes.decode(stdCode), period, tuple(values))
+            ctx.on_bar(bytes.decode(stdCode), period, newBar.to_tuple(period[0]=='d'))
         return
 
 
@@ -204,6 +198,10 @@ class WtBtWrapper:
 
         bsSize = sizeof(WTSBarStruct)
         addr = addressof(curBar.contents) # 获取内存地址
+        isDay = period[0]=='d'
+
+
+        '''
         bars = [None]*count # 预先分配list的长度
         for i in range(count):
             realBar = WTSBarStruct.from_address(addr)   # 从内存中直接解析成WTSBarStruct
@@ -226,6 +224,14 @@ class WtBtWrapper:
             values[0] = values[1] = bartime
             bars[i] = tuple(values)
             addr += bsSize
+        '''
+
+        bars = []
+        for i in range(count):
+            realBar = WTSBarStruct.from_address(addr)   # 从内存中直接解析成WTSBarStruct
+            bars[i] = realBar.to_tuple(isDay)
+            addr += bsSize
+
 
         if ctx is not None:
             ctx.on_getbars(bytes.decode(stdCode), period, bars)
