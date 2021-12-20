@@ -88,6 +88,20 @@ class WTSBarStruct(WTSStruct):
                 ("diff", c_int32)]
     _pack_ = 1
 
+    def to_tuple(self, isDays:bool=False) -> tuple:
+        return (
+                self.date,
+                self.date if isDays else self.time + 199000000000,
+                self.open,
+                self.high,
+                self.low,
+                self.close,
+                self.settle,
+                self.money,
+                self.vol,
+                self.hold,
+                self.diff)
+
 class WTSTransStruct(WTSStruct):
     '''
     C接口传递的逐笔成交数据结构
