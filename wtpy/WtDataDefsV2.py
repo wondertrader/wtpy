@@ -165,27 +165,27 @@ class WtBarRecords(DequeRecord):
 
     @property
     def opens(self) -> np.ndarray:
-        return self['open',:self.__cursor__]
+        return self.open
 
     @property
     def highs(self) -> np.ndarray:
-        return self['high',:self.__cursor__]
+        return self.high
 
     @property
     def lows(self) -> np.ndarray:
-        return self['low',:self.__cursor__]
+        return self.low
 
     @property
     def closes(self) -> np.ndarray:
-        return self['close',:self.__cursor__]
+        return self.close
 
     @property
     def volumes(self) -> np.ndarray:
-        return self['volume',:self.__cursor__]
+        return self.volume
 
     @property
     def bartimes(self) -> np.ndarray:
-        return self['bartime',:self.__cursor__]
+        return self.bartime
 
     def get_bar(self, iLoc:int = -1) -> dict:
         return self[iLoc]
