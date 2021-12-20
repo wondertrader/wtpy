@@ -192,25 +192,16 @@ class WtWrapper:
 
         bsSize = sizeof(WTSBarStruct)
         addr = addressof(curBar.contents) # 获取内存地址
+        isDay = period[0]=='d'
+        
         bars = [None]*count # 预先分配list的长度
         for i in range(count):
             realBar = WTSBarStruct.from_address(addr)   # 从内存中直接解析成WTSBarStruct
-            bar = dict()
-            if period[0] == 'd':
-                bar["time"] = realBar.date
-            else:
-                bar["time"] = 1990*100000000 + realBar.time
-            bar["bartime"] = bar["time"]
-            bar["open"] = realBar.open
-            bar["high"] = realBar.high
-            bar["low"] = realBar.low
-            bar["close"] = realBar.close
-            bar["volume"] = realBar.vol
-            bars[i] = bar
+            bars[i] = realBar.to_tuple(isDay)
             addr += bsSize
 
         if ctx is not None:
-            ctx.on_getbars(bytes.decode(stdCode), period, bars, isLast)
+            ctx.on_getbars(bytes.decode(stdCode), period, bars)
         return
 
     def on_stra_get_tick(self, id:int, stdCode:str, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):

@@ -1,6 +1,7 @@
 from wtpy.DequeRecord import DequeRecord
 from wtpy.WtCoreDefs import WTSBarStruct, WTSTickStruct
 import numpy as np
+import pandas as pd
 
 class WtTickRecords(DequeRecord):
     def __init__(self, size: int):
@@ -150,8 +151,8 @@ class WtTickRecords(DequeRecord):
 class WtBarRecords(DequeRecord):
     def __init__(self, size: int):
         super().__init__(size=size, fields=dict(
+            date=np.uint32,
             bartime=np.uint64,
-            time=np.uint64,
             open=np.double,
             high=np.double,
             low=np.double,
@@ -189,6 +190,9 @@ class WtBarRecords(DequeRecord):
 
     def get_bar(self, iLoc:int = -1) -> dict:
         return self[iLoc]
+
+    def to_df(self) -> pd.DataFrame:
+        return pd.DataFrame(self[:], index=self.bartime)
 
     def from_struct(self, data: WTSBarStruct) -> int:
         return self.append(
