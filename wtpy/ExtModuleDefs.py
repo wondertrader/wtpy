@@ -98,21 +98,41 @@ class BaseExtDataLoader:
     def __init__(self):
         pass
 
-    def load_his_bars(self, stdCode:str, period:str, feeder) -> bool:
+    def load_final_his_bars(self, stdCode:str, period:str, feeder) -> bool:
         '''
-        加载历史K线（回测、实盘）
+        加载最终历史K线（回测、实盘）
+        该接口一般用于加载外部处理好的复权数据、主力合约数据
+
         @stdCode    合约代码，格式如CFFEX.IF.2106
         @period     周期，m1/m5/d1
-        @feeder     回调函数，feed_raw_bars(bars:POINTER(WTSBarStruct), count:int, factor:double)
+        @feeder     回调函数，feed_raw_bars(bars:POINTER(WTSBarStruct), count:int)
         '''
         return True
 
-    def load_his_tick(self, stdCode:str, uDate:int, feeder) -> bool:
+    def load_raw_his_bars(self, stdCode:str, period:str, feeder) -> bool:
+        '''
+        加载未加工的历史K线（回测、实盘）
+        该接口一般用于加载原始的K线数据，如未复权数据和分月合约数据
+
+        @stdCode    合约代码，格式如CFFEX.IF.2106
+        @period     周期，m1/m5/d1
+        @feeder     回调函数，feed_raw_bars(bars:POINTER(WTSBarStruct), count:int)
+        '''
+        return True
+
+    def load_his_ticks(self, stdCode:str, uDate:int, feeder) -> bool:
         '''
         加载历史K线（只在回测有效，实盘只提供当日落地的）
         @stdCode    合约代码，格式如CFFEX.IF.2106
         @uDate      日期，格式如yyyymmdd
         @feeder     回调函数，feed_raw_bars(bars:POINTER(WTSTickStruct), count:int)
+        '''
+        return True
+
+    def load_adj_factors(self, feeder) -> bool:
+        '''
+        加载全部的复权因子
+         @feeder     回调函数，feed_adj_factors(stdCode:str, dates:list, factors:list)
         '''
         return True
 
