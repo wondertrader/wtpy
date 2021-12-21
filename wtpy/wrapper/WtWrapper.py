@@ -161,19 +161,8 @@ class WtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         newBar = newBar.contents
-        curBar = dict()
-        if period[0] == 'd':
-            curBar["time"] = newBar.date
-        else:
-            curBar["time"] = 1990*100000000 + newBar.time
-        curBar["bartime"] = curBar["time"]
-        curBar["open"] = newBar.open
-        curBar["high"] = newBar.high
-        curBar["low"] = newBar.low
-        curBar["close"] = newBar.close
-        curBar["volume"] = newBar.vol
         if ctx is not None:
-            ctx.on_bar(bytes.decode(stdCode), period, curBar)
+            ctx.on_bar(bytes.decode(stdCode), period, newBar.to_tuple(period[0]=='d'))
         return
 
 
