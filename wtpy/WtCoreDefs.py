@@ -279,7 +279,7 @@ CB_EXECUTER_CMD = CFUNCTYPE(c_void_p, c_char_p, c_char_p, c_double)
 DataLoader外接实现
 '''
 FUNC_LOAD_HISBARS = CFUNCTYPE(c_bool, c_char_p, c_char_p)   #加载K线
-FUNC_LOAD_ADJFACTS = CFUNCTYPE(c_bool)                      #加载复权因子
+FUNC_LOAD_ADJFACTS = CFUNCTYPE(c_bool, c_char_p)            #加载复权因子
 FUNC_LOAD_HISTICKS = CFUNCTYPE(c_bool, c_char_p, c_ulong)   #加载Tick
 
 '''
