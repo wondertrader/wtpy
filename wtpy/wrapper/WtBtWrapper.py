@@ -452,13 +452,14 @@ class WtBtWrapper:
         '''
         self.api.feed_adj_factors(stdCode, dates, factors, len(dates))
 
-    def on_load_adj_factors(self) -> bool:
+    def on_load_adj_factors(self, stdCode:str) -> bool:
         engine = self._engine
         loader = engine.get_extended_data_loader()
         if loader is None:
             return False
 
-        return loader.load_adj_factors(self.feed_adj_factors)
+        stdCode = bytes.decode(stdCode)
+        return loader.load_adj_factors(stdCode, self.feed_adj_factors)
 
     def on_load_his_ticks(self, stdCode:str, uDate:int) -> bool:
         engine = self._engine
