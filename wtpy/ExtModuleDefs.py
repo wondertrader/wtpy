@@ -107,7 +107,7 @@ class BaseExtDataLoader:
         @period     周期，m1/m5/d1
         @feeder     回调函数，feed_raw_bars(bars:POINTER(WTSBarStruct), count:int)
         '''
-        return True
+        return False
 
     def load_raw_his_bars(self, stdCode:str, period:str, feeder) -> bool:
         '''
@@ -118,7 +118,7 @@ class BaseExtDataLoader:
         @period     周期，m1/m5/d1
         @feeder     回调函数，feed_raw_bars(bars:POINTER(WTSBarStruct), count:int)
         '''
-        return True
+        return False
 
     def load_his_ticks(self, stdCode:str, uDate:int, feeder) -> bool:
         '''
@@ -127,14 +127,15 @@ class BaseExtDataLoader:
         @uDate      日期，格式如yyyymmdd
         @feeder     回调函数，feed_raw_bars(bars:POINTER(WTSTickStruct), count:int)
         '''
-        return True
+        return False
 
-    def load_adj_factors(self, feeder) -> bool:
+    def load_adj_factors(self, stdCode:str = "", feeder = None) -> bool:
         '''
-        加载全部的复权因子
+        加载的权因子
+        @stdCode    合约代码，格式如CFFEX.IF.2106，如果stdCode为空，则是加载全部除权数据，如果stdCode不为空，则按需加载
          @feeder     回调函数，feed_adj_factors(stdCode:str, dates:list, factors:list)
         '''
-        return True
+        return False
 
 class BaseExtDataDumper:
 
