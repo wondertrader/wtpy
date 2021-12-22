@@ -465,6 +465,10 @@ class WatchDog:
 
         stype = 1 if isGroup else 0
 
+        mqurl = ''
+        if "mqurl" in appConf:
+            mqurl = appConf['mqurl']
+
         cur = self.__db_conn__.cursor()
         sql = ''
         if isNewApp:
@@ -473,13 +477,13 @@ class WatchDog:
                     appid, appConf["path"], appConf["folder"], appConf["param"], stype, appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
                     json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
                     json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]),
-                    appConf["mqurl"])
+                    mqurl)
         else:
             sql = "UPDATE schedules SET path='%s',folder='%s',param='%s',type=%d,span='%s',guard='%s',redirect='%s',schedule='%s',weekflag='%s',task1='%s',task2='%s',\
                     task3='%s',task4='%s',task5='%s',task6='%s',mqurl='%s',modifytime=datetime('now','localtime') WHERE appid='%s';" % (
                     appConf["path"], appConf["folder"], appConf["param"], stype, appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
                     json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
                     json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]), 
-                    appConf["mqurl"], appid)
+                    mqurl, appid)
         cur.execute(sql)
         self.__db_conn__.commit()
