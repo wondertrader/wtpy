@@ -1,142 +1,233 @@
+from wtpy.DequeRecord import DequeRecord
+from wtpy.WtCoreDefs import WTSBarStruct, WTSTickStruct
 import numpy as np
-from pandas import DataFrame
+import pandas as pd
 
-class WtKlineData:
-    def __init__(self, size:int, bAlloc:bool = True):
-        self.capacity:int = size
-        self.size:int = 0
+class WtTickRecords(DequeRecord):
+    def __init__(self, size: int):
+        super().__init__(size=size, fields={
+            'time': np.uint64,
+            'exchg': 'U10',
+            'code': 'U32',
 
-        if bAlloc:
-            self.bartimes = np.zeros(self.capacity, np.int64)
-            self.opens = np.zeros(self.capacity)
-            self.highs = np.zeros(self.capacity)
-            self.lows = np.zeros(self.capacity)
-            self.closes = np.zeros(self.capacity)
-            self.volumes = np.zeros(self.capacity)
-        else:
-            self.bartimes = None
-            self.opens = None
-            self.highs = None
-            self.lows = None
-            self.closes = None
-            self.volumes = None
+            'price': np.double,
+            'open': np.double,
+            'high': np.double,
+            'low': np.double,
+            'settle_price': np.double,
 
-    def append_bar(self, newBar:dict):
+            'upper_limit': np.double,
+            'lower_limit': np.double,
 
-        pos = self.size
-        if pos == self.capacity:
-            self.bartimes[:-1] = self.bartimes[1:]
-            self.opens[:-1] = self.opens[1:]
-            self.highs[:-1] = self.highs[1:]
-            self.lows[:-1] = self.lows[1:]
-            self.closes[:-1] = self.closes[1:]
-            self.volumes[:-1] = self.volumes[1:]
+            'total_volume': np.uint32,
+            'volume': np.uint32,
+            'total_turnover': np.double,
+            'turn_over': np.double,
+            'open_interest': np.uint32,
+            'diff_interest': np.int32,
 
-            pos = -1
-        else:
-            self.size += 1
-        self.bartimes[pos] = newBar["bartime"]
-        self.opens[pos] = newBar["open"]
-        self.highs[pos] = newBar["high"]
-        self.lows[pos] = newBar["low"]
-        self.closes[pos] = newBar["close"]
-        self.volumes[pos] = newBar["volume"]
+            'trading_date': np.uint32,
+            'action_date': np.uint32,
+            'action_time': np.uint32,
 
-    def is_empty(self) -> bool:
-        return self.size==0
+            'pre_close': np.double,
+            'pre_settle': np.double,
+            'pre_interest': np.uint32,
 
-    def clear(self):
-        self.size = 0
+            'bid_prices_0': np.double,
+            'bid_prices_1': np.double,
+            'bid_prices_2': np.double,
+            'bid_prices_3': np.double,
+            'bid_prices_4': np.double,
+            'bid_prices_5': np.double,
+            'bid_prices_6': np.double,
+            'bid_prices_7': np.double,
+            'bid_prices_8': np.double,
+            'bid_prices_9': np.double,
 
-        self.bartimes:np.ndarray = np.zeros(self.capacity, np.int64)
-        self.opens:np.ndarray = np.zeros(self.capacity)
-        self.highs:np.ndarray = np.zeros(self.capacity)
-        self.lows:np.ndarray = np.zeros(self.capacity)
-        self.closes:np.ndarray = np.zeros(self.capacity)
-        self.volumes:np.ndarray = np.zeros(self.capacity)
+            'ask_prices_0': np.double,
+            'ask_prices_1': np.double,
+            'ask_prices_2': np.double,
+            'ask_prices_3': np.double,
+            'ask_prices_4': np.double,
+            'ask_prices_5': np.double,
+            'ask_prices_6': np.double,
+            'ask_prices_7': np.double,
+            'ask_prices_8': np.double,
+            'ask_prices_9': np.double,
+
+            'bid_qty_0': np.uint32,
+            'bid_qty_1': np.uint32,
+            'bid_qty_2': np.uint32,
+            'bid_qty_3': np.uint32,
+            'bid_qty_4': np.uint32,
+            'bid_qty_5': np.uint32,
+            'bid_qty_6': np.uint32,
+            'bid_qty_7': np.uint32,
+            'bid_qty_8': np.uint32,
+            'bid_qty_9': np.uint32,
+
+            'ask_qty_0': np.uint32,
+            'ask_qty_1': np.uint32,
+            'ask_qty_2': np.uint32,
+            'ask_qty_3': np.uint32,
+            'ask_qty_4': np.uint32,
+            'ask_qty_5': np.uint32,
+            'ask_qty_6': np.uint32,
+            'ask_qty_7': np.uint32,
+            'ask_qty_8': np.uint32,
+            'ask_qty_9': np.uint32
+        })
+
+    def from_struct(self, data: WTSTickStruct):
+        return self.append(
+            (
+                np.uint64(data.action_date)*1000000000+data.action_time,
+                data.exchg,
+                data.code,
+                data.price,
+                data.open,
+                data.high,
+                data.low,
+                data.settle_price,
+                data.upper_limit,
+                data.lower_limit,
+                data.total_volume,
+                data.volume,
+                data.total_turnover,
+                data.turn_over,
+                data.open_interest,
+                data.diff_interest,
+                data.trading_date,
+                data.action_date,
+                data.action_time,
+                data.pre_close,
+                data.pre_settle,
+                data.pre_interest
+            )
+            + tuple(data.bid_prices)
+            + tuple(data.ask_prices)
+            + tuple(data.bid_qty)
+            + tuple(data.ask_qty)
+        )
+
+
+class WtOrdQueRecords(DequeRecord):
+    def __init__(self, size: int):
+        super().__init__(size=size, fields={
+            'time': np.uint64,
+            'exchg': 'U10',
+            'code': 'U32',
+            
+            'trading_date': np.uint32,
+            'action_date': np.uint32,
+            'action_time': np.uint32,
+
+            'side': np.int32,
+            'price': np.double,
+            'order_items': np.uint32,
+            'qsize': np.uint32,
+            'volumes': np.uint32*50
+        })
+
+class WtOrdDtlRecords(DequeRecord):
+    def __init__(self, size: int):
+        super().__init__(size=size, fields={
+            'time': np.uint64,
+            'exchg': 'U10',
+            'code': 'U32',
+            
+            'trading_date': np.uint32,
+            'action_date': np.uint32,
+            'action_time': np.uint32,
+
+            'index': np.uint32,
+            'side': np.int32,
+            'price': np.double,
+            'volume': np.uint32,
+            'otype': np.int32
+        })
+
+class WtTransRecords(DequeRecord):
+    def __init__(self, size: int):
+        super().__init__(size=size, fields={
+            'time': np.uint64,
+            'exchg': 'U10',
+            'code': 'U32',
+
+            'trading_date': np.uint32,
+            'action_date': np.uint32,
+            'action_time': np.uint32,
+
+            'index': np.uint32,
+            'ttype': np.int32,
+            'side': np.int32,
+
+            'price': np.double,
+            'volume': np.uint32,
+            'ask_order': np.int32,
+            'bid_order': np.int32
+        })
+
+class WtBarRecords(DequeRecord):
+    def __init__(self, size: int):
+        super().__init__(size=size, fields=dict(
+            date=np.uint32,
+            bartime=np.uint64,
+            open=np.double,
+            high=np.double,
+            low=np.double,
+            close=np.double,
+            settle=np.double,
+            money=np.double,
+            volume=np.uint32,
+            hold=np.uint32,
+            diff=np.int32,
+        ))
+
+    @property
+    def opens(self) -> np.ndarray:
+        return self.open
+
+    @property
+    def highs(self) -> np.ndarray:
+        return self.high
+
+    @property
+    def lows(self) -> np.ndarray:
+        return self.low
+
+    @property
+    def closes(self) -> np.ndarray:
+        return self.close
+
+    @property
+    def volumes(self) -> np.ndarray:
+        return self.volume
+
+    @property
+    def bartimes(self) -> np.ndarray:
+        return self.bartime
 
     def get_bar(self, iLoc:int = -1) -> dict:
-        if self.is_empty():
-            return None
+        return self[iLoc]
 
-        lastBar = dict()
-        lastBar["bartime"] = self.bartimes[iLoc]
-        lastBar["open"] = self.opens[iLoc]
-        lastBar["high"] = self.highs[iLoc]
-        lastBar["low"] = self.lows[iLoc]
-        lastBar["close"] = self.closes[iLoc]
-        lastBar["volume"] = self.volumes[iLoc]
+    def to_df(self) -> pd.DataFrame:
+        return pd.DataFrame(self[:], index=self.bartime)
 
-        return lastBar
-
-    def slice(self, iStart:int = 0, iEnd:int = -1, bCopy:bool = False):
-        if self.is_empty():
-            return None
-
-        bartimes = self.bartimes[iStart:iEnd]
-        cnt = len(bartimes)
-        ret = WtKlineData(cnt, False)
-        ret.size = cnt
-
-        if bCopy:
-            ret.bartimes = bartimes.copy()
-            ret.opens = self.opens[iStart:iEnd].copy()
-            ret.highs = self.highs[iStart:iEnd].copy()
-            ret.lows = self.lows[iStart:iEnd].copy()
-            ret.closes = self.closes[iStart:iEnd].copy()
-            ret.volumes = self.volumes[iStart:iEnd].copy()
-        else:
-            ret.bartimes = bartimes
-            ret.opens = self.opens[iStart:iEnd]
-            ret.highs = self.highs[iStart:iEnd]
-            ret.lows = self.lows[iStart:iEnd]
-            ret.closes = self.closes[iStart:iEnd]
-            ret.volumes = self.volumes[iStart:iEnd]
-
-        return ret
-
-    def to_df(self) -> DataFrame:
-        ret = DataFrame({
-            "bartime":self.bartimes,
-            "open":self.opens,
-            "high":self.highs,
-            "low":self.lows,
-            "close":self.closes,
-            "volume":self.volumes
-        })
-        ret.set_index(self.bartimes)
-        return ret
-
-class WtHftData:
-    def __init__(self, capacity:int):
-        self.capacity:int = capacity
-        self.size:int = 0
-
-        self.items = [None]*capacity
-
-    def append_item(self, newItem:dict):
-        pos = self.size
-        if pos == self.capacity:
-            self.items[:-1] = self.items[1:]
-            pos = -1
-        else:
-            self.size += 1
-
-        self.items[pos] = newItem
-
-    def is_empty(self) -> bool:
-        return self.size==0
-
-    def clear(self):
-        self.size = 0
-        self.items = []*self.capacity
-
-    def get_item(self, iLoc:int=-1) -> dict:
-        if self.is_empty():
-            return None
-
-        return self.items[iLoc]
-
-    def to_df(self) -> DataFrame:
-        ret = DataFrame(self.items)
-        return ret
+    def from_struct(self, data: WTSBarStruct) -> int:
+        return self.append(
+            (
+                data.date,
+                data.time if data.time == data.date else data.time + 199000000000,
+                data.open,
+                data.high,
+                data.low,
+                data.close,
+                data.settle,
+                data.money,
+                data.vol,
+                data.hold,
+                data.diff
+            )
+        )

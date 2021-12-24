@@ -6,8 +6,7 @@ import json
 from wtpy.ProductMgr import ProductInfo
 from wtpy.SessionMgr import SessionInfo
 from wtpy.wrapper import WtWrapper
-from wtpy.WtDataDefs import WtKlineData, WtHftData
-from wtpy.WtDataDefsV2 import WtBarRecords
+from wtpy.WtDataDefs import WtBarRecords, WtTickRecords
 
 class CtaContext:
     '''
@@ -72,12 +71,12 @@ class CtaContext:
         '''
         self.__stra_info__.on_backtest_end(self)
 
-    def on_getticks(self, stdCode:str, newTicks:list, isLast:bool):
+    def on_getticks(self, stdCode:str, newTicks:list):
         key = stdCode
 
         ticks = self.__tick_cache__[key]
         for newTick in newTicks:
-            ticks.append_item(newTick)
+            ticks.append(newTick)
 
     def on_getpositions(self, stdCode:str, qty:float, isLast:bool):
         if len(stdCode) == 0:
@@ -91,11 +90,25 @@ class CtaContext:
         for newBar in newBars:
             bars.append(newBar)
 
-    def on_tick(self, stdCode:str, newTick):
-        self.__stra_info__.on_tick(self, stdCode, newTick)
+    def on_tick(self, stdCode:str, newTick:tuple):
+        '''
+        tick回调事件响应
+        '''
+
+        # By Wesley @ 2021.12.24
+        # 因为新的数据结构传进来是一个tuple
+        # 所以必须通过缓存中抓一下，才能当成dict传给策略
+        # 如果合约的tick没有缓存，则预先分配一个长度为4的tick容器
+        # 对应回测中on_bar事件之前的开高低收4个价格
+        # 如果调用stra_get_ticks，再重新分配容器
+        if stdCode not in self.__tick_cache__:
+            self.__tick_cache__[stdCode] = WtTickRecords(size = 4)
+
+        self.__tick_cache__[stdCode].append(newTick)
+        self.__stra_info__.on_tick(self, stdCode, self.__tick_cache__[stdCode][-1])
 
 
-    def on_bar(self, stdCode:str, period:str, newBar:dict):
+    def on_bar(self, stdCode:str, period:str, newBar:tuple):
         '''
         K线闭合事件响应
         @stdCode   品种代码
@@ -110,7 +123,10 @@ class CtaContext:
 
         try:
             self.__bar_cache__[key].append(newBar)
-            self.__stra_info__.on_bar(self, stdCode, period, newBar)
+
+            # By Wesley @ 2021.12.24
+            # 因为基础数据结构改变了，传进来的newBar是一个tuple，一定要通过缓存中转一下，才能当成dict传给策略
+            self.__stra_info__.on_bar(self, stdCode, period, self.__bar_cache__[key][-1])
         except ValueError as ve:
             print(ve)
         else:
@@ -233,7 +249,7 @@ class CtaContext:
             #这里做一个数据长度处理
             return self.__bar_cache__[key]
 
-        self.__bar_cache__[key] = WtBarRecords(size=count)
+        self.__bar_cache__[key] = WtBarRecords(size = count)
         cnt =  self.__wrapper__.cta_get_bars(self.__id__, stdCode, period, count, isMain)
         if cnt == 0:
             return None
@@ -242,13 +258,22 @@ class CtaContext:
 
         return df_bars
 
-    def stra_get_ticks(self, stdCode:str, count:int) -> WtHftData:
+    def stra_get_ticks(self, stdCode:str, count:int) -> WtTickRecords:
         '''
         获取tick数据
         @stdCode   合约代码
         @count  要拉取的tick数量
         '''
-        self.__tick_cache__[stdCode] = WtHftData(capacity=count)
+
+        # By Wesley @ 2021.12.24
+        # 之前在stra_get_bars的时候生成了一个size为4的临时tick缓存
+        # 所以这里要加一个判断，如果没有缓存，或者缓存的长度为4，则重新分配新的缓存
+        
+        if stdCode in self.__tick_cache__ and self.__tick_cache__[stdCode].size > 4:
+            #这里做一个数据长度处理
+            return self.__tick_cache__[stdCode]
+
+        self.__tick_cache__[stdCode] = WtTickRecords(size=count)
         cnt = self.__wrapper__.cta_get_ticks(self.__id__, stdCode, count)
         if cnt == 0:
             return None
