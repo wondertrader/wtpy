@@ -70,6 +70,36 @@ class WTSTickStruct(WTSStruct):
         fields[-1] = ('ask_qty', 'O')
         return fields
 
+    def to_tuple(self) -> tuple:
+        return (
+                np.uint64(self.action_date)*1000000000+self.action_time,
+                self.exchg,
+                self.code,
+                self.price,
+                self.open,
+                self.high,
+                self.low,
+                self.settle_price,
+                self.upper_limit,
+                self.lower_limit,
+                self.total_volume,
+                self.volume,
+                self.total_turnover,
+                self.turn_over,
+                self.open_interest,
+                self.diff_interest,
+                self.trading_date,
+                self.action_date,
+                self.action_time,
+                self.pre_close,
+                self.pre_settle,
+                self.pre_interest
+            ) \
+            + tuple(self.bid_prices) \
+            + tuple(self.ask_prices) \
+            + tuple(self.bid_qty) \
+            + tuple(self.ask_qty)
+
 
 class WTSBarStruct(WTSStruct):
     '''
@@ -87,6 +117,20 @@ class WTSBarStruct(WTSStruct):
                 ("hold", c_uint32),
                 ("diff", c_int32)]
     _pack_ = 1
+
+    def to_tuple(self, isDays:bool=False) -> tuple:
+        return (
+                self.date,
+                self.date if isDays else self.time + 199000000000,
+                self.open,
+                self.high,
+                self.low,
+                self.close,
+                self.settle,
+                self.money,
+                self.vol,
+                self.hold,
+                self.diff)
 
 class WTSTransStruct(WTSStruct):
     '''
@@ -109,6 +153,23 @@ class WTSTransStruct(WTSStruct):
                 ("bidorder", c_int32)]
     _pack_ = 1
 
+    def to_tuple(self) -> tuple:
+        return (
+                np.uint64(self.action_date)*1000000000+self.action_time,
+                self.exchg,
+                self.code,
+                self.trading_date,
+                self.action_date,
+                self.action_time,
+                self.index,
+                self.ttype,
+                self.side,
+                self.price,
+                self.volume,
+                self.askorder,
+                self.bidorder
+            )
+
 class WTSOrdQueStruct(WTSStruct):
     '''
     C接口传递的委托队列数据结构
@@ -126,6 +187,20 @@ class WTSOrdQueStruct(WTSStruct):
                 ("qsize", c_uint32),
                 ("volumes", c_uint32*50)]
     _pack_ = 1
+
+    def to_tuple(self) -> tuple:
+        return (
+                np.uint64(self.action_date)*1000000000+self.action_time,
+                self.exchg,
+                self.code,
+                self.trading_date,
+                self.action_date,
+                self.action_time,
+                self.side,
+                self.price,
+                self.order_items,
+                self.qsize
+            ) + tuple(self.bidorder)
 
 class WTSOrdDtlStruct(WTSStruct):
     '''
@@ -145,13 +220,28 @@ class WTSOrdDtlStruct(WTSStruct):
                 ("otype", c_int32)]
     _pack_ = 1
 
+    def to_tuple(self) -> tuple:
+        return (
+                np.uint64(self.action_date)*1000000000+self.action_time,
+                self.exchg,
+                self.code,
+                self.trading_date,
+                self.action_date,
+                self.action_time,
+                self.index,
+                self.side,
+                self.price,
+                self.volume,
+                self.otype
+            )
+
 
 class CacheList(list):
     def to_record(self) -> np.recarray:
-        data = np.empty(len(self), dtype=self[0].fields)
+        self = np.empty(len(self), dtype=self[0].fields)
         for k, v in enumerate(self):
-            data[k] = v.values
-        return data.view(np.recarray)
+            self[k] = v.values
+        return self.view(np.recarray)
 
     def to_pandas(self) -> pd.DataFrame:
         return pd.DataFrame(self.to_record())
@@ -165,7 +255,7 @@ class BarList(CacheList):
             self.append(copy(thisBar))
             addr += bsSize
 
-    def on_data_count(self, count:int):
+    def on_self_count(self, count:int):
         pass
 
 class TickList(CacheList):
@@ -177,7 +267,7 @@ class TickList(CacheList):
             self.append(copy(thisTick))
             addr += tsSize
 
-    def on_data_count(self, count:int):
+    def on_self_count(self, count:int):
         pass
 
 # 回调函数定义
@@ -259,3 +349,17 @@ Executer外接实现
 '''
 CB_EXECUTER_INIT = CFUNCTYPE(c_void_p, c_char_p)
 CB_EXECUTER_CMD = CFUNCTYPE(c_void_p, c_char_p, c_char_p, c_double)
+
+
+'''
+DataLoader外接实现
+'''
+FUNC_LOAD_HISBARS = CFUNCTYPE(c_bool, c_char_p, c_char_p)   #加载K线
+FUNC_LOAD_ADJFACTS = CFUNCTYPE(c_bool, c_char_p)            #加载复权因子
+FUNC_LOAD_HISTICKS = CFUNCTYPE(c_bool, c_char_p, c_ulong)   #加载Tick
+
+'''
+DataDumper外接实现
+'''
+FUNC_DUMP_HISBARS = CFUNCTYPE(c_bool, c_char_p, c_char_p, c_char_p, POINTER(WTSBarStruct), c_uint32)
+FUNC_DUMP_HISTICKS = CFUNCTYPE(c_bool, c_char_p, c_char_p, c_ulong, POINTER(WTSTickStruct), c_uint32)

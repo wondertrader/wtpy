@@ -3,6 +3,7 @@ from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
 from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST, CB_ENGINE_EVENT
+from wtpy.WtCoreDefs import FUNC_LOAD_HISBARS, FUNC_LOAD_HISTICKS, FUNC_LOAD_ADJFACTS
 from wtpy.WtCoreDefs import EVENT_ENGINE_INIT, EVENT_SESSION_BEGIN, EVENT_SESSION_END, EVENT_ENGINE_SCHDL, EVENT_BACKTEST_END
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, WTSOrdQueStruct, WTSOrdDtlStruct, WTSTransStruct
 from .PlatformHelper import PlatformHelper as ph
@@ -73,8 +74,8 @@ class WtBtWrapper:
         self.api.hft_sell.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
         # 回测不需要 self.api.hft_cancel_all.restype = c_char_p
 
-        self.api.set_time_range.argtype = [c_uint64, c_uint64]
-        self.api.enable_tick.argtype = [c_bool]
+        self.api.set_time_range.argtypes = [c_uint64, c_uint64]
+        self.api.enable_tick.argtypes = [c_bool]
 
     def on_engine_event(self, evtid:int, evtDate:int, evtTime:int):
         engine = self._engine
@@ -112,39 +113,39 @@ class WtBtWrapper:
         ctx = engine.get_context(id)
 
         realTick = newTick.contents
-        tick = dict()
-        tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
-        tick["open"] = realTick.open
-        tick["high"] = realTick.high
-        tick["low"] = realTick.low
-        tick["price"] = realTick.price
+        # tick = dict()
+        # tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
+        # tick["open"] = realTick.open
+        # tick["high"] = realTick.high
+        # tick["low"] = realTick.low
+        # tick["price"] = realTick.price
         
-        tick["bidprice"] = list()
-        tick["bidqty"] = list()
-        tick["askprice"] = list()
-        tick["askqty"] = list()
+        # tick["bidprice"] = list()
+        # tick["bidqty"] = list()
+        # tick["askprice"] = list()
+        # tick["askqty"] = list()
 
-        tick["upper_limit"] = realTick.total_volume
-        tick["lower_limit"] = realTick.lower_limit
+        # tick["upper_limit"] = realTick.total_volume
+        # tick["lower_limit"] = realTick.lower_limit
         
-        tick["total_volume"] = realTick.total_volume
-        tick["volume"] = realTick.volume
-        tick["total_turnover"] = realTick.total_turnover
-        tick["turn_over"] = realTick.turn_over
-        tick["open_interest"] = realTick.open_interest
-        tick["diff_interest"] = realTick.diff_interest
+        # tick["total_volume"] = realTick.total_volume
+        # tick["volume"] = realTick.volume
+        # tick["total_turnover"] = realTick.total_turnover
+        # tick["turn_over"] = realTick.turn_over
+        # tick["open_interest"] = realTick.open_interest
+        # tick["diff_interest"] = realTick.diff_interest
 
-        for i in range(10):
-            if realTick.bid_qty[i] != 0:
-                tick["bidprice"].append(realTick.bid_prices[i])
-                tick["bidqty"].append(realTick.bid_qty[i])
+        # for i in range(10):
+        #     if realTick.bid_qty[i] != 0:
+        #         tick["bidprice"].append(realTick.bid_prices[i])
+        #         tick["bidqty"].append(realTick.bid_qty[i])
 
-            if realTick.ask_qty[i] != 0:
-                tick["askprice"].append(realTick.ask_prices[i])
-                tick["askqty"].append(realTick.ask_qty[i])
+        #     if realTick.ask_qty[i] != 0:
+        #         tick["askprice"].append(realTick.ask_prices[i])
+        #         tick["askqty"].append(realTick.ask_qty[i])
 
         if ctx is not None:
-            ctx.on_tick(bytes.decode(stdCode), tick)
+            ctx.on_tick(bytes.decode(stdCode), realTick.to_tuple())
         return
 
     def on_stra_calc(self, id:int, curDate:int, curTime:int):
@@ -166,19 +167,19 @@ class WtBtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         newBar = newBar.contents
-        curBar = dict()
-        if period[0] == 'd':
-            curBar["time"] = newBar.date
-        else:
-            curBar["time"] = 1990*100000000 + newBar.time
-        curBar["bartime"] = curBar["time"]
-        curBar["open"] = newBar.open
-        curBar["high"] = newBar.high
-        curBar["low"] = newBar.low
-        curBar["close"] = newBar.close
-        curBar["volume"] = newBar.vol
+        # curBar = dict()
+        # if period[0] == 'd':
+        #     curBar["time"] = newBar.date
+        # else:
+        #     curBar["time"] = 1990*100000000 + newBar.time
+        # curBar["bartime"] = curBar["time"]
+        # curBar["open"] = newBar.open
+        # curBar["high"] = newBar.high
+        # curBar["low"] = newBar.low
+        # curBar["close"] = newBar.close
+        # curBar["volume"] = newBar.vol
         if ctx is not None:
-            ctx.on_bar(bytes.decode(stdCode), period, curBar)
+            ctx.on_bar(bytes.decode(stdCode), period, newBar.to_tuple(period[0]=='d'))
         return
 
 
@@ -197,25 +198,16 @@ class WtBtWrapper:
 
         bsSize = sizeof(WTSBarStruct)
         addr = addressof(curBar.contents) # 获取内存地址
+        isDay = period[0]=='d'
+
         bars = [None]*count # 预先分配list的长度
         for i in range(count):
             realBar = WTSBarStruct.from_address(addr)   # 从内存中直接解析成WTSBarStruct
-            bar = dict()
-            if period[0] == 'd':
-                bar["time"] = realBar.date
-            else:
-                bar["time"] = 1990*100000000 + realBar.time
-            bar["bartime"] = bar["time"]
-            bar["open"] = realBar.open
-            bar["high"] = realBar.high
-            bar["low"] = realBar.low
-            bar["close"] = realBar.close
-            bar["volume"] = realBar.vol
-            bars[i] = bar
+            bars[i] = realBar.to_tuple(isDay)
             addr += bsSize
 
         if ctx is not None:
-            ctx.on_getbars(bytes.decode(stdCode), period, bars, isLast)
+            ctx.on_getbars(bytes.decode(stdCode), period, bars)
 
     def on_stra_get_tick(self, id:int, stdCode:str, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
         '''
@@ -234,6 +226,7 @@ class WtBtWrapper:
         ticks = [None]*count # 预先分配list的长度
         for idx in range(count):
             realTick = WTSTickStruct.from_address(addr)   # 从内存中直接解析成WTSTickStruct
+            '''
             tick = dict()
             tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
             tick["open"] = realTick.open
@@ -261,12 +254,13 @@ class WtBtWrapper:
                 if realTick.ask_qty[i] != 0:
                     tick["askprice"].append(realTick.ask_prices[i])
                     tick["askqty"].append(realTick.ask_qty[i])
+            '''
 
-            ticks[idx] = tick
+            ticks[idx] = realTick.to_tuple()
             addr += tsSize
 
         if ctx is not None:
-            ctx.on_getticks(bytes.decode(stdCode), ticks, isLast)
+            ctx.on_getticks(bytes.decode(stdCode), ticks)
 
     def on_stra_get_position(self, id:int, stdCode:str, qty:float, isLast:bool):
         engine = self._engine
@@ -310,22 +304,22 @@ class WtBtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         newOrdQue = newOrdQue.contents
-        curOrdQue = dict()
-        curOrdQue["time"] = newOrdQue.action_date * 1000000000 + newOrdQue.action_time
-        curOrdQue["side"] = newOrdQue.side
-        curOrdQue["price"] = newOrdQue.price
-        curOrdQue["order_items"] = newOrdQue.order_items
-        curOrdQue["qsize"] = newOrdQue.qsize
-        curOrdQue["volumes"] = list()
+        # curOrdQue = dict()
+        # curOrdQue["time"] = newOrdQue.action_date * 1000000000 + newOrdQue.action_time
+        # curOrdQue["side"] = newOrdQue.side
+        # curOrdQue["price"] = newOrdQue.price
+        # curOrdQue["order_items"] = newOrdQue.order_items
+        # curOrdQue["qsize"] = newOrdQue.qsize
+        # curOrdQue["volumes"] = list()
 
-        for i in range(50):
-            if newOrdQue.volumes[i] == 0:
-                break
-            else:
-                curOrdQue["volumes"].append(newOrdQue.volumes[i])
+        # for i in range(50):
+        #     if newOrdQue.volumes[i] == 0:
+        #         break
+        #     else:
+        #         curOrdQue["volumes"].append(newOrdQue.volumes[i])
         
         if ctx is not None:
-            ctx.on_order_queue(stdCode, curOrdQue)
+            ctx.on_order_queue(stdCode, newOrdQue.to_tuple())
 
     def on_hftstra_get_order_queue(self, id:int, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct), count:int, isLast:bool):
         engine = self._engine
@@ -335,41 +329,41 @@ class WtBtWrapper:
         item_list = [None]*count
         for i in range(count):
             realOrdQue = WTSOrdQueStruct.from_address(addr)
-            curOrdQue = dict()
-            curOrdQue["time"] = realOrdQue.action_date * 1000000000 + realOrdQue.action_time
-            curOrdQue["side"] = realOrdQue.side
-            curOrdQue["price"] = realOrdQue.price
-            curOrdQue["order_items"] = realOrdQue.order_items
-            curOrdQue["qsize"] = realOrdQue.qsize
-            curOrdQue["volumes"] = list()
+            # curOrdQue = dict()
+            # curOrdQue["time"] = realOrdQue.action_date * 1000000000 + realOrdQue.action_time
+            # curOrdQue["side"] = realOrdQue.side
+            # curOrdQue["price"] = realOrdQue.price
+            # curOrdQue["order_items"] = realOrdQue.order_items
+            # curOrdQue["qsize"] = realOrdQue.qsize
+            # curOrdQue["volumes"] = list()
 
-            for i in range(50):
-                if realOrdQue.volumes[i] == 0:
-                    break
-                else:
-                    curOrdQue["volumes"].append(realOrdQue.volumes[i])
+            # for i in range(50):
+            #     if realOrdQue.volumes[i] == 0:
+            #         break
+            #     else:
+            #         curOrdQue["volumes"].append(realOrdQue.volumes[i])
 
-            item_list[i] = curOrdQue
+            item_list[i] = realOrdQue.to_tuple()
             addr += szItem
             
         if ctx is not None:
-            ctx.on_get_order_queue(bytes.decode(stdCode), item_list, isLast)
+            ctx.on_get_order_queue(bytes.decode(stdCode), item_list)
 
     def on_hftstra_order_detail(self, id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct)):
         engine = self._engine
         ctx = engine.get_context(id)
         newOrdDtl = newOrdDtl.contents
 
-        curOrdDtl = dict()
-        curOrdDtl["time"] = newOrdDtl.action_date * 1000000000 + newOrdDtl.action_time
-        curOrdDtl["index"] = newOrdDtl.index
-        curOrdDtl["side"] = newOrdDtl.side
-        curOrdDtl["price"] = newOrdDtl.price
-        curOrdDtl["volume"] = newOrdDtl.volume
-        curOrdDtl["otype"] = newOrdDtl.otype
+        # curOrdDtl = dict()
+        # curOrdDtl["time"] = newOrdDtl.action_date * 1000000000 + newOrdDtl.action_time
+        # curOrdDtl["index"] = newOrdDtl.index
+        # curOrdDtl["side"] = newOrdDtl.side
+        # curOrdDtl["price"] = newOrdDtl.price
+        # curOrdDtl["volume"] = newOrdDtl.volume
+        # curOrdDtl["otype"] = newOrdDtl.otype
         
         if ctx is not None:
-            ctx.on_order_detail(stdCode, curOrdDtl)
+            ctx.on_order_detail(stdCode, newOrdDtl.to_tuple())
 
     def on_hftstra_get_order_detail(self, id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct), count:int, isLast:bool):
         engine = self._engine
@@ -379,15 +373,15 @@ class WtBtWrapper:
         item_list = [None]*count
         for i in range(count):
             realOrdDtl = WTSOrdDtlStruct.from_address(addr)
-            curOrdDtl = dict()
-            curOrdDtl["time"] = realOrdDtl.action_date * 1000000000 + realOrdDtl.action_time
-            curOrdDtl["index"] = realOrdDtl.index
-            curOrdDtl["side"] = realOrdDtl.side
-            curOrdDtl["price"] = realOrdDtl.price
-            curOrdDtl["volume"] = realOrdDtl.volume
-            curOrdDtl["otype"] = realOrdDtl.otype
+            # curOrdDtl = dict()
+            # curOrdDtl["time"] = realOrdDtl.action_date * 1000000000 + realOrdDtl.action_time
+            # curOrdDtl["index"] = realOrdDtl.index
+            # curOrdDtl["side"] = realOrdDtl.side
+            # curOrdDtl["price"] = realOrdDtl.price
+            # curOrdDtl["volume"] = realOrdDtl.volume
+            # curOrdDtl["otype"] = realOrdDtl.otype
 
-            item_list[i] = curOrdDtl
+            item_list[i] = realOrdDtl.to_tuple()
             addr += szItem
             
         if ctx is not None:
@@ -398,18 +392,18 @@ class WtBtWrapper:
         ctx = engine.get_context(id)
         newTrans = newTrans.contents
 
-        curTrans = dict()
-        curTrans["time"] = newTrans.action_date * 1000000000 + newTrans.action_time
-        curTrans["index"] = newTrans.index
-        curTrans["ttype"] = newTrans.ttype
-        curTrans["side"] = newTrans.side
-        curTrans["price"] = newTrans.price
-        curTrans["volume"] = newTrans.volume
-        curTrans["askorder"] = newTrans.askorder
-        curTrans["bidorder"] = newTrans.bidorder
+        # curTrans = dict()
+        # curTrans["time"] = newTrans.action_date * 1000000000 + newTrans.action_time
+        # curTrans["index"] = newTrans.index
+        # curTrans["ttype"] = newTrans.ttype
+        # curTrans["side"] = newTrans.side
+        # curTrans["price"] = newTrans.price
+        # curTrans["volume"] = newTrans.volume
+        # curTrans["askorder"] = newTrans.askorder
+        # curTrans["bidorder"] = newTrans.bidorder
         
         if ctx is not None:
-            ctx.on_transaction(stdCode, curTrans)
+            ctx.on_transaction(stdCode, newTrans.to_tuple())
         
     def on_hftstra_get_transaction(self, id:int, stdCode:str, newTrans:POINTER(WTSTransStruct), count:int, isLast:bool):
         engine = self._engine
@@ -419,20 +413,64 @@ class WtBtWrapper:
         trans_list = [None]*count
         for i in range(count):
             realTrans = WTSTransStruct.from_address(addr)
-            curTrans = dict()
-            curTrans["time"] = realTrans.action_date * 1000000000 + realTrans.action_time
-            curTrans["index"] = realTrans.index
-            curTrans["ttype"] = realTrans.ttype
-            curTrans["side"] = realTrans.side
-            curTrans["price"] = realTrans.price
-            curTrans["volume"] = realTrans.volume
-            curTrans["askorder"] = realTrans.askorder
-            curTrans["bidorder"] = realTrans.bidorder
-            trans_list[i] = curTrans
+            # curTrans = dict()
+            # curTrans["time"] = realTrans.action_date * 1000000000 + realTrans.action_time
+            # curTrans["index"] = realTrans.index
+            # curTrans["ttype"] = realTrans.ttype
+            # curTrans["side"] = realTrans.side
+            # curTrans["price"] = realTrans.price
+            # curTrans["volume"] = realTrans.volume
+            # curTrans["askorder"] = realTrans.askorder
+            # curTrans["bidorder"] = realTrans.bidorder
+            trans_list[i] = realTrans.to_tuple()
             addr += szTrans
             
         if ctx is not None:
             ctx.on_get_transaction(bytes.decode(stdCode), trans_list, isLast)
+
+    def on_load_fnl_his_bars(self, stdCode:str, period:str) -> bool:
+        engine = self._engine
+        loader = engine.get_extended_data_loader()
+        if loader is None:
+            return False
+
+        # feed_raw_bars(WTSBarStruct* bars, WtUInt32 count);
+        return loader.load_final_his_bars(bytes.decode(stdCode), bytes.decode(period), self.api.feed_raw_bars)
+
+    def on_load_raw_his_bars(self, stdCode:str, period:str) -> bool:
+        engine = self._engine
+        loader = engine.get_extended_data_loader()
+        if loader is None:
+            return False
+
+        # feed_raw_bars(WTSBarStruct* bars, WtUInt32 count);
+        return loader.load_raw_his_bars(bytes.decode(stdCode), bytes.decode(period), self.api.feed_raw_bars)
+
+    def feed_adj_factors(self, stdCode:str, dates:list, factors:list):
+        stdCode = bytes(stdCode, encoding="utf8")
+        '''
+        TODO 这里类型要转一下! 底层接口是传数组的
+        feed_adj_factors(WtString stdCode, WtUInt32* dates, double* factors, WtUInt32 count)
+        '''
+        self.api.feed_adj_factors(stdCode, dates, factors, len(dates))
+
+    def on_load_adj_factors(self, stdCode:str) -> bool:
+        engine = self._engine
+        loader = engine.get_extended_data_loader()
+        if loader is None:
+            return False
+
+        stdCode = bytes.decode(stdCode)
+        return loader.load_adj_factors(stdCode, self.feed_adj_factors)
+
+    def on_load_his_ticks(self, stdCode:str, uDate:int) -> bool:
+        engine = self._engine
+        loader = engine.get_extended_data_loader()
+        if loader is None:
+            return False
+        
+        # feed_raw_ticks(WTSTickStruct* ticks, WtUInt32 count);
+        return loader.load_his_ticks(bytes.decode(stdCode), uDate, self.api.feed_raw_ticks)
 
     def write_log(self, level, message:str, catName:str = ""):
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
@@ -469,7 +507,7 @@ class WtBtWrapper:
         self.api.config_backtest(bytes(cfgfile, encoding = "utf8"), isFile)
     ### 实盘和回测有差异 ###
 
-    def initialize_cta(self, logCfg:str = "logcfgbt.json", isFile:bool = True):
+    def initialize_cta(self, logCfg:str = "logcfgbt.json", isFile:bool = True, outDir:str = "./outputs_bt"):
         '''
         C接口初始化
         '''
@@ -485,13 +523,13 @@ class WtBtWrapper:
             self.api.register_evt_callback(self.cb_engine_event)
             self.api.register_cta_callbacks(self.cb_stra_init, self.cb_stra_tick, 
                 self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_calc_done)
-            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
+            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile, bytes(outDir, encoding = "utf8"))
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "WonderTrader CTA backtest framework initialzied，version：%s" % (self.ver))
+        self.write_log(102, "WonderTrader CTA backtest framework initialzied，version: %s" % (self.ver))
 
-    def initialize_hft(self, logCfg:str = "logcfgbt.json", isFile:bool = True):
+    def initialize_hft(self, logCfg:str = "logcfgbt.json", isFile:bool = True, outDir:str = "./outputs_bt"):
         '''
         C接口初始化
         '''
@@ -512,17 +550,17 @@ class WtBtWrapper:
 
         try:
             self.api.register_evt_callback(self.cb_engine_event)
-            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
             self.api.register_hft_callbacks(self.cb_stra_init, self.cb_stra_tick, self.cb_stra_bar, 
                 self.cb_hftstra_channel_evt, self.cb_hftstra_order, self.cb_hftstra_trade, 
                 self.cb_hftstra_entrust, self.cb_hftstra_order_detail, self.cb_hftstra_order_queue, 
                 self.cb_hftstra_transaction, self.cb_session_event)
+            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile, bytes(outDir, encoding = "utf8"))
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "WonderTrader HFT backtest framework initialzied，version：%s" % (self.ver))
+        self.write_log(102, "WonderTrader HFT backtest framework initialzied，version: %s" % (self.ver))
 
-    def initialize_sel(self, logCfg:str = "logcfgbt.json", isFile:bool = True):
+    def initialize_sel(self, logCfg:str = "logcfgbt.json", isFile:bool = True, outDir:str = "./outputs_bt"):
         '''
         C接口初始化
         '''
@@ -539,11 +577,22 @@ class WtBtWrapper:
             self.api.register_evt_callback(self.cb_engine_event)
             self.api.register_sel_callbacks(self.cb_stra_init, self.cb_stra_tick, 
                 self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_calc_done)
-            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile)
+            self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile, bytes(outDir, encoding = "utf8"))
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "WonderTrader SEL backtest framework initialzied，version：%s" % (self.ver))
+        self.write_log(102, "WonderTrader SEL backtest framework initialzied，version: %s" % (self.ver))
+
+    def register_extended_data_loader(self, bAutoTrans:bool = True):
+        '''
+        注册扩展历史数据加载器
+        @bAutoTrans 是否自动转储
+        '''
+        self.cb_load_fnlbars = FUNC_LOAD_HISBARS(self.on_load_fnl_his_bars)
+        self.cb_load_rawbars = FUNC_LOAD_HISBARS(self.on_load_raw_his_bars)
+        self.cb_load_histicks = FUNC_LOAD_HISTICKS(self.on_load_his_ticks)
+        self.cb_load_adjfacts = FUNC_LOAD_ADJFACTS(self.on_load_adj_factors)
+        self.api.register_ext_data_loader(self.cb_load_fnlbars, self.cb_load_rawbars, self.cb_load_adjfacts, self.cb_load_histicks, bAutoTrans)
 
     def cta_enter_long(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''
@@ -626,7 +675,7 @@ class WtBtWrapper:
         '''
         return self.api.cta_get_all_position(id, CB_STRATEGY_GET_POSITION(self.on_stra_get_position))
     
-    def cta_get_position(self, id:int, stdCode:str, usertag:str = ""):
+    def cta_get_position(self, id:int, stdCode:str, bonlyvalid:bool = False, usertag:str = ""):
         '''
         获取持仓
         @id     策略id
@@ -634,7 +683,7 @@ class WtBtWrapper:
         @usertag    进场标记，如果为空则获取该合约全部持仓
         @return 指定合约的持仓手数，正为多，负为空
         '''
-        return self.api.cta_get_position(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"))
+        return self.api.cta_get_position(id, bytes(stdCode, encoding = "utf8"), bonlyvalid, bytes(usertag, encoding = "utf8"))
 
     def cta_get_fund_data(self, id:int, flag:int) -> float:
         '''
@@ -827,7 +876,7 @@ class WtBtWrapper:
         '''
         return self.api.sel_get_all_position(id, CB_STRATEGY_GET_POSITION(self.on_stra_get_position))
 
-    def sel_get_position(self, id:int, stdCode:str, usertag:str = ""):
+    def sel_get_position(self, id:int, stdCode:str, bonlyvalid:bool = False, usertag:str = ""):
         '''
         获取持仓
         @id     策略id
@@ -835,7 +884,7 @@ class WtBtWrapper:
         @usertag    进场标记，如果为空则获取该合约全部持仓
         @return 指定合约的持仓手数，正为多，负为空
         '''
-        return self.api.sel_get_position(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"))
+        return self.api.sel_get_position(id, bytes(stdCode, encoding = "utf8"), bonlyvalid, bytes(usertag, encoding = "utf8"))
 
     def sel_get_price(self, stdCode:str):
         '''
@@ -950,14 +999,14 @@ class WtBtWrapper:
         ret = self.api.hft_load_userdata(id, bytes(key, encoding = "utf8"), bytes(defVal, encoding = "utf8"))
         return bytes.decode(ret)
 
-    def hft_get_position(self, id:int, stdCode:str):
+    def hft_get_position(self, id:int, stdCode:str, bonlyvalid:bool = False):
         '''
         获取持仓
         @id     策略id
         @stdCode   合约代码
         @return 指定合约的持仓手数，正为多，负为空
         '''
-        return self.api.hft_get_position(id, bytes(stdCode, encoding = "utf8"))
+        return self.api.hft_get_position(id, bytes(stdCode, encoding = "utf8"), bonlyvalid)
 
     def hft_get_position_profit(self, id:int, stdCode:str):
         '''

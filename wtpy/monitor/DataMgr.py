@@ -502,8 +502,36 @@ class DataMgr:
 
             trdCache["funds"].append(tItem)
             trdCache["lastrow"] += 1
+
+        ret = trdCache["funds"].copy()
+
+        if len(ret) > 0:
+            last_date = ret[-1]["date"]
+        else:
+            last_date = 0
+
+        # 这里再更新一条实时数据
+        filepath = "./generated/stradata/%s.json" % (straid)
+        filepath = os.path.join(grpInfo["path"], filepath)
+        f = open(filepath, "r")
+        try:
+            content = f.read()
+            json_data = json.loads(content)
+            fund = json_data["fund"]
+            if fund["tdate"] > last_date:
+                ret.append({
+                    "strategy":straid,
+                    "date": fund["tdate"],
+                    "closeprofit": fund["total_profit"],
+                    "dynprofit": fund["total_dynprofit"],
+                    "dynbalance": fund["total_profit"] + fund["total_dynprofit"] - fund["total_fees"],
+                    "fee": fund["total_fees"]
+                })
+        except:
+            pass
+        f.close()
         
-        return trdCache["funds"]
+        return ret
 
     def get_signals(self, grpid:str, straid:str, limit:int = 200):
         if grpid not in self.__config__["groups"]:
@@ -848,7 +876,6 @@ class DataMgr:
             channels.append(chnlid)
         else:
             channels = self.__grp_cache__[grpid]["channels"]
-            print(channels)
 
         for cid in channels:
             if cid not in self.__grp_cache__[grpid]["channels"]:
@@ -870,7 +897,6 @@ class DataMgr:
                 pass
 
             f.close()
-        print(ret)
         return ret
 
     def get_actions(self, sdate, edate):
@@ -889,6 +915,101 @@ class DataMgr:
             ret.append(aInfo)
 
         return ret
+
+    def get_group_trades(self, grpid:str):
+        if grpid not in self.__config__["groups"]:
+            return []
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+
+        if "grptrades" not in self.__grp_cache__[grpid]:
+            self.__grp_cache__[grpid]["grptrades"] = dict()
+        
+        filepath = "./generated/portfolio/trades.csv"
+        filepath = os.path.join(grpInfo["path"], filepath)
+        if not os.path.exists(filepath):
+            return []
+        else:
+            trdCache = dict()
+            trdCache["file"] = filepath
+            trdCache["lastrow"] = 0
+            trdCache["trades"] = list()
+            self.__grp_cache__[grpid]["grptrades"]["cache"] = trdCache
+
+        trdCache = self.__grp_cache__[grpid]["grptrades"]['cache']
+
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
+
+        for line in lines:
+            cells = line.split(",")
+
+            tItem = {
+                "code": cells[0],
+                "time": int(cells[1]),
+                "direction": cells[2],
+                "offset": cells[3],
+                "price": float(cells[4]),
+                "volume": float(cells[5]),
+                "fee": float(cells[6])
+            }
+
+            trdCache["trades"].append(tItem)
+            trdCache["lastrow"] += 1
+        
+        return trdCache["trades"]
+
+    def get_group_rounds(self, grpid:str):
+        if grpid not in self.__config__["groups"]:
+            return []
+
+        grpInfo = self.__config__["groups"][grpid]
+        self.__check_cache__(grpid, grpInfo)
+
+        if "grprounds" not in self.__grp_cache__[grpid]:
+            self.__grp_cache__[grpid]["grprounds"] = dict()
+        
+        filepath = "./generated/portfolio/closes.csv"
+        filepath = os.path.join(grpInfo["path"], filepath)
+        if not os.path.exists(filepath):
+            return []
+        else:
+            trdCache = dict()
+            trdCache["file"] = filepath
+            trdCache["lastrow"] = 0
+            trdCache["rounds"] = list()
+            self.__grp_cache__[grpid]["grprounds"]["cache"] = trdCache
+
+        trdCache = self.__grp_cache__[grpid]["grprounds"]['cache']
+
+        f = open(trdCache["file"], "r")
+        last_row = trdCache["lastrow"]
+        lines = f.readlines()
+        f.close()
+        lines = lines[1+last_row:]
+
+        for line in lines:
+            cells = line.split(",")
+
+            tItem = {
+                "code": cells[0],
+                "direct": cells[1],
+                "opentime": int(cells[2]),
+                "openprice": float(cells[3]),
+                "closetime": int(cells[4]),
+                "closeprice": float(cells[5]),
+                "qty": float(cells[6]),
+                "profit": float(cells[7])
+            }
+
+            trdCache["rounds"].append(tItem)
+            trdCache["lastrow"] += 1
+        
+        return trdCache["rounds"]
 
     def get_group_funds(self, grpid:str):
         if grpid not in self.__config__["groups"]:
@@ -943,7 +1064,43 @@ class DataMgr:
             trdCache["funds"].append(tItem)
             trdCache["lastrow"] += 1
         
-        return trdCache["funds"]
+        ret = trdCache["funds"].copy()
+
+        if len(ret) > 0:
+            last_date = ret[-1]["date"]
+        else:
+            last_date = 0
+
+        # 这里再更新一条实时数据
+        filepath = "./generated/portfolio/datas.json"
+        filepath = os.path.join(grpInfo["path"], filepath)
+        f = open(filepath, "r")
+        try:
+            content = f.read()
+            json_data = json.loads(content)
+            fund = json_data["fund"]
+            if fund["date"] > last_date:
+                ret.append({
+                    "date": fund["date"],
+                    "predynbalance": fund["predynbal"],
+                    "prebalance": fund["prebalance"],
+                    "balance": fund["balance"],
+                    "closeprofit": fund["profit"],
+                    "dynprofit": fund["dynprofit"],
+                    "fee": fund["fees"],
+                    "maxdynbalance": fund["max_dyn_bal"],
+                    "maxtime": fund["max_time"],
+                    "mindynbalance": fund["min_dyn_bal"],
+                    "mintime": fund["min_time"],
+                    "mdmaxbalance": fund["maxmd"]["dyn_balance"],
+                    "mdmaxdate": fund["maxmd"]["date"],
+                    "mdminbalance": fund["minmd"]["dyn_balance"],
+                    "mdmindate": fund["minmd"]["date"]
+                })
+        except:
+            pass
+        f.close()
+        return ret
 
     def get_group_positions(self, grpid:str):
         if grpid not in self.__config__["groups"]:

@@ -6,6 +6,7 @@ from wtpy.StrategyDefs import BaseCtaStrategy, BaseSelStrategy, BaseHftStrategy
 from wtpy.ExtToolDefs import BaseIndexWriter
 from wtpy.WtCoreDefs import EngineType
 from wtpy.WtUtilDefs import singleton
+from wtpy.ExtModuleDefs import BaseExtDataLoader
 
 from .ProductMgr import ProductMgr, ProductInfo
 from .SessionMgr import SessionMgr, SessionInfo
@@ -20,7 +21,15 @@ import json
 @singleton
 class WtBtEngine:
 
-    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False):
+    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False, outDir:str = "./outputs_bt"):
+        '''
+        构造函数
+        @eType  引擎类型
+        @logCfg 日志模块配置文件，也可以直接是配置内容字符串
+        @isFile 是否文件，如果是文件，则将logCfg当做文件路径处理，如果不是文件，则直接当成json格式的字符串进行解析
+        @bDumpCfg   回测的实际配置文件是否落地
+        @outDir 回测数据输出目录
+        '''
         self.is_backtest = True
 
         self.__wrapper__ = WtBtWrapper(self)  #api接口转换器
@@ -32,16 +41,18 @@ class WtBtEngine:
 
         self.__dump_config__ = bDumpCfg #是否保存最终配置
 
+        self.__ext_data_loader__:BaseExtDataLoader = None   #扩展历史数据加载器
+
         if eType == eType.ET_CTA:
-            self.__wrapper__.initialize_cta(logCfg, isFile)   #初始化CTA环境
+            self.__wrapper__.initialize_cta(logCfg, isFile, outDir)   #初始化CTA环境
         elif eType == eType.ET_HFT:
-            self.__wrapper__.initialize_hft(logCfg, isFile)   #初始化HFT环境
+            self.__wrapper__.initialize_hft(logCfg, isFile, outDir)   #初始化HFT环境
         elif eType == eType.ET_SEL:
-            self.__wrapper__.initialize_sel(logCfg, isFile)   #初始化SEL环境
+            self.__wrapper__.initialize_sel(logCfg, isFile, outDir)   #初始化SEL环境
 
     def __check_config__(self):
         '''
-        检查设置项\n
+        检查设置项
         主要会补充一些默认设置项
         '''
         if "replayer" not in self.__config__:
@@ -63,18 +74,24 @@ class WtBtEngine:
         '''
         self.__idx_writer__ = writer
 
-    def write_indicator(self, id, tag, time, data):
+    def write_indicator(self, id:str, tag:str, time:int, data:dict):
         '''
         写入指标数据
+        @id     指标id
+        @tag    标签，主要用于区分指标对应的周期，如m5/d
+        @time   时间，如yyyymmddHHMM
+        @data   指标值
         '''
         if self.__idx_writer__ is not None:
             self.__idx_writer__.write_indicator(id, tag, time, data)
 
     def init(self, folder:str, cfgfile:str = "configbt.json", commfile:str="commodities.json", contractfile:str="contracts.json"):
         '''
-        初始化\n
-        @folder     基础数据文件目录，\\结尾\n
+        初始化
+        @folder     基础数据文件目录，\\结尾
         @cfgfile    配置文件，json格式
+        @commfile   品种定义文件，json格式
+        @contractfile   合约定义文件，json格式
         '''
         f = open(cfgfile, "r")
         content =f.read()
@@ -106,8 +123,8 @@ class WtBtEngine:
 
     def configBacktest(self, stime:int, etime:int):
         '''
-        配置回测设置项\n
-        @stime  开始时间\n
+        配置回测设置项
+        @stime  开始时间
         @etime  结束时间
         '''
         self.__config__["replayer"]["stime"] = int(stime)
@@ -115,7 +132,7 @@ class WtBtEngine:
 
     def configBTStorage(self, mode:str, path:str = None, dbcfg:dict = None):
         '''
-        配置数据存储\n
+        配置数据存储
         @mode   存储模式，csv-表示从csv直接读取，一般回测使用，wtp-表示使用wt框架自带数据存储
         '''
         self.__config__["replayer"]["mode"] = mode
@@ -126,7 +143,11 @@ class WtBtEngine:
 
     def setExternalCtaStrategy(self, id:str, module:str, typeName:str, params:dict):
         '''
-        添加外部的CTA策略
+        添加C++的CTA策略
+        @id 策略ID
+        @module     策略模块文件名，包含后缀，如：WzCtaFact.dll
+        @typeName   模块内的策略类名
+        @params     策略参数
         '''
         if "cta" not in self.__config__:
             self.__config__["cta"] = dict()
@@ -143,7 +164,11 @@ class WtBtEngine:
 
     def setExternalHftStrategy(self, id:str, module:str, typeName:str, params:dict):
         '''
-        添加外部的HFT策略
+        添加C++的HFT策略
+        @id 策略ID
+        @module     策略模块文件名，包含后缀，如：WzHftFact.dll
+        @typeName   模块内的策略类名
+        @params     策略参数
         '''
         if "hft" not in self.__config__:
             self.__config__["hft"] = dict()
@@ -157,11 +182,25 @@ class WtBtEngine:
         self.__config__["hft"]["strategy"]["name"] = typeName
         self.__config__["hft"]["strategy"]["params"] = params
 
+    def set_extended_data_loader(self, loader:BaseExtDataLoader, bAutoTrans:bool = True):
+        '''
+        设置扩展数据加载器
+        @loader     数据加载器模块
+        @bAutoTrans 是否自动转储，如果是的话底层就转成dsb文件
+        '''
+        self.__ext_data_loader__ = loader
+        self.__wrapper__.register_extended_data_loader(bAutoTrans)
+
+    def get_extended_data_loader(self) -> BaseExtDataLoader:
+        '''
+        获取扩展的数据加载器
+        '''
+        return self.__ext_data_loader__
 
     def commitBTConfig(self):
         '''
-        提交配置\n
-        只有第一次调用会生效，不可重复调用\n
+        提交配置
+        只有第一次调用会生效，不可重复调用
         如果执行run之前没有调用，run会自动调用该方法
         '''
         if self.__cfg_commited__:
@@ -178,7 +217,7 @@ class WtBtEngine:
 
     def getSessionByCode(self, code:str) -> SessionInfo:
         '''
-        通过合约代码获取交易时间模板\n
+        通过合约代码获取交易时间模板
         @code   合约代码，格式如SHFE.rb.HOT
         '''
         pid = CodeHelper.stdCodeToStdCommID(code)
@@ -191,21 +230,21 @@ class WtBtEngine:
 
     def getSessionByName(self, sname:str) -> SessionInfo:
         '''
-        通过模板名获取交易时间模板\n
+        通过模板名获取交易时间模板
         @sname  模板名
         '''
         return self.sessionMgr.getSession(sname)
 
     def getProductInfo(self, code:str) -> ProductInfo:
         '''
-        获取品种信息\n
+        获取品种信息
         @code   合约代码，格式如SHFE.rb.HOT
         '''
         return self.productMgr.getProductInfo(code)
 
     def getContractInfo(self, code:str) -> ContractInfo:
         '''
-        获取品种信息\n
+        获取品种信息
         @code   合约代码，格式如SHFE.rb.HOT
         '''
         return self.contractMgr.getContractInfo(code)
@@ -218,7 +257,8 @@ class WtBtEngine:
 
     def set_time_range(self, beginTime:int, endTime:int):
         '''
-        设置回测时间\r
+        设置回测时间
+        一般用于一个进程中多次回测的时候启动下一轮回测之前重设之间范围
         @beginTime  开始时间，格式如yyyymmddHHMM
         @endTime    结束时间，格式如yyyymmddHHMM
         '''
@@ -226,17 +266,18 @@ class WtBtEngine:
 
     def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False, persistData:bool = True):
         '''
-        添加策略\n
+        添加CTA策略
         @strategy   策略对象
         @slippage   滑点大小
         @hook       是否安装钩子，主要用于单步控制重算
+        @persistData    回测生成的数据是否落地，默认为True
         '''
         ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData)
         self.__context__ = CtaContext(ctxid, strategy, self.__wrapper__, self)
 
     def set_hft_strategy(self, strategy:BaseHftStrategy, hook:bool = False):
         '''
-        添加策略\n
+        添加HFT策略
         @strategy   策略对象
         @hook       是否安装钩子，主要用于单步控制重算
         '''
@@ -245,7 +286,7 @@ class WtBtEngine:
 
     def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING", slippage:int = 0):
         '''
-        添加策略\n
+        添加SEL策略
         @strategy   策略对象
         '''
         ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session, slippage)
@@ -258,7 +299,7 @@ class WtBtEngine:
         '''
         运行框架
 
-        @bAsync 是否异步运行，默认为false
+        @bAsync 是否异步运行，默认为false。如果不启动异步模式，则强化学习的训练环境也不能生效，即使策略下了钩子
         '''
         if not self.__cfg_commited__:   #如果配置没有提交，则自动提交一下
             self.commitBTConfig()
