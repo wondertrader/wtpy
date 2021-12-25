@@ -56,13 +56,13 @@
 # 更新日志
 ### 0.8.0(大版本)
 * `C++`底层更新到`2021/12/24`发布的`v0.8.0`版本
-* （**重要**）实现了ExtDataLoder的机制，实盘和回测框架都可以通过应用层的扩展数据加载器加载历史数据（可参考demos/test_dataexts）
-* （**重要**）实现了ExtDataDumper的机制，如果向datakit注册了ExtDataDumper，在收盘作业的时候，就会通过ExtDataDumper将实时数据转储（可参考demos/test_dataexts）
-* （**重要**）配合C++完善了对T+1交易机制的支持
-* WatchDog模块做了调整，增加了对进程使用的内存的监控
-* 新增了一个高性能容器DequeRecord（By **ZerounNet**），用于python部分的缓存替换原来的WtKlinData和WtHftData，在数据缓存方面，大致可以提升5%~10%的性能
-* demos下新增一个cta_unit_test，作为一个基准测试demo，以后会逐步完善
-* 其他细节优化和bug修正
+* （**重要**）实现了`ExtDataLoder`的机制，实盘和回测框架都可以通过应用层的扩展数据加载器加载历史数据（可参考`demos/test_dataexts`）
+* （**重要**）实现了`ExtDataDumper`的机制，如果向`datakit`注册了`ExtDataDumper`，在收盘作业的时候，就会通过`ExtDataDumper`将实时数据转储（可参考`demos/test_dataexts`）
+* （**重要**）配合`C++`底层完善了对`T+1`交易机制的支持
+* `WatchDog`模块做了调整，增加了对进程使用的内存的监控
+* 新增了一个高性能容器`DequeRecord`（By **ZerounNet**），用于`python`部分的缓存替换原来的`WtKlinData`和`WtHftData`，在数据缓存方面，大致可以提升5%~10%的性能
+* `demos`下新增一个`cta_unit_test`，作为一个基准测试`demo`，以后会逐步完善
+* 其他细节优化和`bug`修正
 
 ### 0.7.1
 * `C++`底层更新到`2021/10/24`发布的`v0.7.1`版本
