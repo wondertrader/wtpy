@@ -85,16 +85,14 @@ class WtEngine:
     def add_exetended_parser(self, parser:BaseExtParser):
         id = parser.id()
         if id not in self.__ext_parsers__:
-            self.__ext_parsers__[id] = parser
-            if not self.__wrapper__.create_extended_parser(id):
-                self.__ext_parsers__.pop(id)
+            if self.__wrapper__.create_extended_parser(id):
+                self.__ext_parsers__[id] = parser
 
     def add_exetended_executer(self, executer:BaseExtExecuter):
         id = executer.id()
         if id not in self.__ext_executers__:
-            self.__ext_executers__[id] = executer
-            if not self.__wrapper__.create_extended_executer(id):
-                self.__ext_executers__.pop(id)
+            if self.__wrapper__.create_extended_executer(id):
+                self.__ext_executers__[id] = executer
 
     def get_extended_parser(self, id:str)->BaseExtParser:
         if id not in self.__ext_parsers__:
