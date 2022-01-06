@@ -10,26 +10,29 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame as df
 
-from wtpy import WtBtEngine,EngineType
+from wtpy import WtBtEngine, EngineType
 from wtpy.apps import WtBtAnalyst
 
-def fmtNAN(val, defVal = 0):
+
+def fmtNAN(val, defVal=0):
     if math.isnan(val):
         return defVal
 
     return val
 
+
 class ParamInfo:
     '''
     参数信息类
     '''
-    def __init__(self, name:str, start_val = None, end_val = None, step_val = None, ndigits = 1, val_list:list = None):
-        self.name = name    #参数名
-        self.start_val = start_val  #起始值
-        self.end_val = end_val      #结束值
-        self.step_val = step_val    #变化步长
-        self.ndigits = ndigits      #小数位
-        self.val_list = val_list    #指定参数
+
+    def __init__(self, name: str, start_val=None, end_val=None, step_val=None, ndigits=1, val_list: list = None):
+        self.name = name  # 参数名
+        self.start_val = start_val  # 起始值
+        self.end_val = end_val  # 结束值
+        self.step_val = step_val  # 变化步长
+        self.ndigits = ndigits  # 小数位
+        self.val_list = val_list  # 指定参数
 
     def gen_array(self):
         if self.val_list is not None:
@@ -48,12 +51,14 @@ class ParamInfo:
         values.append(round(curVal, self.ndigits))
         return values
 
+
 class WtCtaOptimizer:
     '''
     参数优化器\n
     主要用于做策略参数优化的
     '''
-    def __init__(self, worker_num:int = 8):
+
+    def __init__(self, worker_num: int = 8):
         '''
         构造函数\n
 
@@ -65,10 +70,14 @@ class WtCtaOptimizer:
         self.fixed_params = dict()
         self.env_params = dict()
 
+        # 算法优化目标设置
+        self.optimizing_target = "胜率"  # 默认为胜率
+        self.optimizing_target_func = None  # 优化目标函数
+
         self.cpp_stra_module = None
         return
 
-    def add_mutable_param(self, name:str, start_val, end_val, step_val, ndigits = 1):
+    def add_mutable_param(self, name: str, start_val, end_val, step_val, ndigits=1):
         '''
         添加可变参数\n
 
@@ -78,9 +87,10 @@ class WtCtaOptimizer:
         @step_val   步长\n
         @ndigits    小数位
         '''
-        self.mutable_params[name] = ParamInfo(name=name, start_val=start_val, end_val=end_val, step_val=step_val, ndigits=ndigits)
+        self.mutable_params[name] = ParamInfo(name=name, start_val=start_val, end_val=end_val, step_val=step_val,
+                                              ndigits=ndigits)
 
-    def add_listed_param(self, name:str, val_list:list):
+    def add_listed_param(self, name: str, val_list: list):
         '''
         添加限定范围的可变参数\n
 
@@ -89,7 +99,7 @@ class WtCtaOptimizer:
         '''
         self.mutable_params[name] = ParamInfo(name=name, val_list=val_list)
 
-    def add_fixed_param(self, name:str, val):
+    def add_fixed_param(self, name: str, val):
         '''
         添加固定参数\n
 
@@ -98,8 +108,8 @@ class WtCtaOptimizer:
         '''
         self.fixed_params[name] = val
         return
-    
-    def set_strategy(self, typeName:type, name_prefix:str):
+
+    def set_strategy(self, typeName: type, name_prefix: str):
         '''
         设置策略\n
 
@@ -110,7 +120,7 @@ class WtCtaOptimizer:
         self.name_prefix = name_prefix
         return
 
-    def set_cpp_strategy(self, module:str, type_name:type, name_prefix:str):
+    def set_cpp_strategy(self, module: str, type_name: type, name_prefix: str):
         '''
         设置CPP策略\n
 
@@ -123,7 +133,28 @@ class WtCtaOptimizer:
         self.name_prefix = name_prefix
         return
 
-    def config_backtest_env(self, deps_dir:str, cfgfile:str="configbt.json", storage_type:str="csv", storage_path:str = None, db_config:dict = None):
+    def set_optimizing_target(self, target_name: str):
+        '''
+        设置优化目标值,可从已有数据中选取优化目标
+        '''
+        self.optimizing_target = target_name
+
+    def set_optimizing_func(self, calculator, target_name: str = None):
+        '''
+        根据summary数据自定义优化目标值\n
+
+        @calculator     优化目标函数\n
+        @target_name    优化目标名
+        '''
+        self.optimizing_target_func = calculator
+        # 修改优化目标名称
+        if target_name:
+            self.set_optimizing_target(target_name)
+        else:
+            self.set_optimizing_target("优化目标")
+
+    def config_backtest_env(self, deps_dir: str, cfgfile: str = "configbt.json", storage_type: str = "csv",
+                            storage_path: str = None, db_config: dict = None):
         '''
         配置回测环境\n
 
@@ -145,7 +176,7 @@ class WtCtaOptimizer:
         self.env_params["storage_path"] = storage_path
         self.env_params["db_config"] = db_config
 
-    def config_backtest_time(self, start_time:int, end_time:int):
+    def config_backtest_time(self, start_time: int, end_time: int):
         '''
         配置回测时间，可多次调用配置多个回测时间区间\n
 
@@ -155,9 +186,9 @@ class WtCtaOptimizer:
         if "time_ranges" not in self.env_params:
             self.env_params["time_ranges"] = []
 
-        self.env_params["time_ranges"].append([start_time,end_time])
+        self.env_params["time_ranges"].append([start_time, end_time])
 
-    def __gen_tasks__(self, markerfile:str = "strategies.json"):
+    def __gen_tasks__(self, markerfile: str = "strategies.json"):
         '''
         生成回测任务
         '''
@@ -172,7 +203,7 @@ class WtCtaOptimizer:
             param_values[name] = values
             total_groups *= len(values)
 
-        #再生成最终每一组的参数dict
+        # 再生成最终每一组的参数dict
         param_groups = list()
         stra_names = dict()
         time_ranges = self.env_params["time_ranges"]
@@ -181,27 +212,27 @@ class WtCtaOptimizer:
             end_time = time_range[1]
             for i in range(total_groups):
                 k = i
-                thisGrp = self.fixed_params.copy()  #复制固定参数
+                thisGrp = self.fixed_params.copy()  # 复制固定参数
                 endix = ''
                 for name in param_names:
                     cnt = len(param_values[name])
-                    curVal = param_values[name][k%cnt]
+                    curVal = param_values[name][k % cnt]
                     tname = type(curVal)
                     if tname.__name__ == "list":
-                        val_str  = ''
+                        val_str = ''
                         for item in curVal:
                             val_str += str(item)
                             val_str += "_"
 
                         val_str = val_str[:-1]
                         thisGrp[name] = curVal
-                        endix += name 
+                        endix += name
                         endix += "_"
                         endix += val_str
                         endix += "_"
                     else:
                         thisGrp[name] = curVal
-                        endix += name 
+                        endix += name
                         endix += "_"
                         endix += str(curVal)
                         endix += "_"
@@ -215,47 +246,47 @@ class WtCtaOptimizer:
                 thisGrp["end_time"] = end_time
                 stra_names[straName] = thisGrp
                 param_groups.append(thisGrp)
-        
+
         # 将每一组参数和对应的策略ID落地到文件中，方便后续的分析
         f = open(markerfile, "w")
         f.write(json.dumps(obj=stra_names, sort_keys=True, indent=4))
         f.close()
         return param_groups
 
-    def __ayalyze_result__(self, strName:str, time_range:tuple, params:dict):
+    def __ayalyze_result__(self, strName: str, time_range: tuple, params: dict):
         folder = "./outputs_bt/%s/" % (strName)
         df_closes = pd.read_csv(folder + "closes.csv")
         df_funds = pd.read_csv(folder + "funds.csv")
 
-        df_wins = df_closes[df_closes["profit"]>0]
-        df_loses = df_closes[df_closes["profit"]<=0]
+        df_wins = df_closes[df_closes["profit"] > 0]
+        df_loses = df_closes[df_closes["profit"] <= 0]
 
-        ay_WinnerBarCnts = df_wins["closebarno"]-df_wins["openbarno"]
-        ay_LoserBarCnts = df_loses["closebarno"]-df_loses["openbarno"]
+        ay_WinnerBarCnts = df_wins["closebarno"] - df_wins["openbarno"]
+        ay_LoserBarCnts = df_loses["closebarno"] - df_loses["openbarno"]
 
         total_winbarcnts = ay_WinnerBarCnts.sum()
         total_losebarcnts = ay_LoserBarCnts.sum()
 
         total_fee = df_funds.iloc[-1]["fee"]
 
-        totaltimes = len(df_closes) # 总交易次数
-        wintimes = len(df_wins)     # 盈利次数
-        losetimes = len(df_loses)   # 亏损次数
-        winamout = df_wins["profit"].sum()      #毛盈利
-        loseamount = df_loses["profit"].sum()   #毛亏损
-        trdnetprofit = winamout + loseamount    #交易净盈亏
-        accnetprofit = trdnetprofit - total_fee #账户净盈亏
-        winrate = wintimes / totaltimes if totaltimes>0 else 0      # 胜率
-        avgprof = trdnetprofit/totaltimes if totaltimes>0 else 0    # 单次平均盈亏
-        avgprof_win = winamout/wintimes if wintimes>0 else 0        # 单次盈利均值
-        avgprof_lose = loseamount/losetimes if losetimes>0 else 0   # 单次亏损均值
-        winloseratio = abs(avgprof_win/avgprof_lose) if avgprof_lose!=0 else "N/A"   # 单次盈亏均值比
-            
-        max_consecutive_wins = 0    # 最大连续盈利次数
-        max_consecutive_loses = 0   # 最大连续亏损次数
-        
-        avg_bars_in_winner = total_winbarcnts/wintimes if wintimes>0 else "N/A"
-        avg_bars_in_loser = total_losebarcnts/losetimes if losetimes>0 else "N/A"
+        totaltimes = len(df_closes)  # 总交易次数
+        wintimes = len(df_wins)  # 盈利次数
+        losetimes = len(df_loses)  # 亏损次数
+        winamout = df_wins["profit"].sum()  # 毛盈利
+        loseamount = df_loses["profit"].sum()  # 毛亏损
+        trdnetprofit = winamout + loseamount  # 交易净盈亏
+        accnetprofit = trdnetprofit - total_fee  # 账户净盈亏
+        winrate = wintimes / totaltimes if totaltimes > 0 else 0  # 胜率
+        avgprof = trdnetprofit / totaltimes if totaltimes > 0 else 0  # 单次平均盈亏
+        avgprof_win = winamout / wintimes if wintimes > 0 else 0  # 单次盈利均值
+        avgprof_lose = loseamount / losetimes if losetimes > 0 else 0  # 单次亏损均值
+        winloseratio = abs(avgprof_win / avgprof_lose) if avgprof_lose != 0 else "N/A"  # 单次盈亏均值比
+
+        max_consecutive_wins = 0  # 最大连续盈利次数
+        max_consecutive_loses = 0  # 最大连续亏损次数
+
+        avg_bars_in_winner = total_winbarcnts / wintimes if wintimes > 0 else "N/A"
+        avg_bars_in_loser = total_losebarcnts / losetimes if losetimes > 0 else "N/A"
 
         consecutive_wins = 0
         consecutive_loses = 0
@@ -267,7 +298,7 @@ class WtCtaOptimizer:
             else:
                 consecutive_wins = 0
                 consecutive_loses += 1
-            
+
             max_consecutive_wins = max(max_consecutive_wins, consecutive_wins)
             max_consecutive_loses = max(max_consecutive_loses, consecutive_loses)
 
@@ -280,7 +311,7 @@ class WtCtaOptimizer:
         summary["毛盈利"] = float(winamout)
         summary["毛亏损"] = float(loseamount)
         summary["交易净盈亏"] = float(trdnetprofit)
-        summary["胜率"] = winrate*100
+        summary["胜率"] = winrate * 100
         summary["单次平均盈亏"] = avgprof
         summary["单次盈利均值"] = avgprof_win
         summary["单次亏损均值"] = avgprof_lose
@@ -289,15 +320,15 @@ class WtCtaOptimizer:
         summary["最大连续亏损次数"] = max_consecutive_loses
         summary["平均盈利周期"] = avg_bars_in_winner
         summary["平均亏损周期"] = avg_bars_in_loser
-        summary["平均账户收益率"] = accnetprofit/totaltimes
+        summary["平均账户收益率"] = accnetprofit / totaltimes
 
-        f = open(folder+"summary.json", mode="w")
+        f = open(folder + "summary.json", mode="w")
         f.write(json.dumps(obj=summary, indent=4))
         f.close()
 
         return
 
-    def __execute_task__(self, params:dict):
+    def __execute_task__(self, params: dict):
         '''
         执行单个回测任务\n
 
@@ -305,20 +336,21 @@ class WtCtaOptimizer:
         '''
         name = params["name"]
         f = open("logcfg_tpl.json", "r")
-        content =f.read()
+        content = f.read()
         f.close()
         content = content.replace("$NAME$", name)
         engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
         engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
         engine.configBacktest(params["start_time"], params["end_time"])
-        engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"], dbcfg=self.env_params["db_config"])
+        engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"],
+                               dbcfg=self.env_params["db_config"])
 
         time_range = (params["start_time"], params["end_time"])
 
         # 去掉多余的参数
         params.pop("start_time")
         params.pop("end_time")
-        
+
         if self.cpp_stra_module is not None:
             params.pop("name")
             engine.setExternalCtaStrategy(name, self.cpp_stra_module, self.cpp_stra_type, params)
@@ -332,7 +364,7 @@ class WtCtaOptimizer:
 
         self.__ayalyze_result__(name, time_range, params)
 
-    def __start_task__(self, params:dict):
+    def __start_task__(self, params: dict):
         '''
         启动单个回测任务\n
         这里用线程启动子进程的目的是为了可以控制总的工作进程个数\n
@@ -347,7 +379,8 @@ class WtCtaOptimizer:
         self.running_worker -= 1
         print("工作进程%d个" % (self.running_worker))
 
-    def go(self, interval:float = 0.2, out_marker_file:str = "strategies.json", out_summary_file:str = "total_summary.csv"):
+    def go(self, interval: float = 0.2, out_marker_file: str = "strategies.json",
+           out_summary_file: str = "total_summary.csv"):
         '''
         启动优化器\n
         @interval   时间间隔，单位秒
@@ -362,7 +395,7 @@ class WtCtaOptimizer:
                 break
 
             if self.running_worker < self.worker_num:
-                params = self.tasks[total_task-left_task]
+                params = self.tasks[total_task - left_task]
                 left_task -= 1
                 print("剩余任务%d个" % (left_task))
                 p = threading.Thread(target=self.__start_task__, args=(params,))
@@ -372,41 +405,53 @@ class WtCtaOptimizer:
             else:
                 time.sleep(interval)
 
-        #最后，全部任务都已经启动完了，再等待所有工作进程结束
+        # 最后，全部任务都已经启动完了，再等待所有工作进程结束
         while True:
             if self.running_worker == 0:
                 break
             else:
                 time.sleep(interval)
 
-        #开始汇总回测结果
+        # 开始汇总回测结果
         f = open(out_marker_file, "r")
         content = f.read()
         f.close()
 
         obj_stras = json.loads(content)
         total_summary = list()
+
+        print(f"#" * 20 + " 开始汇总回测结果 " + "#" * 20)
+
         for straName in obj_stras:
             filename = "./outputs_bt/%s/summary.json" % (straName)
             if not os.path.exists(filename):
                 print("%s不存在，请检查数据" % (filename))
                 continue
-                
+
             f = open(filename, "r")
             content = f.read()
             f.close()
             obj_summary = json.loads(content)
+
+            # 处理优化结果
+            if self.optimizing_target_func:  # 目标函数不为空
+                obj_summary[self.optimizing_target] = self.optimizing_target_func(obj_summary)
+
             total_summary.append(obj_summary)
 
         df_summary = df(total_summary)
+        df_summary.sort_values(by=self.optimizing_target, ascending=False, inplace=True)  # 对结果按照优化目标进行排序, 默认从大到小排序
+        df_summary.reset_index(inplace=True, drop=True)
         # df_summary = df_summary.drop(labels=["name"], axis='columns')
         df_summary.to_csv(out_summary_file, encoding='utf-8-sig')
 
-    def analyze(self, out_marker_file:str = "strategies.json", out_summary_file:str = "total_summary.csv"):
-        #开始汇总回测结果
+    def analyze(self, out_marker_file: str = "strategies.json", out_summary_file: str = "total_summary.csv"):
+        # 开始汇总回测结果
         f = open(out_marker_file, "r")
         content = f.read()
         f.close()
+
+        print("#" * 50)
 
         total_summary = list()
         obj_stras = json.loads(content)
@@ -416,27 +461,35 @@ class WtCtaOptimizer:
             if not os.path.exists(filename):
                 print("%s不存在，请检查数据" % (filename))
                 continue
-                
-            time_range = (params["start_time"],params["end_time"])
+
+            time_range = (params["start_time"], params["end_time"])
             self.__ayalyze_result__(straName, time_range, params)
-            
+
             f = open(filename, "r")
             content = f.read()
             f.close()
             obj_summary = json.loads(content)
+
+            # 处理优化结果
+            if self.optimizing_target_func:  # 如果目标函数不为空
+                obj_summary[self.optimizing_target] = self.optimizing_target_func(obj_summary)
+
             total_summary.append(obj_summary)
 
         df_summary = df(total_summary)
+        df_summary.sort_values(by=self.optimizing_target, ascending=False, inplace=True)  # 对结果按照优化目标进行排序, 默认从大到小排序
+        df_summary.reset_index(inplace=True, drop=True)
         df_summary = df_summary.drop(labels=["name"], axis='columns')
         df_summary.to_csv(out_summary_file)
 
-    def analyzer(self, out_marker_file:str = "strategies.json", init_capital=500000, rf=0.02, annual_trading_days=240):
+    def analyzer(self, out_marker_file: str = "strategies.json", init_capital=500000, rf=0.02, annual_trading_days=240):
         for straname in json.load(open(out_marker_file, mode='r')).keys():
             try:
                 analyst = WtBtAnalyst()
-                analyst.add_strategy(straname, folder="./outputs_bt/%s/"%straname, init_capital=init_capital, rf=rf, annual_trading_days=annual_trading_days)
+                analyst.add_strategy(straname, folder="./outputs_bt/%s/" % straname, init_capital=init_capital, rf=rf,
+                                     annual_trading_days=annual_trading_days)
                 analyst.run()
             except:
                 pass
 
-                
+
