@@ -1,5 +1,6 @@
 import math
 import json
+import yaml
 
 class SectionInfo:
 
@@ -189,11 +190,14 @@ class SessionMgr:
 
 
     def load(self, fname:int):
-        f = open(fname, 'r', encoding="gbk")
+        f = open(fname, 'r', encoding="utf8")
         content = f.read()
         f.close()
 
-        sessions_dict = json.loads(content)
+        if fname.lower().endswith(".yaml"):
+            sessions_dict = yaml.full_load(content)
+        else:
+            sessions_dict = json.loads(content)
         for sid in sessions_dict:            
             if sid in self.__sessions__:
                 continue

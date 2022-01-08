@@ -1,4 +1,5 @@
 import json
+import yaml
 
 class ProductInfo:
     '''
@@ -28,11 +29,15 @@ class ProductMgr:
         '''
         从文件加载品种信息
         '''
-        f = open(fname, 'r', encoding="gbk")
+        f = open(fname, 'r', encoding="utf8")
         content = f.read()
         f.close()
 
-        exchgMap = json.loads(content)
+        if fname.lower().endswith(".yaml"):
+            exchgMap = yaml.full_load(content)
+        else:
+            exchgMap = json.loads(content)
+
         for exchg in exchgMap:
             exchgObj = exchgMap[exchg]
             for pid in exchgObj:
