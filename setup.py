@@ -18,7 +18,7 @@ URL = 'https://github.com/wondertrader/wondertrader'
 EMAIL = 'silencesword@foxmail.com'
 AUTHOR = 'Wesley Liu'
 REQUIRES_PYTHON = '>=3.5.0'
-VERSION = '0.8.0'
+VERSION = '0.9.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
