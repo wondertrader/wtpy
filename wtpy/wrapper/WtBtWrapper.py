@@ -503,11 +503,11 @@ class WtBtWrapper:
     def clear_cache(self):
         self.api.clear_cache()
 
-    def config_backtest(self, cfgfile:str = 'config.json', isFile:bool = True):
+    def config_backtest(self, cfgfile:str = 'config.yaml', isFile:bool = True):
         self.api.config_backtest(bytes(cfgfile, encoding = "utf8"), isFile)
     ### 实盘和回测有差异 ###
 
-    def initialize_cta(self, logCfg:str = "logcfgbt.json", isFile:bool = True, outDir:str = "./outputs_bt"):
+    def initialize_cta(self, logCfg:str = "logcfgbt.yaml", isFile:bool = True, outDir:str = "./outputs_bt"):
         '''
         C接口初始化
         '''
@@ -529,7 +529,7 @@ class WtBtWrapper:
 
         self.write_log(102, "WonderTrader CTA backtest framework initialzied，version: %s" % (self.ver))
 
-    def initialize_hft(self, logCfg:str = "logcfgbt.json", isFile:bool = True, outDir:str = "./outputs_bt"):
+    def initialize_hft(self, logCfg:str = "logcfgbt.yaml", isFile:bool = True, outDir:str = "./outputs_bt"):
         '''
         C接口初始化
         '''
@@ -560,7 +560,7 @@ class WtBtWrapper:
 
         self.write_log(102, "WonderTrader HFT backtest framework initialzied，version: %s" % (self.ver))
 
-    def initialize_sel(self, logCfg:str = "logcfgbt.json", isFile:bool = True, outDir:str = "./outputs_bt"):
+    def initialize_sel(self, logCfg:str = "logcfgbt.yaml", isFile:bool = True, outDir:str = "./outputs_bt"):
         '''
         C接口初始化
         '''

@@ -14,6 +14,7 @@ from .ContractMgr import ContractMgr, ContractInfo
 from .CodeHelper import CodeHelper
 
 import json
+import yaml
 
 @singleton
 class WtEngine:
@@ -21,10 +22,10 @@ class WtEngine:
     实盘交易引擎
     '''
 
-    def __init__(self, eType:EngineType, logCfg:str = "logcfg.json", genDir:str = "generated", bDumpCfg:bool = False):
+    def __init__(self, eType:EngineType, logCfg:str = "logcfg.yaml", genDir:str = "generated", bDumpCfg:bool = False):
         '''
         WtEngine构造函数
-        @eType  引擎类型：EngineType.ET_CTA、EngineType.ET_HFT、EngineType.ET_SEL
+        @eType  引擎类型: EngineType.ET_CTA、EngineType.ET_HFT、EngineType.ET_SEL
         @logCfg 日志配置文件
         @genDir 数据输出目录
         @bDumpCfg   是否保存最终配置文件
@@ -47,6 +48,7 @@ class WtEngine:
         self.__ext_executers__ = dict() #外接的执行器
 
         self.__dump_config__ = bDumpCfg #是否保存最终配置
+        self.__is_cfg_yaml__ = True
 
         self.__engine_type:EngineType = eType
         if eType == EngineType.ET_CTA:
@@ -126,7 +128,14 @@ class WtEngine:
         '''
         self.__reporter__ = reporter
 
-    def init(self, folder:str, cfgfile:str = "config.json", commfile:str="commodities.json", contractfile:str="contracts.json"):
+    def init(self, folder:str, 
+        cfgfile:str = "config.yaml", 
+        commfile:str="commodities.json", 
+        contractfile:str="contracts.json",
+        sessionfile:str="sessions.json",
+        holidayfile:str="holidays.json",
+        hotfile:str="hots.json",
+        secondfile:str="seconds.json"):
         '''
         初始化
         @folder     基础数据文件目录，\\结尾
@@ -134,16 +143,23 @@ class WtEngine:
         '''
         f = open(cfgfile, "r")
         content =f.read()
-        self.__config__ = json.loads(content)
         f.close()
+
+        if cfgfile.lower().endswith(".json"):
+            self.__config__ = json.loads(content)
+            self.__is_cfg_yaml__ = False
+        else:
+            self.__config__ = yaml.full_load(content)
+            self.__is_cfg_yaml__ = True
 
         self.__check_config__()
 
         self.__config__["basefiles"]["commodity"] = folder + commfile
         self.__config__["basefiles"]["contract"] = folder + contractfile
-        self.__config__["basefiles"]["holiday"] = folder + "holidays.json"
-        self.__config__["basefiles"]["session"] = folder + "sessions.json"
-        self.__config__["basefiles"]["hot"] = folder + "hots.json"
+        self.__config__["basefiles"]["holiday"] = folder + holidayfile
+        self.__config__["basefiles"]["session"] = folder + sessionfile
+        self.__config__["basefiles"]["hot"] = folder + hotfile
+        self.__config__["basefiles"]["second"] = folder + secondfile
 
         self.productMgr = ProductMgr()
         self.productMgr.load(folder + commfile)
@@ -152,7 +168,7 @@ class WtEngine:
         self.contractMgr.load(folder + contractfile)
 
         self.sessionMgr = SessionMgr()
-        self.sessionMgr.load(folder + "sessions.json")
+        self.sessionMgr.load(folder + sessionfile)
 
     def configEngine(self, name:str, mode:str = "product"):
         '''
@@ -209,9 +225,14 @@ class WtEngine:
         self.__cfg_commited__ = True
 
         if self.__dump_config__:
-            f = open("config_run.json", 'w')
-            f.write(cfgfile)
-            f.close()
+            if self.__is_cfg_yaml__:
+                f = open("config_run.yaml", 'w')
+                f.write(yaml.dump_all(self.__config__, indent=4, allow_unicode=True))
+                f.close()
+            else:
+                f = open("config_run.json", 'w')
+                f.write(cfgfile)
+                f.close()
 
     def regCtaStraFactories(self, factFolder:str):
         '''

@@ -12,10 +12,10 @@ class CtaContext:
     '''
     Context是策略可以直接访问的唯一对象
     策略所有的接口都通过Context对象调用
-    Context类包括以下几类接口：
-    1、时间接口（日期、时间等），接口格式如：stra_xxx
-    2、数据接口（K线、财务等），接口格式如：stra_xxx
-    3、下单接口（设置目标仓位、直接下单等），接口格式如：stra_xxx
+    Context类包括以下几类接口: 
+    1、时间接口（日期、时间等），接口格式如: stra_xxx
+    2、数据接口（K线、财务等），接口格式如: stra_xxx
+    3、下单接口（设置目标仓位、直接下单等），接口格式如: stra_xxx
     '''
 
     def __init__(self, id:int, stra, wrapper: WtWrapper, engine):

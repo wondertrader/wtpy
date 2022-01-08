@@ -14,14 +14,14 @@ from .ContractMgr import ContractMgr, ContractInfo
 
 from .CodeHelper import CodeHelper
 
-import os
 import json
+import yaml
 
 
 @singleton
 class WtBtEngine:
 
-    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False, outDir:str = "./outputs_bt"):
+    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.yaml", isFile:bool = True, bDumpCfg:bool = False, outDir:str = "./outputs_bt"):
         '''
         构造函数
         @eType  引擎类型
@@ -40,6 +40,7 @@ class WtBtEngine:
         self.__idx_writer__ = None  #指标输出模块
 
         self.__dump_config__ = bDumpCfg #是否保存最终配置
+        self.__is_cfg_yaml__ = True
 
         self.__ext_data_loader__:BaseExtDataLoader = None   #扩展历史数据加载器
 
@@ -85,26 +86,40 @@ class WtBtEngine:
         if self.__idx_writer__ is not None:
             self.__idx_writer__.write_indicator(id, tag, time, data)
 
-    def init(self, folder:str, cfgfile:str = "configbt.json", commfile:str="commodities.json", contractfile:str="contracts.json"):
+    def init(self, folder:str, 
+        cfgfile:str = "configbt.yaml", 
+        commfile:str="commodities.json", 
+        contractfile:str="contracts.json",
+        sessionfile:str="sessions.json",
+        holidayfile:str="holidays.json",
+        hotfile:str="hots.json",
+        secondfile:str="seconds.json"):
         '''
         初始化
         @folder     基础数据文件目录，\\结尾
-        @cfgfile    配置文件，json格式
-        @commfile   品种定义文件，json格式
-        @contractfile   合约定义文件，json格式
+        @cfgfile    配置文件，json/yaml格式
+        @commfile   品种定义文件，json/yaml格式
+        @contractfile   合约定义文件，json/yaml格式
         '''
         f = open(cfgfile, "r")
         content =f.read()
-        self.__config__ = json.loads(content)
         f.close()
+
+        if cfgfile.lower().endswith(".json"):
+            self.__config__ = json.loads(content)
+            self.__is_cfg_yaml__ = False
+        else:
+            self.__config__ = yaml.full_load(content)
+            self.__is_cfg_yaml__ = True
 
         self.__check_config__()
 
         self.__config__["replayer"]["basefiles"]["commodity"] = folder + commfile
         self.__config__["replayer"]["basefiles"]["contract"] = folder + contractfile
-        self.__config__["replayer"]["basefiles"]["holiday"] = folder + "holidays.json"
-        self.__config__["replayer"]["basefiles"]["session"] = folder + "sessions.json"
-        self.__config__["replayer"]["basefiles"]["hot"] = folder + "hots.json"
+        self.__config__["replayer"]["basefiles"]["holiday"] = folder + holidayfile
+        self.__config__["replayer"]["basefiles"]["session"] = folder + sessionfile
+        self.__config__["replayer"]["basefiles"]["hot"] = folder + hotfile
+        self.__config__["replayer"]["basefiles"]["second"] = folder + secondfile
 
         self.productMgr = ProductMgr()
         self.productMgr.load(folder + commfile)
@@ -113,7 +128,7 @@ class WtBtEngine:
         self.contractMgr.load(folder + contractfile)
 
         self.sessionMgr = SessionMgr()
-        self.sessionMgr.load(folder + "sessions.json")
+        self.sessionMgr.load(folder + sessionfile)
 
     def configMocker(self, name:str):
         '''
@@ -211,9 +226,14 @@ class WtBtEngine:
         self.__cfg_commited__ = True
 
         if self.__dump_config__:
-            f = open("config_run.json", 'w')
-            f.write(cfgfile)
-            f.close()
+            if self.__is_cfg_yaml__:
+                f = open("config_run.yaml", 'w')
+                f.write(yaml.dump_all(self.__config__, indent=4, allow_unicode=True))
+                f.close()
+            else:
+                f = open("config_run.json", 'w')
+                f.write(cfgfile)
+                f.close()
 
     def getSessionByCode(self, code:str) -> SessionInfo:
         '''

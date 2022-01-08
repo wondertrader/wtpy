@@ -10,7 +10,7 @@ class WtDtEngine:
         self.__ext_parsers__ = dict()   #外接的行情接入模块
         self.__ext_dumpers__ = dict()   #扩展数据Dumper
 
-    def initialize(self, cfgfile:str = "dtcfg.json", logprofile:str = "logcfgdt.json"):
+    def initialize(self, cfgfile:str = "dtcfg.yaml", logprofile:str = "logcfgdt.yaml"):
         '''
         数据引擎初始化\n
         @cfgfile    配置文件\n
@@ -56,7 +56,7 @@ class WtDtEngine:
         id = dumper.id()
         if id not in self.__ext_dumpers__:
             self.__ext_dumpers__[id] = dumper
-            if not self.__wrapper__.create_extended_dumper(id, autoCache):
+            if not self.__wrapper__.create_extended_dumper(id):
                 self.__ext_dumpers__.pop(id)
         self.__wrapper__.register_extended_data_dumper()
     

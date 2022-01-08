@@ -508,7 +508,7 @@ class WtWrapper:
     def release(self):
         self.api.release_porter()
 
-    def config(self, cfgfile:str = 'config.json', isFile:bool = True):
+    def config(self, cfgfile:str = 'config.yaml', isFile:bool = True):
         self.api.config_porter(bytes(cfgfile, encoding = "utf8"), isFile)
 
     def create_extended_parser(self, id:str) -> bool:
@@ -545,7 +545,7 @@ class WtWrapper:
         self.api.register_ext_data_loader(self.cb_load_fnlbars, self.cb_load_rawbars, self.cb_load_adjfacts, self.cb_load_histicks)
 
     ### 实盘和回测有差异 ###
-    def initialize_cta(self, logCfg:str = "logcfg.json", isFile:bool = True, genDir:str = 'generated'):
+    def initialize_cta(self, logCfg:str = "logcfg.yaml", isFile:bool = True, genDir:str = 'generated'):
         '''
         C接口初始化
         '''
@@ -566,7 +566,7 @@ class WtWrapper:
 
         self.write_log(102, "WonderTrader CTA production framework initialzied，version: %s" % (self.ver))
 
-    def initialize_hft(self, logCfg:str = "logcfg.json", isFile:bool = True, genDir:str = 'generated'):
+    def initialize_hft(self, logCfg:str = "logcfg.yaml", isFile:bool = True, genDir:str = 'generated'):
         '''
         C接口初始化
         '''
@@ -595,7 +595,7 @@ class WtWrapper:
 
         self.write_log(102, "WonderTrader HFT production framework initialzied，version: %s" % (self.ver))
 
-    def initialize_sel(self, logCfg:str = "logcfg.json", isFile:bool = True, genDir:str = 'generated'):
+    def initialize_sel(self, logCfg:str = "logcfg.yaml", isFile:bool = True, genDir:str = 'generated'):
         '''
         C接口初始化
         '''

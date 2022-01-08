@@ -52,7 +52,7 @@ class WtDtWrapper:
         '''
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
 
-    def initialize(self, cfgfile:str = "dtcfg.json", logprofile:str = "logcfgdt.json"):
+    def initialize(self, cfgfile:str = "dtcfg.yaml", logprofile:str = "logcfgdt.jsyamlon"):
         '''
         C接口初始化
         '''
@@ -61,7 +61,7 @@ class WtDtWrapper:
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "WonderTrader datakit initialzied，version：%s" % (self.ver))
+        self.write_log(102, "WonderTrader datakit initialzied，version: %s" % (self.ver))
 
     def create_extended_parser(self, id:str) -> bool:
         return self.api.create_ext_parser(bytes(id, encoding = "utf8"))

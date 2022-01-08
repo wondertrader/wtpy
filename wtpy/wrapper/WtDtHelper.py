@@ -11,10 +11,6 @@ CB_DTHELPER_BAR = CFUNCTYPE(c_void_p,  POINTER(WTSBarStruct), c_uint, c_bool)
 
 CB_DTHELPER_COUNT = CFUNCTYPE(c_void_p,  c_uint)
 
-# 这两个回调函数都不需要了
-# CB_DTHELPER_BAR_GETTER = CFUNCTYPE(c_bool, POINTER(WTSBarStruct), c_int)
-# CB_DTHELPER_TICK_GETTER = CFUNCTYPE(c_bool, POINTER(WTSTickStruct), c_int)
-
 def on_log_output(message:str):
     message = bytes.decode(message, 'gbk')
     print(message)
