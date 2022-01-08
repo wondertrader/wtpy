@@ -1,14 +1,14 @@
-from ctypes import c_uint, c_void_p, CFUNCTYPE, POINTER, c_char_p, c_bool, c_ulong, c_double
-from ctypes import Structure, c_char, c_int32, c_uint16, c_uint32, c_uint64, addressof, sizeof
+from ctypes import c_void_p, CFUNCTYPE, POINTER, c_char_p, c_bool, c_ulong, c_double
+from ctypes import Structure, c_char, c_int32, c_uint32,c_uint64, addressof, sizeof
 from copy import copy
 import numpy as np
 import pandas as pd
 from typing import Any
 
 MAX_INSTRUMENT_LENGTH = c_char*32
-MAX_EXCHANGE_LENGTH = c_char*10
+MAX_EXCHANGE_LENGTH = c_char*16
 PriceQueueType = c_double*10
-VolumeQueueType = c_uint32*10
+VolumeQueueType = c_double*10
 
 class WTSStruct(Structure):
     @property
@@ -38,20 +38,21 @@ class WTSTickStruct(WTSStruct):
                 ("upper_limit", c_double),
                 ("lower_limit", c_double),
 
-                ("total_volume", c_uint32),
-                ("volume", c_uint32),
+                ("total_volume", c_double),
+                ("volume", c_double),
                 ("total_turnover", c_double),
                 ("turn_over", c_double),
-                ("open_interest", c_uint32),
-                ("diff_interest", c_int32),
+                ("open_interest", c_double),
+                ("diff_interest", c_double),
 
                 ("trading_date", c_uint32),
                 ("action_date", c_uint32),
                 ("action_time", c_uint32),
+                ("reserve", c_uint32),
 
                 ("pre_close", c_double),
                 ("pre_settle", c_double),
-                ("pre_interest", c_uint32),
+                ("pre_interest", c_double),
 
                 ("bid_prices", PriceQueueType),
                 ("ask_prices", PriceQueueType),
@@ -106,16 +107,17 @@ class WTSBarStruct(WTSStruct):
     C接口传递的bar数据结构
     '''
     _fields_ = [("date", c_uint32),
-                ("time", c_uint32),
+                ("reserve", c_uint32),
+                ("time", c_uint64),
                 ("open", c_double),
                 ("high", c_double),
                 ("low", c_double),
                 ("close", c_double),
                 ("settle", c_double),
                 ("money", c_double),
-                ("vol", c_uint32),
-                ("hold", c_uint32),
-                ("diff", c_int32)]
+                ("vol", c_double),
+                ("hold", c_double),
+                ("diff", c_double)]
     _pack_ = 1
 
     def to_tuple(self, isDays:bool=False) -> tuple:
