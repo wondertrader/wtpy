@@ -1,0 +1,13 @@
+env:
+    mocker: cta
+replayer:
+    basefiles:
+        commodity: ../common/stk_comms.json
+        contract: ../common/stocks.json
+        holiday: ../common/holidays.json
+        session: ../common/stk_sessions.json
+    etime: 201912011500
+    fees: ../common/fees_stk.json
+    mode: csv
+    path: ./storage/
+    stime: 201909010900

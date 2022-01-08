@@ -1,0 +1,13 @@
+parsers:
+-   active: true
+    buffsize: 128
+    clientid: 1
+    code: SSE.000001,SSE.600009,SSE.600036,SSE.600276,SZSE.000001
+    hbinterval: 15
+    host: 120.27.164.138
+    id: parser
+    module: ParserXTP
+    pass: 你的XTP仿真密码
+    port: '6002'
+    protocol: 1
+    user: 你的XTP仿真账号

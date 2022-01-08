@@ -1,0 +1,42 @@
+default:
+    order:
+    -   action: close
+        limit: 0
+    -   action: open
+        limit: 0
+lowinnerdayfee:
+    filters:
+    - DCE.a
+    - DCE.cs
+    - DCE.i
+    - DCE.j
+    - DCE.l
+    - DCE.m
+    - DCE.p
+    - DCE.pp
+    - SHFE.au
+    - SHFE.hc
+    - CZCE.ZC
+    - CZCE.CF
+    - CZCE.MA
+    - CZCE.SR
+    - CZCE.AP
+    order:
+    -   action: closetoday
+        limit: 0
+    -   action: closeyestoday
+        limit: 0
+    -   action: open
+        limit: 0
+stockindex:
+    filters:
+    - CFFEX.IF
+    - CFFEX.IC
+    - CFFEX.IH
+    order:
+    -   action: closeyestoday
+        limit: 0
+    -   action: open
+        limit: 500
+    -   action: closetoday
+        limit: 0
