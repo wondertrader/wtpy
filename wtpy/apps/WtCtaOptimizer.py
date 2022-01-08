@@ -3,6 +3,7 @@ import multiprocessing
 import time
 import threading
 import json
+import yaml
 
 import os
 import math
@@ -123,7 +124,7 @@ class WtCtaOptimizer:
         self.name_prefix = name_prefix
         return
 
-    def config_backtest_env(self, deps_dir:str, cfgfile:str="configbt.json", storage_type:str="csv", storage_path:str = None, db_config:dict = None):
+    def config_backtest_env(self, deps_dir:str, cfgfile:str="configbt.yaml", storage_type:str="csv", storage_path:str = None, db_config:dict = None):
         '''
         配置回测环境\n
 
@@ -304,10 +305,19 @@ class WtCtaOptimizer:
         @params kv形式的参数
         '''
         name = params["name"]
-        f = open("logcfg_tpl.json", "r")
+        
+        is_yaml = True
+        fname = "logcfg_tpl.yaml"
+        if not os.path.exists(fname):
+            is_yaml = True
+            fname = "logcfg_tpl.json"
+
+        f = open(fname, "r")
         content =f.read()
         f.close()
         content = content.replace("$NAME$", name)
+        if is_yaml:
+            content = json.dumps(yaml.full_load(content))
         engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
         engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
         engine.configBacktest(params["start_time"], params["end_time"])
