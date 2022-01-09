@@ -123,6 +123,7 @@ class WTSBarStruct(WTSStruct):
     def to_tuple(self, isDays:bool=False) -> tuple:
         return (
                 self.date,
+                self.reserve,
                 self.date if isDays else self.time + 199000000000,
                 self.open,
                 self.high,
