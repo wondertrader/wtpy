@@ -1,7 +1,7 @@
 dyn_pattern:
     strategy:
         async: false
-        level: warn
+        level: debug
         sinks:
         -   filename: BtLogs/Strategy/%s.log
             pattern: '[%Y.%m.%d %H:%M:%S - %-5l] %v'
@@ -9,7 +9,7 @@ dyn_pattern:
             type: basic_file_sink
 root:
     async: false
-    level: warn
+    level: debug
     sinks:
     -   filename: BtLogs/BtRunner.log
         pattern: '[%Y.%m.%d %H:%M:%S,%F - %-5l] %v'

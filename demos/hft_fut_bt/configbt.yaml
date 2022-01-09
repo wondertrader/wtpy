@@ -1,3 +1,17 @@
+replayer:
+    basefiles:
+        commodity: ../common/commodities.json
+        contract: ../common/contracts.json
+        holiday: ../common/holidays.json
+        hot: ../common/hots.json
+        session: ../common/sessions.json
+    mode: csv
+    path: ../storage/
+    fees: ../common/fees.json
+    adjfactor: adjfactors.json
+    stime: 202101040931
+    etime: 202101121500
+    tick: true
 env:
     mocker: hft
 hft0:
@@ -35,17 +49,3 @@ hft0:
             stock: false
             threshold: 0.3
     use_newpx: true
-replayer:
-    adjfactor: adjfactors.json
-    basefiles:
-        commodity: ../common/commodities.json
-        contract: ../common/contracts.json
-        holiday: ../common/holidays.json
-        hot: ../common/hots.json
-        session: ../common/sessions.json
-    etime: 202101121500
-    fees: ../common/fees.json
-    mode: csv
-    path: ../storage/
-    stime: 202101040931
-    tick: true
