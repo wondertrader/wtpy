@@ -84,8 +84,10 @@ class HftContext:
         # By Wesley @ 2021.12.24
         # 因为新的数据结构传进来是一个tuple
         # 所以必须通过缓存中抓一下，才能当成dict传给策略
+        # 如果合约的tick没有缓存，则预先分配一个长度为4的tick容器
+        # 如果调用stra_get_ticks，再重新分配容器
         if stdCode not in self.__tick_cache__:
-            return
+            self.__tick_cache__[stdCode] = WtTickRecords(size = 4)
 
         self.__tick_cache__[stdCode].append(newTick)
         self.__stra_info__.on_tick(self, stdCode, self.__tick_cache__[stdCode][-1])
@@ -241,9 +243,12 @@ class HftContext:
         @stdCode   合约代码
         @count  要拉取的tick数量
         '''
-        if stdCode in self.__tick_cache__:
+        # By Wesley @ 2021.12.24
+        # 之前在stra_get_bars的时候生成了一个size为4的临时tick缓存
+        # 所以这里要加一个判断，如果没有缓存，或者缓存的长度为4，则重新分配新的缓存
+        if stdCode in self.__tick_cache__ and self.__tick_cache__[stdCode].size > 4:
             #这里做一个数据长度处理
-            return self.__bar_cache__[stdCode]
+            return self.__tick_cache__[stdCode]
 
         self.__tick_cache__[stdCode] = WtTickRecords(size=count)
         cnt = self.__wrapper__.hft_get_ticks(self.__id__, stdCode, count)

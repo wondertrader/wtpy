@@ -116,7 +116,7 @@ class WtOrdQueRecords(DequeRecord):
     def __init__(self, size: int):
         super().__init__(size=size, fields={
             'time': np.uint64,
-            'exchg': 'U10',
+            'exchg': 'U16',
             'code': 'U32',
             
             'trading_date': np.uint32,
