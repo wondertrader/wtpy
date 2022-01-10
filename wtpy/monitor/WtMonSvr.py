@@ -225,6 +225,13 @@ def get_path_tree(root:str, name:str, hasFile:bool = True):
 class WtMonSvr(WatcherSink):
 
     def __init__(self, static_folder:str="", static_url_path="/", deploy_dir="C:/"):
+        '''
+        WtMonSvr构造函数
+
+        @static_folder      静态文件根目录
+        @static_url_path    静态文件访问路径
+        @deploy_dir         实盘部署目录
+        '''
         if len(static_folder) == 0:
             static_folder = 'static'
 
@@ -253,10 +260,20 @@ class WtMonSvr(WatcherSink):
         self.init_mgr_apis(app)
 
     def set_bt_mon(self, btMon:WtBtMon):
+        '''
+        设置回测管理器
+
+        @btMon      回测管理器WtBtMon实例
+        '''
         self.__bt_mon__ = btMon
         self.init_bt_apis(self.app)
 
     def set_dt_servo(self, dtServo:WtDtServo):
+        '''
+        设置DtServo
+
+        @dtServo    本地数据伺服WtDtServo实例
+        '''
         self.__dt_servo__ = dtServo
 
     def init_bt_apis(self, app:Flask):
