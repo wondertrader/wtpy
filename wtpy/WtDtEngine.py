@@ -6,7 +6,7 @@ from wtpy.WtUtilDefs import singleton
 class WtDtEngine:
 
     def __init__(self):
-        self.__wrapper__ = WtDtWrapper()  #api接口转换器
+        self.__wrapper__ = WtDtWrapper(self)  #api接口转换器
         self.__ext_parsers__ = dict()   #外接的行情接入模块
         self.__ext_dumpers__ = dict()   #扩展数据Dumper
 

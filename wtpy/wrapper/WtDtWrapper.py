@@ -25,7 +25,8 @@ class WtDtWrapper:
     ver = "Unknown"
     
     # 构造函数，传入动态库名
-    def __init__(self):
+    def __init__(self, engine):
+        self._engine = engine
         paths = os.path.split(__file__)
         dllname = ph.getModule("WtDtPorter")
         a = (paths[:-1] + (dllname,))
@@ -58,6 +59,7 @@ class WtDtWrapper:
         '''
         try:
             self.api.initialize(bytes(cfgfile, encoding = "utf8"), bytes(logprofile, encoding = "utf8"))
+            self.register_extended_module_callbacks()
         except OSError as oe:
             print(oe)
 
@@ -74,7 +76,6 @@ class WtDtWrapper:
         self.cb_parser_subcmd = CB_PARSER_SUBCMD(self.on_parser_sub)
 
         self.api.register_parser_callbacks(self.cb_parser_event, self.cb_parser_subcmd)
-        self.api.register_exec_callbacks(self.cb_executer_init, self.cb_executer_cmd)
 
     def create_extended_dumper(self, id:str) -> bool:
         return self.api.create_ext_dumper(bytes(id, encoding = "utf8"))
