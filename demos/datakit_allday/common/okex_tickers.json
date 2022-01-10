@@ -1,0 +1,31 @@
+{
+    "OKEX": {
+        "BTC-USDT": {
+            "name": "BTC-USDT",
+            "code": "BTC-USDT",
+            "exchg": "OKEX",
+            "extras": {
+                "instType": "MARGIN",
+                "baseCcy": "BTC",
+                "quoteCcy": "USDT",
+                "category": "1",
+                "ctVal": "",
+                "ctValCcy": "",
+                "lever": "10",
+                "ctType": ""
+            },
+            "rules": {
+                "session": "ALLDAY",
+                "holiday": "",
+                "covermode": 3,
+                "pricemode": 0,
+                "category": 23,
+                "trademode": 0,
+                "pricetick": 0.1,
+                "lotstick": 1e-08,
+                "minlots": 1e-05,
+                "volscale": 1
+            }
+        }
+    }
+}
