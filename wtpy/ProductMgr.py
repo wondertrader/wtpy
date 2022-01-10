@@ -1,5 +1,6 @@
 import json
 import yaml
+import os
 
 class ProductInfo:
     '''
@@ -29,6 +30,8 @@ class ProductMgr:
         '''
         从文件加载品种信息
         '''
+        if not os.path.exists(fname):
+            return
         f = open(fname, 'r', encoding="utf8")
         content = f.read()
         f.close()
