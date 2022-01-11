@@ -30,7 +30,9 @@ REQUIRED = [
     'pyquery', 
     'flask-compress', 
     'psutil', 
-    'chardet'
+    'chardet',
+    'pyyaml',
+    'matplotlib'
 ]
 
 # What packages are optional?
