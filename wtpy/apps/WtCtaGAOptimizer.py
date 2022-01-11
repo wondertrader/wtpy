@@ -61,6 +61,8 @@ class ParamInfo:
 
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", list, fitness=creator.FitnessMax)
+
+
 class WtCtaGAOptimizer:
     '''
     参数优化器\n
@@ -217,11 +219,11 @@ class WtCtaGAOptimizer:
             fname = "logcfg_tpl.json"
 
         f = open(fname, "r")
-        content =f.read()
+        content = f.read()
         f.close()
         content = content.replace("$NAME$", strName)
         if is_yaml:
-            content = json.dumps(yaml.full_load(content))     
+            content = json.dumps(yaml.full_load(content))
 
         engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
         engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
@@ -356,7 +358,7 @@ class WtCtaGAOptimizer:
 
     def __ayalyze_result__(self, strName: str, time_range: tuple, params: dict):
         folder = "./outputs_bt/%s/" % (strName)
-        
+
         try:
             df_closes = pd.read_csv(folder + "closes.csv", engine="python")
             df_funds = pd.read_csv(folder + "funds.csv", engine="python")
@@ -514,7 +516,7 @@ class WtCtaGAOptimizer:
         for straName in obj_stras:
             filename = "./outputs_bt/%s/summary.json" % (straName)
             if not os.path.exists(filename):
-                print("%s不存在，请检查数据" % (filename))
+                # print("%s不存在，请检查数据" % (filename))
                 continue
 
             f = open(filename, "r")
@@ -552,7 +554,7 @@ class WtCtaGAOptimizer:
             params = obj_stras[straName]
             filename = "./outputs_bt/%s/summary.json" % (straName)
             if not os.path.exists(filename):
-                print("%s不存在，请检查数据" % (filename))
+                # print("%s不存在，请检查数据" % (filename))
                 continue
 
             time_range = (params["start_time"], params["end_time"])
