@@ -1,6 +1,8 @@
 import json
 import yaml
 
+from .ProductMgr import ProductMgr, ProductInfo
+
 class ContractInfo:
 
     def __init__(self):
@@ -12,8 +14,9 @@ class ContractInfo:
 
 class ContractMgr:
 
-    def __init__(self):
+    def __init__(self, prodMgr:ProductMgr = None):
         self.__contracts__ = dict()
+        self.__prod_mgr__ = prodMgr
 
     def load(self, fname:str):
         '''
@@ -47,6 +50,20 @@ class ContractMgr:
                 else:
                     cInfo.product = cInfo.code
                     cInfo.stdCode = exchg + "." + cInfo.code
+                    if "rules" in cObj:
+                        pObj = cObj["rules"]
+                        pInfo = ProductInfo()
+                        pInfo.exchg = exchg
+                        pInfo.product = cInfo.code
+                        pInfo.name = cInfo.name
+                        pInfo.session = pObj["session"]
+                        pInfo.volscale = int(pObj["volscale"])
+                        pInfo.pricetick = float(pObj["pricetick"])
+
+                        if "minlots" in pObj:
+                            pInfo.minlots = float(pObj["minlots"])
+                        if "lotstick" in pObj:
+                            pInfo.lotstick = float(pObj["lotstick"])
 
                 key = "%s.%s" % (exchg, code)
                 self.__contracts__[key] = cInfo
