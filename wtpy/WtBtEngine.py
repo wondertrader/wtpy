@@ -114,17 +114,22 @@ class WtBtEngine:
 
         self.__check_config__()
 
-        self.__config__["replayer"]["basefiles"]["commodity"] = folder + commfile
         self.__config__["replayer"]["basefiles"]["contract"] = folder + contractfile
-        self.__config__["replayer"]["basefiles"]["holiday"] = folder + holidayfile
         self.__config__["replayer"]["basefiles"]["session"] = folder + sessionfile
-        self.__config__["replayer"]["basefiles"]["hot"] = folder + hotfile
-        self.__config__["replayer"]["basefiles"]["second"] = folder + secondfile
+        if commfile is not None:
+            self.__config__["replayer"]["basefiles"]["commodity"] = folder + commfile
+        if holidayfile is not None:
+            self.__config__["replayer"]["basefiles"]["holiday"] = folder + holidayfile
+        if hotfile is not None:
+            self.__config__["replayer"]["basefiles"]["hot"] = folder + hotfile
+        if secondfile is not None:
+            self.__config__["replayer"]["basefiles"]["second"] = folder + secondfile
 
         self.productMgr = ProductMgr()
-        self.productMgr.load(folder + commfile)
+        if commfile is not None:
+            self.productMgr.load(folder + commfile)
 
-        self.contractMgr = ContractMgr()
+        self.contractMgr = ContractMgr(self.productMgr)
         self.contractMgr.load(folder + contractfile)
 
         self.sessionMgr = SessionMgr()
@@ -145,7 +150,7 @@ class WtBtEngine:
         self.__config__["replayer"]["stime"] = int(stime)
         self.__config__["replayer"]["etime"] = int(etime)
 
-    def configBTStorage(self, mode:str, path:str = None, dbcfg:dict = None):
+    def configBTStorage(self, mode:str, path:str = None, storage:dict = None):
         '''
         配置数据存储
         @mode   存储模式，csv-表示从csv直接读取，一般回测使用，wtp-表示使用wt框架自带数据存储
@@ -153,8 +158,8 @@ class WtBtEngine:
         self.__config__["replayer"]["mode"] = mode
         if path is not None:
             self.__config__["replayer"]["path"] = path
-        if dbcfg is not None:
-            self.__config__["replayer"]["db"] = dbcfg
+        if storage is not None:
+            self.__config__["replayer"]["storage"] = storage
 
     def setExternalCtaStrategy(self, id:str, module:str, typeName:str, params:dict):
         '''

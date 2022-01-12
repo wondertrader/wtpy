@@ -130,9 +130,9 @@ class WtEngine:
 
     def init(self, folder:str, 
         cfgfile:str = "config.yaml", 
-        commfile:str="commodities.json", 
         contractfile:str="contracts.json",
         sessionfile:str="sessions.json",
+        commfile:str="commodities.json", 
         holidayfile:str="holidays.json",
         hotfile:str="hots.json",
         secondfile:str="seconds.json"):
@@ -141,7 +141,7 @@ class WtEngine:
         @folder     基础数据文件目录，\\结尾
         @cfgfile    配置文件，json格式
         '''
-        f = open(cfgfile, "r")
+        f = open(cfgfile, "r", encoding="UTF8")
         content =f.read()
         f.close()
 
@@ -154,17 +154,24 @@ class WtEngine:
 
         self.__check_config__()
 
-        self.__config__["basefiles"]["commodity"] = folder + commfile
+        
         self.__config__["basefiles"]["contract"] = folder + contractfile
-        self.__config__["basefiles"]["holiday"] = folder + holidayfile
+        
         self.__config__["basefiles"]["session"] = folder + sessionfile
-        self.__config__["basefiles"]["hot"] = folder + hotfile
-        self.__config__["basefiles"]["second"] = folder + secondfile
+        if commfile is not None:
+            self.__config__["basefiles"]["commodity"] = folder + commfile
+        if holidayfile is not None:
+            self.__config__["basefiles"]["holiday"] = folder + holidayfile
+        if hotfile is not None:
+            self.__config__["basefiles"]["hot"] = folder + hotfile
+        if secondfile is not None:
+            self.__config__["basefiles"]["second"] = folder + secondfile
 
         self.productMgr = ProductMgr()
-        self.productMgr.load(folder + commfile)
+        if commfile is not None:
+            self.productMgr.load(folder + commfile)
 
-        self.contractMgr = ContractMgr()
+        self.contractMgr = ContractMgr(self.productMgr)
         self.contractMgr.load(folder + contractfile)
 
         self.sessionMgr = SessionMgr()
