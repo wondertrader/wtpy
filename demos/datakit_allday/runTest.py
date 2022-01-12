@@ -1,3 +1,4 @@
+import math
 from wtpy import BaseExtParser
 from wtpy import WTSTickStruct
 from ctypes import byref
@@ -6,6 +7,8 @@ import websocket
 import json   
 import threading
 import ssl
+
+import datetime
 
 from wtpy import WtDtEngine
 
@@ -129,8 +132,8 @@ class MyParser(BaseExtParser):
                 data = root["data"][0]
 
                 curTick = WTSTickStruct()
-                curTick.code = bytes("OKEX", encoding="UTF8")
-                curTick.exchg = bytes(code, encoding="UTF8")
+                curTick.exchg = bytes("OKEX", encoding="UTF8")
+                curTick.code = bytes(code, encoding="UTF8")
 
                 curTick.price = float(data["last"])
                 curTick.open = float(data["open24h"])
@@ -142,6 +145,15 @@ class MyParser(BaseExtParser):
                 curTick.ask_qty[0] = float(data["askSz"])
                 curTick.bid_prices[0] = float(data["bidPx"])
                 curTick.bid_qty[0] = float(data["bidSz"])
+
+                #先处理本地时间
+                tm = datetime.datetime.fromtimestamp(int(data["ts"])/1000)
+                curTick.action_date = tm.year*10000 + tm.month*100 + tm.day
+                curTick.action_time = tm.hour*10000000 + tm.minute*100000 + tm.second*1000 + math.floor(tm.microsecond/1000)
+
+                #再转成utc时间获取交易日
+                tm = datetime.datetime.utcfromtimestamp(int(data["ts"])/1000)
+                curTick.trading_date = tm.year*10000 + tm.month*100 + tm.day
                 
                 if code in self.depth_cache:
                     myDepth = self.depth_cache[code]
@@ -151,6 +163,11 @@ class MyParser(BaseExtParser):
                     for i in range(1,len(myDepth["bids"])):
                         curTick.bid_prices[i] = float(myDepth["bids"][i][0])
                         curTick.bid_qty[i] = float(myDepth["bids"][i][1])
+
+                if code in self.oi_cache:
+                    myOI = self.oi_cache[code]
+                    curTick.open_interest = myOI["total"]
+                    curTick.diff_interest = myOI["diff"]
 
                 self.__engine__.push_quote_from_extended_parser(self.id(), byref(curTick), False)
                 pass
@@ -230,6 +247,6 @@ if __name__ == "__main__":
     myParser.init(engine)
     engine.add_exetended_parser(myParser)
 
-    engine.run()
+    engine.run(True)
 
     kw = input('press any key to exit\n')

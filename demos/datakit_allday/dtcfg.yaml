@@ -2,7 +2,7 @@ basefiles:
     contract: ./common/okex_tickers.json
     session: ./common/btc_sessions.json
 broadcaster:
-    active: false
+    active: true
     bport: 3997
     broadcast:
     -   host: 255.255.255.255
@@ -26,5 +26,5 @@ writer:
     async: false
     module: WtDataStorageAD
     groupsize: 20
-    path: ./AD_Data
+    path: ../AD_Data
     savelog: false
