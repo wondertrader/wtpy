@@ -1,5 +1,6 @@
 import json
 import yaml
+import chardet
 
 from .ProductMgr import ProductMgr, ProductInfo
 
@@ -22,9 +23,11 @@ class ContractMgr:
         '''
         从文件加载品种信息
         '''
-        f = open(fname, 'r', encoding="utf8")
+        f = open(fname, 'rb')
         content = f.read()
         f.close()
+        encoding = chardet.detect(content)["encoding"]
+        content = content.decode(encoding)
 
         if fname.lower().endswith(".yaml"):
             exchgMap = yaml.full_load(content)

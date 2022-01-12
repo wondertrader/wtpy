@@ -1,6 +1,7 @@
 import json
 import yaml
 import os
+import chardet
 
 class ProductInfo:
     '''
@@ -31,9 +32,11 @@ class ProductMgr:
         '''
         if not os.path.exists(fname):
             return
-        f = open(fname, 'r', encoding="utf8")
+        f = open(fname, 'rb')
         content = f.read()
         f.close()
+        encoding = chardet.detect(content)["encoding"]
+        content = content.decode(encoding)
 
         if fname.lower().endswith(".yaml"):
             exchgMap = yaml.full_load(content)
