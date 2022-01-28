@@ -517,8 +517,8 @@ class WtWrapper:
     def create_extended_executer(self, id:str) -> bool:
         return self.api.create_ext_executer(bytes(id, encoding = "utf8"))
 
-    def push_quote_from_exetended_parser(self, id:str, newTick:POINTER(WTSTickStruct), bNeedSlice:bool = True):
-        return self.api.parser_push_quote(bytes(id, encoding = "utf8"), newTick, bNeedSlice)
+    def push_quote_from_exetended_parser(self, id:str, newTick:POINTER(WTSTickStruct), uProcFlag:int = 1):
+        return self.api.parser_push_quote(bytes(id, encoding = "utf8"), newTick, uProcFlag)
 
     def register_extended_module_callbacks(self,):
         self.cb_parser_event = CB_PARSER_EVENT(self.on_parser_event)

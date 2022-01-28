@@ -106,8 +106,15 @@ class WtEngine:
             return None
         return self.__ext_executers__[id]
 
-    def push_quote_from_extended_parser(self, id:str, newTick, bNeedSlice:bool):
-        self.__wrapper__.push_quote_from_exetended_parser(id, newTick, bNeedSlice)
+    def push_quote_from_extended_parser(self, id:str, newTick, uProcFlag:int):
+        '''
+        向底层推送tick数据
+
+        @id parserid
+        @newTick    POINTER(WTSTickStruct)
+        @uProcFlag  预处理标记，0-不处理，1-切片，2-累加
+        '''
+        self.__wrapper__.push_quote_from_exetended_parser(id, newTick, uProcFlag)
 
     def set_writer(self, writer:BaseIndexWriter):
         '''
