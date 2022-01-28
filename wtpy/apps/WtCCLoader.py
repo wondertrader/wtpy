@@ -32,25 +32,25 @@ def httpGet(url, encoding:str='utf-8', proxy:str = None, headers:dict = {}) -> s
     else:
         return ""
 
+def wrap_category(iType:str):
+    #20-币币SPOT, 21-永续SWAP, 22-期货Future, 23-杠杆Margin
+    if iType.upper() == "SPOT":
+        return 20
+    elif iType.upper() == "SWAP":
+        return 21
+    elif iType.upper() == "FUTURES" or iType.upper() == "FUTURE":
+        return 22
+    elif iType.upper() == "MARGIN":
+        return 23
+    else:
+        return 24
+
 class WtCCLoader:
 
     @staticmethod
     def load_from_okex(filename:str, instTypes:list = ["SPOT"], proxy:str = None) -> bool:
 
         contracts = dict()
-
-        def wrap_category(iType:str):
-            #20-币币SPOT, 21-永续SWAP, 22-期货Future, 23-杠杆Margin
-            if iType == "SPOT":
-                return 20
-            elif iType == "SWAP":
-                return 21
-            elif iType == "FUTURES":
-                return 22
-            elif iType == "MARGIN":
-                return 23
-            else:
-                return 24
 
         for iType in instTypes:
             cat = wrap_category(iType)
@@ -110,5 +110,313 @@ class WtCCLoader:
         # 这里将下载到的合约列表落地
         f = open(filename, "w")
         f.write(json.dumps({"OKEX":contracts}, indent=4, ensure_ascii=False))
+        f.close()
+
+
+    @staticmethod
+    def load_spots_from_binance(filename:str, proxy:str = None) -> bool:
+
+        contracts = dict()
+
+        content  = httpGet('https://api.binance.com/api/v3/exchangeInfo', proxy=proxy, headers={
+            "Accept":"application/json"
+        })
+        if len(content) == 0:
+            return False
+
+        try:
+            root = json.loads(content)
+        except:
+            print("加载合约列表出错")
+            return False
+
+        for item in root["symbols"]:
+            cInfo = dict()
+            cInfo["name"] = item["symbol"]
+            cInfo["code"] = item["symbol"]
+            cInfo["exchg"] = "BINANCE"
+
+            if "MARGIN" in item["permissions"]:
+                iType = "MARGIN"
+            elif "SPOT" in item["permissions"]:
+                iType = "SPOT"
+            else:
+                continue
+                
+            tMode = 1 if iType=='SPOT' else 0 #0-多空, 1-做多, 2-做多T+1
+
+            #这些是wt不用的额外信息，做一个保存
+            extInfo = dict()
+            extInfo["instType"] = iType
+            extInfo["baseAsset"] = item["baseAsset"]    
+            extInfo["quoteAsset"] = item["quoteAsset"]
+            extInfo["icebergAllowed"] = item["icebergAllowed"]
+            extInfo["ocoAllowed"] = item["ocoAllowed"]
+            extInfo["quoteOrderQtyMarketAllowed"] = item["quoteOrderQtyMarketAllowed"]
+            extInfo["baseAssetPrecision"] = item["baseAssetPrecision"]
+            extInfo["quoteAssetPrecision"] = item["quoteAssetPrecision"]
+            extInfo["isSpotTradingAllowed"] = item["isSpotTradingAllowed"]
+            # extInfo["permissions"] = item["permissions"]
+            extInfo["orderTypes"] = item["orderTypes"]
+            cInfo["extras"] = extInfo
+
+            ruleInfo = dict()
+            ruleInfo["session"] = "ALLDAY"
+            ruleInfo["holiday"] = ""
+
+            ruleInfo["covermode"] = 3       #0-开平, 1-区分平今, 3-不分开平
+            ruleInfo["pricemode"] = 0       #0-支持限价市价, 1-只支持限价, 2-只支持市价  
+            ruleInfo["category"] = wrap_category(iType)      #20-币币SPOT, 21-永续SWAP, 22-期货Future, 23-币币杠杆Margin
+            ruleInfo["trademode"] = tMode   #0-多空, 1-做多, 2-做多T+1
+
+            for fItem in item["filters"]:
+                if fItem["filterType"] == "PRICE_FILTER":
+                    ruleInfo["pricetick"] = float(fItem["tickSize"])
+                if fItem["filterType"] == "LOT_SIZE":
+                    ruleInfo["lotstick"] = float(fItem["stepSize"])
+                    ruleInfo["minlots"] = float(fItem["minQty"])
+                ruleInfo["volscale"] = 1
+
+            cInfo["rules"] = ruleInfo
+
+            contracts[cInfo['code']] = cInfo
+            
+
+        # 这里将下载到的合约列表落地
+        f = open(filename, "w")
+        f.write(json.dumps({"BINANCE":contracts}, indent=4, ensure_ascii=False))
+        f.close()
+
+    @staticmethod
+    def load_fpairs_from_binance(filename:str, proxy:str = None) -> bool:
+
+        contracts = dict()
+
+        content  = httpGet('https://fapi.binance.com/fapi/v1/exchangeInfo', proxy=proxy, headers={
+            "Accept":"application/json"
+        })
+        if len(content) == 0:
+            return False
+
+        try:
+            root = json.loads(content)
+        except:
+            print("加载合约列表出错")
+            return False
+
+        for item in root["symbols"]:
+            cInfo = dict()
+            cInfo["name"] = item["symbol"]
+            cInfo["code"] = item["symbol"]
+            cInfo["exchg"] = "BINANCE"
+
+            iType = item["contractType"]
+            if len(iType.strip()) == 0:
+                continue
+            if iType == "PERPETUAL":
+                iType = "SWAP"
+            else:
+                iType = "FUTURES"
+            tMode = 0 #0-多空, 1-做多, 2-做多T+1
+
+            #这些是wt不用的额外信息，做一个保存
+            extInfo = dict()
+            extInfo["instType"] = iType
+            extInfo["baseAsset"] = item["baseAsset"]    
+            extInfo["quoteAsset"] = item["quoteAsset"]
+            extInfo["marginAsset"] = item["marginAsset"]
+            extInfo["pricePrecision"] = item["pricePrecision"]
+            extInfo["quantityPrecision"] = item["quantityPrecision"]
+            extInfo["baseAssetPrecision"] = item["baseAssetPrecision"]
+            extInfo["quotePrecision"] = item["quotePrecision"]
+            extInfo["underlyingType"] = item["underlyingType"]
+            extInfo["underlyingSubType"] = item["underlyingSubType"]
+            extInfo["orderTypes"] = item["orderTypes"]
+            extInfo["timeInForce"] = item["timeInForce"]
+            extInfo["deliveryDate"] = item["deliveryDate"]
+            extInfo["onboardDate"] = item["onboardDate"]
+            extInfo["contractType"] = item["contractType"]
+            cInfo["extras"] = extInfo
+
+            ruleInfo = dict()
+            ruleInfo["session"] = "ALLDAY"
+            ruleInfo["holiday"] = ""
+
+            ruleInfo["covermode"] = 3       #0-开平, 1-区分平今, 3-不分开平
+            ruleInfo["pricemode"] = 0       #0-支持限价市价, 1-只支持限价, 2-只支持市价  
+            ruleInfo["category"] = wrap_category(iType)      #20-币币SPOT, 21-永续SWAP, 22-期货Future, 23-币币杠杆Margin
+            ruleInfo["trademode"] = tMode   #0-多空, 1-做多, 2-做多T+1
+
+            for fItem in item["filters"]:
+                if fItem["filterType"] == "PRICE_FILTER":
+                    ruleInfo["pricetick"] = float(fItem["tickSize"])
+                if fItem["filterType"] == "LOT_SIZE":
+                    ruleInfo["lotstick"] = float(fItem["stepSize"])
+                    ruleInfo["minlots"] = float(fItem["minQty"])
+                ruleInfo["volscale"] = 1
+
+            cInfo["rules"] = ruleInfo
+
+            contracts[cInfo['code']] = cInfo
+            
+
+        # 这里将下载到的合约列表落地
+        f = open(filename, "w")
+        f.write(json.dumps({"BINANCE":contracts}, indent=4, ensure_ascii=False))
+        f.close()
+
+    @staticmethod
+    def load_dpairs_from_binance(filename:str, proxy:str = None) -> bool:
+
+        contracts = dict()
+
+        content  = httpGet('https://dapi.binance.com/dapi/v1/exchangeInfo', proxy=proxy, headers={
+            "Accept":"application/json"
+        })
+        if len(content) == 0:
+            return False
+
+        try:
+            root = json.loads(content)
+        except:
+            print("加载合约列表出错")
+            return False
+
+        for item in root["symbols"]:
+            cInfo = dict()
+            cInfo["name"] = item["symbol"]
+            cInfo["code"] = item["symbol"]
+            cInfo["exchg"] = "BINANCE"
+
+            iType = item["contractType"]
+            if len(iType.strip()) == 0:
+                continue
+
+            if iType == "PERPETUAL":
+                iType = "SWAP"
+            else:
+                iType = "FUTURES"
+            tMode = 0 #0-多空, 1-做多, 2-做多T+1
+
+            #这些是wt不用的额外信息，做一个保存
+            extInfo = dict()
+            extInfo["instType"] = iType
+            extInfo["baseAsset"] = item["baseAsset"]    
+            extInfo["quoteAsset"] = item["quoteAsset"]
+            extInfo["marginAsset"] = item["marginAsset"]
+            extInfo["pricePrecision"] = item["pricePrecision"]
+            extInfo["quantityPrecision"] = item["quantityPrecision"]
+            extInfo["baseAssetPrecision"] = item["baseAssetPrecision"]
+            extInfo["quotePrecision"] = item["quotePrecision"]
+            extInfo["underlyingType"] = item["underlyingType"]
+            extInfo["underlyingSubType"] = item["underlyingSubType"]
+            extInfo["orderTypes"] = item["orderTypes"]
+            extInfo["timeInForce"] = item["timeInForce"]
+            extInfo["deliveryDate"] = item["deliveryDate"]
+            extInfo["onboardDate"] = item["onboardDate"]
+            extInfo["contractType"] = item["contractType"]
+            cInfo["extras"] = extInfo
+
+            ruleInfo = dict()
+            ruleInfo["session"] = "ALLDAY"
+            ruleInfo["holiday"] = ""
+
+            ruleInfo["covermode"] = 3       #0-开平, 1-区分平今, 3-不分开平
+            ruleInfo["pricemode"] = 0       #0-支持限价市价, 1-只支持限价, 2-只支持市价  
+            ruleInfo["category"] = wrap_category(iType)      #20-币币SPOT, 21-永续SWAP, 22-期货Future, 23-币币杠杆Margin
+            ruleInfo["trademode"] = tMode   #0-多空, 1-做多, 2-做多T+1
+
+            for fItem in item["filters"]:
+                if fItem["filterType"] == "PRICE_FILTER":
+                    ruleInfo["pricetick"] = float(fItem["tickSize"])
+                if fItem["filterType"] == "LOT_SIZE":
+                    ruleInfo["lotstick"] = float(fItem["stepSize"])
+                    ruleInfo["minlots"] = float(fItem["minQty"])
+                ruleInfo["volscale"] = 1
+
+            cInfo["rules"] = ruleInfo
+
+            contracts[cInfo['code']] = cInfo
+            
+
+        # 这里将下载到的合约列表落地
+        f = open(filename, "w")
+        f.write(json.dumps({"BINANCE":contracts}, indent=4, ensure_ascii=False))
+        f.close()
+
+
+    @staticmethod
+    def load_from_ftx(filename:str, instTypes:list = ["SPOT"], proxy:str = None) -> bool:
+
+        contracts = dict()
+
+        content  = httpGet('https://ftx.com/api/markets', proxy=proxy, headers={
+            "Accept":"application/json"
+        })
+        if len(content) == 0:
+            return False
+
+        try:
+            root = json.loads(content)
+        except:
+            print("加载合约列表出错")
+            return False
+
+        if not root["success"]:
+            print("加载合约列表失败")
+            return False
+
+        all_types = list()
+
+        for item in root["result"]:
+            cInfo = dict()
+            cInfo["name"] = item["name"]
+            cInfo["code"] = item["name"]
+            cInfo["exchg"] = "FTX"
+
+            iType = item["type"].upper()
+            if iType == "FUTURE":
+                iType += "S"
+
+            if iType not in all_types:
+                all_types.append(iType)
+
+            if iType not in instTypes:
+                continue
+
+            tMode = 1 if iType=='SPOT' else 0 #0-多空, 1-做多, 2-做多T+1
+
+            #这些是wt不用的额外信息，做一个保存
+            extInfo = dict()
+            extInfo["instType"] = iType
+            extInfo["baseCurrency"] = item["baseCurrency"]    
+            extInfo["quoteCurrency"] = item["quoteCurrency"]
+            extInfo["underlying"] = item["underlying"]
+            extInfo["postOnly"] = item["postOnly"]
+            extInfo["highLeverageFeeExempt"] = item["highLeverageFeeExempt"]
+            cInfo["extras"] = extInfo
+
+            ruleInfo = dict()
+            ruleInfo["session"] = "ALLDAY"
+            ruleInfo["holiday"] = ""
+
+            ruleInfo["covermode"] = 3       #0-开平, 1-区分平今, 3-不分开平
+            ruleInfo["pricemode"] = 0       #0-支持限价市价, 1-只支持限价, 2-只支持市价  
+            ruleInfo["category"] = wrap_category(iType)      #20-币币SPOT, 21-永续SWAP, 22-期货Future, 23-币币杠杆Margin
+            ruleInfo["trademode"] = tMode   #0-多空, 1-做多, 2-做多T+1
+
+            ruleInfo["pricetick"] = item["priceIncrement"]
+            ruleInfo["lotstick"] = item["sizeIncrement"]
+            ruleInfo["minlots"] = item["minProvideSize"]
+            ruleInfo["volscale"] = 1
+
+            cInfo["rules"] = ruleInfo
+
+            contracts[cInfo['code']] = cInfo
+            
+        print(all_types)
+        # 这里将下载到的合约列表落地
+        f = open(filename, "w")
+        f.write(json.dumps({"FTX":contracts}, indent=4, ensure_ascii=False))
         f.close()
 
