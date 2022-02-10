@@ -54,17 +54,47 @@ class MyDataLoader(BaseExtDataLoader):
         加载历史K线（只在回测有效，实盘只提供当日落地的）
         @stdCode    合约代码，格式如CFFEX.IF.2106
         @uDate      日期，格式如yyyymmdd
-        @feeder     回调函数，feed_raw_bars(bars:POINTER(WTSTickStruct), count:int)
+        @feeder     回调函数，feed_raw_ticks(ticks:POINTER(WTSTickStruct), count:int)
         '''
         print("loading ticks on %d of %s from extended loader" % (uDate, stdCode))
-        TickArray = WTSTickStruct*10
-        ticks = TickArray()
-        for i in range(10):
-            ticks[i].exchg = bytes("CFFEX%d" % i, encoding="utf8")
-            ticks[i].code = bytes("IF%04d" % i, encoding="utf8")
-            ticks[i].price = random.random()
 
-        feeder(ticks, 10)
+        df = pd.read_csv('./storage/csv/rb主力连续_20201030.csv')
+        BUFFER = WTSTickStruct*len(df)
+        buffer = BUFFER()
+
+        tags = ["一","二","三","四","五"]
+
+        for i in range(len(df)):
+            curTick = buffer[i]
+
+            curTick.exchg = b"SHFE"
+            curTick.code = b"SHFE.rb.HOT"
+
+            curTick.price = float(df[i]["最新价"])
+            curTick.open = float(df[i]["今开盘"])
+            curTick.high = float(df[i]["最高价"])
+            curTick.low = float(df[i]["最低价"])
+            curTick.settle = float(df[i]["本次结算价"])
+            
+            curTick.total_volume = float(df[i]["数量"])
+            curTick.total_turnover = float(df[i]["成交额"])
+            curTick.open_interest = float(df[i]["持仓量"])
+
+            curTick.trading_date = int(df[i]["交易日"])
+            curTick.action_date = int(df[i]["业务日期"])
+            curTick.action_time = int(df[i]["最后修改时间"].replace(":",""))*1000 + int(df[i]["最后修改毫秒"])
+
+            curTick.pre_close = float(df[i]["昨收盘"])
+            curTick.pre_settle = float(df[i]["上次结算价"])
+            curTick.pre_interest = float(df[i]["昨持仓量"])
+
+            for x in range(5):
+                curTick.bid_prices[x] = float(df[i]["申买价"+tags[x]])
+                curTick.bid_qty[x] = float(df[i]["申买量"+tags[x]])
+                curTick.ask_prices[x] = float(df[i]["申卖价"+tags[x]])
+                curTick.ask_qty[x] = float(df[i]["申卖量"+tags[x]])
+
+        feeder(buffer, len(df))
 
 def test_in_bt():
     engine = WtBtEngine(EngineType.ET_CTA)
