@@ -60,10 +60,10 @@ class WtBtEngine:
             self.__config__["replayer"] = dict()
             self.__config__["replayer"]["basefiles"] = dict()
 
-        if "replayer" not in self.__config__:
-            self.__config__["replayer"] = dict()
             self.__config__["replayer"]["mode"] = "csv"
-            self.__config__["replayer"]["path"] = "./storage/"
+            self.__config__["replayer"]["store"] = {
+                "path":"./storage/"
+            }
 
         if "env" not in self.__config__:
             self.__config__["env"] = dict()
@@ -157,9 +157,12 @@ class WtBtEngine:
         '''
         self.__config__["replayer"]["mode"] = mode
         if path is not None:
-            self.__config__["replayer"]["path"] = path
+            self.__config__["replayer"]["store"] = {
+                "path":path
+            }
+
         if storage is not None:
-            self.__config__["replayer"]["storage"] = storage
+            self.__config__["replayer"]["store"] = storage
 
     def setExternalCtaStrategy(self, id:str, module:str, typeName:str, params:dict):
         '''
