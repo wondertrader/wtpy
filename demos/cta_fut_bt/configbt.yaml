@@ -6,7 +6,7 @@ replayer:
         session: ../common/sessions.json
         hot: ../common/hots.json
     mode: csv
-    storage:
+    store:
       module: WtDataStorage
       path: ../storage/
     etime: 201912011500
