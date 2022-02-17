@@ -14,7 +14,7 @@ from setuptools import find_packages, setup, Command, Distribution
 # Package meta-data.
 NAME = 'wtpy'
 DESCRIPTION = 'Python Sub Framework Of WonderTrader'
-URL = 'https://github.com/wondertrader/wondertrader'
+URL = 'https://github.com/wondertrader/wtpy'
 EMAIL = 'silencesword@foxmail.com'
 AUTHOR = 'Wesley Liu'
 REQUIRES_PYTHON = '>=3.5.0'
