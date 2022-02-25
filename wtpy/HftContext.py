@@ -396,15 +396,16 @@ class HftContext:
             localids.append(int(localid))
         return localids
 
-    def stra_buy(self, stdCode:str, price:float, qty:float, userTag:str):
+    def stra_buy(self, stdCode:str, price:float, qty:float, userTag:str, flag:int = 0):
         '''
         买入指令
         @id         策略ID
         @stdCode    品种代码
         @price      买入价格, 0为市价
         @qty        买入数量
+        @flag       下单标志, 0-normal, 1-fak, 2-fok
         '''
-        idstr = self.__wrapper__.hft_buy(self.__id__, stdCode, price, qty, userTag)
+        idstr = self.__wrapper__.hft_buy(self.__id__, stdCode, price, qty, userTag, flag)
         if len(idstr) == 0:
             return list()
             
@@ -414,15 +415,16 @@ class HftContext:
             localids.append(int(localid))
         return localids
 
-    def stra_sell(self, stdCode:str, price:float, qty:float, userTag:str):
+    def stra_sell(self, stdCode:str, price:float, qty:float, userTag:str, flag:int = 0):
         '''
         卖出指令
         @id         策略ID
         @stdCode    品种代码
         @price      卖出价格, 0为市价
         @qty        卖出数量
+        @flag       下单标志, 0-normal, 1-fak, 2-fok
         '''
-        idstr = self.__wrapper__.hft_sell(self.__id__, stdCode, price, qty, userTag)
+        idstr = self.__wrapper__.hft_sell(self.__id__, stdCode, price, qty, userTag, flag)
         if len(idstr) == 0:
             return list()
             

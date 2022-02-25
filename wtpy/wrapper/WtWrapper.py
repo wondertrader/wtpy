@@ -1,4 +1,4 @@
-from ctypes import cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, POINTER, sizeof, addressof
+from ctypes import c_int32, cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, POINTER, sizeof, addressof
 from wtpy.WtCoreDefs import CB_EXECUTER_CMD, CB_EXECUTER_INIT, CB_PARSER_EVENT, CB_PARSER_SUBCMD
 from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
 from wtpy.WtCoreDefs import EVENT_PARSER_CONNECT, EVENT_PARSER_DISCONNECT, EVENT_PARSER_INIT, EVENT_PARSER_RELEASE
@@ -71,9 +71,9 @@ class WtWrapper:
         self.api.hft_get_price.restype = c_double
 
         self.api.hft_buy.restype = c_char_p
-        self.api.hft_buy.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
+        self.api.hft_buy.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p, c_int32]
         self.api.hft_sell.restype = c_char_p
-        self.api.hft_sell.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
+        self.api.hft_sell.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p, c_int32]
         self.api.hft_cancel_all.restype = c_char_p
 
         self.api.create_ext_parser.restype = c_bool
@@ -244,11 +244,11 @@ class WtWrapper:
             ctx.on_getticks(bytes.decode(stdCode), ticks)
         return
 
-    def on_stra_get_position(self, id:int, stdCode:str, qty:float, frozen:float, isLast:bool):
+    def on_stra_get_position(self, id:int, stdCode:str, qty:float, frozen:float):
         engine = self._engine
         ctx = engine.get_context(id)
         if ctx is not None:
-            ctx.on_getpositions(bytes.decode(stdCode), qty, frozen, isLast)
+            ctx.on_getpositions(bytes.decode(stdCode), qty, frozen)
 
     def on_hftstra_channel_evt(self, id:int, trader:str, evtid:int):
         engine = self._engine
@@ -1128,26 +1128,28 @@ class WtWrapper:
         ret = self.api.hft_cancel_all(id, bytes(stdCode, encoding = "utf8"), isBuy)
         return bytes.decode(ret)
 
-    def hft_buy(self, id:int, stdCode:str, price:float, qty:float, userTag:str):
+    def hft_buy(self, id:int, stdCode:str, price:float, qty:float, userTag:str, flag:int):
         '''
         买入指令
         @id         策略ID
         @stdCode    品种代码
         @price      买入价格, 0为市价
         @qty        买入数量
+        @flag       下单标志, 0-normal, 1-fak, 2-fok
         '''
-        ret = self.api.hft_buy(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
+        ret = self.api.hft_buy(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"), flag)
         return bytes.decode(ret)
 
-    def hft_sell(self, id:int, stdCode:str, price:float, qty:float, userTag:str):
+    def hft_sell(self, id:int, stdCode:str, price:float, qty:float, userTag:str, flag:int):
         '''
         卖出指令
         @id         策略ID
         @stdCode    品种代码
         @price      卖出价格, 0为市价
         @qty        卖出数量
+        @flag       下单标志, 0-normal, 1-fak, 2-fok
         '''
-        ret = self.api.hft_sell(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
+        ret = self.api.hft_sell(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"), flag)
         return bytes.decode(ret)
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
