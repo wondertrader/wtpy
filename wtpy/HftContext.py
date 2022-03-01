@@ -362,6 +362,16 @@ class HftContext:
         if self.__engine__ is None:
             return None
         return self.__engine__.getProductInfo(stdCode)
+        
+    def stra_get_sessinfo(self, stdCode:str) -> SessionInfo:
+        '''
+        获取交易时段详情
+        @stdCode   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag
+        @return 品种信息，结构请参考SessionMgr中的SessionInfo
+        '''
+        if self.__engine__ is None:
+            return None
+        return self.__engine__.getSessionByCode(stdCode)
 
     def stra_sub_ticks(self, stdCode:str):
         '''
