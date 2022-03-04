@@ -301,6 +301,8 @@ CB_HFTSTRA_ORD = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_doubl
 CB_HFTSTRA_TRD = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_double, c_double, c_char_p)
 #HFT策略下单结果回报
 CB_HFTSTRA_ENTRUST = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_char_p, c_char_p)
+#HFT策略持仓推送回报（实盘有效）
+CB_HFTSTRA_POSITION = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_bool, c_double, c_double, c_double, c_double)
 
 #策略委托队列推送回调
 CB_HFTSTRA_ORDQUE = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdQueStruct))

@@ -2,7 +2,7 @@ from ctypes import c_int32, cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double,
 from wtpy.WtCoreDefs import CB_EXECUTER_CMD, CB_EXECUTER_INIT, CB_PARSER_EVENT, CB_PARSER_SUBCMD
 from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
 from wtpy.WtCoreDefs import EVENT_PARSER_CONNECT, EVENT_PARSER_DISCONNECT, EVENT_PARSER_INIT, EVENT_PARSER_RELEASE
-from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT
+from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT, CB_HFTSTRA_POSITION
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
 from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST, CB_ENGINE_EVENT
 from wtpy.WtCoreDefs import FUNC_LOAD_HISBARS, FUNC_LOAD_HISTICKS, FUNC_LOAD_ADJFACTS
@@ -280,6 +280,12 @@ class WtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         ctx.on_entrust(localid, stdCode, bSucc, message, userTag)
+
+    def on_hftstra_position(self, id:int, stdCode:str, isLong:bool, prevol:float, preavail:float, newvol:float, newavail:float):
+        stdCode = bytes.decode(stdCode)
+        engine = self._engine
+        ctx = engine.get_context(id)
+        ctx.on_position(stdCode, isLong, prevol, preavail, newvol, newavail)
 
     def on_hftstra_order_queue(self, id:int, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct)):
         stdCode = bytes.decode(stdCode)
@@ -579,6 +585,7 @@ class WtWrapper:
         self.cb_hftstra_order = CB_HFTSTRA_ORD(self.on_hftstra_order)
         self.cb_hftstra_trade = CB_HFTSTRA_TRD(self.on_hftstra_trade)
         self.cb_hftstra_entrust = CB_HFTSTRA_ENTRUST(self.on_hftstra_entrust)
+        self.cb_hftstra_position = CB_HFTSTRA_POSITION(self.on_hftstra_position)
         self.cb_hftstra_orddtl = CB_HFTSTRA_ORDDTL(self.on_hftstra_order_detail)
         self.cb_hftstra_ordque = CB_HFTSTRA_ORDQUE(self.on_hftstra_order_queue)
         self.cb_hftstra_trans = CB_HFTSTRA_TRANS(self.on_hftstra_transaction)
@@ -588,7 +595,7 @@ class WtWrapper:
             self.api.register_evt_callback(self.cb_engine_event)
             self.api.register_hft_callbacks(self.cb_stra_init, self.cb_stra_tick, self.cb_stra_bar, 
                 self.cb_hftstra_chnl_evt, self.cb_hftstra_order, self.cb_hftstra_trade, self.cb_hftstra_entrust,
-                self.cb_hftstra_orddtl, self.cb_hftstra_ordque, self.cb_hftstra_trans, self.cb_session_event)
+                self.cb_hftstra_orddtl, self.cb_hftstra_ordque, self.cb_hftstra_trans, self.cb_session_event, self.cb_hftstra_position)
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile, bytes(genDir, encoding = "utf8"))
         except OSError as oe:
             print(oe)

@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import json
 
+from wtpy.SessionMgr import SessionInfo
 from wtpy.wrapper import WtWrapper
 from wtpy.WtDataDefs import WtBarRecords, WtTickRecords, WtOrdDtlRecords, WtOrdQueRecords, WtTransRecords
 
@@ -148,6 +149,9 @@ class HftContext:
 
     def on_entrust(self, localid:int, stdCode:str, bSucc:bool, msg:str, userTag:str):
         self.__stra_info__.on_entrust(self, localid, stdCode, bSucc, msg, userTag)
+
+    def on_position(self, stdCode:str, isLong:bool, prevol:float, preavail:float, newvol:float, newavail:float):
+        self.__stra_info__.on_position(self, stdCode, isLong, prevol, preavail, newvol, newavail)
 
     def on_order(self, localid:int, stdCode:str, isBuy:bool, totalQty:float, leftQty:float, price:float, isCanceled:bool, userTag:str):
         self.__stra_info__.on_order(self, localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag)

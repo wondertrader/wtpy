@@ -237,6 +237,21 @@ class BaseHftStrategy:
         '''
         return
 
+    def on_position(self, context:HftContext, stdCode:str, isLong:bool, prevol:float, preavail:float, newvol:float, newavail:float):
+        '''
+        初始持仓回报
+        实盘可用, 回测的时候初始仓位都是空, 所以不需要
+
+        @context    策略上下文
+        @stdCode    合约代码
+        @isLong     是否为多
+        @prevol     昨仓
+        @preavail   可用昨仓
+        @newvol     今仓
+        @newavail   可用今仓
+        '''
+        return
+
 class BaseSelStrategy:
     '''
     选股策略基础类，所有的多因子策略都从该类派生
