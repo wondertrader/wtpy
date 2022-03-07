@@ -257,7 +257,7 @@ class BarList(CacheList):
             self.append(copy(thisBar))
             addr += bsSize
 
-    def on_self_count(self, count:int):
+    def on_data_count(self, count:int):
         pass
 
 class TickList(CacheList):
@@ -269,7 +269,7 @@ class TickList(CacheList):
             self.append(copy(thisTick))
             addr += tsSize
 
-    def on_self_count(self, count:int):
+    def on_data_count(self, count:int):
         pass
 
 # 回调函数定义
