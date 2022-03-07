@@ -1,6 +1,7 @@
 from flask import Flask, session, redirect, request, make_response
 from flask_compress  import Compress
 import json
+import yaml
 import datetime
 import os
 import hashlib
@@ -113,8 +114,13 @@ def get_cfg_tree(root:str, name:str):
     })
 
     filepath = os.path.join(root, "config.json")
+    isYaml = False
+    if not os.path.exists(filepath):
+        filepath = os.path.join(root, "config.yaml")
+        isYaml = True
+
     ret['children'].append({
-        "label":"config.json",
+        "label":"config.yaml" if isYaml else "config.json",
         "path":filepath,
         "exist":True,
         "isfile":True,
@@ -124,7 +130,11 @@ def get_cfg_tree(root:str, name:str):
     f = open(filepath, "r")
     content = f.read()
     f.close()
-    cfgObj = json.loads(content)
+    if isYaml:
+        cfgObj = yaml.full_load(content)
+    else:
+        cfgObj = json.loads(content)
+        
     if "executers" in cfgObj:
         filename = cfgObj["executers"]
         if type(filename) == str:

@@ -1,4 +1,5 @@
 import json
+import yaml
 import os
 import sqlite3
 import hashlib
@@ -225,10 +226,17 @@ class DataMgr:
             grpInfo = self.__config__["groups"][grpid]
             filepath = "./config.json"
             filepath = os.path.join(grpInfo["path"], filepath)
+            if not os.path.exists(filepath):
+                filepath = "./config.yaml"
+                filepath = os.path.join(grpInfo["path"], filepath)
+
             f = open(filepath, "r")
             content = f.read()
             f.close()
-            return json.loads(content)
+            if filepath.lower()[-4:] == 'yaml':
+                return yaml.full_load(content)
+            else:
+                return json.loads(content)
 
     def set_group_cfg(self, grpid:str, config:dict):
         if grpid not in self.__config__["groups"]:
@@ -237,9 +245,15 @@ class DataMgr:
             grpInfo = self.__config__["groups"][grpid]
             filepath = "./config.json"
             filepath = os.path.join(grpInfo["path"], filepath)
+            if not os.path.exists(filepath):
+                filepath = "./config.yaml"
+                filepath = os.path.join(grpInfo["path"], filepath)
             backup_file(filepath)
             f = open(filepath, "w")
-            f.write(json.dumps(config, indent=4))
+            if filepath.lower()[-4:] == 'yaml':
+                yaml.dump(config, f, indent=4, allow_unicode=True)
+            else:
+                f.write(json.dumps(config, indent=4))
             f.close()
             return True
 
