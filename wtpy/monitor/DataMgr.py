@@ -1200,6 +1200,11 @@ class DataMgr:
         self.__check_cache__(grpid, grpInfo)
         
         filepath = os.path.join(grpInfo["path"], 'filters.json')
+        isYaml = False
+        if not os.path.exists(filepath):
+            filepath = os.path.join(grpInfo["path"], 'filters.yaml')
+            isYaml = True
+        
         if not os.path.exists(filepath):
             filters = {}
         else:
@@ -1207,7 +1212,10 @@ class DataMgr:
             f = open(filepath, "r")
             try:
                 content = f.read()
-                filters = json.loads(content)
+                if isYaml:
+                    filters = yaml.full_load(content)
+                else:
+                    filters = json.loads(content)
             except:
                 pass
 
@@ -1272,9 +1280,16 @@ class DataMgr:
             realfilters["executer_filters"] = filters["executer_filters"]
         
         filepath = os.path.join(grpInfo["path"], 'filters.json')
+        isYaml = False
+        if not os.path.exists(filepath):
+            filepath = os.path.join(grpInfo["path"], 'filters.yaml')
+            isYaml = True
         backup_file(filepath)
         f = open(filepath, "w")
-        f.write(json.dumps(realfilters, indent=4))
+        if isYaml:
+            yaml.dump(realfilters, f, indent=4, allow_unicode=True)
+        else:
+            f.write(json.dumps(realfilters, indent=4))
         f.close()
         return True
             
