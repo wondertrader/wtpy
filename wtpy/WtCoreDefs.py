@@ -250,6 +250,13 @@ class CacheList(list):
 
 class BarList(CacheList):
     def on_read_bar(self, curBar:POINTER(WTSBarStruct), count:int, isLast:bool):
+        '''
+        读取bar数据回调函数
+        
+        @curBar    当前数据块首地址
+        @count      当前数据块条数
+        @isLast     是否是最后一块数据块
+        '''
         bsSize = sizeof(WTSBarStruct)
         addr = addressof(curBar.contents)
         for i in range(count):
@@ -258,10 +265,24 @@ class BarList(CacheList):
             addr += bsSize
 
     def on_data_count(self, count:int):
+        '''
+        读取数据时的总条数回调
+        该回调有可能会触发，也可能不会触发
+        如果触发，可以做一个预先分配容量的处理
+
+        @count  总的数据条数
+        '''
         pass
 
 class TickList(CacheList):
     def on_read_tick(self, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
+        '''
+        读取tick数据回调函数
+        
+        @curTick    当前数据块首地址
+        @count      当前数据块条数
+        @isLast     是否是最后一块数据块
+        '''
         tsSize = sizeof(WTSTickStruct)
         addr = addressof(curTick.contents)
         for i in range(count):
@@ -270,6 +291,13 @@ class TickList(CacheList):
             addr += tsSize
 
     def on_data_count(self, count:int):
+        '''
+        读取数据时的总条数回调
+        该回调有可能会触发，也可能不会触发
+        如果触发，可以做一个预先分配容量的处理
+
+        @count  总的数据条数
+        '''
         pass
 
 # 回调函数定义
