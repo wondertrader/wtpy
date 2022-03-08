@@ -194,7 +194,7 @@ class SessionMgr:
         f = open(fname, 'rb')
         content = f.read()
         f.close()
-        encoding = chardet.detect(content)["encoding"]
+        encoding = chardet.detect(content[:500])["encoding"]
         content = content.decode(encoding)
 
         if fname.lower().endswith(".yaml"):
