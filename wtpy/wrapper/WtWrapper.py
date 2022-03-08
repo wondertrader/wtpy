@@ -114,38 +114,6 @@ class WtWrapper:
         ctx = engine.get_context(id)
 
         realTick = newTick.contents
-        '''
-        tick = dict()
-        tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
-        tick["open"] = realTick.open
-        tick["high"] = realTick.high
-        tick["low"] = realTick.low
-        tick["price"] = realTick.price
-
-        tick["bidprice"] = list()
-        tick["bidqty"] = list()
-        tick["askprice"] = list()
-        tick["askqty"] = list()
-
-        tick["upper_limit"] = realTick.total_volume
-        tick["lower_limit"] = realTick.lower_limit
-
-        tick["total_volume"] = realTick.total_volume
-        tick["volume"] = realTick.volume
-        tick["total_turnover"] = realTick.total_turnover
-        tick["turn_over"] = realTick.turn_over
-        tick["open_interest"] = realTick.open_interest
-        tick["diff_interest"] = realTick.diff_interest
-
-        for i in range(10):
-            if realTick.bid_qty[i] != 0:
-                tick["bidprice"].append(realTick.bid_prices[i])
-                tick["bidqty"].append(realTick.bid_qty[i])
-
-            if realTick.ask_qty[i] != 0:
-                tick["askprice"].append(realTick.ask_prices[i])
-                tick["askqty"].append(realTick.ask_qty[i])
-        '''
         if ctx is not None:
             ctx.on_tick(bytes.decode(stdCode), realTick.to_tuple())
         return
@@ -210,33 +178,6 @@ class WtWrapper:
         ticks = [None]*count # 预先分配list的长度
         for idx in range(count):
             realTick = WTSTickStruct.from_address(addr)   # 从内存中直接解析成WTSTickStruct
-            # tick = dict()
-            # tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
-            # tick["open"] = realTick.open
-            # tick["high"] = realTick.high
-            # tick["low"] = realTick.low
-            # tick["price"] = realTick.price
-
-            # tick["bidprice"] = list()
-            # tick["bidqty"] = list()
-            # tick["askprice"] = list()
-            # tick["askqty"] = list()
-            
-            # tick["total_volume"] = realTick.total_volume
-            # tick["volume"] = realTick.volume
-            # tick["total_turnover"] = realTick.total_turnover
-            # tick["turn_over"] = realTick.turn_over
-            # tick["open_interest"] = realTick.open_interest
-            # tick["diff_interest"] = realTick.diff_interest
-
-            # for i in range(10):
-            #     if realTick.bid_qty[i] != 0:
-            #         tick["bidprice"].append(realTick.bid_prices[i])
-            #         tick["bidqty"].append(realTick.bid_qty[i])
-
-            #     if realTick.ask_qty[i] != 0:
-            #         tick["askprice"].append(realTick.ask_prices[i])
-            #         tick["askqty"].append(realTick.ask_qty[i])
             ticks[idx] = realTick.to_tuple()
             addr += tsSize
 
@@ -292,20 +233,7 @@ class WtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         newOrdQue = newOrdQue.contents
-        # curOrdQue = dict()
-        # curOrdQue["time"] = newOrdQue.action_date * 1000000000 + newOrdQue.action_time
-        # curOrdQue["side"] = newOrdQue.side
-        # curOrdQue["price"] = newOrdQue.price
-        # curOrdQue["order_items"] = newOrdQue.order_items
-        # curOrdQue["qsize"] = newOrdQue.qsize
-        # curOrdQue["volumes"] = list()
 
-        # for i in range(50):
-        #     if newOrdQue.volumes[i] == 0:
-        #         break
-        #     else:
-        #         curOrdQue["volumes"].append(newOrdQue.volumes[i])
-        
         if ctx is not None:
             ctx.on_order_queue(stdCode, newOrdQue.to_tuple())
 
@@ -317,20 +245,6 @@ class WtWrapper:
         item_list = [None]*count
         for i in range(count):
             realOrdQue = WTSOrdQueStruct.from_address(addr)
-            # curOrdQue = dict()
-            # curOrdQue["time"] = realOrdQue.action_date * 1000000000 + realOrdQue.action_time
-            # curOrdQue["side"] = realOrdQue.side
-            # curOrdQue["price"] = realOrdQue.price
-            # curOrdQue["order_items"] = realOrdQue.order_items
-            # curOrdQue["qsize"] = realOrdQue.qsize
-            # curOrdQue["volumes"] = list()
-
-            # for i in range(50):
-            #     if realOrdQue.volumes[i] == 0:
-            #         break
-            #     else:
-            #         curOrdQue["volumes"].append(realOrdQue.volumes[i])
-
             item_list[i] = realOrdQue.to_tuple()
             addr += szItem
             
@@ -341,14 +255,6 @@ class WtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         newOrdDtl = newOrdDtl.contents
-
-        # curOrdDtl = dict()
-        # curOrdDtl["time"] = newOrdDtl.action_date * 1000000000 + newOrdDtl.action_time
-        # curOrdDtl["index"] = newOrdDtl.index
-        # curOrdDtl["side"] = newOrdDtl.side
-        # curOrdDtl["price"] = newOrdDtl.price
-        # curOrdDtl["volume"] = newOrdDtl.volume
-        # curOrdDtl["otype"] = newOrdDtl.otype
         
         if ctx is not None:
             ctx.on_order_detail(stdCode, newOrdDtl.to_tuple())
@@ -361,14 +267,6 @@ class WtWrapper:
         item_list = [None]*count
         for i in range(count):
             realOrdDtl = WTSOrdDtlStruct.from_address(addr)
-            # curOrdDtl = dict()
-            # curOrdDtl["time"] = realOrdDtl.action_date * 1000000000 + realOrdDtl.action_time
-            # curOrdDtl["index"] = realOrdDtl.index
-            # curOrdDtl["side"] = realOrdDtl.side
-            # curOrdDtl["price"] = realOrdDtl.price
-            # curOrdDtl["volume"] = realOrdDtl.volume
-            # curOrdDtl["otype"] = realOrdDtl.otype
-
             item_list[i] = realOrdDtl.to_tuple()
             addr += szItem
             
@@ -379,16 +277,6 @@ class WtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         newTrans = newTrans.contents
-
-        # curTrans = dict()
-        # curTrans["time"] = newTrans.action_date * 1000000000 + newTrans.action_time
-        # curTrans["index"] = newTrans.index
-        # curTrans["ttype"] = newTrans.ttype
-        # curTrans["side"] = newTrans.side
-        # curTrans["price"] = newTrans.price
-        # curTrans["volume"] = newTrans.volume
-        # curTrans["askorder"] = newTrans.askorder
-        # curTrans["bidorder"] = newTrans.bidorder
         
         if ctx is not None:
             ctx.on_transaction(stdCode, newTrans.to_tuple())
