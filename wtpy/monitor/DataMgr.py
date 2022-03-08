@@ -213,7 +213,7 @@ class DataMgr:
     def has_group(self, grpid:str):
         return (grpid in self.__config__["groups"])
 
-    def get_group(self, grpid:str):
+    def get_group(self, grpid:str) -> dict:
         if grpid in self.__config__["groups"]:
             return self.__config__["groups"][grpid]
         else:

@@ -6,7 +6,6 @@ import datetime
 import os
 import hashlib
 import sys
-import base64
 import chardet
 import pytz
 
@@ -14,7 +13,6 @@ from .WtLogger import WtLogger
 from .DataMgr import DataMgr, backup_file
 from .PushSvr import PushServer
 from .WatchDog import WatchDog, WatcherSink
-from .EventReceiver import EventReceiver, EventSink
 from .WtBtMon import WtBtMon
 from wtpy import WtDtServo
 
@@ -232,9 +230,17 @@ def get_path_tree(root:str, name:str, hasFile:bool = True):
         ret["children"] = ay
     return ret
 
+class WtMonSink:
+
+    def __init__(self):
+        return
+
+    def notify(self, level:str, msg:str):
+        return
+
 class WtMonSvr(WatcherSink):
 
-    def __init__(self, static_folder:str="", static_url_path="/", deploy_dir="C:/"):
+    def __init__(self, static_folder:str="", static_url_path="/", deploy_dir="C:/", sink:WtMonSink = None):
         '''
         WtMonSvr构造函数
 
@@ -246,6 +252,7 @@ class WtMonSvr(WatcherSink):
             static_folder = 'static'
 
         self.logger = WtLogger(__name__, "WtMonSvr.log")
+        self._sink_ = sink
 
         # 数据管理器，主要用于缓存各组合的数据
         self.__data_mgr__ = DataMgr('data.db', logger=self.logger)
@@ -2316,9 +2323,14 @@ class WtMonSvr(WatcherSink):
         if self.__data_mgr__.has_group(grpid):
             self.push_svr.notifyGrpEvt(grpid, 'start')
 
-    def on_stop(self, grpid:str):
+    def on_stop(self, grpid:str, isErr:bool):
         if self.__data_mgr__.has_group(grpid):
             self.push_svr.notifyGrpEvt(grpid, 'stop')
+        
+        # 如果是错误，要通知管理员
+        if isErr and self._sink_:
+            grpInfo = self.__data_mgr__.get_group(grpid)
+            self._sink_.notify("fatal", "检测到 %s[%s] 意外停止, 请及时处理!!!"%(grpInfo["name"], grpid))
     
     def on_output(self, grpid:str, tag:str, time:int, message:str):
         if self.__data_mgr__.has_group(grpid):
