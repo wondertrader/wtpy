@@ -190,7 +190,7 @@ class SessionMgr:
         return
 
 
-    def load(self, fname:int):
+    def load(self, fname:str):
         f = open(fname, 'rb')
         content = f.read()
         f.close()
