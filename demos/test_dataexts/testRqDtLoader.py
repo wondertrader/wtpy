@@ -1,4 +1,3 @@
-import gqdb_sdk as gqdb
 import rqdatac as rq
 from wtpy.WtCoreDefs import WTSBarStruct, WTSTickStruct
 from wtpy.wrapper import WtDataHelper
