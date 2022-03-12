@@ -260,8 +260,8 @@ class RqFeed(Ifeed):
             df["time"] =  df["datetime"].dt.strftime("%H%M%S%f")
             df["trading_date"] =  df["trading_date"].dt.strftime("%Y%m%d")
         else:
-            df["date"] =  df["date"].astype("str")
-            df["time"] = "00:00:00"
+            df["date"] =  df["date"].dt.strftime("%Y%m%d")
+            df["time"] = "000000"
             
         multiplier = self.rq.futures.get_contract_multiplier(pid.upper(),start_date,end_date)["contract_multiplier"].max()
         df["settle_price"] = ((df["total_turnover"] / df["volume"]) * multiplier).fillna(0.0)
@@ -287,8 +287,8 @@ class RqFeed(Ifeed):
             df["date"] =  df["datetime"].dt.strftime("%Y%m%d")
             df["time"] =  df["datetime"].dt.strftime("%H%M%S")
         else:
-            df["date"] =  df["date"].astype("str")
-            df["time"] = "00:00:00"
+            df["date"] =  df["date"].dt.strftime("%Y%m%d")
+            df["time"] = "000000"
         df = df[[col for col in self.bar_col_map.keys()]]
         df = df.rename(columns=self.bar_col_map)
         return df
