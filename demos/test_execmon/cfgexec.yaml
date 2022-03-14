@@ -8,6 +8,7 @@ basefiles:
 #数据存储
 data:
     store:
+        session: TRADING
         path: ../FUT_Data/      #数据存储根目录
             
 fees: ../common/fees.json   #佣金配置文件
