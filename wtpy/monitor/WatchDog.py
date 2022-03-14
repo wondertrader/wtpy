@@ -429,7 +429,7 @@ class WatchDog:
             return
 
         self.__apps__.pop(appid)
-
+        self.__app_conf__.pop(appid)
         cur = self.__db_conn__.cursor()
         cur.execute("DELETE FROM schedules WHERE appid='%s';" % (appid))
         self.__db_conn__.commit()
