@@ -21,7 +21,7 @@ class MyDataLoader(BaseExtDataLoader):
         '''
         print("loading %s bars of %s from extended loader" % (period, stdCode))
 
-        df = pd.read_csv('./storage/csv/CFFEX.IF.HOT_m5.csv')
+        df = pd.read_csv('../storage/csv/CFFEX.IF.HOT_m5.csv')
         df = df.rename(columns={
             '<Date>':'date',
             ' <Time>':'time',
@@ -100,7 +100,7 @@ def test_in_bt():
     engine = WtBtEngine(EngineType.ET_CTA)
 
     # 初始化之前，向回测框架注册加载器
-    engine.set_extended_data_loader(loader=MyDataLoader(), bAutoTrans=True)
+    engine.set_extended_data_loader(loader=MyDataLoader(), bAutoTrans=False)
 
     engine.init('../common/', "configbt.yaml")
 
