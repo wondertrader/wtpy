@@ -12,7 +12,7 @@ from Strategies.DualThrust import StraDualThrust
 
 class MyDataLoader(BaseExtDataLoader):
     
-    def load_his_bars(self, stdCode:str, period:str, feeder) -> bool:
+    def load_final_his_bars(self, stdCode:str, period:str, feeder) -> bool:
         '''
         加载历史K线（回测、实盘）
         @stdCode    合约代码，格式如CFFEX.IF.2106
@@ -49,7 +49,7 @@ class MyDataLoader(BaseExtDataLoader):
         feeder(buffer, len(df))
         return True
 
-    def load_his_tick(self, stdCode:str, uDate:int, feeder) -> bool:
+    def load_his_ticks(self, stdCode:str, uDate:int, feeder) -> bool:
         '''
         加载历史K线（只在回测有效，实盘只提供当日落地的）
         @stdCode    合约代码，格式如CFFEX.IF.2106
