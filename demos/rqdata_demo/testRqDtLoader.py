@@ -146,6 +146,8 @@ class Ifeed(object):
         save_path = os.path.join(storage_path,"his",period,exchange)
         if not os.path.exists(save_path):
             os.makedirs(save_path)
+        if exchange == "CZCE":
+            month = month[-3:]
         dsb_name = f"{pid}{month}.dsb"
         dsb_path = os.path.join(save_path,dsb_name)
         if skip_saved:
@@ -174,6 +176,8 @@ class Ifeed(object):
             if (df is None) or (df.empty):
                 print(f"{date}:{code}没有数据")
                 continue
+            if exchange == "CZCE":
+                month = month[-3:]
             dsb_path = os.path.join(save_path,f"{pid}{month}.dsb")
             self.tick_df_to_dsb(df,dsb_path)
         
