@@ -1,4 +1,4 @@
-from ctypes import cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, POINTER, addressof, sizeof
+from ctypes import cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, c_int, POINTER, addressof, sizeof
 from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
@@ -69,9 +69,9 @@ class WtBtWrapper:
         self.api.hft_get_undone.restype = c_double
         
         self.api.hft_buy.restype = c_char_p
-        self.api.hft_buy.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
+        self.api.hft_buy.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p, c_int]
         self.api.hft_sell.restype = c_char_p
-        self.api.hft_sell.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p]
+        self.api.hft_sell.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p, c_int]
         # 回测不需要 self.api.hft_cancel_all.restype = c_char_p
 
         self.api.set_time_range.argtypes = [c_uint64, c_uint64]
@@ -1112,7 +1112,7 @@ class WtBtWrapper:
         ret = self.api.hft_cancel_all(id, bytes(stdCode, encoding = "utf8"), isBuy)
         return bytes.decode(ret)
 
-    def hft_buy(self, id:int, stdCode:str, price:float, qty:float, userTag:str):
+    def hft_buy(self, id:int, stdCode:str, price:float, qty:float, userTag:str, flag:int):
         '''
         买入指令
         @id         策略ID
@@ -1120,10 +1120,10 @@ class WtBtWrapper:
         @price      买入价格, 0为市价
         @qty        买入数量
         '''
-        ret = self.api.hft_buy(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
+        ret = self.api.hft_buy(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"), flag)
         return bytes.decode(ret)
 
-    def hft_sell(self, id:int, stdCode:str, price:float, qty:float, userTag:str):
+    def hft_sell(self, id:int, stdCode:str, price:float, qty:float, userTag:str, flag:int):
         '''
         卖出指令
         @id         策略ID
@@ -1131,7 +1131,7 @@ class WtBtWrapper:
         @price      卖出价格, 0为市价
         @qty        卖出数量
         '''
-        ret = self.api.hft_sell(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"))
+        ret = self.api.hft_sell(id, bytes(stdCode, encoding = "utf8"), price, qty, bytes(userTag, encoding = "utf8"), flag)
         return bytes.decode(ret)
 
     def hft_step(self, id:int):
