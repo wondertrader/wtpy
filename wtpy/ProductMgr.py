@@ -1,4 +1,7 @@
 import json
+import yaml
+import os
+import chardet
 
 class ProductInfo:
     '''
@@ -10,11 +13,10 @@ class ProductInfo:
         self.product = ''   #品种代码
         self.name = ''      #品种名称
         self.session = ''   #交易时段名
-        self.covermode = 0  #平仓模式
-        self.pricemode = 0  #价格模式
-        self.precision = 0  #精度
         self.pricetick = 0  #价格变动单位
         self.volscale = 1   #数量乘数
+        self.minlots = 1    #最小交易数量
+        self.lotstick = 1    #交易数量变动单位
 
 class ProductMgr:
     '''
@@ -28,11 +30,19 @@ class ProductMgr:
         '''
         从文件加载品种信息
         '''
-        f = open(fname, 'r', encoding="gbk")
+        if not os.path.exists(fname):
+            return
+        f = open(fname, 'rb')
         content = f.read()
         f.close()
+        encoding = chardet.detect(content[:500])["encoding"]
+        content = content.decode(encoding)
 
-        exchgMap = json.loads(content)
+        if fname.lower().endswith(".yaml"):
+            exchgMap = yaml.full_load(content)
+        else:
+            exchgMap = json.loads(content)
+
         for exchg in exchgMap:
             exchgObj = exchgMap[exchg]
             for pid in exchgObj:
@@ -42,15 +52,20 @@ class ProductMgr:
                 pInfo.product = pid
                 pInfo.name = pObj["name"]
                 pInfo.session = pObj["session"]
-                pInfo.covermode = int(pObj["covermode"])
-                pInfo.pricemode = int(pObj["pricemode"])
                 pInfo.precision = int(pObj["precision"])
                 pInfo.volscale = int(pObj["volscale"])
                 pInfo.pricetick = float(pObj["pricetick"])
 
+                if "minlots" in pObj:
+                    pInfo.minlots = float(pObj["minlots"])
+                if "lotstick" in pObj:
+                    pInfo.lotstick = float(pObj["lotstick"])
+
                 key = "%s.%s" % (exchg, pid)
                 self.__products__[key] = pInfo
-
+    
+    def addProductInfo(self, key:str, pInfo:ProductInfo):
+        self.__products__[key] = pInfo
 
     def getProductInfo(self, pid:str) -> ProductInfo:
         #pid形式可能为SHFE.ag.HOT，或者SHFE.ag.1912，或者SHFE.ag

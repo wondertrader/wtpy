@@ -1,5 +1,7 @@
 import math
 import json
+import yaml
+import chardet
 
 class SectionInfo:
 
@@ -188,12 +190,17 @@ class SessionMgr:
         return
 
 
-    def load(self, fname:int):
-        f = open(fname, 'r', encoding="gbk")
+    def load(self, fname:str):
+        f = open(fname, 'rb')
         content = f.read()
         f.close()
+        encoding = chardet.detect(content[:500])["encoding"]
+        content = content.decode(encoding)
 
-        sessions_dict = json.loads(content)
+        if fname.lower().endswith(".yaml"):
+            sessions_dict = yaml.full_load(content)
+        else:
+            sessions_dict = json.loads(content)
         for sid in sessions_dict:            
             if sid in self.__sessions__:
                 continue

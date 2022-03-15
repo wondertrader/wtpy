@@ -7,7 +7,7 @@ class WtTickRecords(DequeRecord):
     def __init__(self, size: int):
         super().__init__(size=size, fields={
             'time': np.uint64,
-            'exchg': 'U10',
+            'exchg': 'U16',
             'code': 'U32',
 
             'price': np.double,
@@ -19,12 +19,12 @@ class WtTickRecords(DequeRecord):
             'upper_limit': np.double,
             'lower_limit': np.double,
 
-            'total_volume': np.uint32,
-            'volume': np.uint32,
+            'total_volume': np.double,
+            'volume': np.double,
             'total_turnover': np.double,
             'turn_over': np.double,
-            'open_interest': np.uint32,
-            'diff_interest': np.int32,
+            'open_interest': np.double,
+            'diff_interest': np.double,
 
             'trading_date': np.uint32,
             'action_date': np.uint32,
@@ -32,7 +32,7 @@ class WtTickRecords(DequeRecord):
 
             'pre_close': np.double,
             'pre_settle': np.double,
-            'pre_interest': np.uint32,
+            'pre_interest': np.double,
 
             'bid_prices_0': np.double,
             'bid_prices_1': np.double,
@@ -56,27 +56,27 @@ class WtTickRecords(DequeRecord):
             'ask_prices_8': np.double,
             'ask_prices_9': np.double,
 
-            'bid_qty_0': np.uint32,
-            'bid_qty_1': np.uint32,
-            'bid_qty_2': np.uint32,
-            'bid_qty_3': np.uint32,
-            'bid_qty_4': np.uint32,
-            'bid_qty_5': np.uint32,
-            'bid_qty_6': np.uint32,
-            'bid_qty_7': np.uint32,
-            'bid_qty_8': np.uint32,
-            'bid_qty_9': np.uint32,
+            'bid_qty_0': np.double,
+            'bid_qty_1': np.double,
+            'bid_qty_2': np.double,
+            'bid_qty_3': np.double,
+            'bid_qty_4': np.double,
+            'bid_qty_5': np.double,
+            'bid_qty_6': np.double,
+            'bid_qty_7': np.double,
+            'bid_qty_8': np.double,
+            'bid_qty_9': np.double,
 
-            'ask_qty_0': np.uint32,
-            'ask_qty_1': np.uint32,
-            'ask_qty_2': np.uint32,
-            'ask_qty_3': np.uint32,
-            'ask_qty_4': np.uint32,
-            'ask_qty_5': np.uint32,
-            'ask_qty_6': np.uint32,
-            'ask_qty_7': np.uint32,
-            'ask_qty_8': np.uint32,
-            'ask_qty_9': np.uint32
+            'ask_qty_0': np.double,
+            'ask_qty_1': np.double,
+            'ask_qty_2': np.double,
+            'ask_qty_3': np.double,
+            'ask_qty_4': np.double,
+            'ask_qty_5': np.double,
+            'ask_qty_6': np.double,
+            'ask_qty_7': np.double,
+            'ask_qty_8': np.double,
+            'ask_qty_9': np.double
         })
 
     def from_struct(self, data: WTSTickStruct):
@@ -116,7 +116,7 @@ class WtOrdQueRecords(DequeRecord):
     def __init__(self, size: int):
         super().__init__(size=size, fields={
             'time': np.uint64,
-            'exchg': 'U10',
+            'exchg': 'U16',
             'code': 'U32',
             
             'trading_date': np.uint32,
@@ -134,7 +134,7 @@ class WtOrdDtlRecords(DequeRecord):
     def __init__(self, size: int):
         super().__init__(size=size, fields={
             'time': np.uint64,
-            'exchg': 'U10',
+            'exchg': 'U16',
             'code': 'U32',
             
             'trading_date': np.uint32,
@@ -152,7 +152,7 @@ class WtTransRecords(DequeRecord):
     def __init__(self, size: int):
         super().__init__(size=size, fields={
             'time': np.uint64,
-            'exchg': 'U10',
+            'exchg': 'U16',
             'code': 'U32',
 
             'trading_date': np.uint32,
@@ -180,9 +180,9 @@ class WtBarRecords(DequeRecord):
             close=np.double,
             settle=np.double,
             money=np.double,
-            volume=np.uint32,
-            hold=np.uint32,
-            diff=np.int32,
+            volume=np.double,
+            hold=np.double,
+            diff=np.double,
         ))
 
     @property

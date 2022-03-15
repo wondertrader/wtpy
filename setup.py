@@ -14,11 +14,11 @@ from setuptools import find_packages, setup, Command, Distribution
 # Package meta-data.
 NAME = 'wtpy'
 DESCRIPTION = 'Python Sub Framework Of WonderTrader'
-URL = 'https://github.com/wondertrader/wondertrader'
+URL = 'https://github.com/wondertrader/wtpy'
 EMAIL = 'silencesword@foxmail.com'
 AUTHOR = 'Wesley Liu'
 REQUIRES_PYTHON = '>=3.5.0'
-VERSION = '0.8.0'
+VERSION = '0.9.0'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
@@ -30,7 +30,9 @@ REQUIRED = [
     'pyquery', 
     'flask-compress', 
     'psutil', 
-    'chardet'
+    'chardet',
+    'pyyaml',
+    'matplotlib'
 ]
 
 # What packages are optional?

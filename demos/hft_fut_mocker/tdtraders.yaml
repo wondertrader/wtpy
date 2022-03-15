@@ -1,0 +1,13 @@
+traders:
+-   active: true
+    front: mocker://localhost
+    id: mocker
+    maxqty: 100
+    minqty: 1
+    mockerid: 9999
+    module: TraderMocker
+    newpx: true
+    savedata: true
+    span: 100
+    udp_port: 9001
+    user: mocker9999

@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import json
 
+from wtpy.SessionMgr import SessionInfo
 from wtpy.wrapper import WtWrapper
 from wtpy.WtDataDefs import WtBarRecords, WtTickRecords, WtOrdDtlRecords, WtOrdQueRecords, WtTransRecords
 
@@ -84,8 +85,10 @@ class HftContext:
         # By Wesley @ 2021.12.24
         # 因为新的数据结构传进来是一个tuple
         # 所以必须通过缓存中抓一下，才能当成dict传给策略
+        # 如果合约的tick没有缓存，则预先分配一个长度为4的tick容器
+        # 如果调用stra_get_ticks，再重新分配容器
         if stdCode not in self.__tick_cache__:
-            return
+            self.__tick_cache__[stdCode] = WtTickRecords(size = 4)
 
         self.__tick_cache__[stdCode].append(newTick)
         self.__stra_info__.on_tick(self, stdCode, self.__tick_cache__[stdCode][-1])
@@ -146,6 +149,9 @@ class HftContext:
 
     def on_entrust(self, localid:int, stdCode:str, bSucc:bool, msg:str, userTag:str):
         self.__stra_info__.on_entrust(self, localid, stdCode, bSucc, msg, userTag)
+
+    def on_position(self, stdCode:str, isLong:bool, prevol:float, preavail:float, newvol:float, newavail:float):
+        self.__stra_info__.on_position(self, stdCode, isLong, prevol, preavail, newvol, newavail)
 
     def on_order(self, localid:int, stdCode:str, isBuy:bool, totalQty:float, leftQty:float, price:float, isCanceled:bool, userTag:str):
         self.__stra_info__.on_order(self, localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag)
@@ -241,9 +247,12 @@ class HftContext:
         @stdCode   合约代码
         @count  要拉取的tick数量
         '''
-        if stdCode in self.__tick_cache__:
+        # By Wesley @ 2021.12.24
+        # 之前在stra_get_bars的时候生成了一个size为4的临时tick缓存
+        # 所以这里要加一个判断，如果没有缓存，或者缓存的长度为4，则重新分配新的缓存
+        if stdCode in self.__tick_cache__ and self.__tick_cache__[stdCode].size > 4:
             #这里做一个数据长度处理
-            return self.__bar_cache__[stdCode]
+            return self.__tick_cache__[stdCode]
 
         self.__tick_cache__[stdCode] = WtTickRecords(size=count)
         cnt = self.__wrapper__.hft_get_ticks(self.__id__, stdCode, count)
@@ -357,6 +366,16 @@ class HftContext:
         if self.__engine__ is None:
             return None
         return self.__engine__.getProductInfo(stdCode)
+        
+    def stra_get_sessinfo(self, stdCode:str) -> SessionInfo:
+        '''
+        获取交易时段详情
+        @stdCode   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag
+        @return 品种信息，结构请参考SessionMgr中的SessionInfo
+        '''
+        if self.__engine__ is None:
+            return None
+        return self.__engine__.getSessionByCode(stdCode)
 
     def stra_sub_ticks(self, stdCode:str):
         '''
@@ -391,15 +410,16 @@ class HftContext:
             localids.append(int(localid))
         return localids
 
-    def stra_buy(self, stdCode:str, price:float, qty:float, userTag:str):
+    def stra_buy(self, stdCode:str, price:float, qty:float, userTag:str, flag:int = 0):
         '''
         买入指令
         @id         策略ID
         @stdCode    品种代码
         @price      买入价格, 0为市价
         @qty        买入数量
+        @flag       下单标志, 0-normal, 1-fak, 2-fok
         '''
-        idstr = self.__wrapper__.hft_buy(self.__id__, stdCode, price, qty, userTag)
+        idstr = self.__wrapper__.hft_buy(self.__id__, stdCode, price, qty, userTag, flag)
         if len(idstr) == 0:
             return list()
             
@@ -409,15 +429,16 @@ class HftContext:
             localids.append(int(localid))
         return localids
 
-    def stra_sell(self, stdCode:str, price:float, qty:float, userTag:str):
+    def stra_sell(self, stdCode:str, price:float, qty:float, userTag:str, flag:int = 0):
         '''
         卖出指令
         @id         策略ID
         @stdCode    品种代码
         @price      卖出价格, 0为市价
         @qty        卖出数量
+        @flag       下单标志, 0-normal, 1-fak, 2-fok
         '''
-        idstr = self.__wrapper__.hft_sell(self.__id__, stdCode, price, qty, userTag)
+        idstr = self.__wrapper__.hft_sell(self.__id__, stdCode, price, qty, userTag, flag)
         if len(idstr) == 0:
             return list()
             

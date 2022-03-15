@@ -25,7 +25,8 @@ class WtDtWrapper:
     ver = "Unknown"
     
     # 构造函数，传入动态库名
-    def __init__(self):
+    def __init__(self, engine):
+        self._engine = engine
         paths = os.path.split(__file__)
         dllname = ph.getModule("WtDtPorter")
         a = (paths[:-1] + (dllname,))
@@ -52,29 +53,29 @@ class WtDtWrapper:
         '''
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
 
-    def initialize(self, cfgfile:str = "dtcfg.json", logprofile:str = "logcfgdt.json"):
+    def initialize(self, cfgfile:str = "dtcfg.yaml", logprofile:str = "logcfgdt.jsyamlon"):
         '''
         C接口初始化
         '''
         try:
             self.api.initialize(bytes(cfgfile, encoding = "utf8"), bytes(logprofile, encoding = "utf8"))
+            self.register_extended_module_callbacks()
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "WonderTrader datakit initialzied，version：%s" % (self.ver))
+        self.write_log(102, "WonderTrader datakit initialzied，version: %s" % (self.ver))
 
     def create_extended_parser(self, id:str) -> bool:
         return self.api.create_ext_parser(bytes(id, encoding = "utf8"))
 
-    def push_quote_from_exetended_parser(self, id:str, newTick:POINTER(WTSTickStruct), bNeedSlice:bool = True):
-        return self.api.parser_push_quote(bytes(id, encoding = "utf8"), newTick, bNeedSlice)
+    def push_quote_from_exetended_parser(self, id:str, newTick:POINTER(WTSTickStruct), uProcFlag:int = 1):
+        return self.api.parser_push_quote(bytes(id, encoding = "utf8"), newTick, uProcFlag)
 
     def register_extended_module_callbacks(self,):
         self.cb_parser_event = CB_PARSER_EVENT(self.on_parser_event)
         self.cb_parser_subcmd = CB_PARSER_SUBCMD(self.on_parser_sub)
 
         self.api.register_parser_callbacks(self.cb_parser_event, self.cb_parser_subcmd)
-        self.api.register_exec_callbacks(self.cb_executer_init, self.cb_executer_cmd)
 
     def create_extended_dumper(self, id:str) -> bool:
         return self.api.create_ext_dumper(bytes(id, encoding = "utf8"))

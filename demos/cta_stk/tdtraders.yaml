@@ -1,0 +1,20 @@
+traders:
+-   active: true
+    client: 1
+    host: 120.27.164.69
+    id: simnow
+    module: TraderXTP
+    user: 你的XTP仿真账号,
+    pass: 你的XTP仿真密码,
+    acckey: 你的XTP仿真key,
+    port: 6001
+    quick: true
+    riskmon:
+        active: true
+        policy:
+            default:
+                cancel_stat_timespan: 10
+                cancel_times_boundary: 20
+                cancel_total_limits: 470
+                order_stat_timespan: 10
+                order_times_boundary: 20

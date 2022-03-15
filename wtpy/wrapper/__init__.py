@@ -6,4 +6,4 @@ from .ContractLoader import ContractLoader,LoaderType
 from .WtDtHelper import WtDataHelper
 from .WtDtServoApi import WtDtServoApi
 
-__all__ = ["WtWrapper", "WtExecApi", "WtDtWrapper", "WtBtWrapper", "ContractLoader","LoaderType","WtDataHelper",'WtDtServoApi']
+__all__ = ["WtWrapper", "WtExecApi", "WtDtWrapper", "WtBtWrapper", "ContractLoader","LoaderType","WtDataHelper","WtDtServoApi"]

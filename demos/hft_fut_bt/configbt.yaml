@@ -1,0 +1,51 @@
+replayer:
+    basefiles:
+        commodity: ../common/commodities.json
+        contract: ../common/contracts.json
+        holiday: ../common/holidays.json
+        hot: ../common/hots.json
+        session: ../common/sessions.json
+    mode: csv
+    path: ../storage/
+    fees: ../common/fees.json
+    adjfactor: adjfactors.json
+    stime: 202101040931
+    etime: 202101121500
+    tick: true
+env:
+    mocker: hft
+hft0:
+    error_rate: 30
+    module: WzHftStraFact
+    strategy:
+        name: OrderImbalance
+        params:
+            active_sections:
+            -   end: 1457
+                start: 931
+            beta_0: 0.01171
+            beta_oi:
+            - 0.00489
+            - 0.00319
+            - 0.00109
+            - 0.00044
+            - 0.00036
+            - 0.00164
+            beta_r: 0.01371
+            beta_rou:
+            - 0.02654
+            - -0.03374
+            - -0.00443
+            - 0.00421
+            - -0.00117
+            - -0.00404
+            code: CFFEX.IF.HOT
+            count: 6
+            expsecs: 5
+            freq: 20
+            lots: 1
+            offset: 0
+            reserve: 0
+            stock: false
+            threshold: 0.3
+    use_newpx: true

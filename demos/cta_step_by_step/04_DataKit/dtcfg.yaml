@@ -1,0 +1,24 @@
+basefiles:
+    commodity: ../common/commodities.json
+    contract: ../common/contracts.json
+    holiday: ../common/holidays.json
+    session: ../common/sessions.json
+broadcaster:
+    active: true
+    bport: 3997
+    broadcast:
+    -   host: 255.255.255.255
+        port: 9001
+        type: 2
+parsers:
+-   active: true
+    broker: '9999'
+    front: tcp://180.168.146.187:10111
+    module: ParserCTP
+    pass: yourpassword
+    user: yourusername
+writer:
+    async: false
+    groupsize: 1000
+    path: ../storage/
+    savelog: false

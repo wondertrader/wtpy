@@ -1,0 +1,42 @@
+basefiles:
+    commodity: ../common/stk_comms.json
+    contract: ../common/stocks.json
+    holiday: ../common/holidays.json
+    session: ../common/sessions.json
+bspolicy: actpolicy.yaml
+data:
+    store:
+        path: ../STK_Data/
+env:
+    fees: ../common/fees_stk.json
+    filters: filters.yaml
+    mode: product
+    name: cta
+    product:
+        session: TRADING
+    riskmon:
+        active: true
+        base_amount: 5000000
+        basic_ratio: 101
+        calc_span: 5
+        inner_day_active: true
+        inner_day_fd: 20.0
+        module: WtRiskMonFact
+        multi_day_active: false
+        multi_day_fd: 60.0
+        name: SimpleRiskMon
+        risk_scale: 0.3
+        risk_span: 30
+executers:
+-   active: true
+    id: exe0
+    policy:
+        default:
+            expire: 40
+            name: WtExeFact.WtSimpExeUnit
+            offset: 0
+            opposite: true
+    scale: 1
+    trader: simnow
+parsers: tdparsers.yaml
+traders: tdtraders.yaml

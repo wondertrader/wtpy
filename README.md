@@ -1,6 +1,6 @@
 ![WonderTrader2.png](http://wt.f-sailors.cn/wt/logo_qcode_noad.jpg)
 <p align="center">
-    <img src ="https://img.shields.io/badge/version-0.8.0-blueviolet.svg"/>
+    <img src ="https://img.shields.io/badge/version-0.9.0-blueviolet.svg"/>
     <img src ="https://img.shields.io/badge/platform-windows|linux-yellow.svg"/>
     <img src ="https://img.shields.io/badge/build-passing-brightgreen"/>
     <img src ="https://img.shields.io/badge/license-MIT-orange"/>
@@ -54,6 +54,20 @@
 
 
 # 更新日志
+### 0.9.0(重大版本)
+* `C++`底层更新到`2022/03/14`发布的`v0.9.0`版本
+* （**重要**）重构了底层数据结构WTSTickStruct和WTSBarStruct，wtpy做了同步修改
+* （**重要**）配置文件全面兼容yaml和json两种格式，并实现了一个WTSCfgLoader模块自动处理
+* （**重要**）底层实现了对7*24小时交易品种的支持
+* （**重要**）完善了监控服务，支持扩展异常事件通知接口
+* 新增一个WtCCLoader模块，用于从网络接口加载合约列表
+* 新增一个遗传算法参数优化模块WtCtaGAOptimizer
+* demo进一步完善
+* 其他配合底层的优化和调整
+* 更多修改日志请参考[WonderTrader v0.9.0更新日志](https://github.com/wondertrader/wondertrader/blob/master/updatelog.md)
+* 调试资源请查看<https://gitee.com/wondertrader/wtpy_utils/raw/master/pdb_wtpy_v0.9.0.rar>
+
+
 ### 0.8.0(大版本)
 * `C++`底层更新到`2021/12/24`发布的`v0.8.0`版本
 * （**重要**）实现了`ExtDataLoder`的机制，实盘和回测框架都可以通过应用层的扩展数据加载器加载历史数据（可参考`demos/test_dataexts`）

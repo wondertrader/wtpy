@@ -14,14 +14,14 @@ from .ContractMgr import ContractMgr, ContractInfo
 
 from .CodeHelper import CodeHelper
 
-import os
 import json
+import yaml
 
 
 @singleton
 class WtBtEngine:
 
-    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.json", isFile:bool = True, bDumpCfg:bool = False, outDir:str = "./outputs_bt"):
+    def __init__(self, eType:EngineType = EngineType.ET_CTA, logCfg:str = "logcfgbt.yaml", isFile:bool = True, bDumpCfg:bool = False, outDir:str = "./outputs_bt"):
         '''
         构造函数
         @eType  引擎类型
@@ -40,6 +40,7 @@ class WtBtEngine:
         self.__idx_writer__ = None  #指标输出模块
 
         self.__dump_config__ = bDumpCfg #是否保存最终配置
+        self.__is_cfg_yaml__ = True
 
         self.__ext_data_loader__:BaseExtDataLoader = None   #扩展历史数据加载器
 
@@ -59,10 +60,10 @@ class WtBtEngine:
             self.__config__["replayer"] = dict()
             self.__config__["replayer"]["basefiles"] = dict()
 
-        if "replayer" not in self.__config__:
-            self.__config__["replayer"] = dict()
             self.__config__["replayer"]["mode"] = "csv"
-            self.__config__["replayer"]["path"] = "./storage/"
+            self.__config__["replayer"]["store"] = {
+                "path":"./storage/"
+            }
 
         if "env" not in self.__config__:
             self.__config__["env"] = dict()
@@ -85,35 +86,54 @@ class WtBtEngine:
         if self.__idx_writer__ is not None:
             self.__idx_writer__.write_indicator(id, tag, time, data)
 
-    def init(self, folder:str, cfgfile:str = "configbt.json", commfile:str="commodities.json", contractfile:str="contracts.json"):
+    def init(self, folder:str, 
+        cfgfile:str = "configbt.yaml", 
+        commfile:str="commodities.json", 
+        contractfile:str="contracts.json",
+        sessionfile:str="sessions.json",
+        holidayfile:str="holidays.json",
+        hotfile:str="hots.json",
+        secondfile:str="seconds.json"):
         '''
         初始化
         @folder     基础数据文件目录，\\结尾
-        @cfgfile    配置文件，json格式
-        @commfile   品种定义文件，json格式
-        @contractfile   合约定义文件，json格式
+        @cfgfile    配置文件，json/yaml格式
+        @commfile   品种定义文件，json/yaml格式
+        @contractfile   合约定义文件，json/yaml格式
         '''
         f = open(cfgfile, "r")
         content =f.read()
-        self.__config__ = json.loads(content)
         f.close()
+
+        if cfgfile.lower().endswith(".json"):
+            self.__config__ = json.loads(content)
+            self.__is_cfg_yaml__ = False
+        else:
+            self.__config__ = yaml.full_load(content)
+            self.__is_cfg_yaml__ = True
 
         self.__check_config__()
 
-        self.__config__["replayer"]["basefiles"]["commodity"] = folder + commfile
         self.__config__["replayer"]["basefiles"]["contract"] = folder + contractfile
-        self.__config__["replayer"]["basefiles"]["holiday"] = folder + "holidays.json"
-        self.__config__["replayer"]["basefiles"]["session"] = folder + "sessions.json"
-        self.__config__["replayer"]["basefiles"]["hot"] = folder + "hots.json"
+        self.__config__["replayer"]["basefiles"]["session"] = folder + sessionfile
+        if commfile is not None:
+            self.__config__["replayer"]["basefiles"]["commodity"] = folder + commfile
+        if holidayfile is not None:
+            self.__config__["replayer"]["basefiles"]["holiday"] = folder + holidayfile
+        if hotfile is not None:
+            self.__config__["replayer"]["basefiles"]["hot"] = folder + hotfile
+        if secondfile is not None:
+            self.__config__["replayer"]["basefiles"]["second"] = folder + secondfile
 
         self.productMgr = ProductMgr()
-        self.productMgr.load(folder + commfile)
+        if commfile is not None:
+            self.productMgr.load(folder + commfile)
 
-        self.contractMgr = ContractMgr()
+        self.contractMgr = ContractMgr(self.productMgr)
         self.contractMgr.load(folder + contractfile)
 
         self.sessionMgr = SessionMgr()
-        self.sessionMgr.load(folder + "sessions.json")
+        self.sessionMgr.load(folder + sessionfile)
 
     def configMocker(self, name:str):
         '''
@@ -130,16 +150,19 @@ class WtBtEngine:
         self.__config__["replayer"]["stime"] = int(stime)
         self.__config__["replayer"]["etime"] = int(etime)
 
-    def configBTStorage(self, mode:str, path:str = None, dbcfg:dict = None):
+    def configBTStorage(self, mode:str, path:str = None, storage:dict = None):
         '''
         配置数据存储
         @mode   存储模式，csv-表示从csv直接读取，一般回测使用，wtp-表示使用wt框架自带数据存储
         '''
         self.__config__["replayer"]["mode"] = mode
         if path is not None:
-            self.__config__["replayer"]["path"] = path
-        if dbcfg is not None:
-            self.__config__["replayer"]["db"] = dbcfg
+            self.__config__["replayer"]["store"] = {
+                "path":path
+            }
+
+        if storage is not None:
+            self.__config__["replayer"]["store"] = storage
 
     def setExternalCtaStrategy(self, id:str, module:str, typeName:str, params:dict):
         '''
@@ -211,9 +234,14 @@ class WtBtEngine:
         self.__cfg_commited__ = True
 
         if self.__dump_config__:
-            f = open("config_run.json", 'w')
-            f.write(cfgfile)
-            f.close()
+            if self.__is_cfg_yaml__:
+                f = open("config_run.yaml", 'w')
+                f.write(yaml.dump_all(self.__config__, indent=4, allow_unicode=True))
+                f.close()
+            else:
+                f = open("config_run.json", 'w')
+                f.write(cfgfile)
+                f.close()
 
     def getSessionByCode(self, code:str) -> SessionInfo:
         '''

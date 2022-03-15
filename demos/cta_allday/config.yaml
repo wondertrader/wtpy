@@ -1,0 +1,17 @@
+#基础配置文件
+basefiles:
+    contract: ./common/contracts.json      #合约列表
+    session: ./common/sessions.json        #交易时间模板
+#数据存储
+data:
+    store:
+        module: WtDataStorageAD     #模块名
+        path: ../AD_Data/           #数据存储根目录
+#环境配置
+env:
+    name: cta               #引擎名称：cta/hft/sel
+    product:
+        session: ALLDAY    #驱动交易时间模板，TRADING是一个覆盖国内全部交易品种的最大的交易时间模板，从夜盘21点到凌晨1点，再到第二天15:15，详见sessions.json
+fees: ../common/btc_fees.json   #佣金配置文件
+parsers: tdparsers.yaml     #行情通达配置文件
+bspolicy: actpolicy.yaml    #开平策略配置文件

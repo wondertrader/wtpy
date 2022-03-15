@@ -1,14 +1,14 @@
-from ctypes import c_uint, c_void_p, CFUNCTYPE, POINTER, c_char_p, c_bool, c_ulong, c_double
-from ctypes import Structure, c_char, c_int32, c_uint16, c_uint32, c_uint64, addressof, sizeof
+from ctypes import c_void_p, CFUNCTYPE, POINTER, c_char_p, c_bool, c_ulong, c_double
+from ctypes import Structure, c_char, c_int32, c_uint32,c_uint64, addressof, sizeof
 from copy import copy
 import numpy as np
 import pandas as pd
 from typing import Any
 
 MAX_INSTRUMENT_LENGTH = c_char*32
-MAX_EXCHANGE_LENGTH = c_char*10
+MAX_EXCHANGE_LENGTH = c_char*16
 PriceQueueType = c_double*10
-VolumeQueueType = c_uint32*10
+VolumeQueueType = c_double*10
 
 class WTSStruct(Structure):
     @property
@@ -38,20 +38,21 @@ class WTSTickStruct(WTSStruct):
                 ("upper_limit", c_double),
                 ("lower_limit", c_double),
 
-                ("total_volume", c_uint32),
-                ("volume", c_uint32),
+                ("total_volume", c_double),
+                ("volume", c_double),
                 ("total_turnover", c_double),
                 ("turn_over", c_double),
-                ("open_interest", c_uint32),
-                ("diff_interest", c_int32),
+                ("open_interest", c_double),
+                ("diff_interest", c_double),
 
                 ("trading_date", c_uint32),
                 ("action_date", c_uint32),
                 ("action_time", c_uint32),
+                ("reserve", c_uint32),
 
                 ("pre_close", c_double),
                 ("pre_settle", c_double),
-                ("pre_interest", c_uint32),
+                ("pre_interest", c_double),
 
                 ("bid_prices", PriceQueueType),
                 ("ask_prices", PriceQueueType),
@@ -106,16 +107,17 @@ class WTSBarStruct(WTSStruct):
     C接口传递的bar数据结构
     '''
     _fields_ = [("date", c_uint32),
-                ("time", c_uint32),
+                ("reserve", c_uint32),
+                ("time", c_uint64),
                 ("open", c_double),
                 ("high", c_double),
                 ("low", c_double),
                 ("close", c_double),
                 ("settle", c_double),
                 ("money", c_double),
-                ("vol", c_uint32),
-                ("hold", c_uint32),
-                ("diff", c_int32)]
+                ("vol", c_double),
+                ("hold", c_double),
+                ("diff", c_double)]
     _pack_ = 1
 
     def to_tuple(self, isDays:bool=False) -> tuple:
@@ -248,6 +250,13 @@ class CacheList(list):
 
 class BarList(CacheList):
     def on_read_bar(self, curBar:POINTER(WTSBarStruct), count:int, isLast:bool):
+        '''
+        读取bar数据回调函数
+        
+        @curBar    当前数据块首地址
+        @count      当前数据块条数
+        @isLast     是否是最后一块数据块
+        '''
         bsSize = sizeof(WTSBarStruct)
         addr = addressof(curBar.contents)
         for i in range(count):
@@ -255,11 +264,25 @@ class BarList(CacheList):
             self.append(copy(thisBar))
             addr += bsSize
 
-    def on_self_count(self, count:int):
+    def on_data_count(self, count:int):
+        '''
+        读取数据时的总条数回调
+        该回调有可能会触发，也可能不会触发
+        如果触发，可以做一个预先分配容量的处理
+
+        @count  总的数据条数
+        '''
         pass
 
 class TickList(CacheList):
     def on_read_tick(self, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
+        '''
+        读取tick数据回调函数
+        
+        @curTick    当前数据块首地址
+        @count      当前数据块条数
+        @isLast     是否是最后一块数据块
+        '''
         tsSize = sizeof(WTSTickStruct)
         addr = addressof(curTick.contents)
         for i in range(count):
@@ -267,7 +290,14 @@ class TickList(CacheList):
             self.append(copy(thisTick))
             addr += tsSize
 
-    def on_self_count(self, count:int):
+    def on_data_count(self, count:int):
+        '''
+        读取数据时的总条数回调
+        该回调有可能会触发，也可能不会触发
+        如果触发，可以做一个预先分配容量的处理
+
+        @count  总的数据条数
+        '''
         pass
 
 # 回调函数定义
@@ -299,6 +329,8 @@ CB_HFTSTRA_ORD = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_doubl
 CB_HFTSTRA_TRD = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_double, c_double, c_char_p)
 #HFT策略下单结果回报
 CB_HFTSTRA_ENTRUST = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_char_p, c_char_p)
+#HFT策略持仓推送回报（实盘有效）
+CB_HFTSTRA_POSITION = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_bool, c_double, c_double, c_double, c_double)
 
 #策略委托队列推送回调
 CB_HFTSTRA_ORDQUE = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdQueStruct))

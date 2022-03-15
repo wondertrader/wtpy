@@ -37,15 +37,15 @@ class WtExecApi:
     def write_log(self, level:int, message:str, catName:str = ""):
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
 
-    def config(self, cfgfile:str = 'cfgexec.json', isFile:bool = True):
+    def config(self, cfgfile:str = 'cfgexec.yaml', isFile:bool = True):
         self.api.config_exec(bytes(cfgfile, encoding = "utf8"), isFile)
 
-    def initialize(self, logCfg:str = "logcfgexec.json", isFile:bool = True):
+    def initialize(self, logCfg:str = "logcfgexec.yaml", isFile:bool = True):
         '''
         C接口初始化
         '''
         self.api.init_exec(bytes(logCfg, encoding = "utf8"), isFile)
-        self.write_log(102, "WonderTrader independent execution framework initialzied，version：%s" % (self.ver))
+        self.write_log(102, "WonderTrader independent execution framework initialzied，version: %s" % (self.ver))
 
     def set_position(self, stdCode:str, target:float):
         self.api.set_position(bytes(stdCode, encoding = "utf8"), target)

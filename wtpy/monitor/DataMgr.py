@@ -1,4 +1,5 @@
 import json
+import yaml
 import os
 import sqlite3
 import hashlib
@@ -212,7 +213,7 @@ class DataMgr:
     def has_group(self, grpid:str):
         return (grpid in self.__config__["groups"])
 
-    def get_group(self, grpid:str):
+    def get_group(self, grpid:str) -> dict:
         if grpid in self.__config__["groups"]:
             return self.__config__["groups"][grpid]
         else:
@@ -225,10 +226,17 @@ class DataMgr:
             grpInfo = self.__config__["groups"][grpid]
             filepath = "./config.json"
             filepath = os.path.join(grpInfo["path"], filepath)
+            if not os.path.exists(filepath):
+                filepath = "./config.yaml"
+                filepath = os.path.join(grpInfo["path"], filepath)
+
             f = open(filepath, "r")
             content = f.read()
             f.close()
-            return json.loads(content)
+            if filepath.lower()[-4:] == 'yaml':
+                return yaml.full_load(content)
+            else:
+                return json.loads(content)
 
     def set_group_cfg(self, grpid:str, config:dict):
         if grpid not in self.__config__["groups"]:
@@ -237,9 +245,15 @@ class DataMgr:
             grpInfo = self.__config__["groups"][grpid]
             filepath = "./config.json"
             filepath = os.path.join(grpInfo["path"], filepath)
+            if not os.path.exists(filepath):
+                filepath = "./config.yaml"
+                filepath = os.path.join(grpInfo["path"], filepath)
             backup_file(filepath)
             f = open(filepath, "w")
-            f.write(json.dumps(config, indent=4))
+            if filepath.lower()[-4:] == 'yaml':
+                yaml.dump(config, f, indent=4, allow_unicode=True)
+            else:
+                f.write(json.dumps(config, indent=4))
             f.close()
             return True
 
@@ -1186,6 +1200,11 @@ class DataMgr:
         self.__check_cache__(grpid, grpInfo)
         
         filepath = os.path.join(grpInfo["path"], 'filters.json')
+        isYaml = False
+        if not os.path.exists(filepath):
+            filepath = os.path.join(grpInfo["path"], 'filters.yaml')
+            isYaml = True
+        
         if not os.path.exists(filepath):
             filters = {}
         else:
@@ -1193,7 +1212,10 @@ class DataMgr:
             f = open(filepath, "r")
             try:
                 content = f.read()
-                filters = json.loads(content)
+                if isYaml:
+                    filters = yaml.full_load(content)
+                else:
+                    filters = json.loads(content)
             except:
                 pass
 
@@ -1258,9 +1280,16 @@ class DataMgr:
             realfilters["executer_filters"] = filters["executer_filters"]
         
         filepath = os.path.join(grpInfo["path"], 'filters.json')
+        isYaml = False
+        if not os.path.exists(filepath):
+            filepath = os.path.join(grpInfo["path"], 'filters.yaml')
+            isYaml = True
         backup_file(filepath)
         f = open(filepath, "w")
-        f.write(json.dumps(realfilters, indent=4))
+        if isYaml:
+            yaml.dump(realfilters, f, indent=4, allow_unicode=True)
+        else:
+            f.write(json.dumps(realfilters, indent=4))
         f.close()
         return True
             
