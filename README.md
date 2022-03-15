@@ -52,6 +52,34 @@
 	> -	WtEngine.py		交易引擎转换模块，主要封装底层接口调用
 
 
+# 如何让获取
+* `WonderTrader`
+	> - `github`地址：<https://github.com/wondertrader/wondertrader>
+	> - `gitee`地址：<https://gitee.com/wondertrader/wondertrader>
+* `wtpy`
+	> - `github`地址：<https://github.com/wondertrader/wtpy>
+	> - `gitee`地址：<https://gitee.com/wondertrader/wtpy>
+
+* `wtpy`获取地址：<https://pypi.org/project/wtpy/>
+    `wtpy`可以直接在`python3.8`以上的版本安装
+
+    ``` shell
+    pip install wtpy --upgrade
+    ```
+
+# 延伸项目
+* 将`wtpy`作为底层回测引擎的强化学习框架`Wt4ElegantRL`
+<https://github.com/drlgistics/Wt4ElegantRL>
+
+
+# 相关资源
+* * *
+* 特别感谢@ZerounNet、@ZzzzHeJ、@jack52518、@jed057等用户，他们也对WonderTrader和wtpy贡献了很多代码和文档。
+* 关注公众号`wondertrader`，可以收到`WonderTrader`的实时资讯
+* 用户交流QQ群上线：`610730738`(加入前请先`star`一下, 然后提供`github`用户名)
+* 更多`WonderTrader`的文档请看<https://wondertrader.github.io/>
+* `WonderTrader`半官方文档 <https://dumengru.github.io/docs_wondertrader/>
+
 
 # 更新日志
 ### 0.9.0(重大版本)
