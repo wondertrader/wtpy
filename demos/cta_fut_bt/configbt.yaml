@@ -5,6 +5,7 @@ replayer:
         holiday: ../common/holidays.json
         session: ../common/sessions.json
         hot: ../common/hots.json
+        uft-8: true
     mode: csv
     store:
       module: WtDataStorage

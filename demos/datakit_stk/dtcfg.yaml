@@ -3,6 +3,7 @@ basefiles:
     contract: ../common/stocks.json
     holiday: ../common/holidays.json
     session: ../common/stk_sessions.json
+    utf-8: true
 broadcaster:
     active: true
     bport: 3997
