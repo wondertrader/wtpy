@@ -1,13 +1,13 @@
 traders:
 -   active: true
-    appid: simnow_client_test
-    authcode: '0000000000000000'
-    broker: '9999'
-    front: tcp://180.168.146.187:10201
     id: simnow
     module: TraderCTP
-    user: "你的SIMNOW账号"
-    pass: "你的SIMNOW密码"
+    front: tcp://180.168.146.187:10201
+    broker: '9999'
+    appid: simnow_client_test
+    authcode: '0000000000000000'    
+    user: "yoursimnowaccount"
+    pass: "yoursimnowpassword"
     quick: true
     riskmon:
         active: true

@@ -1,19 +1,22 @@
+root:
+    async: false
+    level: debug
+    sinks:
+    -   type: basic_file_sink
+        filename: BtLogs/Runner.log
+        pattern: '[%Y.%m.%d %H:%M:%S - %-5l] %v'
+        truncate: true
+        
+    -   type: console_sink
+        pattern: '[%m.%d %H:%M:%S - %^%-5l%$] %v'
+        
+
 dyn_pattern:
     strategy:
         async: false
         level: debug
         sinks:
-        -   filename: BtLogs/Strategy/%s.log
+        -   filename: BtLogs/Strategy_%s.log
             pattern: '[%Y.%m.%d %H:%M:%S - %-5l] %v'
-            truncate: true
+            truncate: false
             type: basic_file_sink
-root:
-    async: false
-    level: debug
-    sinks:
-    -   filename: BtLogs/BtRunner.log
-        pattern: '[%Y.%m.%d %H:%M:%S,%F - %-5l] %v'
-        truncate: true
-        type: basic_file_sink
-    -   pattern: '[%m.%d %H:%M:%S - %^%-5l%$] %v'
-        type: console_sink

@@ -5,6 +5,7 @@ basefiles:
     holiday: ../common/holidays.json        #节假日列表
     hot: ../common/hots.json                #主力合约映射表
     session: ../common/sessions.json        #交易时间模板
+    uft-8: true                             #基础文件是否是UFT8编码，这个一定要和文件编码统一！！！
 #数据存储
 data:
     store:
