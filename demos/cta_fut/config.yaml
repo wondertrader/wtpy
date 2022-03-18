@@ -36,3 +36,7 @@ filters: filters.yaml       #过滤器配置文件，这个主要是用于盘中
 parsers: tdparsers.yaml     #行情通达配置文件
 traders: tdtraders.yaml     #交易通道配置文件
 bspolicy: actpolicy.yaml    #开平策略配置文件
+
+notifier:
+    active: true                    #是否向外发布消息
+    url: ipc:///wtpy/wt_cat_fut.ipc #MQ发布地址，可以根据需要改成自己的地址
