@@ -82,6 +82,13 @@
 
 
 # 更新日志
+### 0.9.2
+* `C++`底层更新到`2022/03/28`发布的`v0.9.2`版本
+* demo进一步完善
+* 其他配合底层的优化和调整
+* 更多修改日志请参考[WonderTrader v0.9.2更新日志](https://github.com/wondertrader/wondertrader/blob/master/updatelog.md)
+* 调试资源请查看<https://gitee.com/wondertrader/wtpy_utils/raw/master/pdb_wtpy_v0.9.2.rar>
+
 ### 0.9.0(重大版本)
 * `C++`底层更新到`2022/03/14`发布的`v0.9.0`版本
 * （**重要**）重构了底层数据结构WTSTickStruct和WTSBarStruct，wtpy做了同步修改
