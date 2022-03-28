@@ -30,7 +30,6 @@ class HftStraDemo(BaseHftStrategy):
         self.__last_entry_time__ = None #上次入场时间
         self.__cancel_cnt__ = 0         #正在撤销的订单数
         self.__channel_ready__ = False  #通道是否就绪
-        self.lots = 1
         
 
     def on_init(self, context:HftContext):
@@ -44,8 +43,6 @@ class HftStraDemo(BaseHftStrategy):
         context.stra_sub_ticks(self.__code__)
 
         self.__ctx__ = context
-
-        self.ticker = 0
 
     def check_orders(self):
         #如果未完成订单不为空
@@ -74,11 +71,11 @@ class HftStraDemo(BaseHftStrategy):
         self.__last_tick__ = newTick
 
         #如果已经入场，则做频率检查
-        if self.__last_entry_time__ is not None and self.__freq__ != 0:
+        if self.__last_entry_time__ is not None:
             #当前时间，一定要从api获取，不然回测会有问题
             now = makeTime(self.__ctx__.stra_get_date(), self.__ctx__.stra_get_time(), self.__ctx__.stra_get_secs())
             span = now - self.__last_entry_time__
-            if span.total_seconds() <= self.__freq__:
+            if span.total_seconds() <= 30:
                 return
 
         #信号标志
@@ -86,7 +83,7 @@ class HftStraDemo(BaseHftStrategy):
         #最新价作为基准价格
         price = newTick["price"]
         #计算理论价格
-        pxInThry = (newTick["bidprice"][0]*newTick["askqty"][0] + newTick["askprice"][0]*newTick["bidqty"][0]) / (newTick["askqty"][0] + newTick["bidqty"][0])
+        pxInThry = (newTick["bid_prices_0"]*newTick["ask_qty_0"] + newTick["ask_prices_0"]*newTick["bid_qty_0"]) / (newTick["ask_qty_0"] + newTick["bid_qty_0"])
 
         context.stra_log_text("理论价格%f，最新价：%f" % (pxInThry, price))
 
@@ -98,8 +95,6 @@ class HftStraDemo(BaseHftStrategy):
             context.stra_log_text("出现反向信号")
 
         if signal != 0:
-            self.ticker += 1
-
             #读取当前持仓
             curPos = context.stra_get_position(self.__code__)
             #读取品种属性，主要用于价格修正
@@ -108,12 +103,12 @@ class HftStraDemo(BaseHftStrategy):
             now = makeTime(self.__ctx__.stra_get_date(), self.__ctx__.stra_get_time(), self.__ctx__.stra_get_secs())
 
             #如果出现正向信号且当前仓位小于等于0，则买入
-            if signal > 0:
+            if signal > 0 and curPos <= 0:
                 #买入目标价格=基准价格+偏移跳数*报价单位
                 targetPx = price + commInfo.pricetick * self.__offset__
 
                 #执行买入指令，返回所有订单的本地单号
-                ids = context.stra_buy(self.__code__, targetPx, self.lots, "enterlong")
+                ids = context.stra_buy(self.__code__, targetPx, 1, "buy")
 
                 #将订单号加入到管理中
                 for localid in ids:
@@ -123,13 +118,12 @@ class HftStraDemo(BaseHftStrategy):
                 self.__last_entry_time__ = now
 
             #如果出现反向信号且当前持仓大于等于0，则卖出
-            elif signal < 0:
-                return
+            elif signal < 0 and curPos >= 0:
                 #买入目标价格=基准价格-偏移跳数*报价单位
                 targetPx = price - commInfo.pricetick * self.__offset__
 
                 #执行卖出指令，返回所有订单的本地单号
-                ids = context.stra_sell(self.__code__, targetPx, self.lots, "entershort")
+                ids = context.stra_sell(self.__code__, targetPx, 1, "sell")
 
                 #将订单号加入到管理中
                 for localid in ids:

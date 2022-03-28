@@ -697,7 +697,7 @@
             "pricemode": 1,
             "category": 1,
             "precision": 0,
-            "pricetick": 2.0,
+            "pricetick": 1.0,
             "volscale": 10,
             "name": "มควเ",
             "exchg": "SHFE",
