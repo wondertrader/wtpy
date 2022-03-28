@@ -16,7 +16,7 @@ if __name__ == "__main__":
     straInfo = StraDualThrust(name='pydt_IF', code="CFFEX.IF.HOT", barCnt=50, period="m5", days=30, k1=0.1, k2=0.1, isForStk=False)
     engine.set_cta_strategy(straInfo)
 
-    engine.run_backtest()
+    engine.run_backtest(bAsync=False)
 
     analyst = WtBtAnalyst()
     analyst.add_strategy("pydt_IF", folder="./outputs_bt/pydt_IF/", init_capital=500000, rf=0.02, annual_trading_days=240)

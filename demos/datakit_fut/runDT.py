@@ -5,6 +5,6 @@ if __name__ == "__main__":
     engine = WtDtEngine()
     engine.initialize("dtcfg.yaml", "logcfgdt.yaml")
     
-    engine.run()
+    engine.run(True)
 
     kw = input('press any key to exit\n')

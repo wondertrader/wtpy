@@ -289,7 +289,7 @@ class RqFeed(Ifeed):
         if "datetime" in df.columns:
             df["datetime"] = pd.to_datetime(df["datetime"])
             df["date"] =  df["datetime"].dt.strftime("%Y%m%d")
-            df["time"] =  df["datetime"].dt.strftime("%H%M%S")
+            df["time"] =  df["datetime"].dt.strftime("%H%M")
         else:
             df["date"] =  df["date"].dt.strftime("%Y%m%d")
             df["time"] = "000000"

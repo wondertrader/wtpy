@@ -47,7 +47,7 @@ class WtEnv():
 
         #创建一个运行环境
         self._engine_:WtBtEngine = WtBtEngine(EngineType.ET_CTA)
-        self._engine_.init('../common/', "configbt.json")
+        self._engine_.init('../common/', "configbt.yaml")
         self._engine_.configBacktest(201909100930,201912011500)
         self._engine_.configBTStorage(mode="csv", path="../storage/")
         self._engine_.commitBTConfig()

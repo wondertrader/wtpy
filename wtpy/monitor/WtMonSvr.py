@@ -128,6 +128,11 @@ def get_cfg_tree(root:str, name:str):
     f = open(filepath, "r")
     content = f.read()
     f.close()
+
+    # 加一段编码检查的逻辑
+    encoding = chardet.detect(content[:500])["encoding"]
+    content = content.decode(encoding)
+
     if isYaml:
         cfgObj = yaml.full_load(content)
     else:

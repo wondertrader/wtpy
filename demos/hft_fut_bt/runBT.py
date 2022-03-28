@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     engine.set_hft_strategy(straInfo)
 
-    engine.run_backtest()
+    engine.run_backtest(bAsync=True)
 
     kw = input('press any key to exit\n')
     engine.release_backtest()
