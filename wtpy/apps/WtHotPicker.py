@@ -469,9 +469,9 @@ class WtCacheMonSS(WtCacheMon):
             # 收盘价
             day.close = float(items[6])
             # 成交量
-            day.volume = int(items[8])
+            day.volume = float(items[8])
             # 持仓量
-            day.hold = int(items[10])
+            day.hold = float(items[10])
             day.month = day.code[len(day.pid):]
             if len(day.month) == 3:
                 if day.month[0] >= '0' and day.month[0] <= '5':
