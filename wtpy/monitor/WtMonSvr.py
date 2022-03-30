@@ -125,7 +125,7 @@ def get_cfg_tree(root:str, name:str):
         "children":[]
     })
 
-    f = open(filepath, "r")
+    f = open(filepath, "rb")
     content = f.read()
     f.close()
 
