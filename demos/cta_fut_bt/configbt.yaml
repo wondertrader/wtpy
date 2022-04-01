@@ -1,17 +1,17 @@
 replayer:
     basefiles:
-        commodity: ../common/commodities.json
-        contract: ../common/contracts.json
-        holiday: ../common/holidays.json
-        session: ../common/sessions.json
-        hot: ../common/hots.json
-        uft-8: true
-    mode: csv
+        commodity: ../common/commodities.json   #品种列表
+        contract: ../common/contracts.json      #合约列表
+        holiday: ../common/holidays.json        #节假日列表
+        hot: ../common/hots.json                #主力合约映射表
+        session: ../common/sessions.json        #交易时间模板
+        uft-8: true                             #基础文件是否是UFT8编码，这个一定要和文件编码统一！！！
+    mode: csv   #回测历史数据存储，csv或者bin/wtp/storage，其中bin/wtp/storage都是一个意思
     store:
-      module: WtDataStorage
-      path: ../storage/
-    etime: 201912011500
-    stime: 201909010900
-    fees: ../common/fees.json
+        module: WtDataStorage   #历史数据存储模块，如果是csv，该配置不生效
+        path: ../storage/       #历史数据存储跟目录
+    etime: 201912011500         #回测结束时间，精确到分钟
+    stime: 201909010900         #回测开始时间，精确到分钟
+    fees: ../common/fees.json   #佣金配置文件
 env:
-    mocker: cta
+    mocker: cta                 #回测引擎，cta/sel/hft/exec/uft

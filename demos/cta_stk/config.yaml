@@ -3,9 +3,10 @@ basefiles:
     contract: ../common/stocks.json
     holiday: ../common/holidays.json
     session: ../common/sessions.json
-bspolicy: actpolicy.yaml
+
 data:
     store:
+        module: WtDtStorage
         path: ../STK_Data/
 env:
     name: cta               #引擎名称：cta/hft/sel
@@ -30,6 +31,7 @@ env:
 executers: executers.yaml   #执行器配置文件
 parsers: tdparsers.yaml
 traders: tdtraders.yaml
+bspolicy: actpolicy.yaml
 
 notifier:
     active: true                    #是否向外发布消息
