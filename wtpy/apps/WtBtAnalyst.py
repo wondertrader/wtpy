@@ -4,7 +4,6 @@ import numpy as np
 from dateutil.parser import parse
 from collections import Counter
 from datetime import datetime
-import matplotlib.pyplot as plt
 from io import BytesIO
 import math
 import json
@@ -1063,46 +1062,90 @@ def strategy_analyze(workbook:Workbook, df_closes, df_trades,df_funds, capital, 
     # df_closes['exittime'] = pd.to_datetime(df_closes['exittime'])
 
 
-    #用matplotlib画图
-    plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+    # #用matplotlib画图
+    # plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
 
-    worksheet.write_row('A139', ['详细多头权益曲线'], title_format)
+    # worksheet.write_row('A139', ['详细多头权益曲线'], title_format)
     df_closes['fee'] = df_closes['profit'] - df_closes['totalprofit'] + df_closes['totalprofit'].shift(1).fillna(value=0)
     df_temp = pd.DataFrame()
     df_temp['profit'] = df_closes[df_closes['direct'] == 'LONG']['profit'] - df_closes[df_closes['direct'] == 'LONG']['fee']
     df_temp['equity'] = df_temp['profit'].expanding().sum() + capital
     np_temp = np.arange(1, len(df_temp)+1, 1)
     df_temp['index'] = np_temp
-    plt.plot(df_temp['index'], df_temp['equity'])
-    imgdata = BytesIO()
-    plt.xlabel('多头交易编号')
-    plt.title('详细多头权益曲线')
-    plt.ylabel('权益')
-    plt.savefig(imgdata, format="png")
-    imgdata.seek(0)
-    worksheet.insert_image(141, 0, "", {'image_data': imgdata})
 
-    worksheet.write_row('A169', ['详细空头权益曲线'], title_format)
-    plt.clf()
+    # plt.plot(df_temp['index'], df_temp['equity'])
+    # imgdata = BytesIO()
+    # plt.xlabel('多头交易编号')
+    # plt.title('详细多头权益曲线')
+    # plt.ylabel('权益')
+    # plt.savefig(imgdata, format="png")
+    # imgdata.seek(0)
+    # worksheet.insert_image(141, 0, "", {'image_data': imgdata})
+
+    # worksheet.write_row('A169', ['详细空头权益曲线'], title_format)
+    # plt.clf()
     df_temp2 = pd.DataFrame()
     df_temp2['profit'] = df_closes[df_closes['direct'] == 'SHORT']['profit'] - df_closes[df_closes['direct'] == 'SHORT']['fee']
     df_temp2['equity'] = df_temp2['profit'].expanding().sum() + capital
     np_temp2 = np.arange(1, len(df_temp2) + 1, 1)
     df_temp2['index'] = np_temp2
-    plt.plot(df_temp2['index'], df_temp2['equity'])
-    imgdata = BytesIO()
-    plt.xlabel('空头交易编号')
-    plt.title('详细空头权益曲线')
-    plt.ylabel('权益')
-    plt.savefig(imgdata, format="png")
-    imgdata.seek(0)
-    worksheet.insert_image(
-        171, 0, "",
-        {'image_data': imgdata}
+
+    # plt.plot(df_temp2['index'], df_temp2['equity'])
+    # imgdata = BytesIO()
+    # plt.xlabel('空头交易编号')
+    # plt.title('详细空头权益曲线')
+    # plt.ylabel('权益')
+    # plt.savefig(imgdata, format="png")
+    # imgdata.seek(0)
+    # worksheet.insert_image(
+    #     171, 0, "",
+    #     {'image_data': imgdata}
+    # )
+    worksheet = workbook.add_worksheet('交易列表')
+    length0 = len(df_closes)
+    worksheet.write_row('A'+str(length0+98), ['作图数据'], index_format)
+    worksheet.write_column('A'+str(length0+100), df_temp['index'], value_format)
+    worksheet.write_column('B'+str(length0+100), df_temp['equity'], value_format)
+    worksheet.write_column('C'+str(length0+100), df_temp2['index'], value_format)
+    worksheet.write_column('D'+str(length0+100), df_temp2['equity'], value_format)
+
+    worksheet = workbook.get_worksheet_by_name('策略分析')
+    worksheet.write_row('A139', ['详细多头权益曲线'], title_format)
+    chart_col = workbook.add_chart({'type': 'line'})
+    length = len(df_temp)
+    sheetName = '交易列表'
+
+    chart_col.add_series(
+        {
+            'name': '详细权益曲线',
+            'categories': '=%s!$A$%s:$A$%s' % (sheetName, length0+100, length0+100+length),
+            'values':   '=%s!$B$%s:$B$%s' % (sheetName, length0+100, length0+100+length),
+            'line': {'color': 'red', 'width': 1}
+        }
     )
+    chart_col.set_title({'name': '详细多头权益曲线'})
+    chart_col.set_x_axis({'name': '交易列表'})
+    worksheet.insert_chart('A141', chart_col, {'x_scale': 1.8, 'y_scale': 1.8})
+
+    worksheet.write_row('A169', ['详细空头权益曲线'], title_format)
+    chart_col = workbook.add_chart({'type': 'line'})
+    length = len(df_temp2)
+
+    chart_col.add_series(
+        {
+            'name': '详细权益曲线',
+            'categories': '=%s!$C$%s:$C$%s' % (sheetName, length0+100, length0+100+length),
+            'values':   '=%s!$D$%s:$D$%s' % (sheetName, length0+100, length0+100+length),
+            'line': {'color': 'red', 'width': 1}
+        }
+    )
+    chart_col.set_title({'name': '详细空头权益曲线'})
+    chart_col.set_x_axis({'name': '交易列表'})
+    worksheet.insert_chart('A171', chart_col, {'x_scale': 1.8, 'y_scale': 1.8})
+
 
 def output_closes(workbook:Workbook, df_closes:df, capital = 500000):
-    worksheet = workbook.add_worksheet('交易列表')
+    worksheet = workbook.get_worksheet_by_name('交易列表')
     title_format = workbook.add_format({
         'font_size':    16,
         'bold':         True,
