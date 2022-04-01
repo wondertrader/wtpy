@@ -3,8 +3,6 @@ from wtpy.apps import WtBtAnalyst
 
 from Strategies.DualThrust import StraDualThrust
 
-# from Strategies.XIM import XIM
-
 if __name__ == "__main__":
     #创建一个运行环境，并加入策略
     engine = WtBtEngine(EngineType.ET_CTA)
@@ -20,7 +18,7 @@ if __name__ == "__main__":
 
     analyst = WtBtAnalyst()
     analyst.add_strategy("pydt_IF", folder="./outputs_bt/pydt_IF/", init_capital=500000, rf=0.02, annual_trading_days=240)
-    analyst.run()
+    analyst.run_new()
 
     kw = input('press any key to exit\n')
     engine.release_backtest()

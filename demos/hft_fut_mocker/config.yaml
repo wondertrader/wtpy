@@ -28,18 +28,5 @@ env:
         name: SimpleRiskMon
         risk_scale: 0.3
         risk_span: 30
-executers:
--   active: false
-    id: exe3
-    local: true
-    policy:
-        default:
-            expire: 5
-            name: WtExeFact.WtSimpExeUnit
-            offset: 1
-            pricemode: 0
-    poolsize: 2
-    scale: 1
-    trader: simnow
 parsers: tdparsers.yaml
 traders: tdtraders.yaml
