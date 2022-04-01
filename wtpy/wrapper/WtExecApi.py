@@ -32,7 +32,6 @@ class WtExecApi:
         self.api.config_exec.argtypes = [c_char_p, c_bool]
         self.api.init_exec.argtypes = [c_char_p, c_bool]
         self.api.set_position.argtypes = [c_char_p, c_double]
-        self.api.set_position_price.argtypes = [c_char_p, c_double, c_double]
 
     def run(self):
         self.api.run_exec()

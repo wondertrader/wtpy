@@ -2,8 +2,8 @@ from wtpy.WtUtilDefs import singleton
 from wtpy.wrapper import WtDtServoApi
 from wtpy.WtCoreDefs import BarList, TickList, WTSBarStruct, WTSTickStruct
 
-from flask import Flask, session, redirect, request, make_response
-from flask_compress  import Compress
+from flask import Flask, request, make_response
+from flask_compress import Compress
 
 import urllib.request
 import io
