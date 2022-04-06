@@ -15,6 +15,7 @@ from .CodeHelper import CodeHelper
 
 import json
 import yaml
+import chardet
 
 @singleton
 class WtEngine:
@@ -148,9 +149,11 @@ class WtEngine:
         @folder     基础数据文件目录，\\结尾
         @cfgfile    配置文件，json格式
         '''
-        f = open(cfgfile, "r", encoding="UTF8")
-        content =f.read()
+        f = open(cfgfile, "rb")
+        content = f.read()
         f.close()
+        encoding = chardet.detect(content[:500])["encoding"]
+        content = content.decode(encoding)
 
         if cfgfile.lower().endswith(".json"):
             self.__config__ = json.loads(content)

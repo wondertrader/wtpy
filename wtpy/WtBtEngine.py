@@ -16,6 +16,7 @@ from .CodeHelper import CodeHelper
 
 import json
 import yaml
+import chardet
 
 
 @singleton
@@ -101,9 +102,11 @@ class WtBtEngine:
         @commfile   品种定义文件，json/yaml格式
         @contractfile   合约定义文件，json/yaml格式
         '''
-        f = open(cfgfile, "r")
-        content =f.read()
+        f = open(cfgfile, "rb")
+        content = f.read()
         f.close()
+        encoding = chardet.detect(content[:500])["encoding"]
+        content = content.decode(encoding)
 
         if cfgfile.lower().endswith(".json"):
             self.__config__ = json.loads(content)
