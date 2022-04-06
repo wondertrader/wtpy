@@ -5,7 +5,7 @@ replayer:
         holiday: ../common/holidays.json        #节假日列表
         hot: ../common/hots.json                #主力合约映射表
         session: ../common/sessions.json        #交易时间模板
-        uft-8: true                             #基础文件是否是UFT8编码，这个一定要和文件编码统一！！！
+        uft-8: false                             #基础文件是否是UFT8编码，这个一定要和文件编码统一！！！
     mode: csv   #回测历史数据存储，csv或者bin/wtp/storage，其中bin/wtp/storage都是一个意思
     store:
         module: WtDataStorage   #历史数据存储模块，如果是csv，该配置不生效
