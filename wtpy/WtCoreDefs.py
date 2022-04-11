@@ -54,10 +54,49 @@ class WTSTickStruct(WTSStruct):
                 ("pre_settle", c_double),
                 ("pre_interest", c_double),
 
-                ("bid_prices", PriceQueueType),
-                ("ask_prices", PriceQueueType),
-                ("bid_qty", VolumeQueueType),
-                ("ask_qty", VolumeQueueType)]
+                ("bid_price_0", c_double),
+                ("bid_price_1", c_double),
+                ("bid_price_2", c_double),
+                ("bid_price_3", c_double),
+                ("bid_price_4", c_double),
+                ("bid_price_5", c_double),
+                ("bid_price_6", c_double),
+                ("bid_price_7", c_double),
+                ("bid_price_8", c_double),
+                ("bid_price_9", c_double),
+                
+                ("ask_price_0", c_double),
+                ("ask_price_1", c_double),
+                ("ask_price_2", c_double),
+                ("ask_price_3", c_double),
+                ("ask_price_4", c_double),
+                ("ask_price_5", c_double),
+                ("ask_price_6", c_double),
+                ("ask_price_7", c_double),
+                ("ask_price_8", c_double),
+                ("ask_price_9", c_double),
+                
+                ("bid_qty_0", c_double),
+                ("bid_qty_1", c_double),
+                ("bid_qty_2", c_double),
+                ("bid_qty_3", c_double),
+                ("bid_qty_4", c_double),
+                ("bid_qty_5", c_double),
+                ("bid_qty_6", c_double),
+                ("bid_qty_7", c_double),
+                ("bid_qty_8", c_double),
+                ("bid_qty_9", c_double),
+                
+                ("ask_qty_0", c_double),
+                ("ask_qty_1", c_double),
+                ("ask_qty_2", c_double),
+                ("ask_qty_3", c_double),
+                ("ask_qty_4", c_double),
+                ("ask_qty_5", c_double),
+                ("ask_qty_6", c_double),
+                ("ask_qty_7", c_double),
+                ("ask_qty_8", c_double),
+                ("ask_qty_9", c_double)]
     _pack_ = 1
 
     @property
@@ -65,11 +104,59 @@ class WTSTickStruct(WTSStruct):
         fields = self._fields_.copy()
         fields[0] = ('exchg', 'S10')
         fields[1] = ('code', 'S10')
-        fields[-4] = ('bid_prices', 'O')
-        fields[-3] = ('ask_prices', 'O')
-        fields[-2] = ('bid_qty', 'O')
-        fields[-1] = ('ask_qty', 'O')
         return fields
+
+    @property
+    def bid_prices(self) -> list:
+    	return [self.bid_price_0, 
+    			self.bid_price_1, 
+    			self.bid_price_2, 
+    			self.bid_price_3, 
+    			self.bid_price_4, 
+    			self.bid_price_5, 
+    			self.bid_price_6, 
+    			self.bid_price_7, 
+    			self.bid_price_8, 
+    			self.bid_price_9]
+
+    @property
+    def bid_qty(self) -> list:
+    	return [self.bid_qty_0, 
+    			self.bid_qty_1, 
+    			self.bid_qty_2, 
+    			self.bid_qty_3, 
+    			self.bid_qty_4, 
+    			self.bid_qty_5, 
+    			self.bid_qty_6, 
+    			self.bid_qty_7, 
+    			self.bid_qty_8, 
+    			self.bid_qty_9]
+    
+    @property
+    def ask_prices(self) -> list:
+    	return [self.ask_price_0, 
+    			self.ask_price_1, 
+    			self.ask_price_2, 
+    			self.ask_price_3, 
+    			self.ask_price_4, 
+    			self.ask_price_5, 
+    			self.ask_price_6, 
+    			self.ask_price_7, 
+    			self.ask_price_8, 
+    			self.ask_price_9]
+
+    @property
+    def ask_qty(self) -> list:
+    	return [self.ask_qty_0, 
+    			self.ask_qty_1, 
+    			self.ask_qty_2, 
+    			self.ask_qty_3, 
+    			self.ask_qty_4, 
+    			self.ask_qty_5, 
+    			self.ask_qty_6, 
+    			self.ask_qty_7, 
+    			self.ask_qty_8, 
+    			self.ask_qty_9]
 
     def to_tuple(self) -> tuple:
         return (
@@ -94,12 +181,52 @@ class WTSTickStruct(WTSStruct):
                 self.action_time,
                 self.pre_close,
                 self.pre_settle,
-                self.pre_interest
-            ) \
-            + tuple(self.bid_prices) \
-            + tuple(self.ask_prices) \
-            + tuple(self.bid_qty) \
-            + tuple(self.ask_qty)
+                self.pre_interest,
+                
+                self.bid_price_0,
+                self.bid_price_1,
+                self.bid_price_2,
+                self.bid_price_3,
+                self.bid_price_4,
+                self.bid_price_5,
+                self.bid_price_6,
+                self.bid_price_7,
+                self.bid_price_8,
+                self.bid_price_9,
+                
+                self.ask_price_0,
+                self.ask_price_1,
+                self.ask_price_2,
+                self.ask_price_3,
+                self.ask_price_4,
+                self.ask_price_5,
+                self.ask_price_6,
+                self.ask_price_7,
+                self.ask_price_8,
+                self.ask_price_9,
+                
+                self.bid_qty_0,
+                self.bid_qty_1,
+                self.bid_qty_2,
+                self.bid_qty_3,
+                self.bid_qty_4,
+                self.bid_qty_5,
+                self.bid_qty_6,
+                self.bid_qty_7,
+                self.bid_qty_8,
+                self.bid_qty_9,
+                
+                self.ask_qty_0,
+                self.ask_qty_1,
+                self.ask_qty_2,
+                self.ask_qty_3,
+                self.ask_qty_4,
+                self.ask_qty_5,
+                self.ask_qty_6,
+                self.ask_qty_7,
+                self.ask_qty_8,
+                self.ask_qty_9
+            )
 
 
 class WTSBarStruct(WTSStruct):
@@ -240,10 +367,10 @@ class WTSOrdDtlStruct(WTSStruct):
 
 class CacheList(list):
     def to_record(self) -> np.recarray:
-        self = np.empty(len(self), dtype=self[0].fields)
+        data = np.empty(len(self), dtype=self[0].fields)
         for k, v in enumerate(self):
-            self[k] = v.values
-        return self.view(np.recarray)
+            data[k] = v.values
+        return data.view(np.recarray)
 
     def to_pandas(self) -> pd.DataFrame:
         return pd.DataFrame(self.to_record())
