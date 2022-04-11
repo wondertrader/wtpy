@@ -31,8 +31,7 @@ REQUIRED = [
     'flask-compress', 
     'psutil', 
     'chardet',
-    'pyyaml',
-    'matplotlib'
+    'pyyaml'
 ]
 
 # What packages are optional?
