@@ -15,7 +15,7 @@ parsers: mdparsers.yaml
 statemonitor: statemonitor.yaml
 writer:
     module: WtDataStorage #数据存储模块
-    async: true           #同步落地还是异步落地，期货推荐同步，股票推荐异步
+    async: false          #同步落地还是异步落地，期货推荐同步，股票推荐异步
     groupsize: 20         #日志分组大小，主要用于控制日志输出，当订阅合约较多时，推荐1000以上，当订阅的合约数较少时，推荐100以内
     path: ../FUT_Data     #数据存储的路径
     savelog: false        #是否保存tick到csv
@@ -23,3 +23,4 @@ writer:
     disablemin1: false    #不保存min1数据，默认false
     disablemin5: false    #不保存min5数据，默认false
     disableday: false     #不保存day数据，默认false
+    disablehis: false     #收盘作业不转储历史数据，默认false
