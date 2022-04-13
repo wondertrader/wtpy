@@ -108,55 +108,55 @@ class WTSTickStruct(WTSStruct):
 
     @property
     def bid_prices(self) -> list:
-    	return [self.bid_price_0, 
-    			self.bid_price_1, 
-    			self.bid_price_2, 
-    			self.bid_price_3, 
-    			self.bid_price_4, 
-    			self.bid_price_5, 
-    			self.bid_price_6, 
-    			self.bid_price_7, 
-    			self.bid_price_8, 
-    			self.bid_price_9]
+        return [self.bid_price_0, 
+                self.bid_price_1, 
+                self.bid_price_2, 
+                self.bid_price_3, 
+                self.bid_price_4, 
+                self.bid_price_5, 
+                self.bid_price_6, 
+                self.bid_price_7, 
+                self.bid_price_8, 
+                self.bid_price_9]
 
     @property
     def bid_qty(self) -> list:
-    	return [self.bid_qty_0, 
-    			self.bid_qty_1, 
-    			self.bid_qty_2, 
-    			self.bid_qty_3, 
-    			self.bid_qty_4, 
-    			self.bid_qty_5, 
-    			self.bid_qty_6, 
-    			self.bid_qty_7, 
-    			self.bid_qty_8, 
-    			self.bid_qty_9]
+        return [self.bid_qty_0, 
+                self.bid_qty_1, 
+                self.bid_qty_2, 
+                self.bid_qty_3, 
+                self.bid_qty_4, 
+                self.bid_qty_5, 
+                self.bid_qty_6, 
+                self.bid_qty_7, 
+                self.bid_qty_8, 
+                self.bid_qty_9]
     
     @property
     def ask_prices(self) -> list:
-    	return [self.ask_price_0, 
-    			self.ask_price_1, 
-    			self.ask_price_2, 
-    			self.ask_price_3, 
-    			self.ask_price_4, 
-    			self.ask_price_5, 
-    			self.ask_price_6, 
-    			self.ask_price_7, 
-    			self.ask_price_8, 
-    			self.ask_price_9]
+        return [self.ask_price_0, 
+                self.ask_price_1, 
+                self.ask_price_2, 
+                self.ask_price_3, 
+                self.ask_price_4, 
+                self.ask_price_5, 
+                self.ask_price_6, 
+                self.ask_price_7, 
+                self.ask_price_8, 
+                self.ask_price_9]
 
     @property
     def ask_qty(self) -> list:
-    	return [self.ask_qty_0, 
-    			self.ask_qty_1, 
-    			self.ask_qty_2, 
-    			self.ask_qty_3, 
-    			self.ask_qty_4, 
-    			self.ask_qty_5, 
-    			self.ask_qty_6, 
-    			self.ask_qty_7, 
-    			self.ask_qty_8, 
-    			self.ask_qty_9]
+        return [self.ask_qty_0, 
+                self.ask_qty_1, 
+                self.ask_qty_2, 
+                self.ask_qty_3, 
+                self.ask_qty_4, 
+                self.ask_qty_5, 
+                self.ask_qty_6, 
+                self.ask_qty_7, 
+                self.ask_qty_8, 
+                self.ask_qty_9]
 
     def to_tuple(self) -> tuple:
         return (
@@ -364,7 +364,6 @@ class WTSOrdDtlStruct(WTSStruct):
                 self.otype
             )
 
-
 class CacheList(list):
     def to_record(self) -> np.recarray:
         data = np.empty(len(self), dtype=self[0].fields)
@@ -473,14 +472,14 @@ CB_HFTSTRA_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct
 CB_HFTSTRA_GET_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct), c_uint32, c_bool)
 
 
-EVENT_ENGINE_INIT	= 1     #框架初始化
+EVENT_ENGINE_INIT    = 1     #框架初始化
 EVENT_SESSION_BEGIN = 2     #交易日开始
-EVENT_SESSION_END	= 3     #交易日结束
-EVENT_ENGINE_SCHDL	= 4     #框架调度
+EVENT_SESSION_END    = 3     #交易日结束
+EVENT_ENGINE_SCHDL    = 4     #框架调度
 EVENT_BACKTEST_END  = 5     #回测结束
 
-CHNL_EVENT_READY	= 1000  #通道就绪事件
-CHNL_EVENT_LOST		= 1001  #通道断开事件
+CHNL_EVENT_READY    = 1000  #通道就绪事件
+CHNL_EVENT_LOST        = 1001  #通道断开事件
 
 from enum import Enum
 class EngineType(Enum):
@@ -496,10 +495,10 @@ class EngineType(Enum):
 '''
 Parser外接实现
 '''
-EVENT_PARSER_INIT		= 1;	#Parser初始化
-EVENT_PARSER_CONNECT	= 2;	#Parser连接
-EVENT_PARSER_DISCONNECT = 3;	#Parser断开连接
-EVENT_PARSER_RELEASE	= 4;	#Parser释放
+EVENT_PARSER_INIT        = 1;    #Parser初始化
+EVENT_PARSER_CONNECT    = 2;    #Parser连接
+EVENT_PARSER_DISCONNECT = 3;    #Parser断开连接
+EVENT_PARSER_RELEASE    = 4;    #Parser释放
 CB_PARSER_EVENT = CFUNCTYPE(c_void_p, c_ulong, c_char_p)
 CB_PARSER_SUBCMD = CFUNCTYPE(c_void_p, c_char_p, c_char_p, c_bool)
 
