@@ -1,4 +1,4 @@
-from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_int, c_uint, c_uint64
+from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_uint32, c_uint64
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct
 from wtpy.WtDataDefs import WtTickRecords,WtBarRecords
 from wtpy.SessionMgr import SessionInfo
@@ -7,10 +7,10 @@ from wtpy.WtUtilDefs import singleton
 import os
 
 CB_DTHELPER_LOG = CFUNCTYPE(c_void_p,  c_char_p)
-CB_DTHELPER_TICK = CFUNCTYPE(c_void_p,  POINTER(WTSTickStruct), c_uint, c_bool)
-CB_DTHELPER_BAR = CFUNCTYPE(c_void_p,  POINTER(WTSBarStruct), c_uint, c_bool)
+CB_DTHELPER_TICK = CFUNCTYPE(c_void_p,  POINTER(WTSTickStruct), c_uint32, c_bool)
+CB_DTHELPER_BAR = CFUNCTYPE(c_void_p,  POINTER(WTSBarStruct), c_uint32, c_bool)
 
-CB_DTHELPER_COUNT = CFUNCTYPE(c_void_p,  c_uint)
+CB_DTHELPER_COUNT = CFUNCTYPE(c_void_p,  c_uint32)
 
 def on_log_output(message:str):
     message = bytes.decode(message, 'gbk')
