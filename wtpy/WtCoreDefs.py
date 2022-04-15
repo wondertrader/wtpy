@@ -107,8 +107,8 @@ class WTSTickStruct(WTSStruct):
         return fields
 
     @property
-    def bid_prices(self) -> list:
-        return [self.bid_price_0, 
+    def bid_prices(self) -> tuple:
+        return (self.bid_price_0, 
                 self.bid_price_1, 
                 self.bid_price_2, 
                 self.bid_price_3, 
@@ -117,11 +117,11 @@ class WTSTickStruct(WTSStruct):
                 self.bid_price_6, 
                 self.bid_price_7, 
                 self.bid_price_8, 
-                self.bid_price_9]
+                self.bid_price_9)
 
     @property
-    def bid_qty(self) -> list:
-        return [self.bid_qty_0, 
+    def bid_qty(self) -> tuple:
+        return (self.bid_qty_0, 
                 self.bid_qty_1, 
                 self.bid_qty_2, 
                 self.bid_qty_3, 
@@ -130,11 +130,11 @@ class WTSTickStruct(WTSStruct):
                 self.bid_qty_6, 
                 self.bid_qty_7, 
                 self.bid_qty_8, 
-                self.bid_qty_9]
+                self.bid_qty_9)
     
     @property
-    def ask_prices(self) -> list:
-        return [self.ask_price_0, 
+    def ask_prices(self) -> tuple:
+        return (self.ask_price_0, 
                 self.ask_price_1, 
                 self.ask_price_2, 
                 self.ask_price_3, 
@@ -143,11 +143,11 @@ class WTSTickStruct(WTSStruct):
                 self.ask_price_6, 
                 self.ask_price_7, 
                 self.ask_price_8, 
-                self.ask_price_9]
+                self.ask_price_9)
 
     @property
-    def ask_qty(self) -> list:
-        return [self.ask_qty_0, 
+    def ask_qty(self) -> tuple:
+        return (self.ask_qty_0, 
                 self.ask_qty_1, 
                 self.ask_qty_2, 
                 self.ask_qty_3, 
@@ -156,7 +156,7 @@ class WTSTickStruct(WTSStruct):
                 self.ask_qty_6, 
                 self.ask_qty_7, 
                 self.ask_qty_8, 
-                self.ask_qty_9]
+                self.ask_qty_9)
 
     def to_tuple(self) -> tuple:
         return (
@@ -227,7 +227,6 @@ class WTSTickStruct(WTSStruct):
                 self.ask_qty_8,
                 self.ask_qty_9
             )
-
 
 class WTSBarStruct(WTSStruct):
     '''
@@ -364,67 +363,67 @@ class WTSOrdDtlStruct(WTSStruct):
                 self.otype
             )
 
-class CacheList(list):
-    def to_record(self) -> np.recarray:
-        data = np.empty(len(self), dtype=self[0].fields)
-        for k, v in enumerate(self):
-            data[k] = v.values
-        return data.view(np.recarray)
+# class CacheList(list):
+#     def to_record(self) -> np.recarray:
+#         data = np.empty(len(self), dtype=self[0].fields)
+#         for k, v in enumerate(self):
+#             data[k] = v.values
+#         return data.view(np.recarray)
 
-    def to_pandas(self) -> pd.DataFrame:
-        return pd.DataFrame(self.to_record())
+#     def to_pandas(self) -> pd.DataFrame:
+#         return pd.DataFrame(self.to_record())
 
-class BarList(CacheList):
-    def on_read_bar(self, curBar:POINTER(WTSBarStruct), count:int, isLast:bool):
-        '''
-        读取bar数据回调函数
+# class BarList(CacheList):
+#     def on_read_bar(self, curBar:POINTER(WTSBarStruct), count:int, isLast:bool):
+#         '''
+#         读取bar数据回调函数
         
-        @curBar    当前数据块首地址
-        @count      当前数据块条数
-        @isLast     是否是最后一块数据块
-        '''
-        bsSize = sizeof(WTSBarStruct)
-        addr = addressof(curBar.contents)
-        for i in range(count):
-            thisBar = WTSBarStruct.from_address(addr)
-            self.append(copy(thisBar))
-            addr += bsSize
+#         @curBar    当前数据块首地址
+#         @count      当前数据块条数
+#         @isLast     是否是最后一块数据块
+#         '''
+#         bsSize = sizeof(WTSBarStruct)
+#         addr = addressof(curBar.contents)
+#         for i in range(count):
+#             thisBar = WTSBarStruct.from_address(addr)
+#             self.append(copy(thisBar))
+#             addr += bsSize
 
-    def on_data_count(self, count:int):
-        '''
-        读取数据时的总条数回调
-        该回调有可能会触发，也可能不会触发
-        如果触发，可以做一个预先分配容量的处理
+#     def on_data_count(self, count:int):
+#         '''
+#         读取数据时的总条数回调
+#         该回调有可能会触发，也可能不会触发
+#         如果触发，可以做一个预先分配容量的处理
 
-        @count  总的数据条数
-        '''
-        pass
+#         @count  总的数据条数
+#         '''
+#         pass
 
-class TickList(CacheList):
-    def on_read_tick(self, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
-        '''
-        读取tick数据回调函数
+# class TickList(CacheList):
+#     def on_read_tick(self, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
+#         '''
+#         读取tick数据回调函数
         
-        @curTick    当前数据块首地址
-        @count      当前数据块条数
-        @isLast     是否是最后一块数据块
-        '''
-        tsSize = sizeof(WTSTickStruct)
-        addr = addressof(curTick.contents)
-        for i in range(count):
-            thisTick = WTSTickStruct.from_address(addr)
-            self.append(copy(thisTick))
-            addr += tsSize
+#         @curTick    当前数据块首地址
+#         @count      当前数据块条数
+#         @isLast     是否是最后一块数据块
+#         '''
+#         tsSize = sizeof(WTSTickStruct)
+#         addr = addressof(curTick.contents)
+#         for i in range(count):
+#             thisTick = WTSTickStruct.from_address(addr)
+#             self.append(copy(thisTick))
+#             addr += tsSize
 
-    def on_data_count(self, count:int):
-        '''
-        读取数据时的总条数回调
-        该回调有可能会触发，也可能不会触发
-        如果触发，可以做一个预先分配容量的处理
+#     def on_data_count(self, count:int):
+#         '''
+#         读取数据时的总条数回调
+#         该回调有可能会触发，也可能不会触发
+#         如果触发，可以做一个预先分配容量的处理
 
-        @count  总的数据条数
-        '''
-        pass
+#         @count  总的数据条数
+#         '''
+#         pass
 
 # 回调函数定义
 #策略初始化回调
