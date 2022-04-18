@@ -176,8 +176,8 @@ class WtDtServo:
 
             return pack_rsp(ret)
 
-        @app.route("/getsbars", methods=["POST"])
-        def on_get_sbars():
+        @app.route("/getdaysbars", methods=["POST"])
+        def on_get_day_sbars():
             bSucc, json_data = parse_data()
             if not bSucc:
                 return pack_rsp(json_data)
@@ -193,6 +193,39 @@ class WtDtServo:
                 }
             else:
                 bars = self.local_api.get_sbars_by_date(stdCode=stdCode, iSec=period, iDate=date)
+                if bars is None:
+                    ret = {
+                        "result":-2,
+                        "message":"Data not found"
+                    }
+                else:
+                    bar_list = [curBar.to_dict  for curBar in bars]
+                    
+                    ret = {
+                        "result":0,
+                        "message":"Ok",
+                        "bars": bar_list
+                    }
+
+            return pack_rsp(ret)
+
+        @app.route("/getdaybars", methods=["POST"])
+        def on_get_day_bars():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            stdCode = get_param(json_data, "code")
+            period = get_param(json_data, "period", str, None)
+            date = get_param(json_data, "date", int, None)
+
+            if date is None or period is None:
+                ret = {
+                    "result":-1,
+                    "message":"date or period cannot be null"
+                }
+            else:
+                bars = self.local_api.get_bars_by_date(stdCode=stdCode, period=period, iDate=date)
                 if bars is None:
                     ret = {
                         "result":-2,
@@ -334,7 +367,7 @@ class WtDtServo:
 
     def get_ticks_by_date(self, stdCode:str, iDate:int) -> WtTickRecords:
         '''
-        获取tick数据
+        按日期获取tick数据
         @stdCode    标准合约代码
         @iDate      日期, 格式为yyyymmdd
         '''
@@ -347,7 +380,7 @@ class WtDtServo:
 
     def get_sbars_by_date(self, stdCode:str, iSec:int, iDate:int) -> WtTickRecords:
         '''
-        获取tick数据
+        按日期获取秒线数据
         @stdCode    标准合约代码
         @iSec       周期, 单位s
         @iDate      日期, 格式为yyyymmdd
@@ -358,6 +391,20 @@ class WtDtServo:
         self.commitConfig()
 
         return self.local_api.get_sbars_by_date(stdCode=stdCode, iSec=iSec, iDate=iDate)
+
+    def get_bars_by_date(self, stdCode:str, period:str, iDate:int) -> WtTickRecords:
+        '''
+        按日期获取K线数据
+        @stdCode    标准合约代码
+        @period     周期，只支持分钟线
+        @iDate      日期, 格式为yyyymmdd
+        '''
+        if self.remote_api is not None:
+            return self.remote_api.get_bars_by_date(stdCode=stdCode, period=period, iDate=iDate)
+
+        self.commitConfig()
+
+        return self.local_api.get_bars_by_date(stdCode=stdCode, period=period, iDate=iDate)
 
 class WtDtRemoteServo:
 
@@ -471,7 +518,7 @@ class WtDtRemoteServo:
 
     def get_ticks_by_date(self, stdCode:str, iDate:int) -> WtTickRecords:
         '''
-        获取tick数据
+        按日期获取tick数据
         @stdCode    标准合约代码
         @iDate      日期, 格式为yyyymmdd
         '''
@@ -522,15 +569,51 @@ class WtDtRemoteServo:
 
     def get_sbars_by_date(self, stdCode:str, iSec:int, iDate:int) -> WtTickRecords:
         '''
-        获取tick数据
+        按日期获取秒线数据
         @stdCode    标准合约代码
         @iSec       周期, 单位s
         @iDate      日期, 格式为yyyymmdd
         '''
-        url = self.remote_url + "/getsbars"
+        url = self.remote_url + "/getdaysbars"
         data = {
             "code":stdCode,
             "second":iSec,
+            "date":iDate
+        }
+
+        resObj = httpPost(url, data)
+        if resObj["result"] < 0:
+            print(resObj["message"])
+            return None
+
+        barCache = WtBarRecords(len(resObj["bars"]))
+        for curBar in resObj["bars"]:
+            bs = WTSBarStruct()
+            bs.date = curBar["date"]
+            bs.time = curBar["time"]
+            bs.open = curBar["open"]
+            bs.high = curBar["high"]
+            bs.low = curBar["low"]
+            bs.close = curBar["close"]
+            bs.settle = curBar["settle"]
+            bs.money = curBar["money"]
+            bs.vol = curBar["vol"]
+            bs.hold = curBar["hold"]
+            bs.diff = curBar["diff"]
+            barCache.append(bs)
+        return barCache
+
+    def get_bars_by_date(self, stdCode:str, period:str, iDate:int) -> WtTickRecords:
+        '''
+        按日期获取K线数据
+        @stdCode    标准合约代码
+        @period     周期，只支持分钟线
+        @iDate      日期, 格式为yyyymmdd
+        '''
+        url = self.remote_url + "/getdaybars"
+        data = {
+            "code":stdCode,
+            "second":period,
             "date":iDate
         }
 
