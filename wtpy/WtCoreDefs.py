@@ -246,10 +246,21 @@ class WTSBarStruct(WTSStruct):
                 ("diff", c_double)]
     _pack_ = 1
 
-    def to_tuple(self, isDays:bool=False) -> tuple:
+    def to_tuple(self, flag:int=0) -> tuple:
+        '''
+        WTSBarStruct转成tuple
+        @flag	转换标记，0-分钟线，1-日线，2-秒线
+        '''
+        if flag == 0:
+            time = self.time + 199000000000
+        elif flag == 1:
+            time = self.date
+        elif flag == 2:
+            time = self.time
+        
         return (
                 self.date,
-                self.date if isDays else self.time + 199000000000,
+                time,
                 self.open,
                 self.high,
                 self.low,
