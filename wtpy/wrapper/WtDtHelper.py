@@ -4,7 +4,7 @@ from wtpy.WtDataDefs import WtTickRecords,WtBarRecords
 from wtpy.SessionMgr import SessionInfo
 from wtpy.wrapper.PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
-import os
+import os,logging
 
 CB_DTHELPER_LOG = CFUNCTYPE(c_void_p,  c_char_p)
 CB_DTHELPER_TICK = CFUNCTYPE(c_void_p,  POINTER(WTSTickStruct), c_uint32, c_bool)
@@ -14,7 +14,7 @@ CB_DTHELPER_COUNT = CFUNCTYPE(c_void_p,  c_uint32)
 
 def on_log_output(message:str):
     message = bytes.decode(message, 'gbk')
-    print(message)
+    logging.info(message)
 
 cb_dthelper_log = CB_DTHELPER_LOG(on_log_output)
 
@@ -37,7 +37,7 @@ class WtDataHelper:
         self.api = cdll.LoadLibrary(_path)
         
         self.cb_dthelper_log = CB_DTHELPER_LOG(on_log_output)
-        self.api.resample_bars.argtypes = [c_char_p, CB_DTHELPER_BAR, CB_DTHELPER_COUNT, c_uint64, c_uint64, c_char_p, c_uint, c_char_p, CB_DTHELPER_LOG]
+        self.api.resample_bars.argtypes = [c_char_p, CB_DTHELPER_BAR, CB_DTHELPER_COUNT, c_uint64, c_uint64, c_char_p, c_uint32, c_char_p, CB_DTHELPER_LOG]
 
     def on_log_output(message:str):
         message = bytes.decode(message, 'gbk')
