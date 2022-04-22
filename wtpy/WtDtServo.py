@@ -99,12 +99,32 @@ class WtDtServo:
     def setBasefiles(self, folder:str="./common/", commfile:str="commodities.json", contractfile:str="contracts.json", 
                 holidayfile:str="holidays.json", sessionfile:str="sessions.json", hotfile:str="hots.json"):
         '''
-        C接口初始化
+        设置基础文件
+        @folder 基础文件目录
+        @commfile       品种文件, str/list
+        @contractfile   合约文件, str/list
+        @holidayfile    节假日文件
+        @sessionfile    交易时间模板文件
+        @hotfile        主力合约配置文件
         '''
         self.__check_config__()
 
-        self.__config__["basefiles"]["commodity"] = os.path.join(folder, commfile)
-        self.__config__["basefiles"]["contract"] = os.path.join(folder, contractfile)
+        if type(commfile) == str:
+            self.__config__["basefiles"]["commodity"] = os.path.join(folder, commfile)
+        elif type(commfile) == list:
+            absList = []
+            for filename in commfile:
+                absList.append(os.path.join(folder, filename))
+            self.__config__["basefiles"]["commodity"] = ','.join(absList)
+
+        if type(contractfile) == str:
+            self.__config__["basefiles"]["contract"] = os.path.join(folder, contractfile)
+        elif type(contractfile) == list:
+            absList = []
+            for filename in contractfile:
+                absList.append(os.path.join(folder, filename))
+            self.__config__["basefiles"]["contract"] = ','.join(absList)
+
         self.__config__["basefiles"]["holiday"] = os.path.join(folder, holidayfile)
         self.__config__["basefiles"]["session"] = os.path.join(folder, sessionfile)
         self.__config__["basefiles"]["hot"] = os.path.join(folder, hotfile)

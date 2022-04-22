@@ -87,8 +87,8 @@ class WtDtServoApi:
         self.api.get_sbars_by_date.argtypes = [c_char_p, c_uint32, c_uint32, CB_GET_BAR, CB_DATA_COUNT]
         self.api.get_bars_by_date.argtypes = [c_char_p, c_char_p, c_uint32, CB_GET_BAR, CB_DATA_COUNT]
 
-    def initialize(self, cfgfile:str, isFile:bool):
-        self.api.initialize(bytes(cfgfile, encoding = "utf8"), isFile)
+    def initialize(self, cfgfile:str, isFile:bool, logcfg:str = 'logcfg.yaml'):
+        self.api.initialize(bytes(cfgfile, encoding = "utf8"), isFile, bytes(logcfg, encoding = "utf8"))
 
     def get_bars(self, stdCode:str, period:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> WtBarRecords:
         '''
