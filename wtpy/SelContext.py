@@ -70,9 +70,9 @@ class SelContext:
 
         ticks = self.__tick_cache__[key]
         for newTick in newTicks:
-            ticks.append_item(newTick)
+            ticks.append(newTick)
 
-    def on_getpositions(self, stdCode:str, qty:float, frozen:float, isLast:bool):
+    def on_getpositions(self, stdCode:str, qty:float, frozen:float):
         if len(stdCode) == 0:
             return
         self.__pos_cache__[stdCode] = qty
