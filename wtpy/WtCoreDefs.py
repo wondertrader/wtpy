@@ -1,5 +1,5 @@
 from ctypes import c_void_p, CFUNCTYPE, POINTER, c_char_p, c_bool, c_ulong, c_double
-from ctypes import Structure, c_char, c_int32, c_uint32,c_uint64, addressof, sizeof
+from ctypes import Structure, c_char, c_int32, c_uint32,c_uint64
 from copy import copy
 import numpy as np
 import pandas as pd
@@ -374,68 +374,6 @@ class WTSOrdDtlStruct(WTSStruct):
                 self.otype
             )
 
-# class CacheList(list):
-#     def to_record(self) -> np.recarray:
-#         data = np.empty(len(self), dtype=self[0].fields)
-#         for k, v in enumerate(self):
-#             data[k] = v.values
-#         return data.view(np.recarray)
-
-#     def to_pandas(self) -> pd.DataFrame:
-#         return pd.DataFrame(self.to_record())
-
-# class BarList(CacheList):
-#     def on_read_bar(self, curBar:POINTER(WTSBarStruct), count:int, isLast:bool):
-#         '''
-#         读取bar数据回调函数
-        
-#         @curBar    当前数据块首地址
-#         @count      当前数据块条数
-#         @isLast     是否是最后一块数据块
-#         '''
-#         bsSize = sizeof(WTSBarStruct)
-#         addr = addressof(curBar.contents)
-#         for i in range(count):
-#             thisBar = WTSBarStruct.from_address(addr)
-#             self.append(copy(thisBar))
-#             addr += bsSize
-
-#     def on_data_count(self, count:int):
-#         '''
-#         读取数据时的总条数回调
-#         该回调有可能会触发，也可能不会触发
-#         如果触发，可以做一个预先分配容量的处理
-
-#         @count  总的数据条数
-#         '''
-#         pass
-
-# class TickList(CacheList):
-#     def on_read_tick(self, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
-#         '''
-#         读取tick数据回调函数
-        
-#         @curTick    当前数据块首地址
-#         @count      当前数据块条数
-#         @isLast     是否是最后一块数据块
-#         '''
-#         tsSize = sizeof(WTSTickStruct)
-#         addr = addressof(curTick.contents)
-#         for i in range(count):
-#             thisTick = WTSTickStruct.from_address(addr)
-#             self.append(copy(thisTick))
-#             addr += tsSize
-
-#     def on_data_count(self, count:int):
-#         '''
-#         读取数据时的总条数回调
-#         该回调有可能会触发，也可能不会触发
-#         如果触发，可以做一个预先分配容量的处理
-
-#         @count  总的数据条数
-#         '''
-#         pass
-
 # 回调函数定义
 #策略初始化回调
 CB_STRATEGY_INIT = CFUNCTYPE(c_void_p, c_ulong) 
@@ -482,14 +420,20 @@ CB_HFTSTRA_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct
 CB_HFTSTRA_GET_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct), c_uint32, c_bool)
 
 
-EVENT_ENGINE_INIT    = 1     #框架初始化
-EVENT_SESSION_BEGIN = 2     #交易日开始
-EVENT_SESSION_END    = 3     #交易日结束
-EVENT_ENGINE_SCHDL    = 4     #框架调度
-EVENT_BACKTEST_END  = 5     #回测结束
+EVENT_ENGINE_INIT       = 1     #框架初始化
+EVENT_SESSION_BEGIN     = 2     #交易日开始
+EVENT_SESSION_END       = 3     #交易日结束
+EVENT_ENGINE_SCHDL      = 4     #框架调度
+EVENT_BACKTEST_END      = 5     #回测结束
 
-CHNL_EVENT_READY    = 1000  #通道就绪事件
-CHNL_EVENT_LOST        = 1001  #通道断开事件
+CHNL_EVENT_READY        = 1000  #通道就绪事件
+CHNL_EVENT_LOST         = 1001  #通道断开事件
+
+#日志级别
+LOG_LEVEL_DEBUG         = 0
+LOG_LEVEL_INFO          = 1
+LOG_LEVEL_WARN          = 2
+LOG_LEVEL_ERROR         = 3
 
 from enum import Enum
 class EngineType(Enum):
@@ -505,7 +449,7 @@ class EngineType(Enum):
 '''
 Parser外接实现
 '''
-EVENT_PARSER_INIT        = 1;    #Parser初始化
+EVENT_PARSER_INIT       = 1;    #Parser初始化
 EVENT_PARSER_CONNECT    = 2;    #Parser连接
 EVENT_PARSER_DISCONNECT = 3;    #Parser断开连接
 EVENT_PARSER_RELEASE    = 4;    #Parser释放

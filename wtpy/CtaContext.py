@@ -153,6 +153,14 @@ class CtaContext:
         '''
         self.__wrapper__.cta_log_text(self.__id__, message[:242])
 
+    def stra_log_level(self, message:str, level:int = 1):
+        '''
+        输出日志
+        @level      日志级别，0-debug，1-info，2-warn，3-error
+        @message    消息内容，最大242字符
+        '''
+        self.__wrapper__.stra_log_level(self.__id__, level, message[:242])
+
     def stra_get_tdate(self) -> int:
         '''
         获取当前交易日

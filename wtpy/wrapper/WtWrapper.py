@@ -682,6 +682,15 @@ class WtWrapper:
         '''
         self.api.cta_log_text(id, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
 
+    def cta_log_level(self, id:int, level:int, message:str):
+        '''
+        日志输出
+        @id         策略ID
+        @level      日志级别
+        @message    日志内容
+        '''
+        self.api.cta_log_level(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+
     def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
         '''
         获取指定标记的持仓的进场时间
@@ -835,6 +844,15 @@ class WtWrapper:
         '''
         self.api.sel_log_text(id, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
 
+    def sel_log_level(self, id:int, level:int, message:str):
+        '''
+        日志输出
+        @id         策略ID
+        @level      日志级别
+        @message    日志内容
+        '''
+        self.api.sel_log_level(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+
     def sel_sub_ticks(self, id:int, stdCode:str):
         '''
         订阅行情
@@ -972,6 +990,15 @@ class WtWrapper:
         @message    日志内容
         '''
         self.api.hft_log_text(id, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+
+    def hft_log_level(self, id:int, level:int, message:str):
+        '''
+        日志输出
+        @id         策略ID
+        @level      日志级别
+        @message    日志内容
+        '''
+        self.api.hft_log_level(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
 
     def hft_sub_ticks(self, id:int, stdCode:str):
         '''
