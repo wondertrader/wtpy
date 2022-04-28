@@ -661,22 +661,14 @@ class WtBtWrapper:
         '''
         return self.api.cta_get_last_exittime(id, bytes(stdCode, encoding = "utf8"))
 
-    def cta_log_text(self, id:int, message:str):
-        '''
-        日志输出
-        @id         策略ID
-        @message    日志内容
-        '''
-        self.api.cta_log_text(id, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
-
-    def cta_log_level(self, id:int, level:int, message:str):
+    def cta_log_text(self, id:int, level:int, message:str):
         '''
         日志输出
         @id         策略ID
         @level      日志级别
         @message    日志内容
         '''
-        self.api.cta_log_level(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.cta_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
 
     def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
         '''
@@ -831,22 +823,14 @@ class WtBtWrapper:
         '''
         return self.api.sel_get_time()
 
-    def sel_log_text(self, id:int, message:str):
-        '''
-        日志输出
-        @id         策略ID
-        @message    日志内容
-        '''
-        self.api.sel_log_text(id, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
-
-    def sel_log_level(self, id:int, level:int, message:str):
+    def sel_log_text(self, id:int, level:int, message:str):
         '''
         日志输出
         @id         策略ID
         @level      日志级别
         @message    日志内容
         '''
-        self.api.sel_log_level(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.sel_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
 
     def sel_sub_ticks(self, id:int, stdCode:str):
         '''
@@ -978,22 +962,14 @@ class WtBtWrapper:
         '''
         return self.api.hft_get_secs()
 
-    def hft_log_text(self, id:int, message:str):
-        '''
-        日志输出
-        @id         策略ID
-        @message    日志内容
-        '''
-        self.api.hft_log_text(id, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
-
-    def hft_log_level(self, id:int, level:int, message:str):
+    def hft_log_text(self, id:int, level:int, message:str):
         '''
         日志输出
         @id         策略ID
         @level      日志级别
         @message    日志内容
         '''
-        self.api.hft_log_level(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.hft_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
 
     def hft_sub_ticks(self, id:int, stdCode:str):
         '''
