@@ -164,28 +164,33 @@ class WtEngine:
 
         self.__check_config__()
 
+        if contractfile is not None:        
+            self.__config__["basefiles"]["contract"] = folder + contractfile
         
-        self.__config__["basefiles"]["contract"] = folder + contractfile
-        
-        self.__config__["basefiles"]["session"] = folder + sessionfile
+        if sessionfile is not None:
+            self.__config__["basefiles"]["session"] = folder + sessionfile
+
         if commfile is not None:
             self.__config__["basefiles"]["commodity"] = folder + commfile
+
         if holidayfile is not None:
             self.__config__["basefiles"]["holiday"] = folder + holidayfile
+
         if hotfile is not None:
             self.__config__["basefiles"]["hot"] = folder + hotfile
+
         if secondfile is not None:
             self.__config__["basefiles"]["second"] = folder + secondfile
 
         self.productMgr = ProductMgr()
-        if commfile is not None:
-            self.productMgr.load(folder + commfile)
+        if self.__config__["basefiles"]["commodity"] is not None:
+            self.productMgr.load(self.__config__["basefiles"]["commodity"])
 
         self.contractMgr = ContractMgr(self.productMgr)
-        self.contractMgr.load(folder + contractfile)
+        self.contractMgr.load(self.__config__["basefiles"]["contract"])
 
         self.sessionMgr = SessionMgr()
-        self.sessionMgr.load(folder + sessionfile)
+        self.sessionMgr.load(self.__config__["basefiles"]["session"])
 
     def configEngine(self, name:str, mode:str = "product"):
         '''

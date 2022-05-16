@@ -89,12 +89,12 @@ class WtBtEngine:
 
     def init(self, folder:str, 
         cfgfile:str = "configbt.yaml", 
-        commfile:str="commodities.json", 
-        contractfile:str="contracts.json",
-        sessionfile:str="sessions.json",
-        holidayfile:str="holidays.json",
-        hotfile:str="hots.json",
-        secondfile:str="seconds.json"):
+        commfile:str = None, 
+        contractfile:str = None,
+        sessionfile:str = None,
+        holidayfile:str= None,
+        hotfile:str = None,
+        secondfile:str = None):
         '''
         初始化
         @folder     基础数据文件目录，\\结尾
@@ -117,26 +117,33 @@ class WtBtEngine:
 
         self.__check_config__()
 
-        self.__config__["replayer"]["basefiles"]["contract"] = folder + contractfile
-        self.__config__["replayer"]["basefiles"]["session"] = folder + sessionfile
+        if contractfile is not None:
+            self.__config__["replayer"]["basefiles"]["contract"] = folder + contractfile
+        
+        if sessionfile is not None:
+            self.__config__["replayer"]["basefiles"]["session"] = folder + sessionfile
+
         if commfile is not None:
             self.__config__["replayer"]["basefiles"]["commodity"] = folder + commfile
+
         if holidayfile is not None:
             self.__config__["replayer"]["basefiles"]["holiday"] = folder + holidayfile
+
         if hotfile is not None:
             self.__config__["replayer"]["basefiles"]["hot"] = folder + hotfile
+
         if secondfile is not None:
             self.__config__["replayer"]["basefiles"]["second"] = folder + secondfile
 
         self.productMgr = ProductMgr()
-        if commfile is not None:
-            self.productMgr.load(folder + commfile)
+        if self.__config__["replayer"]["basefiles"]["commodity"] is not None:
+            self.productMgr.load(self.__config__["replayer"]["basefiles"]["commodity"])
 
         self.contractMgr = ContractMgr(self.productMgr)
-        self.contractMgr.load(folder + contractfile)
+        self.contractMgr.load(self.__config__["replayer"]["basefiles"]["contract"])
 
         self.sessionMgr = SessionMgr()
-        self.sessionMgr.load(folder + sessionfile)
+        self.sessionMgr.load(self.__config__["replayer"]["basefiles"]["session"])
 
     def configMocker(self, name:str):
         '''
