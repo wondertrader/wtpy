@@ -5,5 +5,6 @@ from .WtDtWrapper import WtDtWrapper
 from .ContractLoader import ContractLoader,LoaderType
 from .WtDtHelper import WtDataHelper
 from .WtDtServoApi import WtDtServoApi
+from .TraderDumper import TraderDumper
 
-__all__ = ["WtWrapper", "WtExecApi", "WtDtWrapper", "WtBtWrapper", "ContractLoader","LoaderType","WtDataHelper","WtDtServoApi"]
+__all__ = ["WtWrapper", "WtExecApi", "WtDtWrapper", "WtBtWrapper", "ContractLoader","LoaderType","WtDataHelper","WtDtServoApi","TraderDumper"]
