@@ -6,7 +6,7 @@ Date: 2021-07-27 09:53:43
 LastEditors: Wesley
 LastEditTime: 2021-08-13 15:35:25
 '''
-from ctypes import cdll, c_char_p
+from ctypes import cdll, c_char_p, c_int, c_bool, c_double
 from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
 import os
