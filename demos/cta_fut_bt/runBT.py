@@ -1,4 +1,5 @@
 from wtpy import WtBtEngine,EngineType
+from wtpy.apps import WtBtAnalyst
 from Strategies.DualThrust import StraDualThrust
 
 def analyze_with_pyfolio(fund_filename:str, capital:float=500000):
