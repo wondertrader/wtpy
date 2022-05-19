@@ -70,7 +70,7 @@ class HftContext:
         for newTick in newTicks:
             ticks.append(newTick)
 
-    def on_getbars(self, stdCode:str, period:str, newBars:list, isLast:bool):
+    def on_getbars(self, stdCode:str, period:str, newBars:list):
         key = "%s#%s" % (stdCode, period)
 
         bars = self.__bar_cache__[key]
