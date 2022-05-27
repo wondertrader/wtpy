@@ -174,6 +174,17 @@ class WtBtEngine:
         if storage is not None:
             self.__config__["replayer"]["store"] = storage
 
+    def registerCustomRule(self, ruleTag:str, filename:str):
+        '''
+        注册自定义连续合约规则
+        @ruleTag    规则标签，如ruleTag为THIS，对应的连续合约代码为CFFEX.IF.THIS
+        @filename   规则定义文件名，和hots.json格式一样
+        '''
+        if "rules" not in self.__config__["replayer"]["basefiles"]:
+            self.__config__["replayer"]["basefiles"]["rules"] = dict()
+
+        self.__config__["replayer"]["basefiles"]["rules"][ruleTag] = filename
+
     def setExternalCtaStrategy(self, id:str, module:str, typeName:str, params:dict):
         '''
         添加C++的CTA策略

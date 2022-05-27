@@ -233,6 +233,17 @@ class WtEngine:
         self.__config__["data"]["store"]["module"] = module
         self.__config__["data"]["store"]["path"] = path
 
+    def registerCustomRule(self, ruleTag:str, filename:str):
+        '''
+        注册自定义连续合约规则
+        @ruleTag    规则标签，如ruleTag为THIS，对应的连续合约代码为CFFEX.IF.THIS
+        @filename   规则定义文件名，和hots.json格式一样
+        '''
+        if "rules" not in self.__config__["basefiles"]:
+            self.__config__["basefiles"]["rules"] = dict()
+
+        self.__config__["basefiles"]["rules"][ruleTag] = filename
+
     def commitConfig(self):
         '''
         提交配置
