@@ -102,7 +102,7 @@ class WtDataHelper:
             return tick_cache.records
 
 
-    def read_dsb_bars(self, barFile: str) -> WtBarRecords:
+    def read_dsb_bars(self, barFile: str, isDay:bool = False) -> WtBarRecords:
         '''
         读取.dsb格式的K线数据
         @tickFile   .dsb的K线数据文件
@@ -121,7 +121,7 @@ class WtDataHelper:
                 addr = addressof(curTick.contents)
                 for i in range(count):
                     realBar = WTSBarStruct.from_address(addr)
-                    self.records.append(realBar.to_tuple())
+                    self.records.append(realBar.to_tuple(1 if isDay else 0))
                     addr += bsSize
 
             def on_data_count(self, count:int):

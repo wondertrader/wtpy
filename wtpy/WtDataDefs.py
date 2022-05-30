@@ -259,7 +259,7 @@ class WtBarRecords(DequeRecord):
         return self.append(
             (
                 data.date,
-                data.time if data.time == data.date else data.time + 199000000000,
+                data.time if (data.time == data.date or data.time == 0) else data.time + 199000000000,
                 data.open,
                 data.high,
                 data.low,

@@ -203,7 +203,7 @@ class WtBtWrapper:
         bars = [None]*count # 预先分配list的长度
         for i in range(count):
             realBar = WTSBarStruct.from_address(addr)   # 从内存中直接解析成WTSBarStruct
-            bars[i] = realBar.to_tuple(isDay)
+            bars[i] = realBar.to_tuple(1 if isDay else 0)
             addr += bsSize
 
         if ctx is not None:
