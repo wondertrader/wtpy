@@ -708,7 +708,7 @@ class WtHotPicker:
                                     break
 
                         #如果主力合约月份大于等于次主力合约，则次主力递延一位
-                        if hot.month >= sec.month:
+                        if hot.month >= sec.month and len(ay)>=3:
                             sec = ay[-3]
                         
                         seconds[pid] = sec.code
