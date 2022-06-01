@@ -706,7 +706,11 @@ class WtHotPicker:
                                 if item.month == next_month:
                                     hot = item
                                     break
-                        
+
+                        #如果主力合约月份大于等于次主力合约，则次主力递延一位
+                        if hot.month >= sec.month and len(ay)>=3:
+                            sec = ay[-3]
+     
                         for i in range(-2,-len(ay),-1):
                             sec = ay[i]
                             #次主力合约月份大于等于次主力合约才可以
