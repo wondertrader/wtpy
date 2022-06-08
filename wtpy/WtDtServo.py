@@ -61,12 +61,13 @@ def httpPost(url, datas:dict, encoding='utf-8') -> dict:
 class WtDtServo:
 
     # 构造函数, 传入动态库名
-    def __init__(self):
+    def __init__(self, logcfg:str="logcfg.yaml"):
         self.__config__ = None
         self.__cfg_commited__ = False
         self.local_api = None
         self.server_inst = None
-        self.remote_api = None    
+        self.remote_api = None
+        self.logCfg = logcfg
 
     def __check_config__(self):
         '''
@@ -129,8 +130,9 @@ class WtDtServo:
         self.__config__["basefiles"]["session"] = os.path.join(folder, sessionfile)
         self.__config__["basefiles"]["hot"] = os.path.join(folder, hotfile)
 
-    def setStorage(self, path:str = "./storage/"):
+    def setStorage(self, path:str = "./storage/", adjfactor:str = "adjfactors.json"):
         self.__config__["data"]["store"]["path"] = path
+        self.__config__["data"]["store"]["adjfactor"] = adjfactor
     
     def commitConfig(self):
         if self.remote_api is not None:
@@ -142,7 +144,7 @@ class WtDtServo:
 
         cfgfile = json.dumps(self.__config__, indent=4, sort_keys=True)
         try:
-            self.local_api.initialize(cfgfile, False)
+            self.local_api.initialize(cfgfile, False, self.logCfg)
             self.__cfg_commited__ = True
         except OSError as oe:
             print(oe)
