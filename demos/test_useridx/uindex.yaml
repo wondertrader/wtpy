@@ -1,0 +1,46 @@
+UIDX:
+    IFIDX:
+        name: IF板块指数
+        code: IFIDX
+        exchg: UIDX
+        rules:
+            session: SD0930
+            holiday: CHINA
+            covermode: 3
+            pricemode: 9
+            category: 90
+            trademode: 9
+            pricetick: 0.000001
+            lotstick: 1
+            minlots: 1
+            volscale: 1
+    BLACK:
+        name: 黑色板块指数
+        code: BLACK
+        exchg: UIDX
+        rules:
+            session: FN0100
+            holiday: CHINA
+            covermode: 3
+            pricemode: 9
+            category: 90
+            trademode: 9
+            pricetick: 0.000001
+            lotstick: 1
+            minlots: 1
+            volscale: 1
+    BLKHOT:
+        name: 黑色主力指数
+        code: BLKHOT
+        exchg: UIDX
+        rules:
+            session: FN0100
+            holiday: CHINA
+            covermode: 3
+            pricemode: 9
+            category: 90
+            trademode: 9
+            pricetick: 0.000001
+            lotstick: 1
+            minlots: 1
+            volscale: 1

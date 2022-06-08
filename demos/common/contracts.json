@@ -22,7 +22,7 @@
             "exchg": "CFFEX",
             "product": "IC",
             "maxlimitqty": 20,
-            "maxmarketqty": 10
+            "maxmarketqty": 0
         },
         "IC2212": {
             "name": "ÖÐÖ¤2212",
@@ -30,7 +30,7 @@
             "exchg": "CFFEX",
             "product": "IC",
             "maxlimitqty": 20,
-            "maxmarketqty": 10
+            "maxmarketqty": 0
         },
         "IF2206": {
             "name": "»¦Éî2206",
@@ -54,7 +54,7 @@
             "exchg": "CFFEX",
             "product": "IF",
             "maxlimitqty": 20,
-            "maxmarketqty": 10
+            "maxmarketqty": 0
         },
         "IF2212": {
             "name": "»¦Éî2212",
@@ -62,7 +62,7 @@
             "exchg": "CFFEX",
             "product": "IF",
             "maxlimitqty": 20,
-            "maxmarketqty": 10
+            "maxmarketqty": 0
         },
         "IH2206": {
             "name": "ÉÏÖ¤2206",
@@ -86,7 +86,7 @@
             "exchg": "CFFEX",
             "product": "IH",
             "maxlimitqty": 20,
-            "maxmarketqty": 10
+            "maxmarketqty": 0
         },
         "IH2212": {
             "name": "ÉÏÖ¤2212",
@@ -94,7 +94,7 @@
             "exchg": "CFFEX",
             "product": "IH",
             "maxlimitqty": 20,
-            "maxmarketqty": 10
+            "maxmarketqty": 0
         },
         "T2206": {
             "name": "10ÄêÕ®2206",
@@ -110,7 +110,7 @@
             "exchg": "CFFEX",
             "product": "T",
             "maxlimitqty": 50,
-            "maxmarketqty": 30
+            "maxmarketqty": 0
         },
         "T2212": {
             "name": "10ÄêÕ®2212",
@@ -118,7 +118,7 @@
             "exchg": "CFFEX",
             "product": "T",
             "maxlimitqty": 50,
-            "maxmarketqty": 30
+            "maxmarketqty": 0
         },
         "TF2206": {
             "name": "5ÄêÕ®2206",
@@ -134,7 +134,7 @@
             "exchg": "CFFEX",
             "product": "TF",
             "maxlimitqty": 50,
-            "maxmarketqty": 30
+            "maxmarketqty": 0
         },
         "TF2212": {
             "name": "5ÄêÕ®2212",
@@ -142,7 +142,7 @@
             "exchg": "CFFEX",
             "product": "TF",
             "maxlimitqty": 50,
-            "maxmarketqty": 30
+            "maxmarketqty": 0
         },
         "TS2206": {
             "name": "2ÄêÕ®2206",
@@ -158,7 +158,7 @@
             "exchg": "CFFEX",
             "product": "TS",
             "maxlimitqty": 50,
-            "maxmarketqty": 30
+            "maxmarketqty": 0
         },
         "TS2212": {
             "name": "2ÄêÕ®2212",
@@ -166,7 +166,7 @@
             "exchg": "CFFEX",
             "product": "TS",
             "maxlimitqty": 50,
-            "maxmarketqty": 30
+            "maxmarketqty": 0
         }
     },
     "CZCE": {
@@ -3524,7 +3524,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bc2207": {
             "name": "¹ú¼ÊÍ­2207",
@@ -3532,7 +3532,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bc2208": {
             "name": "¹ú¼ÊÍ­2208",
@@ -3540,7 +3540,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bc2209": {
             "name": "¹ú¼ÊÍ­2209",
@@ -3548,7 +3548,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bc2210": {
             "name": "¹ú¼ÊÍ­2210",
@@ -3556,7 +3556,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bc2211": {
             "name": "¹ú¼ÊÍ­2211",
@@ -3564,7 +3564,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bc2212": {
             "name": "¹ú¼ÊÍ­2212",
@@ -3572,7 +3572,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bc2301": {
             "name": "¹ú¼ÊÍ­2301",
@@ -3580,7 +3580,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bc2302": {
             "name": "¹ú¼ÊÍ­2302",
@@ -3588,7 +3588,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bc2303": {
             "name": "¹ú¼ÊÍ­2303",
@@ -3596,7 +3596,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bc2304": {
             "name": "¹ú¼ÊÍ­2304",
@@ -3604,7 +3604,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bc2305": {
             "name": "¹ú¼ÊÍ­2305",
@@ -3612,15 +3612,7 @@
             "exchg": "INE",
             "product": "bc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
-        },
-        "lu2206": {
-            "name": "µÍÁòÓÍ2206",
-            "code": "lu2206",
-            "exchg": "INE",
-            "product": "lu",
-            "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "lu2207": {
             "name": "µÍÁòÓÍ2207",
@@ -3628,7 +3620,7 @@
             "exchg": "INE",
             "product": "lu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "lu2208": {
             "name": "µÍÁòÓÍ2208",
@@ -3636,7 +3628,7 @@
             "exchg": "INE",
             "product": "lu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "lu2209": {
             "name": "µÍÁòÓÍ2209",
@@ -3644,7 +3636,7 @@
             "exchg": "INE",
             "product": "lu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "lu2210": {
             "name": "µÍÁòÓÍ2210",
@@ -3660,7 +3652,7 @@
             "exchg": "INE",
             "product": "lu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "lu2212": {
             "name": "µÍÁòÓÍ2212",
@@ -3668,7 +3660,7 @@
             "exchg": "INE",
             "product": "lu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "lu2301": {
             "name": "µÍÁòÓÍ2301",
@@ -3676,7 +3668,7 @@
             "exchg": "INE",
             "product": "lu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "lu2302": {
             "name": "µÍÁòÓÍ2302",
@@ -3684,7 +3676,7 @@
             "exchg": "INE",
             "product": "lu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "lu2303": {
             "name": "µÍÁòÓÍ2303",
@@ -3692,7 +3684,7 @@
             "exchg": "INE",
             "product": "lu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "lu2304": {
             "name": "µÍÁòÓÍ2304",
@@ -3700,7 +3692,7 @@
             "exchg": "INE",
             "product": "lu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "lu2305": {
             "name": "µÍÁòÓÍ2305",
@@ -3708,7 +3700,15 @@
             "exchg": "INE",
             "product": "lu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
+        },
+        "lu2306": {
+            "name": "µÍÁòÓÍ2306",
+            "code": "lu2306",
+            "exchg": "INE",
+            "product": "lu",
+            "maxlimitqty": 500,
+            "maxmarketqty": 30
         },
         "nr2206": {
             "name": "20½º2206",
@@ -3716,7 +3716,7 @@
             "exchg": "INE",
             "product": "nr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "nr2207": {
             "name": "20½º2207",
@@ -3724,7 +3724,7 @@
             "exchg": "INE",
             "product": "nr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "nr2208": {
             "name": "20½º2208",
@@ -3732,7 +3732,7 @@
             "exchg": "INE",
             "product": "nr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "nr2209": {
             "name": "20½º2209",
@@ -3740,7 +3740,7 @@
             "exchg": "INE",
             "product": "nr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "nr2210": {
             "name": "20½º2210",
@@ -3748,7 +3748,7 @@
             "exchg": "INE",
             "product": "nr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "nr2211": {
             "name": "20½º2211",
@@ -3756,7 +3756,7 @@
             "exchg": "INE",
             "product": "nr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "nr2212": {
             "name": "20½º2212",
@@ -3764,7 +3764,7 @@
             "exchg": "INE",
             "product": "nr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "nr2301": {
             "name": "20½º2301",
@@ -3772,7 +3772,7 @@
             "exchg": "INE",
             "product": "nr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "nr2302": {
             "name": "20½º2302",
@@ -3780,7 +3780,7 @@
             "exchg": "INE",
             "product": "nr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "nr2303": {
             "name": "20½º2303",
@@ -3788,7 +3788,7 @@
             "exchg": "INE",
             "product": "nr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "nr2304": {
             "name": "20½º2304",
@@ -3796,21 +3796,13 @@
             "exchg": "INE",
             "product": "nr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "nr2305": {
             "name": "20½º2305",
             "code": "nr2305",
             "exchg": "INE",
             "product": "nr",
-            "maxlimitqty": 500,
-            "maxmarketqty": 500
-        },
-        "sc2206": {
-            "name": "Ô­ÓÍ2206",
-            "code": "sc2206",
-            "exchg": "INE",
-            "product": "sc",
             "maxlimitqty": 500,
             "maxmarketqty": 30
         },
@@ -3820,7 +3812,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2208": {
             "name": "Ô­ÓÍ2208",
@@ -3828,7 +3820,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2209": {
             "name": "Ô­ÓÍ2209",
@@ -3844,7 +3836,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2211": {
             "name": "Ô­ÓÍ2211",
@@ -3852,7 +3844,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2212": {
             "name": "Ô­ÓÍ2212",
@@ -3868,7 +3860,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2302": {
             "name": "Ô­ÓÍ2302",
@@ -3876,7 +3868,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2303": {
             "name": "Ô­ÓÍ2303",
@@ -3892,7 +3884,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2305": {
             "name": "Ô­ÓÍ2305",
@@ -3900,7 +3892,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2306": {
             "name": "Ô­ÓÍ2306",
@@ -3932,7 +3924,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2406": {
             "name": "Ô­ÓÍ2406",
@@ -3940,7 +3932,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2409": {
             "name": "Ô­ÓÍ2409",
@@ -3948,7 +3940,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2412": {
             "name": "Ô­ÓÍ2412",
@@ -3956,7 +3948,7 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sc2503": {
             "name": "Ô­ÓÍ2503",
@@ -3964,7 +3956,15 @@
             "exchg": "INE",
             "product": "sc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
+        },
+        "sc2506": {
+            "name": "Ô­ÓÍ2506",
+            "code": "sc2506",
+            "exchg": "INE",
+            "product": "sc",
+            "maxlimitqty": 500,
+            "maxmarketqty": 30
         }
     },
     "SHFE": {
@@ -3974,7 +3974,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ag2207": {
             "name": "»¦Òø2207",
@@ -3982,7 +3982,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ag2208": {
             "name": "»¦Òø2208",
@@ -3990,7 +3990,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ag2209": {
             "name": "»¦Òø2209",
@@ -3998,7 +3998,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ag2210": {
             "name": "»¦Òø2210",
@@ -4006,7 +4006,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ag2211": {
             "name": "»¦Òø2211",
@@ -4014,7 +4014,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ag2212": {
             "name": "»¦Òø2212",
@@ -4022,7 +4022,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ag2301": {
             "name": "»¦Òø2301",
@@ -4030,7 +4030,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ag2302": {
             "name": "»¦Òø2302",
@@ -4038,7 +4038,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ag2303": {
             "name": "»¦Òø2303",
@@ -4046,7 +4046,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ag2304": {
             "name": "»¦Òø2304",
@@ -4054,7 +4054,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ag2305": {
             "name": "»¦Òø2305",
@@ -4062,7 +4062,7 @@
             "exchg": "SHFE",
             "product": "ag",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2206": {
             "name": "»¦ÂÁ2206",
@@ -4070,7 +4070,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2207": {
             "name": "»¦ÂÁ2207",
@@ -4078,7 +4078,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2208": {
             "name": "»¦ÂÁ2208",
@@ -4086,7 +4086,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2209": {
             "name": "»¦ÂÁ2209",
@@ -4094,7 +4094,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2210": {
             "name": "»¦ÂÁ2210",
@@ -4102,7 +4102,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2211": {
             "name": "»¦ÂÁ2211",
@@ -4110,7 +4110,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2212": {
             "name": "»¦ÂÁ2212",
@@ -4118,7 +4118,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2301": {
             "name": "»¦ÂÁ2301",
@@ -4126,7 +4126,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2302": {
             "name": "»¦ÂÁ2302",
@@ -4134,7 +4134,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2303": {
             "name": "»¦ÂÁ2303",
@@ -4142,7 +4142,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2304": {
             "name": "»¦ÂÁ2304",
@@ -4150,7 +4150,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "al2305": {
             "name": "»¦ÂÁ2305",
@@ -4158,7 +4158,7 @@
             "exchg": "SHFE",
             "product": "al",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "au2206": {
             "name": "»¦½ð2206",
@@ -4238,7 +4238,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2208": {
             "name": "Á¤Çà2208",
@@ -4246,7 +4246,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2209": {
             "name": "Á¤Çà2209",
@@ -4262,7 +4262,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2211": {
             "name": "Á¤Çà2211",
@@ -4270,7 +4270,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2212": {
             "name": "Á¤Çà2212",
@@ -4286,7 +4286,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2302": {
             "name": "Á¤Çà2302",
@@ -4294,7 +4294,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2303": {
             "name": "Á¤Çà2303",
@@ -4302,7 +4302,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2304": {
             "name": "Á¤Çà2304",
@@ -4310,7 +4310,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2305": {
             "name": "Á¤Çà2305",
@@ -4318,7 +4318,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2306": {
             "name": "Á¤Çà2306",
@@ -4326,7 +4326,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2309": {
             "name": "Á¤Çà2309",
@@ -4334,7 +4334,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2312": {
             "name": "Á¤Çà2312",
@@ -4342,7 +4342,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "bu2403": {
             "name": "Á¤Çà2403",
@@ -4350,7 +4350,7 @@
             "exchg": "SHFE",
             "product": "bu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2206": {
             "name": "»¦Í­2206",
@@ -4358,7 +4358,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2207": {
             "name": "»¦Í­2207",
@@ -4366,7 +4366,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2208": {
             "name": "»¦Í­2208",
@@ -4374,7 +4374,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2209": {
             "name": "»¦Í­2209",
@@ -4382,7 +4382,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2210": {
             "name": "»¦Í­2210",
@@ -4390,7 +4390,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2211": {
             "name": "»¦Í­2211",
@@ -4398,7 +4398,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2212": {
             "name": "»¦Í­2212",
@@ -4406,7 +4406,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2301": {
             "name": "»¦Í­2301",
@@ -4414,7 +4414,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2302": {
             "name": "»¦Í­2302",
@@ -4422,7 +4422,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2303": {
             "name": "»¦Í­2303",
@@ -4430,7 +4430,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2304": {
             "name": "»¦Í­2304",
@@ -4438,7 +4438,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "cu2305": {
             "name": "»¦Í­2305",
@@ -4446,15 +4446,7 @@
             "exchg": "SHFE",
             "product": "cu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
-        },
-        "fu2206": {
-            "name": "È¼ÓÍ2206",
-            "code": "fu2206",
-            "exchg": "SHFE",
-            "product": "fu",
-            "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "fu2207": {
             "name": "È¼ÓÍ2207",
@@ -4462,7 +4454,7 @@
             "exchg": "SHFE",
             "product": "fu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "fu2208": {
             "name": "È¼ÓÍ2208",
@@ -4470,7 +4462,7 @@
             "exchg": "SHFE",
             "product": "fu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "fu2209": {
             "name": "È¼ÓÍ2209",
@@ -4478,7 +4470,7 @@
             "exchg": "SHFE",
             "product": "fu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "fu2210": {
             "name": "È¼ÓÍ2210",
@@ -4486,7 +4478,7 @@
             "exchg": "SHFE",
             "product": "fu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "fu2211": {
             "name": "È¼ÓÍ2211",
@@ -4494,7 +4486,7 @@
             "exchg": "SHFE",
             "product": "fu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "fu2212": {
             "name": "È¼ÓÍ2212",
@@ -4502,7 +4494,7 @@
             "exchg": "SHFE",
             "product": "fu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "fu2301": {
             "name": "È¼ÓÍ2301",
@@ -4510,7 +4502,7 @@
             "exchg": "SHFE",
             "product": "fu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "fu2302": {
             "name": "È¼ÓÍ2302",
@@ -4518,7 +4510,7 @@
             "exchg": "SHFE",
             "product": "fu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "fu2303": {
             "name": "È¼ÓÍ2303",
@@ -4526,7 +4518,7 @@
             "exchg": "SHFE",
             "product": "fu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "fu2304": {
             "name": "È¼ÓÍ2304",
@@ -4534,7 +4526,7 @@
             "exchg": "SHFE",
             "product": "fu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "fu2305": {
             "name": "È¼ÓÍ2305",
@@ -4542,7 +4534,15 @@
             "exchg": "SHFE",
             "product": "fu",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
+        },
+        "fu2306": {
+            "name": "È¼ÓÍ2306",
+            "code": "fu2306",
+            "exchg": "SHFE",
+            "product": "fu",
+            "maxlimitqty": 500,
+            "maxmarketqty": 30
         },
         "hc2206": {
             "name": "ÈÈ¾í2206",
@@ -4550,7 +4550,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "hc2207": {
             "name": "ÈÈ¾í2207",
@@ -4558,7 +4558,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "hc2208": {
             "name": "ÈÈ¾í2208",
@@ -4566,7 +4566,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "hc2209": {
             "name": "ÈÈ¾í2209",
@@ -4574,7 +4574,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "hc2210": {
             "name": "ÈÈ¾í2210",
@@ -4582,7 +4582,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "hc2211": {
             "name": "ÈÈ¾í2211",
@@ -4590,7 +4590,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "hc2212": {
             "name": "ÈÈ¾í2212",
@@ -4598,7 +4598,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "hc2301": {
             "name": "ÈÈ¾í2301",
@@ -4606,7 +4606,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "hc2302": {
             "name": "ÈÈ¾í2302",
@@ -4614,7 +4614,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "hc2303": {
             "name": "ÈÈ¾í2303",
@@ -4622,7 +4622,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "hc2304": {
             "name": "ÈÈ¾í2304",
@@ -4630,7 +4630,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "hc2305": {
             "name": "ÈÈ¾í2305",
@@ -4638,7 +4638,7 @@
             "exchg": "SHFE",
             "product": "hc",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2206": {
             "name": "»¦Äø2206",
@@ -4646,7 +4646,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2207": {
             "name": "»¦Äø2207",
@@ -4654,7 +4654,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2208": {
             "name": "»¦Äø2208",
@@ -4662,7 +4662,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2209": {
             "name": "»¦Äø2209",
@@ -4670,7 +4670,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2210": {
             "name": "»¦Äø2210",
@@ -4678,7 +4678,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2211": {
             "name": "»¦Äø2211",
@@ -4686,7 +4686,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2212": {
             "name": "»¦Äø2212",
@@ -4694,7 +4694,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2301": {
             "name": "»¦Äø2301",
@@ -4702,7 +4702,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2302": {
             "name": "»¦Äø2302",
@@ -4710,7 +4710,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2303": {
             "name": "»¦Äø2303",
@@ -4718,7 +4718,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2304": {
             "name": "»¦Äø2304",
@@ -4726,7 +4726,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ni2305": {
             "name": "»¦Äø2305",
@@ -4734,7 +4734,7 @@
             "exchg": "SHFE",
             "product": "ni",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2206": {
             "name": "»¦Ç¦2206",
@@ -4742,7 +4742,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2207": {
             "name": "»¦Ç¦2207",
@@ -4750,7 +4750,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2208": {
             "name": "»¦Ç¦2208",
@@ -4758,7 +4758,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2209": {
             "name": "»¦Ç¦2209",
@@ -4766,7 +4766,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2210": {
             "name": "»¦Ç¦2210",
@@ -4774,7 +4774,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2211": {
             "name": "»¦Ç¦2211",
@@ -4782,7 +4782,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2212": {
             "name": "»¦Ç¦2212",
@@ -4790,7 +4790,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2301": {
             "name": "»¦Ç¦2301",
@@ -4798,7 +4798,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2302": {
             "name": "»¦Ç¦2302",
@@ -4806,7 +4806,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2303": {
             "name": "»¦Ç¦2303",
@@ -4814,7 +4814,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2304": {
             "name": "»¦Ç¦2304",
@@ -4822,7 +4822,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "pb2305": {
             "name": "»¦Ç¦2305",
@@ -4830,7 +4830,7 @@
             "exchg": "SHFE",
             "product": "pb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2206": {
             "name": "ÂÝÎÆ2206",
@@ -4838,7 +4838,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2207": {
             "name": "ÂÝÎÆ2207",
@@ -4846,7 +4846,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2208": {
             "name": "ÂÝÎÆ2208",
@@ -4854,7 +4854,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2209": {
             "name": "ÂÝÎÆ2209",
@@ -4862,7 +4862,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2210": {
             "name": "ÂÝÎÆ2210",
@@ -4870,7 +4870,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2211": {
             "name": "ÂÝÎÆ2211",
@@ -4878,7 +4878,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2212": {
             "name": "ÂÝÎÆ2212",
@@ -4886,7 +4886,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2301": {
             "name": "ÂÝÎÆ2301",
@@ -4894,7 +4894,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2302": {
             "name": "ÂÝÎÆ2302",
@@ -4902,7 +4902,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2303": {
             "name": "ÂÝÎÆ2303",
@@ -4910,7 +4910,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2304": {
             "name": "ÂÝÎÆ2304",
@@ -4918,7 +4918,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "rb2305": {
             "name": "ÂÝÎÆ2305",
@@ -4926,7 +4926,7 @@
             "exchg": "SHFE",
             "product": "rb",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ru2206": {
             "name": "Ïð½º2206",
@@ -4934,7 +4934,7 @@
             "exchg": "SHFE",
             "product": "ru",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ru2207": {
             "name": "Ïð½º2207",
@@ -4942,7 +4942,7 @@
             "exchg": "SHFE",
             "product": "ru",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ru2208": {
             "name": "Ïð½º2208",
@@ -4950,7 +4950,7 @@
             "exchg": "SHFE",
             "product": "ru",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ru2209": {
             "name": "Ïð½º2209",
@@ -4958,7 +4958,7 @@
             "exchg": "SHFE",
             "product": "ru",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ru2210": {
             "name": "Ïð½º2210",
@@ -4966,7 +4966,7 @@
             "exchg": "SHFE",
             "product": "ru",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ru2211": {
             "name": "Ïð½º2211",
@@ -4974,7 +4974,7 @@
             "exchg": "SHFE",
             "product": "ru",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ru2301": {
             "name": "Ïð½º2301",
@@ -4982,7 +4982,7 @@
             "exchg": "SHFE",
             "product": "ru",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ru2303": {
             "name": "Ïð½º2303",
@@ -4990,7 +4990,7 @@
             "exchg": "SHFE",
             "product": "ru",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ru2304": {
             "name": "Ïð½º2304",
@@ -4998,7 +4998,7 @@
             "exchg": "SHFE",
             "product": "ru",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ru2305": {
             "name": "Ïð½º2305",
@@ -5006,7 +5006,7 @@
             "exchg": "SHFE",
             "product": "ru",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2206": {
             "name": "»¦Îý2206",
@@ -5014,7 +5014,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2207": {
             "name": "»¦Îý2207",
@@ -5022,7 +5022,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2208": {
             "name": "»¦Îý2208",
@@ -5030,7 +5030,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2209": {
             "name": "»¦Îý2209",
@@ -5038,7 +5038,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2210": {
             "name": "»¦Îý2210",
@@ -5046,7 +5046,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2211": {
             "name": "»¦Îý2211",
@@ -5054,7 +5054,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2212": {
             "name": "»¦Îý2212",
@@ -5062,7 +5062,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2301": {
             "name": "»¦Îý2301",
@@ -5070,7 +5070,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2302": {
             "name": "»¦Îý2302",
@@ -5078,7 +5078,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2303": {
             "name": "»¦Îý2303",
@@ -5086,7 +5086,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2304": {
             "name": "»¦Îý2304",
@@ -5094,7 +5094,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sn2305": {
             "name": "»¦Îý2305",
@@ -5102,7 +5102,7 @@
             "exchg": "SHFE",
             "product": "sn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2206": {
             "name": "Ö½½¬2206",
@@ -5110,7 +5110,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2207": {
             "name": "Ö½½¬2207",
@@ -5118,7 +5118,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2208": {
             "name": "Ö½½¬2208",
@@ -5126,7 +5126,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2209": {
             "name": "Ö½½¬2209",
@@ -5134,7 +5134,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2210": {
             "name": "Ö½½¬2210",
@@ -5142,7 +5142,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2211": {
             "name": "Ö½½¬2211",
@@ -5150,7 +5150,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2212": {
             "name": "Ö½½¬2212",
@@ -5158,7 +5158,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2301": {
             "name": "Ö½½¬2301",
@@ -5166,7 +5166,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2302": {
             "name": "Ö½½¬2302",
@@ -5174,7 +5174,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2303": {
             "name": "Ö½½¬2303",
@@ -5182,7 +5182,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2304": {
             "name": "Ö½½¬2304",
@@ -5190,7 +5190,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "sp2305": {
             "name": "Ö½½¬2305",
@@ -5198,7 +5198,7 @@
             "exchg": "SHFE",
             "product": "sp",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2206": {
             "name": "²»Ðâ¸Ö2206",
@@ -5206,7 +5206,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2207": {
             "name": "²»Ðâ¸Ö2207",
@@ -5214,7 +5214,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2208": {
             "name": "²»Ðâ¸Ö2208",
@@ -5222,7 +5222,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2209": {
             "name": "²»Ðâ¸Ö2209",
@@ -5230,7 +5230,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2210": {
             "name": "²»Ðâ¸Ö2210",
@@ -5238,7 +5238,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2211": {
             "name": "²»Ðâ¸Ö2211",
@@ -5246,7 +5246,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2212": {
             "name": "²»Ðâ¸Ö2212",
@@ -5254,7 +5254,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2301": {
             "name": "²»Ðâ¸Ö2301",
@@ -5262,7 +5262,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2302": {
             "name": "²»Ðâ¸Ö2302",
@@ -5270,7 +5270,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2303": {
             "name": "²»Ðâ¸Ö2303",
@@ -5278,7 +5278,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2304": {
             "name": "²»Ðâ¸Ö2304",
@@ -5286,7 +5286,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "ss2305": {
             "name": "²»Ðâ¸Ö2305",
@@ -5294,7 +5294,7 @@
             "exchg": "SHFE",
             "product": "ss",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2206": {
             "name": "Ïß²Ä2206",
@@ -5302,7 +5302,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2207": {
             "name": "Ïß²Ä2207",
@@ -5310,7 +5310,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2208": {
             "name": "Ïß²Ä2208",
@@ -5318,7 +5318,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2209": {
             "name": "Ïß²Ä2209",
@@ -5326,7 +5326,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2210": {
             "name": "Ïß²Ä2210",
@@ -5334,7 +5334,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2211": {
             "name": "Ïß²Ä2211",
@@ -5342,7 +5342,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2212": {
             "name": "Ïß²Ä2212",
@@ -5350,7 +5350,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2301": {
             "name": "Ïß²Ä2301",
@@ -5358,7 +5358,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2302": {
             "name": "Ïß²Ä2302",
@@ -5366,7 +5366,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2303": {
             "name": "Ïß²Ä2303",
@@ -5374,7 +5374,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2304": {
             "name": "Ïß²Ä2304",
@@ -5382,7 +5382,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "wr2305": {
             "name": "Ïß²Ä2305",
@@ -5390,7 +5390,7 @@
             "exchg": "SHFE",
             "product": "wr",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2206": {
             "name": "»¦Ð¿2206",
@@ -5398,7 +5398,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2207": {
             "name": "»¦Ð¿2207",
@@ -5406,7 +5406,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2208": {
             "name": "»¦Ð¿2208",
@@ -5414,7 +5414,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2209": {
             "name": "»¦Ð¿2209",
@@ -5422,7 +5422,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2210": {
             "name": "»¦Ð¿2210",
@@ -5430,7 +5430,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2211": {
             "name": "»¦Ð¿2211",
@@ -5438,7 +5438,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2212": {
             "name": "»¦Ð¿2212",
@@ -5446,7 +5446,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2301": {
             "name": "»¦Ð¿2301",
@@ -5454,7 +5454,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2302": {
             "name": "»¦Ð¿2302",
@@ -5462,7 +5462,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2303": {
             "name": "»¦Ð¿2303",
@@ -5470,7 +5470,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2304": {
             "name": "»¦Ð¿2304",
@@ -5478,7 +5478,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         },
         "zn2305": {
             "name": "»¦Ð¿2305",
@@ -5486,7 +5486,7 @@
             "exchg": "SHFE",
             "product": "zn",
             "maxlimitqty": 500,
-            "maxmarketqty": 500
+            "maxmarketqty": 30
         }
     }
 }

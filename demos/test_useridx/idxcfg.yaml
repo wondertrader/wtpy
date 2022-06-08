@@ -1,0 +1,62 @@
+poolsize: 2
+indice:
+-   code: IFIDX             # IF单品种指数
+    exchg: UIDX
+    active: true
+
+    commodities:            # 按品种添加成分标的
+    -   CFFEX.IF
+
+    # 权重算法: 
+    # 0-固定权重
+    # 1-动态总持权重, 用实时总持做权重
+    # 2-动态成交量权重，用实时成交量做权重
+    weight_alg: 1
+
+    # 触发合约, 主要用于确定指数数据什么时候重算
+    trigger: CFFEX.IF.HOT
+    # 超时时间, 毫秒数, 配合锚定合约, 
+    # 如锚定IF最大总持的合约, 如IF2206
+    # 当IF2206的tick数据收到以后, 超过100ms
+    # 触发指数tick的重算
+    timeout: 100
+
+-   code: BLACK             # 黑色板块指数
+    exchg: UIDX
+    active: true
+
+    weight_alg: 1           # 动态总持做权重
+    commodities: 
+    -   code: DCE.i               # 铁矿
+        weight: 2
+    -   code: SHFE.rb             # 螺纹
+        weight: 3
+    -   code: SHFE.hc             # 热卷
+        weight: 3
+    -   code: SHFE.ss             # 不锈钢
+        weight: 2
+    -   code: SHFE.wr             # 线材
+        weight: 1
+    -   code: CZCE.SF             # 硅铁
+        weight: 1
+    -   code: CZCE.SM             # 锰硅
+        weight: 1
+    trigger: time           # 时间触发，如果有一笔行情进来，就进行一次触发，在timeout时间内进来的tick都会更新到最新的指数里去     
+    timeout: 100            # 超时时间
+
+-   code: BLKHOT            # 黑色主力指数
+    exchg: UIDX
+    active: true
+
+    weight_alg: 1           # 动态总持做权重
+
+    codes:                  # 按合约添加成分标的
+    -   DCE.i.HOT               # 铁矿
+    -   SHFE.rb.HOT             # 螺纹
+    -   SHFE.hc.HOT             # 热卷
+    -   SHFE.ss.HOT             # 不锈钢
+    -   SHFE.wr.HOT             # 线材
+    -   CZCE.SF.HOT             # 硅铁
+    -   CZCE.SM.HOT             # 锰硅
+    trigger: time           # 时间触发，如果有一笔行情进来，就进行一次触发，在timeout时间内进来的tick都会更新到最新的指数里去
+    timeout: 100            # 超时时间
