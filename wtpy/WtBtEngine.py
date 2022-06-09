@@ -304,6 +304,9 @@ class WtBtEngine:
         '''
         return self.contractMgr.getTotalCodes()
 
+    def getRawStdCode(self, stdCode:str):
+        return self.__wrapper__.get_raw_stdcode(stdCode)
+
     def set_time_range(self, beginTime:int, endTime:int):
         '''
         设置回测时间

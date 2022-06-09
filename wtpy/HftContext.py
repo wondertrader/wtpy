@@ -333,6 +333,14 @@ class HftContext:
         '''
         return self.__wrapper__.hft_get_position_profit(self.__id__, stdCode)
 
+    def stra_get_position_avgpx(self, stdCode:str = ""):
+        '''
+        读取指定持仓的持仓均价
+        @stdCode    合约/股票代码
+        @return     指定持仓的浮动盈亏
+        '''
+        return self.__wrapper__.hft_get_position_avgpx(self.__id__, stdCode)
+
     def stra_get_undone(self, stdCode:str):
         return self.__wrapper__.hft_get_undone(self.__id__, stdCode)
 
@@ -357,6 +365,16 @@ class HftContext:
             return defVal
 
         return vType(ret)
+
+    def stra_get_rawcode(self, stdCode:str):
+        '''
+        获取分月合约代码
+        @stdCode   连续合约代码如SHFE.ag.HOT
+        @return 品种信息,结构请参考ProductMgr中的ProductInfo
+        '''
+        if self.__engine__ is None:
+            return ""
+        return self.__engine__.getRawStdCode(stdCode)
 
     def stra_get_comminfo(self, stdCode:str):
         '''

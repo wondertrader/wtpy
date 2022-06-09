@@ -247,6 +247,16 @@ class SelContext:
             return None
         return self.__engine__.getProductInfo(stdCode)
 
+    def stra_get_rawcode(self, stdCode:str):
+        '''
+        获取分月合约代码
+        @stdCode   连续合约代码如SHFE.ag.HOT
+        @return 品种信息,结构请参考ProductMgr中的ProductInfo
+        '''
+        if self.__engine__ is None:
+            return ""
+        return self.__engine__.getRawStdCode(stdCode)
+
     def stra_get_sessioninfo(self, stdCode:str):
         '''
         获取品种详情

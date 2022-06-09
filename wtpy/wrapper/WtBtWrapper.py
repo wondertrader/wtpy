@@ -66,6 +66,7 @@ class WtBtWrapper:
         self.api.hft_load_userdata.restype = c_char_p
         self.api.hft_get_position.restype = c_double
         self.api.hft_get_position_profit.restype = c_double
+        self.api.hft_get_position_avgpx.restype = c_double
         self.api.hft_get_undone.restype = c_double
         
         self.api.hft_buy.restype = c_char_p
@@ -408,6 +409,9 @@ class WtBtWrapper:
 
     def clear_cache(self):
         self.api.clear_cache()
+
+    def get_raw_stdcode(self, stdCode:str):
+        return bytes.decode(self.api.get_raw_stdcode(bytes(stdCode, encoding = "utf8")))
 
     def config_backtest(self, cfgfile:str = 'config.yaml', isFile:bool = True):
         self.api.config_backtest(bytes(cfgfile, encoding = "utf8"), isFile)
@@ -924,6 +928,15 @@ class WtBtWrapper:
         @return 指定持仓的浮动盈亏
         '''
         return self.api.hft_get_position_profit(id, bytes(stdCode, encoding = "utf8"))
+
+    def hft_get_position_avgpx(self, id:int, stdCode:str):
+        '''
+        获取持仓均价
+        @id     策略id
+        @stdCode   合约代码
+        @return 指定持仓的浮动盈亏
+        '''
+        return self.api.hft_get_position_avgpx(id, bytes(stdCode, encoding = "utf8"))
 
     def hft_get_undone(self, id:int, stdCode:str):
         '''

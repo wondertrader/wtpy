@@ -354,6 +354,9 @@ class WtEngine:
         '''
         return self.contractMgr.getTotalCodes()
 
+    def getRawStdCode(self, stdCode:str):
+        return self.__wrapper__.get_raw_stdcode(stdCode)
+
     def add_cta_strategy(self, strategy:BaseCtaStrategy):
         '''
         添加CTA策略
