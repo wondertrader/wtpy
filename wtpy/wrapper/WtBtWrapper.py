@@ -611,6 +611,15 @@ class WtBtWrapper:
         '''
         return self.api.cta_get_price(bytes(stdCode, encoding = "utf8"))
 
+    def cta_get_day_price(self, stdCode:str, flag:int = 0) -> float:
+        '''
+        获取当日价格
+        @stdCode    合约代码
+        @flag       价格标记，0-开盘价，1-最高价，2-最低价，3-最新价
+        @return     指定合约的价格 
+        '''
+        return self.api.cta_get_day_price(bytes(stdCode, encoding = "utf8"), flag)
+
     def cta_set_position(self, id:int, stdCode:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         设置目标仓位

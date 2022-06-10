@@ -206,6 +206,14 @@ class CtaContext:
         '''
         return self.__wrapper__.cta_get_price(stdCode)
 
+    def stra_get_day_price(self, stdCode:str, flag:int = 0) -> float:
+        '''
+        获取当日价格
+        @flag       价格标记，0-开盘价，1-最高价，2-最低价，3-最新价
+        @return 最新价格
+        '''
+        return self.__wrapper__.cta_get_price(stdCode)
+
     def stra_get_all_position(self) -> dict:
         '''
         获取全部持仓
@@ -401,7 +409,7 @@ class CtaContext:
         获取指定标记的持仓的盈亏
         @stdCode       合约代码
         @usertag    进场标记
-        @flag       盈亏记号，0-浮动盈亏，1-最大浮盈，-1-最大亏损（负数）
+        @flag       盈亏记号，0-浮动盈亏，1-最大浮盈，-1-最大亏损（负数），2-最高浮动价格，-2-最低浮动价格
         @return     盈亏 
         '''
         return self.__wrapper__.cta_get_detail_profit(self.__id__, stdCode, usertag, flag)
