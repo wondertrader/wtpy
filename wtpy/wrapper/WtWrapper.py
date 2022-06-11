@@ -53,6 +53,7 @@ class WtWrapper:
         self.api.cta_get_detail_cost.restype = c_double
         self.api.cta_get_detail_profit.restype = c_double
         self.api.cta_get_price.restype = c_double
+        self.api.cta_get_day_price.restype = c_double
         self.api.cta_get_fund_data.restype = c_double
 
         self.api.sel_save_userdata.argtypes = [c_ulong, c_char_p, c_char_p]

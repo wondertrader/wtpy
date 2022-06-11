@@ -212,7 +212,7 @@ class CtaContext:
         @flag       价格标记，0-开盘价，1-最高价，2-最低价，3-最新价
         @return 最新价格
         '''
-        return self.__wrapper__.cta_get_price(stdCode)
+        return self.__wrapper__.cta_get_day_price(stdCode, flag)
 
     def stra_get_all_position(self) -> dict:
         '''
