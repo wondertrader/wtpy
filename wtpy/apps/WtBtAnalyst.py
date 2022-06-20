@@ -4,8 +4,8 @@ import numpy as np
 from dateutil.parser import parse
 from collections import Counter
 from datetime import datetime
-from io import BytesIO
 import math
+import os
 import json
 from xlsxwriter import Workbook
 
@@ -1217,7 +1217,7 @@ def summary_analyze(df_funds:df, capital = 5000000, rf = 0, period = 240) -> dic
     days = len(df_funds)
 
     #先做资金统计吧
-    print("anayzing fund data……")
+    # print("anayzing fund data……")
     df_funds["dynbalance"] += init_capital
     ayBal = df_funds["dynbalance"]              # 每日期末动态权益
 
@@ -1419,7 +1419,7 @@ def funds_analyze(workbook:Workbook, df_funds:df, capital = 5000000, rf = 0, per
     length = days
     chart_col.add_series(                                   # 给图表设置格式，填充内容
         {
-            'name': '=逐日绩效分析!$B$1',
+            'name': '累计净值',
             'categories': '=逐日绩效分析!$A$3:$A$%d' % (length+2),
             'values':   '=逐日绩效分析!$G$3:$G$%d' % (length+2),
             'line': {'color': 'blue', 'width':1},
@@ -1528,12 +1528,12 @@ class WtBtAnalyst:
 
         for sname in self.__strategies__:
             sInfo = self.__strategies__[sname]
-            folder = sInfo["folder"]
+            folder = os.path.join(sInfo["folder"], sname)
             print("start PnL analyzing for strategy %s……" % (sname))
 
-            df_funds = pd.read_csv(folder + "funds.csv")
-            df_closes = pd.read_csv(folder + "closes.csv")
-            df_trades = pd.read_csv(folder + "trades.csv")
+            df_funds = pd.read_csv(os.path.join(folder,"funds.csv"))
+            df_closes = pd.read_csv(os.path.join(folder, "closes.csv"))
+            df_trades = pd.read_csv(os.path.join(folder, "trades.csv"))
 
             if len(outFileName) == 0:
                 outFileName = 'Strategy[%s]_PnLAnalyzing_%s_%s.xlsx' % (sname, df_funds['date'][0], df_funds['date'].iloc[-1])
@@ -1559,10 +1559,11 @@ class WtBtAnalyst:
 
         for sname in self.__strategies__:
             sInfo = self.__strategies__[sname]
-            folder = sInfo["folder"]
+            # folder = sInfo["folder"]
+            folder = os.path.join(sInfo["folder"], sname)
             print("start PnL analyzing for strategy %s……" % (sname))
 
-            df_funds = pd.read_csv(folder + "funds.csv")
+            df_funds = pd.read_csv(os.path.join(folder, "funds.csv"))
             print("fund logs loaded……")
 
             init_capital = sInfo["cap"]
@@ -1583,9 +1584,10 @@ class WtBtAnalyst:
 
         for sname in self.__strategies__:
             sInfo = self.__strategies__[sname]
-            folder = sInfo["folder"]
+            folder = os.path.join(sInfo["folder"],sname)
+            
 
-            df_funds = pd.read_csv(folder + "funds.csv")
+            df_funds = pd.read_csv(os.path.join(folder, "funds.csv"))
 
             init_capital = sInfo["cap"]
             annual_days = sInfo["atd"]
