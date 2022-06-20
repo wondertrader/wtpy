@@ -6,6 +6,8 @@ import json
 import yaml
 
 import os
+import sys
+os.chdir(sys.path[0])
 import math
 import numpy as np
 import pandas as pd
@@ -350,6 +352,47 @@ class WtCtaOptimizer:
         self.running_worker -= 1
         print("工作进程%d个" % (self.running_worker))
 
+    def __start_task_group__(self, params:list):
+        '''
+        启动多个回测任务，来回测一组参数，这里共用一个engine，因此可以避免多次io
+        @params 参数组
+        '''
+        is_yaml = True
+        fname = "logcfg_tpl.yaml"
+        if not os.path.exists(fname):
+            is_yaml = True
+            fname = "logcfg_tpl.json"
+
+        f = open(fname, "r")
+        content =f.read()
+        f.close()
+        engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
+        # 配置类型的参数相对固定
+        engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
+        engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"], storage=self.env_params["storage"])
+        # 遍历参数组
+        for param in params:
+            name = param["name"]
+            param_content = content.replace("$NAME$", name)
+            if is_yaml:
+                param_content = json.dumps(yaml.full_load(param_content))
+            
+            engine.configBacktest(param["start_time"], param["end_time"])
+            time_range = (param["start_time"], param["end_time"])
+            # 去掉多余的参数
+            param.pop("start_time")
+            param.pop("end_time")
+            if self.cpp_stra_module is not None:
+                param.pop("name")
+                engine.setExternalCtaStrategy(name, self.cpp_stra_module, self.cpp_stra_type, param)
+            else:
+                straInfo = self.strategy_type(**param)
+                engine.set_cta_strategy(straInfo)
+            engine.commitBTConfig()
+            engine.run_backtest()
+            self.__ayalyze_result__(name, time_range, param)
+        engine.release_backtest()
+
     def go(self, interval:float = 0.2, out_marker_file:str = "strategies.json", out_summary_file:str = "total_summary.csv"):
         '''
         启动优化器\n
@@ -357,30 +400,23 @@ class WtCtaOptimizer:
         @markerfile 标记文件名，回测完成以后分析会用到
         '''
         self.tasks = self.__gen_tasks__(out_marker_file)
-        self.running_worker = 0
-        total_task = len(self.tasks)
-        left_task = total_task
-        while True:
-            if left_task == 0:
-                break
-
-            if self.running_worker < self.worker_num:
-                params = self.tasks[total_task-left_task]
-                left_task -= 1
-                print("剩余任务%d个" % (left_task))
-                p = threading.Thread(target=self.__start_task__, args=(params,))
-                p.start()
-                self.running_worker += 1
-                print("工作进程%d个" % (self.running_worker))
-            else:
-                time.sleep(interval)
-
-        #最后，全部任务都已经启动完了，再等待所有工作进程结束
-        while True:
-            if self.running_worker == 0:
-                break
-            else:
-                time.sleep(interval)
+        pool = []
+        total_size = len(self.tasks)
+        one_size = round(total_size / self.worker_num)
+        work_id = 0
+        for i in range(0,total_size,one_size):
+            work_id += 1
+            params = self.tasks[i:i+one_size]
+            p = multiprocessing.Process(target=self.__start_task_group__, args=(params,))
+            p.start()
+            print("工人%d开始工作" % (work_id))
+            pool.append(p)
+        
+        work_id = 0
+        for task in pool:
+            work_id += 1
+            task.join()
+            print("工人%d结束工作" % (work_id))
 
         #开始汇总回测结果
         f = open(out_marker_file, "r")
@@ -441,5 +477,3 @@ class WtCtaOptimizer:
                 analyst.run()
             except:
                 pass
-
-                
