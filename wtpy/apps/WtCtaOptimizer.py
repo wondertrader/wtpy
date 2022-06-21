@@ -280,15 +280,15 @@ class WtCtaOptimizer:
         summary["日胜率%"] = summary_by_day["win_rate"]
         summary["年化收益率%"] = summary_by_day["annual_return"]
         summary["最大回撤%"] = summary_by_day["max_falldown"]
-        summary["Sharpe"] = summary_by_day["sharpe_ratio"]
         summary["Calmar"] = summary_by_day["calmar_ratio"]
+        summary["Sharpe"] = summary_by_day["sharpe_ratio"]
         summary["总交易次数"] = totaltimes
         summary["盈利次数"] = wintimes
         summary["亏损次数"] = losetimes
         summary["毛盈利"] = float(winamout)
         summary["毛亏损"] = float(loseamount)
         summary["交易净盈亏"] = float(trdnetprofit)
-        summary["胜率"] = winrate*100
+        summary["逐笔胜率%"] = winrate*100
         summary["逐笔平均盈亏"] = avgprof
         summary["逐笔平均净盈亏"] = accnetprofit/totaltimes
         summary["逐笔平均盈利"] = avgprof_win
@@ -311,16 +311,17 @@ class WtCtaOptimizer:
         @params 参数组
         '''
         is_yaml = True
-        fname = "logcfg_tpl.yaml"
+        fname = "./logcfg_tpl.yaml"
         if not os.path.exists(fname):
             is_yaml = True
-            fname = "logcfg_tpl.json"
+            fname = "./logcfg_tpl.json"
 
         print(f"{gpName}共有{len(params)}组参数，开始回测...")
 
         f = open(fname, "r")
         content =f.read()
         f.close()
+        content = content.replace("$NAME$", gpName)
         engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
         # 配置类型的参数相对固定
         engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
@@ -330,7 +331,7 @@ class WtCtaOptimizer:
         cnt = 0
         for param in params:
             cnt += 1
-            print(f"{gpName}正在回测{cnt}/{total}")
+            print(f"{gpName} 正在回测{cnt}/{total}")
             name = param["name"]
             param_content = content.replace("$NAME$", name)
             if is_yaml:
@@ -361,28 +362,37 @@ class WtCtaOptimizer:
         self.tasks = self.__gen_tasks__(out_marker_file, order_by_field)
         pool = []
         total_size = len(self.tasks)
-        gpSize = math.ceil(total_size / self.worker_num)
+        gpSize = math.floor(total_size / self.worker_num)
+        leftSz = total_size % self.worker_num
         if gpSize == 0:
             gpSize = 1
         work_id = 0
         max_cnt = min(self.worker_num,total_size)
+        fromIdx = 0
         for i in range(max_cnt):
             work_id = i + 1
-            work_name = f"工人[{work_id}]"
-            if work_id != max_cnt:
-                params = self.tasks[gpSize*i:gpSize*(i+1)]
-            else:
-                params = self.tasks[gpSize*i:]
-            p = multiprocessing.Process(target=self.__start_task_group__, args=(work_name, params, capital, rf, period))
+            work_name = f"Worker[{work_id}]"
+            thisCnt = gpSize
+            if leftSz > 0:
+                thisCnt += 1
+                leftSz -= 1
+
+            params = self.tasks[fromIdx: fromIdx + thisCnt]
+            p = multiprocessing.Process(target=self.__start_task_group__, args=(work_name, params, capital, rf, period), name=work_name)
             p.start()
             print(f"{work_name} 开始工作")
             pool.append(p)
+
+            fromIdx += thisCnt
         
-        work_id = 0
-        for task in pool:
-            work_id += 1
-            task.join()
-            print("工人[%d] 结束工作了" % (work_id))
+        alive_cnt = len(pool)
+        while alive_cnt > 0:
+            for task in pool:
+                if not task.is_alive():
+                    pool.remove(task)
+                    alive_cnt -= 1
+                    print(f"{task.name} 结束工作了(剩余{alive_cnt})")
+            time.sleep(0.2)
 
         #开始汇总回测结果
         f = open(out_marker_file, "r")
