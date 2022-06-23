@@ -79,6 +79,8 @@ class WtBtWrapper:
         self.api.set_time_range.argtypes = [c_uint64, c_uint64]
         self.api.enable_tick.argtypes = [c_bool]
 
+        self.api.get_raw_stdcode.restype = c_char_p
+
     def on_engine_event(self, evtid:int, evtDate:int, evtTime:int):
         engine = self._engine
         if evtid == EVENT_ENGINE_INIT:

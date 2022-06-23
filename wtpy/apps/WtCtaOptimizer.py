@@ -316,7 +316,7 @@ class WtCtaOptimizer:
             is_yaml = True
             fname = "./logcfg_tpl.json"
 
-        print(f"{gpName}共有{len(params)}组参数，开始回测...")
+        print(f"{gpName} 共有{len(params)}组参数，开始回测...")
 
         f = open(fname, "r")
         content =f.read()
