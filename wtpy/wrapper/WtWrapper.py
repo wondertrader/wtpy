@@ -1,6 +1,6 @@
 from ctypes import c_int32, cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, POINTER, sizeof, addressof
 from wtpy.WtCoreDefs import CB_EXECUTER_CMD, CB_EXECUTER_INIT, CB_PARSER_EVENT, CB_PARSER_SUBCMD
-from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
+from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION, CB_STRATEGY_COND_TRIGGER
 from wtpy.WtCoreDefs import EVENT_PARSER_CONNECT, EVENT_PARSER_DISCONNECT, EVENT_PARSER_INIT, EVENT_PARSER_RELEASE
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT, CB_HFTSTRA_POSITION
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
@@ -80,6 +80,8 @@ class WtWrapper:
 
         self.api.create_ext_parser.restype = c_bool
         self.api.create_ext_parser.argtypes = [c_char_p]
+
+        self.api.get_raw_stdcode.restype = c_char_p
 
     def on_engine_event(self, evtid:int, evtDate:int, evtTime:int):
         engine = self._engine
@@ -192,6 +194,12 @@ class WtWrapper:
         ctx = engine.get_context(id)
         if ctx is not None:
             ctx.on_getpositions(bytes.decode(stdCode), qty, frozen)
+
+    def on_stra_cond_triggerd(self, id:int, stdCode:str, target:float, price:float, usertag:str):
+        engine = self._engine
+        ctx = engine.get_context(id)
+        if ctx is not None:
+            ctx.on_condition_triggered(bytes.decode(stdCode), target, price, bytes.decode(usertag))
 
     def on_hftstra_channel_evt(self, id:int, trader:str, evtid:int):
         engine = self._engine
@@ -453,11 +461,12 @@ class WtWrapper:
         self.cb_stra_calc = CB_STRATEGY_CALC(self.on_stra_calc)
         self.cb_stra_bar = CB_STRATEGY_BAR(self.on_stra_bar)
         self.cb_session_event = CB_SESSION_EVENT(self.on_session_event)
+        self.cb_stra_cond_trigger = CB_STRATEGY_COND_TRIGGER(self.on_stra_cond_triggerd)
 
         self.cb_engine_event = CB_ENGINE_EVENT(self.on_engine_event)
         try:
             self.api.register_evt_callback(self.cb_engine_event)
-            self.api.register_cta_callbacks(self.cb_stra_init, self.cb_stra_tick, self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event)
+            self.api.register_cta_callbacks(self.cb_stra_init, self.cb_stra_tick, self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_cond_trigger)
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile, bytes(genDir, encoding = "utf8"))
             self.register_extended_module_callbacks()
         except OSError as oe:
@@ -1076,15 +1085,15 @@ class WtWrapper:
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''CTA接口'''
-    def create_cta_context(self, name:str) -> int:
+    def create_cta_context(self, name:str, slippage:int = 0) -> int:
         '''
         创建策略环境
         @name      策略名称
         @return    系统内策略ID 
         '''
-        return self.api.create_cta_context(bytes(name, encoding = "utf8") )
+        return self.api.create_cta_context(bytes(name, encoding = "utf8"), slippage)
 
-    def create_hft_context(self, name:str, trader:str, agent:bool) -> int:
+    def create_hft_context(self, name:str, trader:str, agent:bool, slippage:int = 0) -> int:
         '''
         创建策略环境
         @name      策略名称
@@ -1092,16 +1101,16 @@ class WtWrapper:
         @agent     数据是否托管
         @return    系统内策略ID 
         '''
-        return self.api.create_hft_context(bytes(name, encoding = "utf8"), bytes(trader, encoding = "utf8"), agent)
+        return self.api.create_hft_context(bytes(name, encoding = "utf8"), bytes(trader, encoding = "utf8"), agent, slippage)
 
-    def create_sel_context(self, name:str, date:int, time:int, period:str, trdtpl:str = 'CHINA', session:str = "TRADING") -> int:
+    def create_sel_context(self, name:str, date:int, time:int, period:str, trdtpl:str = 'CHINA', session:str = "TRADING", slippage:int = 0) -> int:
         '''
         创建策略环境
         @name      策略名称
         @return    系统内策略ID 
         '''
         return self.api.create_sel_context(bytes(name, encoding = "utf8"), date, time, 
-            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"))
+            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"), slippage)
 
     def reg_cta_factories(self, factFolder:str):
         return self.api.reg_cta_factories(bytes(factFolder, encoding = "utf8") )

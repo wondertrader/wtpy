@@ -357,24 +357,24 @@ class WtEngine:
     def getRawStdCode(self, stdCode:str):
         return self.__wrapper__.get_raw_stdcode(stdCode)
 
-    def add_cta_strategy(self, strategy:BaseCtaStrategy):
+    def add_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0):
         '''
         添加CTA策略
         @strategy   策略对象
         '''
-        id = self.__wrapper__.create_cta_context(strategy.name())
+        id = self.__wrapper__.create_cta_context(strategy.name(), slippage)
         self.__cta_ctxs__[id] = CtaContext(id, strategy, self.__wrapper__, self)
 
-    def add_hft_strategy(self, strategy:BaseHftStrategy, trader:str, agent:bool = True):
+    def add_hft_strategy(self, strategy:BaseHftStrategy, trader:str, agent:bool = True, slippage:int = 0):
         '''
         添加HFT策略
         @strategy   策略对象
         '''
-        id = self.__wrapper__.create_hft_context(strategy.name(), trader, agent)
+        id = self.__wrapper__.create_hft_context(strategy.name(), trader, agent, slippage)
         self.__hft_ctxs__[id] = HftContext(id, strategy, self.__wrapper__, self)
 
-    def add_sel_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str):
-        id = self.__wrapper__.create_sel_context(strategy.name(), date, time, period)
+    def add_sel_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str, slippage:int = 0):
+        id = self.__wrapper__.create_sel_context(strategy.name(), date, time, period, slippage)
         self.__sel_ctxs__[id] = SelContext(id, strategy, self.__wrapper__, self)
 
     def get_context(self, id:int):

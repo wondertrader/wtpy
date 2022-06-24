@@ -391,6 +391,8 @@ CB_STRATEGY_GET_BAR = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_char_p, POINTER(W
 CB_STRATEGY_GET_POSITION = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_double, c_bool)
 #交易日开始结束事件回调
 CB_SESSION_EVENT = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_bool) 
+#条件单触发回调
+CB_STRATEGY_COND_TRIGGER = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_double, c_double, c_char_p)
 
 #引擎事件回调(交易日开启结束等)
 CB_ENGINE_EVENT = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_ulong)

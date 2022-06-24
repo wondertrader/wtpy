@@ -90,6 +90,9 @@ class CtaContext:
         for newBar in newBars:
             bars.append(newBar)
 
+    def on_condition_triggered(self, stdCode:str, target:float, price:float, usertag:str):
+        pass
+
     def on_tick(self, stdCode:str, newTick:tuple):
         '''
         tick回调事件响应

@@ -1,5 +1,5 @@
 from ctypes import cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, c_int, POINTER, addressof, sizeof
-from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
+from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION, CB_STRATEGY_COND_TRIGGER
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
 from wtpy.WtCoreDefs import CHNL_EVENT_READY, CHNL_EVENT_LOST, CB_ENGINE_EVENT
@@ -242,6 +242,12 @@ class WtBtWrapper:
         if ctx is not None:
             ctx.on_getpositions(bytes.decode(stdCode), qty, isLast)
 
+    def on_stra_cond_triggerd(self, id:int, stdCode:str, target:float, price:float, usertag:str):
+        engine = self._engine
+        ctx = engine.get_context(id)
+        if ctx is not None:
+            ctx.on_condition_triggered(bytes.decode(stdCode), target, price, bytes.decode(usertag))
+
     def on_hftstra_channel_evt(self, id:int, trader:str, evtid:int):
         engine = self._engine
         ctx = engine.get_context(id)
@@ -430,12 +436,13 @@ class WtBtWrapper:
         self.cb_stra_calc_done = CB_STRATEGY_CALC(self.on_stra_calc_done)
         self.cb_stra_bar = CB_STRATEGY_BAR(self.on_stra_bar)
         self.cb_session_event = CB_SESSION_EVENT(self.on_session_event)
+        self.cb_stra_cond_trigger = CB_STRATEGY_COND_TRIGGER(self.on_stra_cond_triggerd)
 
         self.cb_engine_event = CB_ENGINE_EVENT(self.on_engine_event)
         try:
             self.api.register_evt_callback(self.cb_engine_event)
             self.api.register_cta_callbacks(self.cb_stra_init, self.cb_stra_tick, 
-                self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_calc_done)
+                self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_calc_done, self.cb_stra_cond_trigger)
             self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile, bytes(outDir, encoding = "utf8"))
         except OSError as oe:
             print(oe)
