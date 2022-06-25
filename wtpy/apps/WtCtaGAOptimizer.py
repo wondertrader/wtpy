@@ -19,6 +19,7 @@ from deap import creator, base, tools, algorithms
 
 from wtpy import WtBtEngine, EngineType
 from wtpy.apps import WtBtAnalyst
+from wtpy.apps.WtBtAnalyst import summary_analyze
 
 
 def fmtNAN(val, defVal=0):
@@ -181,7 +182,7 @@ class WtCtaGAOptimizer:
                 individual[i] = settings[i]
         return individual,
 
-    def evaluate_func(self, start_time, end_time, cache_dict: dict, params):
+    def evaluate_func(self, start_time, end_time, cache_dict: dict, params, capital = 5000000, rf = 0, period = 240):
         """
         适应度函数
         :return:
@@ -248,7 +249,7 @@ class WtCtaGAOptimizer:
         engine.run_backtest()
         engine.release_backtest()
 
-        summary = self.__ayalyze_result__(strName, time_range, tmp_params)
+        summary = self.__ayalyze_result__(strName, time_range, tmp_params, capital, rf, period)
 
         if self.optimizing_target_func:
             result = self.optimizing_target_func(summary)  # tuple类型
@@ -349,7 +350,7 @@ class WtCtaGAOptimizer:
         f.close()
         return param_group
 
-    def __ayalyze_result__(self, strName: str, time_range: tuple, params: dict):
+    def __ayalyze_result__(self, strName: str, time_range: tuple, params: dict, capital = 5000000, rf = 0, period = 240):
         folder = "./outputs_bt/%s/" % (strName)
 
         try:
@@ -403,25 +404,35 @@ class WtCtaGAOptimizer:
             max_consecutive_wins = max(max_consecutive_wins, consecutive_wins)
             max_consecutive_loses = max(max_consecutive_loses, consecutive_loses)
 
+        # 逐日绩效分析
+        summary_by_day = summary_analyze(df_funds, capital, rf, period)
+
         summary = params.copy()
         summary["开始时间"] = time_range[0]
         summary["结束时间"] = time_range[1]
+        summary["回测天数"] = summary_by_day["days"]
+        summary["区间收益率%"] = summary_by_day["total_return"]
+        summary["日胜率%"] = summary_by_day["win_rate"]
+        summary["年化收益率%"] = summary_by_day["annual_return"]
+        summary["最大回撤%"] = summary_by_day["max_falldown"]
+        summary["Calmar"] = summary_by_day["calmar_ratio"]
+        summary["Sharpe"] = summary_by_day["sharpe_ratio"]
         summary["总交易次数"] = totaltimes
         summary["盈利次数"] = wintimes
         summary["亏损次数"] = losetimes
         summary["毛盈利"] = float(winamout)
         summary["毛亏损"] = float(loseamount)
         summary["交易净盈亏"] = float(trdnetprofit)
-        summary["胜率"] = winrate * 100
-        summary["单次平均盈亏"] = avgprof
-        summary["单次盈利均值"] = avgprof_win
-        summary["单次亏损均值"] = avgprof_lose
-        summary["单次盈亏均值比"] = winloseratio
+        summary["逐笔胜率%"] = winrate*100
+        summary["逐笔平均盈亏"] = avgprof
+        summary["逐笔平均净盈亏"] = accnetprofit/totaltimes
+        summary["逐笔平均盈利"] = avgprof_win
+        summary["逐笔逐笔亏损"] = avgprof_lose
+        summary["逐笔盈亏比"] = winloseratio
         summary["最大连续盈利次数"] = max_consecutive_wins
         summary["最大连续亏损次数"] = max_consecutive_loses
         summary["平均盈利周期"] = avg_bars_in_winner
         summary["平均亏损周期"] = avg_bars_in_loser
-        summary["平均账户收益率"] = accnetprofit / totaltimes if totaltimes > 0 else 0
 
         f = open(folder + "summary.json", mode="w")
         f.write(json.dumps(obj=summary, indent=4))
@@ -429,7 +440,7 @@ class WtCtaGAOptimizer:
 
         return summary
 
-    def run_ga_optimizer(self, params: dict = None):
+    def run_ga_optimizer(self, params: dict = None, capital = 5000000, rf = 0, period = 240):
         """ 执行GA优化 """
         # 遗传算法参数空间
         buffer = self.generate_settings()
@@ -443,7 +454,7 @@ class WtCtaGAOptimizer:
         toolbox.register("individual", tools.initIterate, creator.Individual, generate_parameter)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-        toolbox.register("evaluate", self.evaluate_func, params["start_time"], params["end_time"], self.cache_dict)
+        toolbox.register("evaluate", self.evaluate_func, params["start_time"], params["end_time"], self.cache_dict, capital=capital, rf=rf, period=period)
         toolbox.register("mate", tools.cxTwoPoint)
         toolbox.register("mutate", self.mututate_individual, indpb=0.05)
         toolbox.register("select", tools.selNSGA2)
@@ -484,13 +495,13 @@ class WtCtaGAOptimizer:
         return
 
     def go(self, out_marker_file: str = "strategies.json",
-           out_summary_file: str = "total_summary.csv"):
+           out_summary_file: str = "total_summary.csv", capital = 5000000, rf = 0, period = 240):
         '''
         启动优化器\n
         @markerfile 标记文件名，回测完成以后分析会用到
         '''
         params = self.gen_params(out_marker_file)
-        self.run_ga_optimizer(params)
+        self.run_ga_optimizer(params, capital, rf, period)
 
         # 获取所有的值
         results = list(self.cache_dict.values())
@@ -528,7 +539,7 @@ class WtCtaGAOptimizer:
         # df_summary = df_summary.drop(labels=["name"], axis='columns')
         df_summary.to_csv(out_summary_file, encoding='utf-8-sig')
 
-    def analyze(self, out_marker_file: str = "strategies.json", out_summary_file: str = "total_summary.csv"):
+    def analyze(self, out_marker_file: str = "strategies.json", out_summary_file: str = "total_summary.csv", capital = 5000000, rf = 0, period = 240):
         # 获取所有的值
         results = list(self.cache_dict.values())
         header = list(results[0].keys())
@@ -551,7 +562,7 @@ class WtCtaGAOptimizer:
                 continue
 
             time_range = (params["start_time"], params["end_time"])
-            self.__ayalyze_result__(straName, time_range, params)
+            self.__ayalyze_result__(straName, time_range, params, capital, rf, period)
 
             f = open(filename, "r")
             content = f.read()
