@@ -251,7 +251,8 @@ class WtBtWrapper:
     def on_hftstra_channel_evt(self, id:int, trader:str, evtid:int):
         engine = self._engine
         ctx = engine.get_context(id)
-        
+        if ctx is None:
+            return
         if evtid == CHNL_EVENT_READY:
             ctx.on_channel_ready()
         elif evtid == CHNL_EVENT_LOST:
@@ -259,25 +260,28 @@ class WtBtWrapper:
 
     def on_hftstra_order(self, id:int, localid:int, stdCode:str, isBuy:bool, totalQty:float, leftQty:float, price:float, isCanceled:bool, userTag:str):
         stdCode = bytes.decode(stdCode)
-        userTag = bytes.decode(userTag)
+        userTag = bytes.decode(userTag,"gbk")
         engine = self._engine
         ctx = engine.get_context(id)
-        ctx.on_order(localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag)
+        if ctx is not None:
+            ctx.on_order(localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag)
 
     def on_hftstra_trade(self, id:int, localid:int, stdCode:str, isBuy:bool, qty:float, price:float, userTag:str):
         stdCode = bytes.decode(stdCode)
-        userTag = bytes.decode(userTag)
+        userTag = bytes.decode(userTag,"gbk")
         engine = self._engine
         ctx = engine.get_context(id)
-        ctx.on_trade(localid, stdCode, isBuy, qty, price, userTag)
+        if ctx is not None:
+            ctx.on_trade(localid, stdCode, isBuy, qty, price, userTag)
 
     def on_hftstra_entrust(self, id:int, localid:int, stdCode:str, bSucc:bool, message:str, userTag:str):
         stdCode = bytes.decode(stdCode)
         message = bytes.decode(message, "gbk")
-        userTag = bytes.decode(userTag)
+        userTag = bytes.decode(userTag, "gbk")
         engine = self._engine
         ctx = engine.get_context(id)
-        ctx.on_entrust(localid, stdCode, bSucc, message, userTag)
+        if ctx is not None:
+            ctx.on_entrust(localid, stdCode, bSucc, message, userTag)
 
     def on_hftstra_order_queue(self, id:int, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct)):
         stdCode = bytes.decode(stdCode)
