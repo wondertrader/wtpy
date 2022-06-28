@@ -228,6 +228,7 @@ class WtCtaGAOptimizer:
 
         engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
         engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
+        print(f'engine initialized with strategy {strName}...')
         engine.configBacktest(int(start_time), int(end_time))
         engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"],
                                storage=self.env_params["storage"])
@@ -492,7 +493,7 @@ class WtCtaGAOptimizer:
         # optimizing_value = [item['max'][0] for item in logbook]
         # optimizing_params = [{item[0]: item[1]} for item in hof[0]]
         # optimizing_params.append({f"{self.optimizing_target}": max(optimizing_value)})
-        return
+        # return
 
     def go(self, out_marker_file: str = "strategies.json",
            out_summary_file: str = "total_summary.csv", capital = 5000000, rf = 0, period = 240):
@@ -532,12 +533,16 @@ class WtCtaGAOptimizer:
         df_summary = df(total_summary)
 
         # 汇总结果
-        df_summary = pd.merge(df_summary, df_results, how="inner", on="name")
+        if self.optimizing_target not in df_summary.columns.tolist():
+            df_summary = pd.merge(df_summary, df_results, how="inner", on="name")
+        else:
+            df_summary = pd.merge(df_summary, df_results, how='inner', on=['name', self.optimizing_target])
         df_summary.sort_values(by=self.optimizing_target, ascending=False, inplace=True)
         df_summary.reset_index(inplace=True, drop=True)
 
         # df_summary = df_summary.drop(labels=["name"], axis='columns')
-        df_summary.to_csv(out_summary_file, encoding='utf-8-sig')
+        df_summary.to_csv(out_summary_file, encoding='utf-8-sig', index=False)
+        print(f'优化目标: {self.optimizing_target}, 优化最大值：{df_summary[self.optimizing_target][0]}')
 
     def analyze(self, out_marker_file: str = "strategies.json", out_summary_file: str = "total_summary.csv", capital = 5000000, rf = 0, period = 240):
         # 获取所有的值
@@ -573,7 +578,10 @@ class WtCtaGAOptimizer:
         df_summary = df(total_summary)
 
         # 汇总结果
-        df_summary = pd.merge(df_summary, df_results, how="inner", on="name")
+        if self.optimizing_target in df_summary.columns.tolist():
+            df_summary = pd.merge(df_summary, df_results, how="inner", on=["name", self.optimizing_target])
+        else:
+            df_summary = pd.merge(df_summary, df_results, how="inner", on="name")
         df_summary.sort_values(by=self.optimizing_target, ascending=False, inplace=True)
         df_summary.reset_index(inplace=True, drop=True)
 
