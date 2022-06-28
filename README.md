@@ -1,6 +1,6 @@
 ![WonderTrader2.png](http://wt.f-sailors.cn/wt/logo_qcode_noad.jpg)
 <p align="center">
-    <img src ="https://img.shields.io/badge/version-0.9.0-blueviolet.svg"/>
+    <img src ="https://img.shields.io/badge/version-0.9.3-blueviolet.svg"/>
     <img src ="https://img.shields.io/badge/platform-windows|linux-yellow.svg"/>
     <img src ="https://img.shields.io/badge/build-passing-brightgreen"/>
     <img src ="https://img.shields.io/badge/license-MIT-orange"/>
@@ -52,8 +52,57 @@
 	> -	WtEngine.py		交易引擎转换模块，主要封装底层接口调用
 
 
+# 如何让获取
+* `WonderTrader`
+	> - `github`地址：<https://github.com/wondertrader/wondertrader>
+	> - `gitee`地址：<https://gitee.com/wondertrader/wondertrader>
+* `wtpy`
+	> - `github`地址：<https://github.com/wondertrader/wtpy>
+	> - `gitee`地址：<https://gitee.com/wondertrader/wtpy>
+
+* `wtpy`获取地址：<https://pypi.org/project/wtpy/>
+    `wtpy`可以直接在`python3.8`以上的版本安装
+
+    ``` shell
+    pip install wtpy --upgrade
+    ```
+
+# 延伸项目
+* 将`wtpy`作为底层回测引擎的强化学习框架`Wt4ElegantRL`
+<https://github.com/drlgistics/Wt4ElegantRL>
+
+
+# 相关资源
+* * *
+* 特别感谢@ZerounNet、@ZzzzHeJ、@jack52518、@jed057等用户，他们也对WonderTrader和wtpy贡献了很多代码和文档。
+* 关注公众号`wondertrader`，可以收到`WonderTrader`的实时资讯
+* 用户交流QQ群上线：`610730738`(加入前请先`star`一下, 然后提供`github`用户名)
+* 更多`WonderTrader`的文档请看<https://wondertrader.github.io/>
+* `WonderTrader`半官方文档 <https://dumengru.github.io/docs_wondertrader/>
+
 
 # 更新日志
+### 0.9.2
+* `C++`底层更新到`2022/03/28`发布的`v0.9.2`版本
+* demo进一步完善
+* 其他配合底层的优化和调整
+* 更多修改日志请参考[WonderTrader v0.9.2更新日志](https://github.com/wondertrader/wondertrader/blob/master/updatelog.md)
+* 调试资源请查看<https://gitee.com/wondertrader/wtpy_utils/raw/master/pdb_wtpy_v0.9.2.rar>
+
+### 0.9.0(重大版本)
+* `C++`底层更新到`2022/03/14`发布的`v0.9.0`版本
+* （**重要**）重构了底层数据结构WTSTickStruct和WTSBarStruct，wtpy做了同步修改
+* （**重要**）配置文件全面兼容yaml和json两种格式，并实现了一个WTSCfgLoader模块自动处理
+* （**重要**）底层实现了对7*24小时交易品种的支持
+* （**重要**）完善了监控服务，支持扩展异常事件通知接口
+* 新增一个WtCCLoader模块，用于从网络接口加载合约列表
+* 新增一个遗传算法参数优化模块WtCtaGAOptimizer
+* demo进一步完善
+* 其他配合底层的优化和调整
+* 更多修改日志请参考[WonderTrader v0.9.0更新日志](https://github.com/wondertrader/wondertrader/blob/master/updatelog.md)
+* 调试资源请查看<https://gitee.com/wondertrader/wtpy_utils/raw/master/pdb_wtpy_v0.9.0.rar>
+
+
 ### 0.8.0(大版本)
 * `C++`底层更新到`2021/12/24`发布的`v0.8.0`版本
 * （**重要**）实现了`ExtDataLoder`的机制，实盘和回测框架都可以通过应用层的扩展数据加载器加载历史数据（可参考`demos/test_dataexts`）

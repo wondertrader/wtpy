@@ -12,7 +12,7 @@ from Strategies.DualThrust import StraDualThrust
 
 class MyDataLoader(BaseExtDataLoader):
     
-    def load_his_bars(self, stdCode:str, period:str, feeder) -> bool:
+    def load_final_his_bars(self, stdCode:str, period:str, feeder) -> bool:
         '''
         加载历史K线（回测、实盘）
         @stdCode    合约代码，格式如CFFEX.IF.2106
@@ -21,7 +21,7 @@ class MyDataLoader(BaseExtDataLoader):
         '''
         print("loading %s bars of %s from extended loader" % (period, stdCode))
 
-        df = pd.read_csv('./storage/csv/CFFEX.IF.HOT_m5.csv')
+        df = pd.read_csv('../storage/csv/CFFEX.IF.HOT_m5.csv')
         df = df.rename(columns={
             '<Date>':'date',
             ' <Time>':'time',
@@ -49,7 +49,7 @@ class MyDataLoader(BaseExtDataLoader):
         feeder(buffer, len(df))
         return True
 
-    def load_his_tick(self, stdCode:str, uDate:int, feeder) -> bool:
+    def load_his_ticks(self, stdCode:str, uDate:int, feeder) -> bool:
         '''
         加载历史K线（只在回测有效，实盘只提供当日落地的）
         @stdCode    合约代码，格式如CFFEX.IF.2106
@@ -100,7 +100,7 @@ def test_in_bt():
     engine = WtBtEngine(EngineType.ET_CTA)
 
     # 初始化之前，向回测框架注册加载器
-    engine.set_extended_data_loader(loader=MyDataLoader(), bAutoTrans=True)
+    engine.set_extended_data_loader(loader=MyDataLoader(), bAutoTrans=False)
 
     engine.init('../common/', "configbt.yaml")
 

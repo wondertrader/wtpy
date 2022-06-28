@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import json
 
+from wtpy.SessionMgr import SessionInfo
 from wtpy.wrapper import WtWrapper
 from wtpy.WtDataDefs import WtBarRecords, WtTickRecords, WtOrdDtlRecords, WtOrdQueRecords, WtTransRecords
 
@@ -69,7 +70,7 @@ class HftContext:
         for newTick in newTicks:
             ticks.append(newTick)
 
-    def on_getbars(self, stdCode:str, period:str, newBars:list, isLast:bool):
+    def on_getbars(self, stdCode:str, period:str, newBars:list):
         key = "%s#%s" % (stdCode, period)
 
         bars = self.__bar_cache__[key]
@@ -149,6 +150,9 @@ class HftContext:
     def on_entrust(self, localid:int, stdCode:str, bSucc:bool, msg:str, userTag:str):
         self.__stra_info__.on_entrust(self, localid, stdCode, bSucc, msg, userTag)
 
+    def on_position(self, stdCode:str, isLong:bool, prevol:float, preavail:float, newvol:float, newavail:float):
+        self.__stra_info__.on_position(self, stdCode, isLong, prevol, preavail, newvol, newavail)
+
     def on_order(self, localid:int, stdCode:str, isBuy:bool, totalQty:float, leftQty:float, price:float, isCanceled:bool, userTag:str):
         self.__stra_info__.on_order(self, localid, stdCode, isBuy, totalQty, leftQty, price, isCanceled, userTag)
 
@@ -179,12 +183,13 @@ class HftContext:
         else:
             return
 
-    def stra_log_text(self, message:str):
+    def stra_log_text(self, message:str, level:int = 1):
         '''
         输出日志
-        @message    消息内容
+        @level      日志级别，0-debug，1-info，2-warn，3-error
+        @message    消息内容，最大242字符
         '''
-        self.__wrapper__.hft_log_text(self.__id__, message)
+        self.__wrapper__.hft_log_text(self.__id__, level, message[:242])
         
     def stra_get_date(self):
         '''
@@ -328,6 +333,14 @@ class HftContext:
         '''
         return self.__wrapper__.hft_get_position_profit(self.__id__, stdCode)
 
+    def stra_get_position_avgpx(self, stdCode:str = ""):
+        '''
+        读取指定持仓的持仓均价
+        @stdCode    合约/股票代码
+        @return     指定持仓的浮动盈亏
+        '''
+        return self.__wrapper__.hft_get_position_avgpx(self.__id__, stdCode)
+
     def stra_get_undone(self, stdCode:str):
         return self.__wrapper__.hft_get_undone(self.__id__, stdCode)
 
@@ -353,6 +366,16 @@ class HftContext:
 
         return vType(ret)
 
+    def stra_get_rawcode(self, stdCode:str):
+        '''
+        获取分月合约代码
+        @stdCode   连续合约代码如SHFE.ag.HOT
+        @return 品种信息,结构请参考ProductMgr中的ProductInfo
+        '''
+        if self.__engine__ is None:
+            return ""
+        return self.__engine__.getRawStdCode(stdCode)
+
     def stra_get_comminfo(self, stdCode:str):
         '''
         获取品种详情
@@ -362,6 +385,16 @@ class HftContext:
         if self.__engine__ is None:
             return None
         return self.__engine__.getProductInfo(stdCode)
+        
+    def stra_get_sessinfo(self, stdCode:str) -> SessionInfo:
+        '''
+        获取交易时段详情
+        @stdCode   合约代码如SHFE.ag.HOT，或者品种代码如SHFE.ag
+        @return 品种信息，结构请参考SessionMgr中的SessionInfo
+        '''
+        if self.__engine__ is None:
+            return None
+        return self.__engine__.getSessionByCode(stdCode)
 
     def stra_sub_ticks(self, stdCode:str):
         '''
@@ -396,15 +429,16 @@ class HftContext:
             localids.append(int(localid))
         return localids
 
-    def stra_buy(self, stdCode:str, price:float, qty:float, userTag:str):
+    def stra_buy(self, stdCode:str, price:float, qty:float, userTag:str, flag:int = 0):
         '''
         买入指令
         @id         策略ID
         @stdCode    品种代码
         @price      买入价格, 0为市价
         @qty        买入数量
+        @flag       下单标志, 0-normal, 1-fak, 2-fok
         '''
-        idstr = self.__wrapper__.hft_buy(self.__id__, stdCode, price, qty, userTag)
+        idstr = self.__wrapper__.hft_buy(self.__id__, stdCode, price, qty, userTag, flag)
         if len(idstr) == 0:
             return list()
             
@@ -414,15 +448,16 @@ class HftContext:
             localids.append(int(localid))
         return localids
 
-    def stra_sell(self, stdCode:str, price:float, qty:float, userTag:str):
+    def stra_sell(self, stdCode:str, price:float, qty:float, userTag:str, flag:int = 0):
         '''
         卖出指令
         @id         策略ID
         @stdCode    品种代码
         @price      卖出价格, 0为市价
         @qty        卖出数量
+        @flag       下单标志, 0-normal, 1-fak, 2-fok
         '''
-        idstr = self.__wrapper__.hft_sell(self.__id__, stdCode, price, qty, userTag)
+        idstr = self.__wrapper__.hft_sell(self.__id__, stdCode, price, qty, userTag, flag)
         if len(idstr) == 0:
             return list()
             

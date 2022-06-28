@@ -469,9 +469,9 @@ class WtCacheMonSS(WtCacheMon):
             # 收盘价
             day.close = float(items[6])
             # 成交量
-            day.volume = int(items[8])
+            day.volume = float(items[8])
             # 持仓量
-            day.hold = int(items[10])
+            day.hold = float(items[10])
             day.month = day.code[len(day.pid):]
             if len(day.month) == 3:
                 if day.month[0] >= '0' and day.month[0] <= '5':
@@ -695,10 +695,10 @@ class WtHotPicker:
                         ay.sort(key=lambda x : x.volume) #按成交量
                     elif alg == 0:
                         ay.sort(key=lambda x : x.hold) #按总持
-                    hot = ay[-1]
-
+                        
                     if len(ay) > 1:
-                        sec = ay[-2]
+                        hot = ay[-1]
+                        sec = None
                         #中金所算法，如果是当月第三个周三，并且主力合约月份小于次主力合约月份，
                         #说明没有根据数据自动换月，强制进行换月
                         if alg == 1 and wd == 2 and fri_cnt == 3 and hot.month==cur_month:
@@ -708,13 +708,22 @@ class WtHotPicker:
                                     break
 
                         #如果主力合约月份大于等于次主力合约，则次主力递延一位
-                        if hot.month >= sec.month:
+                        if hot.month >= sec.month and len(ay)>=3:
                             sec = ay[-3]
-                        
-                        seconds[pid] = sec.code
-
-                    hots[pid] = hot.code
+     
+                        for i in range(-2,-len(ay),-1):
+                            sec = ay[i]
+                            #次主力合约月份大于等于次主力合约才可以
+                            if hot.month < sec.month:
+                                break
+                        if sec is not None and hot.month < sec.month:
+                            hots[pid] = hot.code
+                            seconds[pid] = sec.code
+                    else:
+                        # 如果这一天只有一个合约的信息，就没办法实现同时跟换主次月，跳过这一天，否则会出现主力换月，次主力没有换月的情况，导致某一天的主力次主力是同一个合约
+                        continue
                     
+                # 生成换月表
                 for key in hots.keys():
                     nextDT = curDT + datetime.timedelta(days=1)
                     if key not in lastHots:

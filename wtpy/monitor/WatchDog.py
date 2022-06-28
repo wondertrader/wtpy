@@ -27,7 +27,7 @@ class WatcherSink:
     def on_start(self, appid:str):
         pass
 
-    def on_stop(self, appid:str):
+    def on_stop(self, appid:str, isErr:bool = False):
         pass
 
     def on_output(self, appid:str, tag:str, time:int, message:str):
@@ -61,6 +61,7 @@ class AppState(Enum):
     AS_NotRunning   = 902
     AS_Running      = 903
     AS_Closed       = 904
+    AS_Closing      = 905
 
 class AppInfo(EventSink):
     def __init__(self, appConf:dict, sink:WatcherSink = None, logger:WtLogger=None):
@@ -77,6 +78,8 @@ class AppInfo(EventSink):
         self._redirect = appConf["redirect"]
         if "mqurl" in appConf:
             self._mq_url = appConf["mqurl"].strip()
+        else:
+            self._mq_url = ""
         self._schedule = appConf["schedule"]["active"]
         self._weekflag = appConf["schedule"]["weekflag"]
 
@@ -196,19 +199,21 @@ class AppInfo(EventSink):
         if self._state != AppState.AS_Running:
             return
 
+        self._state = AppState.AS_Closing
         try:
             if isWindows():
                 os.system("taskkill /pid " + str(self._procid))
             else:
                 os.system("kill -9 " + str(self._procid))
-        except e as SystemError:
+        except SystemError as e:
             self.__logger__.error("关闭异常: {}" % (e))
             pass
+
+        self._state = AppState.AS_Closed
         self.__logger__.info("应用%s的已停止，进程ID: %d" % (self._id, self._procid))
         if self._sink is not None:
-            self._sink.on_stop(self._id)
+            self._sink.on_stop(self._id, False)
         self._procid = None
-        self._state = AppState.AS_Closed
 
     def restart(self):
         if self._procid is not None:
@@ -225,8 +230,7 @@ class AppInfo(EventSink):
             self._procid = None
             self._mem = 0
             if self._sink is not None:
-                self._sink.on_stop(self._id)
-        
+                self._sink.on_stop(self._id, True)
 
     def tick(self, pids):
         self._ticks += 1
@@ -327,7 +331,7 @@ class WatchDog:
         self.__app_conf__ = dict()
         self.__stopped__ = False
         self.__worker__ = None
-        self.__sink__ = sink
+        self.__sinks__ = sink
         self.__logger__ = logger
 
         #加载调度列表
@@ -427,7 +431,7 @@ class WatchDog:
             return
 
         self.__apps__.pop(appid)
-
+        self.__app_conf__.pop(appid)
         cur = self.__db_conn__.cursor()
         cur.execute("DELETE FROM schedules WHERE appid='%s';" % (appid))
         self.__db_conn__.commit()
@@ -454,7 +458,7 @@ class WatchDog:
         isNewApp = False
         if appid not in self.__apps__:
             isNewApp = True
-            self.__apps__[appid] = AppInfo(appConf, self.__sink__, self.__logger__)
+            self.__apps__[appid] = AppInfo(appConf, self.__sinks__, self.__logger__)
         else:
             appInst = self.__apps__[appid]
             appInst.applyConf(appConf)

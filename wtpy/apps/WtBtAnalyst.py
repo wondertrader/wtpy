@@ -4,9 +4,8 @@ import numpy as np
 from dateutil.parser import parse
 from collections import Counter
 from datetime import datetime
-import matplotlib.pyplot as plt
-from io import BytesIO
 import math
+import os
 import json
 from xlsxwriter import Workbook
 
@@ -1063,46 +1062,90 @@ def strategy_analyze(workbook:Workbook, df_closes, df_trades,df_funds, capital, 
     # df_closes['exittime'] = pd.to_datetime(df_closes['exittime'])
 
 
-    #用matplotlib画图
-    plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+    # #用matplotlib画图
+    # plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
 
-    worksheet.write_row('A139', ['详细多头权益曲线'], title_format)
+    # worksheet.write_row('A139', ['详细多头权益曲线'], title_format)
     df_closes['fee'] = df_closes['profit'] - df_closes['totalprofit'] + df_closes['totalprofit'].shift(1).fillna(value=0)
     df_temp = pd.DataFrame()
     df_temp['profit'] = df_closes[df_closes['direct'] == 'LONG']['profit'] - df_closes[df_closes['direct'] == 'LONG']['fee']
     df_temp['equity'] = df_temp['profit'].expanding().sum() + capital
     np_temp = np.arange(1, len(df_temp)+1, 1)
     df_temp['index'] = np_temp
-    plt.plot(df_temp['index'], df_temp['equity'])
-    imgdata = BytesIO()
-    plt.xlabel('多头交易编号')
-    plt.title('详细多头权益曲线')
-    plt.ylabel('权益')
-    plt.savefig(imgdata, format="png")
-    imgdata.seek(0)
-    worksheet.insert_image(141, 0, "", {'image_data': imgdata})
 
-    worksheet.write_row('A169', ['详细空头权益曲线'], title_format)
-    plt.clf()
+    # plt.plot(df_temp['index'], df_temp['equity'])
+    # imgdata = BytesIO()
+    # plt.xlabel('多头交易编号')
+    # plt.title('详细多头权益曲线')
+    # plt.ylabel('权益')
+    # plt.savefig(imgdata, format="png")
+    # imgdata.seek(0)
+    # worksheet.insert_image(141, 0, "", {'image_data': imgdata})
+
+    # worksheet.write_row('A169', ['详细空头权益曲线'], title_format)
+    # plt.clf()
     df_temp2 = pd.DataFrame()
     df_temp2['profit'] = df_closes[df_closes['direct'] == 'SHORT']['profit'] - df_closes[df_closes['direct'] == 'SHORT']['fee']
     df_temp2['equity'] = df_temp2['profit'].expanding().sum() + capital
     np_temp2 = np.arange(1, len(df_temp2) + 1, 1)
     df_temp2['index'] = np_temp2
-    plt.plot(df_temp2['index'], df_temp2['equity'])
-    imgdata = BytesIO()
-    plt.xlabel('空头交易编号')
-    plt.title('详细空头权益曲线')
-    plt.ylabel('权益')
-    plt.savefig(imgdata, format="png")
-    imgdata.seek(0)
-    worksheet.insert_image(
-        171, 0, "",
-        {'image_data': imgdata}
+
+    # plt.plot(df_temp2['index'], df_temp2['equity'])
+    # imgdata = BytesIO()
+    # plt.xlabel('空头交易编号')
+    # plt.title('详细空头权益曲线')
+    # plt.ylabel('权益')
+    # plt.savefig(imgdata, format="png")
+    # imgdata.seek(0)
+    # worksheet.insert_image(
+    #     171, 0, "",
+    #     {'image_data': imgdata}
+    # )
+    worksheet = workbook.add_worksheet('交易列表')
+    length0 = len(df_closes)
+    worksheet.write_row('A'+str(length0+98), ['作图数据'], index_format)
+    worksheet.write_column('A'+str(length0+100), df_temp['index'], value_format)
+    worksheet.write_column('B'+str(length0+100), df_temp['equity'], value_format)
+    worksheet.write_column('C'+str(length0+100), df_temp2['index'], value_format)
+    worksheet.write_column('D'+str(length0+100), df_temp2['equity'], value_format)
+
+    worksheet = workbook.get_worksheet_by_name('策略分析')
+    worksheet.write_row('A139', ['详细多头权益曲线'], title_format)
+    chart_col = workbook.add_chart({'type': 'line'})
+    length = len(df_temp)
+    sheetName = '交易列表'
+
+    chart_col.add_series(
+        {
+            'name': '详细权益曲线',
+            'categories': '=%s!$A$%s:$A$%s' % (sheetName, length0+100, length0+100+length),
+            'values':   '=%s!$B$%s:$B$%s' % (sheetName, length0+100, length0+100+length),
+            'line': {'color': 'red', 'width': 1}
+        }
     )
+    chart_col.set_title({'name': '详细多头权益曲线'})
+    chart_col.set_x_axis({'name': '交易列表'})
+    worksheet.insert_chart('A141', chart_col, {'x_scale': 1.8, 'y_scale': 1.8})
+
+    worksheet.write_row('A169', ['详细空头权益曲线'], title_format)
+    chart_col = workbook.add_chart({'type': 'line'})
+    length = len(df_temp2)
+
+    chart_col.add_series(
+        {
+            'name': '详细权益曲线',
+            'categories': '=%s!$C$%s:$C$%s' % (sheetName, length0+100, length0+100+length),
+            'values':   '=%s!$D$%s:$D$%s' % (sheetName, length0+100, length0+100+length),
+            'line': {'color': 'red', 'width': 1}
+        }
+    )
+    chart_col.set_title({'name': '详细空头权益曲线'})
+    chart_col.set_x_axis({'name': '交易列表'})
+    worksheet.insert_chart('A171', chart_col, {'x_scale': 1.8, 'y_scale': 1.8})
+
 
 def output_closes(workbook:Workbook, df_closes:df, capital = 500000):
-    worksheet = workbook.add_worksheet('交易列表')
+    worksheet = workbook.get_worksheet_by_name('交易列表')
     title_format = workbook.add_format({
         'font_size':    16,
         'bold':         True,
@@ -1174,7 +1217,7 @@ def summary_analyze(df_funds:df, capital = 5000000, rf = 0, period = 240) -> dic
     days = len(df_funds)
 
     #先做资金统计吧
-    print("anayzing fund data……")
+    # print("anayzing fund data……")
     df_funds["dynbalance"] += init_capital
     ayBal = df_funds["dynbalance"]              # 每日期末动态权益
 
@@ -1376,7 +1419,7 @@ def funds_analyze(workbook:Workbook, df_funds:df, capital = 5000000, rf = 0, per
     length = days
     chart_col.add_series(                                   # 给图表设置格式，填充内容
         {
-            'name': '=逐日绩效分析!$B$1',
+            'name': '累计净值',
             'categories': '=逐日绩效分析!$A$3:$A$%d' % (length+2),
             'values':   '=逐日绩效分析!$G$3:$G$%d' % (length+2),
             'line': {'color': 'blue', 'width':1},
@@ -1485,12 +1528,12 @@ class WtBtAnalyst:
 
         for sname in self.__strategies__:
             sInfo = self.__strategies__[sname]
-            folder = sInfo["folder"]
+            folder = os.path.join(sInfo["folder"], sname)
             print("start PnL analyzing for strategy %s……" % (sname))
 
-            df_funds = pd.read_csv(folder + "funds.csv")
-            df_closes = pd.read_csv(folder + "closes.csv")
-            df_trades = pd.read_csv(folder + "trades.csv")
+            df_funds = pd.read_csv(os.path.join(folder,"funds.csv"))
+            df_closes = pd.read_csv(os.path.join(folder, "closes.csv"))
+            df_trades = pd.read_csv(os.path.join(folder, "trades.csv"))
 
             if len(outFileName) == 0:
                 outFileName = 'Strategy[%s]_PnLAnalyzing_%s_%s.xlsx' % (sname, df_funds['date'][0], df_funds['date'].iloc[-1])
@@ -1516,10 +1559,11 @@ class WtBtAnalyst:
 
         for sname in self.__strategies__:
             sInfo = self.__strategies__[sname]
-            folder = sInfo["folder"]
+            # folder = sInfo["folder"]
+            folder = os.path.join(sInfo["folder"], sname)
             print("start PnL analyzing for strategy %s……" % (sname))
 
-            df_funds = pd.read_csv(folder + "funds.csv")
+            df_funds = pd.read_csv(os.path.join(folder, "funds.csv"))
             print("fund logs loaded……")
 
             init_capital = sInfo["cap"]
@@ -1540,9 +1584,10 @@ class WtBtAnalyst:
 
         for sname in self.__strategies__:
             sInfo = self.__strategies__[sname]
-            folder = sInfo["folder"]
+            folder = os.path.join(sInfo["folder"],sname)
+            
 
-            df_funds = pd.read_csv(folder + "funds.csv")
+            df_funds = pd.read_csv(os.path.join(folder, "funds.csv"))
 
             init_capital = sInfo["cap"]
             annual_days = sInfo["atd"]

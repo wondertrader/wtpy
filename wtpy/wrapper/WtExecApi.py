@@ -6,7 +6,7 @@ Date: 2021-07-27 09:53:43
 LastEditors: Wesley
 LastEditTime: 2021-08-13 15:35:25
 '''
-from ctypes import cdll, c_char_p
+from ctypes import cdll, c_char_p, c_int, c_bool, c_double
 from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
 import os
@@ -27,6 +27,11 @@ class WtExecApi:
 
         self.api.get_version.restype = c_char_p
         self.ver = bytes.decode(self.api.get_version())
+        
+        self.api.write_log.argtypes = [c_int, c_char_p, c_char_p]
+        self.api.config_exec.argtypes = [c_char_p, c_bool]
+        self.api.init_exec.argtypes = [c_char_p, c_bool]
+        self.api.set_position.argtypes = [c_char_p, c_double]
 
     def run(self):
         self.api.run_exec()

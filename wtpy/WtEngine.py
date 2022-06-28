@@ -15,6 +15,7 @@ from .CodeHelper import CodeHelper
 
 import json
 import yaml
+import chardet
 
 @singleton
 class WtEngine:
@@ -148,9 +149,11 @@ class WtEngine:
         @folder     基础数据文件目录，\\结尾
         @cfgfile    配置文件，json格式
         '''
-        f = open(cfgfile, "r", encoding="UTF8")
-        content =f.read()
+        f = open(cfgfile, "rb")
+        content = f.read()
         f.close()
+        encoding = chardet.detect(content[:500])["encoding"]
+        content = content.decode(encoding)
 
         if cfgfile.lower().endswith(".json"):
             self.__config__ = json.loads(content)
@@ -161,28 +164,33 @@ class WtEngine:
 
         self.__check_config__()
 
+        if contractfile is not None:        
+            self.__config__["basefiles"]["contract"] = folder + contractfile
         
-        self.__config__["basefiles"]["contract"] = folder + contractfile
-        
-        self.__config__["basefiles"]["session"] = folder + sessionfile
+        if sessionfile is not None:
+            self.__config__["basefiles"]["session"] = folder + sessionfile
+
         if commfile is not None:
             self.__config__["basefiles"]["commodity"] = folder + commfile
+
         if holidayfile is not None:
             self.__config__["basefiles"]["holiday"] = folder + holidayfile
+
         if hotfile is not None:
             self.__config__["basefiles"]["hot"] = folder + hotfile
+
         if secondfile is not None:
             self.__config__["basefiles"]["second"] = folder + secondfile
 
         self.productMgr = ProductMgr()
-        if commfile is not None:
-            self.productMgr.load(folder + commfile)
+        if self.__config__["basefiles"]["commodity"] is not None:
+            self.productMgr.load(self.__config__["basefiles"]["commodity"])
 
         self.contractMgr = ContractMgr(self.productMgr)
-        self.contractMgr.load(folder + contractfile)
+        self.contractMgr.load(self.__config__["basefiles"]["contract"])
 
         self.sessionMgr = SessionMgr()
-        self.sessionMgr.load(folder + sessionfile)
+        self.sessionMgr.load(self.__config__["basefiles"]["session"])
 
     def configEngine(self, name:str, mode:str = "product"):
         '''
@@ -224,6 +232,17 @@ class WtEngine:
         '''
         self.__config__["data"]["store"]["module"] = module
         self.__config__["data"]["store"]["path"] = path
+
+    def registerCustomRule(self, ruleTag:str, filename:str):
+        '''
+        注册自定义连续合约规则
+        @ruleTag    规则标签，如ruleTag为THIS，对应的连续合约代码为CFFEX.IF.THIS
+        @filename   规则定义文件名，和hots.json格式一样
+        '''
+        if "rules" not in self.__config__["basefiles"]:
+            self.__config__["basefiles"]["rules"] = dict()
+
+        self.__config__["basefiles"]["rules"][ruleTag] = filename
 
     def commitConfig(self):
         '''
@@ -335,24 +354,27 @@ class WtEngine:
         '''
         return self.contractMgr.getTotalCodes()
 
-    def add_cta_strategy(self, strategy:BaseCtaStrategy):
+    def getRawStdCode(self, stdCode:str):
+        return self.__wrapper__.get_raw_stdcode(stdCode)
+
+    def add_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0):
         '''
         添加CTA策略
         @strategy   策略对象
         '''
-        id = self.__wrapper__.create_cta_context(strategy.name())
+        id = self.__wrapper__.create_cta_context(strategy.name(), slippage)
         self.__cta_ctxs__[id] = CtaContext(id, strategy, self.__wrapper__, self)
 
-    def add_hft_strategy(self, strategy:BaseHftStrategy, trader:str, agent:bool = True):
+    def add_hft_strategy(self, strategy:BaseHftStrategy, trader:str, agent:bool = True, slippage:int = 0):
         '''
         添加HFT策略
         @strategy   策略对象
         '''
-        id = self.__wrapper__.create_hft_context(strategy.name(), trader, agent)
+        id = self.__wrapper__.create_hft_context(strategy.name(), trader, agent, slippage)
         self.__hft_ctxs__[id] = HftContext(id, strategy, self.__wrapper__, self)
 
-    def add_sel_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str):
-        id = self.__wrapper__.create_sel_context(strategy.name(), date, time, period)
+    def add_sel_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str, slippage:int = 0):
+        id = self.__wrapper__.create_sel_context(strategy.name(), date, time, period, slippage)
         self.__sel_ctxs__[id] = SelContext(id, strategy, self.__wrapper__, self)
 
     def get_context(self, id:int):

@@ -1,5 +1,5 @@
 from ctypes import c_void_p, CFUNCTYPE, POINTER, c_char_p, c_bool, c_ulong, c_double
-from ctypes import Structure, c_char, c_int32, c_uint32,c_uint64, addressof, sizeof
+from ctypes import Structure, c_char, c_int32, c_uint32,c_uint64
 from copy import copy
 import numpy as np
 import pandas as pd
@@ -54,10 +54,49 @@ class WTSTickStruct(WTSStruct):
                 ("pre_settle", c_double),
                 ("pre_interest", c_double),
 
-                ("bid_prices", PriceQueueType),
-                ("ask_prices", PriceQueueType),
-                ("bid_qty", VolumeQueueType),
-                ("ask_qty", VolumeQueueType)]
+                ("bid_price_0", c_double),
+                ("bid_price_1", c_double),
+                ("bid_price_2", c_double),
+                ("bid_price_3", c_double),
+                ("bid_price_4", c_double),
+                ("bid_price_5", c_double),
+                ("bid_price_6", c_double),
+                ("bid_price_7", c_double),
+                ("bid_price_8", c_double),
+                ("bid_price_9", c_double),
+                
+                ("ask_price_0", c_double),
+                ("ask_price_1", c_double),
+                ("ask_price_2", c_double),
+                ("ask_price_3", c_double),
+                ("ask_price_4", c_double),
+                ("ask_price_5", c_double),
+                ("ask_price_6", c_double),
+                ("ask_price_7", c_double),
+                ("ask_price_8", c_double),
+                ("ask_price_9", c_double),
+                
+                ("bid_qty_0", c_double),
+                ("bid_qty_1", c_double),
+                ("bid_qty_2", c_double),
+                ("bid_qty_3", c_double),
+                ("bid_qty_4", c_double),
+                ("bid_qty_5", c_double),
+                ("bid_qty_6", c_double),
+                ("bid_qty_7", c_double),
+                ("bid_qty_8", c_double),
+                ("bid_qty_9", c_double),
+                
+                ("ask_qty_0", c_double),
+                ("ask_qty_1", c_double),
+                ("ask_qty_2", c_double),
+                ("ask_qty_3", c_double),
+                ("ask_qty_4", c_double),
+                ("ask_qty_5", c_double),
+                ("ask_qty_6", c_double),
+                ("ask_qty_7", c_double),
+                ("ask_qty_8", c_double),
+                ("ask_qty_9", c_double)]
     _pack_ = 1
 
     @property
@@ -65,11 +104,59 @@ class WTSTickStruct(WTSStruct):
         fields = self._fields_.copy()
         fields[0] = ('exchg', 'S10')
         fields[1] = ('code', 'S10')
-        fields[-4] = ('bid_prices', 'O')
-        fields[-3] = ('ask_prices', 'O')
-        fields[-2] = ('bid_qty', 'O')
-        fields[-1] = ('ask_qty', 'O')
         return fields
+
+    @property
+    def bid_prices(self) -> tuple:
+        return (self.bid_price_0, 
+                self.bid_price_1, 
+                self.bid_price_2, 
+                self.bid_price_3, 
+                self.bid_price_4, 
+                self.bid_price_5, 
+                self.bid_price_6, 
+                self.bid_price_7, 
+                self.bid_price_8, 
+                self.bid_price_9)
+
+    @property
+    def bid_qty(self) -> tuple:
+        return (self.bid_qty_0, 
+                self.bid_qty_1, 
+                self.bid_qty_2, 
+                self.bid_qty_3, 
+                self.bid_qty_4, 
+                self.bid_qty_5, 
+                self.bid_qty_6, 
+                self.bid_qty_7, 
+                self.bid_qty_8, 
+                self.bid_qty_9)
+    
+    @property
+    def ask_prices(self) -> tuple:
+        return (self.ask_price_0, 
+                self.ask_price_1, 
+                self.ask_price_2, 
+                self.ask_price_3, 
+                self.ask_price_4, 
+                self.ask_price_5, 
+                self.ask_price_6, 
+                self.ask_price_7, 
+                self.ask_price_8, 
+                self.ask_price_9)
+
+    @property
+    def ask_qty(self) -> tuple:
+        return (self.ask_qty_0, 
+                self.ask_qty_1, 
+                self.ask_qty_2, 
+                self.ask_qty_3, 
+                self.ask_qty_4, 
+                self.ask_qty_5, 
+                self.ask_qty_6, 
+                self.ask_qty_7, 
+                self.ask_qty_8, 
+                self.ask_qty_9)
 
     def to_tuple(self) -> tuple:
         return (
@@ -94,13 +181,52 @@ class WTSTickStruct(WTSStruct):
                 self.action_time,
                 self.pre_close,
                 self.pre_settle,
-                self.pre_interest
-            ) \
-            + tuple(self.bid_prices) \
-            + tuple(self.ask_prices) \
-            + tuple(self.bid_qty) \
-            + tuple(self.ask_qty)
-
+                self.pre_interest,
+                
+                self.bid_price_0,
+                self.bid_price_1,
+                self.bid_price_2,
+                self.bid_price_3,
+                self.bid_price_4,
+                self.bid_price_5,
+                self.bid_price_6,
+                self.bid_price_7,
+                self.bid_price_8,
+                self.bid_price_9,
+                
+                self.ask_price_0,
+                self.ask_price_1,
+                self.ask_price_2,
+                self.ask_price_3,
+                self.ask_price_4,
+                self.ask_price_5,
+                self.ask_price_6,
+                self.ask_price_7,
+                self.ask_price_8,
+                self.ask_price_9,
+                
+                self.bid_qty_0,
+                self.bid_qty_1,
+                self.bid_qty_2,
+                self.bid_qty_3,
+                self.bid_qty_4,
+                self.bid_qty_5,
+                self.bid_qty_6,
+                self.bid_qty_7,
+                self.bid_qty_8,
+                self.bid_qty_9,
+                
+                self.ask_qty_0,
+                self.ask_qty_1,
+                self.ask_qty_2,
+                self.ask_qty_3,
+                self.ask_qty_4,
+                self.ask_qty_5,
+                self.ask_qty_6,
+                self.ask_qty_7,
+                self.ask_qty_8,
+                self.ask_qty_9
+            )
 
 class WTSBarStruct(WTSStruct):
     '''
@@ -120,10 +246,21 @@ class WTSBarStruct(WTSStruct):
                 ("diff", c_double)]
     _pack_ = 1
 
-    def to_tuple(self, isDays:bool=False) -> tuple:
+    def to_tuple(self, flag:int=0) -> tuple:
+        '''
+        WTSBarStruct转成tuple
+        @flag	转换标记，0-分钟线，1-日线，2-秒线
+        '''
+        if flag == 0:
+            time = self.time + 199000000000
+        elif flag == 1:
+            time = self.date
+        elif flag == 2:
+            time = self.time
+        
         return (
                 self.date,
-                self.date if isDays else self.time + 199000000000,
+                time,
                 self.open,
                 self.high,
                 self.low,
@@ -237,41 +374,6 @@ class WTSOrdDtlStruct(WTSStruct):
                 self.otype
             )
 
-
-class CacheList(list):
-    def to_record(self) -> np.recarray:
-        self = np.empty(len(self), dtype=self[0].fields)
-        for k, v in enumerate(self):
-            self[k] = v.values
-        return self.view(np.recarray)
-
-    def to_pandas(self) -> pd.DataFrame:
-        return pd.DataFrame(self.to_record())
-
-class BarList(CacheList):
-    def on_read_bar(self, curBar:POINTER(WTSBarStruct), count:int, isLast:bool):
-        bsSize = sizeof(WTSBarStruct)
-        addr = addressof(curBar.contents)
-        for i in range(count):
-            thisBar = WTSBarStruct.from_address(addr)
-            self.append(copy(thisBar))
-            addr += bsSize
-
-    def on_self_count(self, count:int):
-        pass
-
-class TickList(CacheList):
-    def on_read_tick(self, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
-        tsSize = sizeof(WTSTickStruct)
-        addr = addressof(curTick.contents)
-        for i in range(count):
-            thisTick = WTSTickStruct.from_address(addr)
-            self.append(copy(thisTick))
-            addr += tsSize
-
-    def on_self_count(self, count:int):
-        pass
-
 # 回调函数定义
 #策略初始化回调
 CB_STRATEGY_INIT = CFUNCTYPE(c_void_p, c_ulong) 
@@ -289,6 +391,8 @@ CB_STRATEGY_GET_BAR = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_char_p, POINTER(W
 CB_STRATEGY_GET_POSITION = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_double, c_bool)
 #交易日开始结束事件回调
 CB_SESSION_EVENT = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_bool) 
+#条件单触发回调
+CB_STRATEGY_COND_TRIGGER = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_double, c_double, c_char_p)
 
 #引擎事件回调(交易日开启结束等)
 CB_ENGINE_EVENT = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_ulong)
@@ -301,6 +405,8 @@ CB_HFTSTRA_ORD = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_doubl
 CB_HFTSTRA_TRD = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_double, c_double, c_char_p)
 #HFT策略下单结果回报
 CB_HFTSTRA_ENTRUST = CFUNCTYPE(c_void_p, c_ulong, c_ulong, c_char_p, c_bool, c_char_p, c_char_p)
+#HFT策略持仓推送回报（实盘有效）
+CB_HFTSTRA_POSITION = CFUNCTYPE(c_void_p, c_ulong, c_char_p, c_bool, c_double, c_double, c_double, c_double)
 
 #策略委托队列推送回调
 CB_HFTSTRA_ORDQUE = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSOrdQueStruct))
@@ -316,14 +422,20 @@ CB_HFTSTRA_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct
 CB_HFTSTRA_GET_TRANS = CFUNCTYPE(c_void_p, c_ulong, c_char_p, POINTER(WTSTransStruct), c_uint32, c_bool)
 
 
-EVENT_ENGINE_INIT	= 1     #框架初始化
-EVENT_SESSION_BEGIN = 2     #交易日开始
-EVENT_SESSION_END	= 3     #交易日结束
-EVENT_ENGINE_SCHDL	= 4     #框架调度
-EVENT_BACKTEST_END  = 5     #回测结束
+EVENT_ENGINE_INIT       = 1     #框架初始化
+EVENT_SESSION_BEGIN     = 2     #交易日开始
+EVENT_SESSION_END       = 3     #交易日结束
+EVENT_ENGINE_SCHDL      = 4     #框架调度
+EVENT_BACKTEST_END      = 5     #回测结束
 
-CHNL_EVENT_READY	= 1000  #通道就绪事件
-CHNL_EVENT_LOST		= 1001  #通道断开事件
+CHNL_EVENT_READY        = 1000  #通道就绪事件
+CHNL_EVENT_LOST         = 1001  #通道断开事件
+
+#日志级别
+LOG_LEVEL_DEBUG         = 0
+LOG_LEVEL_INFO          = 1
+LOG_LEVEL_WARN          = 2
+LOG_LEVEL_ERROR         = 3
 
 from enum import Enum
 class EngineType(Enum):
@@ -339,10 +451,10 @@ class EngineType(Enum):
 '''
 Parser外接实现
 '''
-EVENT_PARSER_INIT		= 1;	#Parser初始化
-EVENT_PARSER_CONNECT	= 2;	#Parser连接
-EVENT_PARSER_DISCONNECT = 3;	#Parser断开连接
-EVENT_PARSER_RELEASE	= 4;	#Parser释放
+EVENT_PARSER_INIT       = 1;    #Parser初始化
+EVENT_PARSER_CONNECT    = 2;    #Parser连接
+EVENT_PARSER_DISCONNECT = 3;    #Parser断开连接
+EVENT_PARSER_RELEASE    = 4;    #Parser释放
 CB_PARSER_EVENT = CFUNCTYPE(c_void_p, c_ulong, c_char_p)
 CB_PARSER_SUBCMD = CFUNCTYPE(c_void_p, c_char_p, c_char_p, c_bool)
 

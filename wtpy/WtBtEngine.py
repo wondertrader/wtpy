@@ -16,6 +16,7 @@ from .CodeHelper import CodeHelper
 
 import json
 import yaml
+import chardet
 
 
 @singleton
@@ -88,12 +89,12 @@ class WtBtEngine:
 
     def init(self, folder:str, 
         cfgfile:str = "configbt.yaml", 
-        commfile:str="commodities.json", 
-        contractfile:str="contracts.json",
-        sessionfile:str="sessions.json",
-        holidayfile:str="holidays.json",
-        hotfile:str="hots.json",
-        secondfile:str="seconds.json"):
+        commfile:str = None, 
+        contractfile:str = None,
+        sessionfile:str = None,
+        holidayfile:str= None,
+        hotfile:str = None,
+        secondfile:str = None):
         '''
         初始化
         @folder     基础数据文件目录，\\结尾
@@ -101,9 +102,11 @@ class WtBtEngine:
         @commfile   品种定义文件，json/yaml格式
         @contractfile   合约定义文件，json/yaml格式
         '''
-        f = open(cfgfile, "r")
-        content =f.read()
+        f = open(cfgfile, "rb")
+        content = f.read()
         f.close()
+        encoding = chardet.detect(content[:500])["encoding"]
+        content = content.decode(encoding)
 
         if cfgfile.lower().endswith(".json"):
             self.__config__ = json.loads(content)
@@ -114,26 +117,33 @@ class WtBtEngine:
 
         self.__check_config__()
 
-        self.__config__["replayer"]["basefiles"]["contract"] = folder + contractfile
-        self.__config__["replayer"]["basefiles"]["session"] = folder + sessionfile
+        if contractfile is not None:
+            self.__config__["replayer"]["basefiles"]["contract"] = folder + contractfile
+        
+        if sessionfile is not None:
+            self.__config__["replayer"]["basefiles"]["session"] = folder + sessionfile
+
         if commfile is not None:
             self.__config__["replayer"]["basefiles"]["commodity"] = folder + commfile
+
         if holidayfile is not None:
             self.__config__["replayer"]["basefiles"]["holiday"] = folder + holidayfile
+
         if hotfile is not None:
             self.__config__["replayer"]["basefiles"]["hot"] = folder + hotfile
+
         if secondfile is not None:
             self.__config__["replayer"]["basefiles"]["second"] = folder + secondfile
 
         self.productMgr = ProductMgr()
-        if commfile is not None:
-            self.productMgr.load(folder + commfile)
+        if self.__config__["replayer"]["basefiles"]["commodity"] is not None:
+            self.productMgr.load(self.__config__["replayer"]["basefiles"]["commodity"])
 
         self.contractMgr = ContractMgr(self.productMgr)
-        self.contractMgr.load(folder + contractfile)
+        self.contractMgr.load(self.__config__["replayer"]["basefiles"]["contract"])
 
         self.sessionMgr = SessionMgr()
-        self.sessionMgr.load(folder + sessionfile)
+        self.sessionMgr.load(self.__config__["replayer"]["basefiles"]["session"])
 
     def configMocker(self, name:str):
         '''
@@ -163,6 +173,17 @@ class WtBtEngine:
 
         if storage is not None:
             self.__config__["replayer"]["store"] = storage
+
+    def registerCustomRule(self, ruleTag:str, filename:str):
+        '''
+        注册自定义连续合约规则
+        @ruleTag    规则标签，如ruleTag为THIS，对应的连续合约代码为CFFEX.IF.THIS
+        @filename   规则定义文件名，和hots.json格式一样
+        '''
+        if "rules" not in self.__config__["replayer"]["basefiles"]:
+            self.__config__["replayer"]["basefiles"]["rules"] = dict()
+
+        self.__config__["replayer"]["basefiles"]["rules"][ruleTag] = filename
 
     def setExternalCtaStrategy(self, id:str, module:str, typeName:str, params:dict):
         '''
@@ -282,6 +303,9 @@ class WtBtEngine:
         获取全部合约代码
         '''
         return self.contractMgr.getTotalCodes()
+
+    def getRawStdCode(self, stdCode:str):
+        return self.__wrapper__.get_raw_stdcode(stdCode)
 
     def set_time_range(self, beginTime:int, endTime:int):
         '''

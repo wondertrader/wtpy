@@ -70,9 +70,9 @@ class SelContext:
 
         ticks = self.__tick_cache__[key]
         for newTick in newTicks:
-            ticks.append_item(newTick)
+            ticks.append(newTick)
 
-    def on_getpositions(self, stdCode:str, qty:float, frozen:float, isLast:bool):
+    def on_getpositions(self, stdCode:str, qty:float, frozen:float):
         if len(stdCode) == 0:
             return
         self.__pos_cache__[stdCode] = qty
@@ -117,12 +117,13 @@ class SelContext:
     def on_calculate_done(self):
         self.__stra_info__.on_calculate_done(self)
 
-    def stra_log_text(self, message:str):
+    def stra_log_text(self, message:str, level:int = 1):
         '''
         输出日志
-        @message    消息内容
+        @level      日志级别，0-debug，1-info，2-warn，3-error
+        @message    消息内容，最大242字符
         '''
-        self.__wrapper__.sel_log_text(self.__id__, message)
+        self.__wrapper__.sel_log_text(self.__id__, level, message[:242])
         
     def stra_get_date(self):
         '''
@@ -245,6 +246,16 @@ class SelContext:
         if self.__engine__ is None:
             return None
         return self.__engine__.getProductInfo(stdCode)
+
+    def stra_get_rawcode(self, stdCode:str):
+        '''
+        获取分月合约代码
+        @stdCode   连续合约代码如SHFE.ag.HOT
+        @return 品种信息,结构请参考ProductMgr中的ProductInfo
+        '''
+        if self.__engine__ is None:
+            return ""
+        return self.__engine__.getRawStdCode(stdCode)
 
     def stra_get_sessioninfo(self, stdCode:str):
         '''

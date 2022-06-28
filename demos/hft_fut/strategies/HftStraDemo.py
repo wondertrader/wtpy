@@ -41,7 +41,6 @@ class HftStraDemo(BaseHftStrategy):
 
         #先订阅实时数据
         context.stra_sub_ticks(self.__code__)
-        print("inited")
 
         self.__ctx__ = context
 
@@ -84,7 +83,7 @@ class HftStraDemo(BaseHftStrategy):
         #最新价作为基准价格
         price = newTick["price"]
         #计算理论价格
-        pxInThry = (newTick["bidprice"][0]*newTick["askqty"][0] + newTick["askprice"][0]*newTick["bidqty"][0]) / (newTick["askqty"][0] + newTick["bidqty"][0])
+        pxInThry = (newTick["bid_price_0"]*newTick["ask_qty_0"] + newTick["ask_price_0"]*newTick["bid_qty_0"]) / (newTick["ask_qty_0"] + newTick["bid_qty_0"])
 
         context.stra_log_text("理论价格%f，最新价：%f" % (pxInThry, price))
 
@@ -109,7 +108,7 @@ class HftStraDemo(BaseHftStrategy):
                 targetPx = price + commInfo.pricetick * self.__offset__
 
                 #执行买入指令，返回所有订单的本地单号
-                ids = context.stra_buy(self.__code__, targetPx, 1)
+                ids = context.stra_buy(self.__code__, targetPx, 1, "buy")
 
                 #将订单号加入到管理中
                 for localid in ids:
@@ -124,7 +123,7 @@ class HftStraDemo(BaseHftStrategy):
                 targetPx = price - commInfo.pricetick * self.__offset__
 
                 #执行卖出指令，返回所有订单的本地单号
-                ids = context.stra_sell(self.__code__, targetPx, 1)
+                ids = context.stra_sell(self.__code__, targetPx, 1, "sell")
 
                 #将订单号加入到管理中
                 for localid in ids:
@@ -153,13 +152,13 @@ class HftStraDemo(BaseHftStrategy):
         context.stra_log_text("交易通道连接丢失")
         self.__channel_ready__ = False
 
-    def on_entrust(self, context:HftContext, localid:int, stdCode:str, bSucc:bool, msg:str):
+    def on_entrust(self, context:HftContext, localid:int, stdCode:str, bSucc:bool, msg:str, userTag:str):
         if bSucc:
             context.stra_log_text("%s下单成功，本地单号：%d" % (stdCode, localid))
         else:
             context.stra_log_text("%s下单失败，本地单号：%d，错误信息：%s" % (stdCode, localid, msg))
 
-    def on_order(self, context:HftContext, localid:int, stdCode:str, isBuy:bool, totalQty:float, leftQty:float, price:float, isCanceled:bool):
+    def on_order(self, context:HftContext, localid:int, stdCode:str, isBuy:bool, totalQty:float, leftQty:float, price:float, isCanceled:bool, userTag:str):
         if localid not in self.__orders__:
             return
 
@@ -170,5 +169,5 @@ class HftStraDemo(BaseHftStrategy):
                 self.__ctx__.stra_log_text("cancelcount -> %d" % (self.__cancel_cnt__))
         return
 
-    def on_trade(self, context:HftContext, stdCode:str, isBuy:bool, qty:float, price:float):
+    def on_trade(self, context:HftContext, localid:int, stdCode:str, isBuy:bool, qty:float, price:float, userTag:str):
         return

@@ -72,7 +72,7 @@ class StraT1(BaseCtaStrategy):
         curDate = context.stra_get_date()
         curTime = context.stra_get_time()
 
-        if curTime == 901:
+        if curTime == 905:
             self.beta, self.c, resid, result = cointegration_check(close_ay1[-days-1:-1], close_ay2[-days-1:-1])
             self.__tradable__ = result
             if not result:

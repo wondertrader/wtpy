@@ -7,7 +7,7 @@ if __name__ == "__main__":
     engine.init('../common/', "config.yaml")
     engine.commitConfig()
 
-    straInfo = HftStraDemo(name="hft_IF", code="CFFEX.IF.2104", expsecs=5, offset=100, freq=0)
+    straInfo = HftStraDemo(name="hft_IF", code="CFFEX.IF.2204", expsecs=5, offset=100, freq=0)
     engine.add_hft_strategy(straInfo, 'mocker')
     
     engine.run()

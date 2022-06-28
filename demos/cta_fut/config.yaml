@@ -5,14 +5,18 @@ basefiles:
     holiday: ../common/holidays.json        #节假日列表
     hot: ../common/hots.json                #主力合约映射表
     session: ../common/sessions.json        #交易时间模板
+    uft-8: true                             #基础文件是否是UFT8编码，这个一定要和文件编码统一！！！
 #数据存储
 data:
     store:
         module: WtDataStorage   #模块名
         path: ../FUT_Data/      #数据存储根目录
+        #his_path: ''           #历史数据存储目录，如果历史数据存储目录是单独的，则可以通过该配置项进行设置
 #环境配置
 env:
     name: cta               #引擎名称：cta/hft/sel
+    fees: ../common/fees.json   #佣金配置文件
+    filters: filters.yaml       #过滤器配置文件，这个主要是用于盘中不停机干预的
     product:
         session: TRADING    #驱动交易时间模板，TRADING是一个覆盖国内全部交易品种的最大的交易时间模板，从夜盘21点到凌晨1点，再到第二天15:15，详见sessions.json
     riskmon:                #组合风控设置
@@ -29,9 +33,12 @@ env:
         multi_day_fd: 60.0      #多日跟踪止损阈值
         risk_scale: 0.3         #风控系数，即组合给执行器的目标仓位，是组合理论仓位的0.3倍，即真实仓位是三成仓
         risk_span: 30           #风控触发时间间隔，单位s。因为风控计算很频繁，如果已经触发风控，不需要每次重算都输出风控日志，加一个时间间隔，友好一些
-fees: ../common/fees.json   #佣金配置文件
+    
 executers: executers.yaml   #执行器配置文件
-filters: filters.yaml       #过滤器配置文件，这个主要是用于盘中不停机干预的
 parsers: tdparsers.yaml     #行情通达配置文件
 traders: tdtraders.yaml     #交易通道配置文件
 bspolicy: actpolicy.yaml    #开平策略配置文件
+
+notifier:
+    active: true                    #是否向外发布消息
+    url: ipc:///wtpy/wt_cat_fut.ipc #MQ发布地址，可以根据需要改成自己的地址

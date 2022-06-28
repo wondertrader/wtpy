@@ -1,8 +1,10 @@
 from wtpy.apps.datahelper.DHDefs import BaseDataHelper, DBHelper
+from wtpy.WtCoreDefs import WTSBarStruct
 import rqdatac as rq
 from datetime import datetime, timedelta
 import json
 import os
+import logging
 
 def exchgStdToRQ(exchg:str) -> str:
     if exchg == 'SSE':
@@ -37,14 +39,21 @@ def stdCodeToRQ(stdCode:str):
         else:
             return items[1] + "88"
 
-    
+def to_float(v:str, defVal:float = 0) -> float:
+    v = v.strip()
+    if len(v) == 0:
+        return defVal
 
+    try:
+        return float(v)
+    except:
+        return defVal
 
 class DHRqData(BaseDataHelper):
 
     def __init__(self):
         BaseDataHelper.__init__(self)
-        print("Rqdata helper has been created.")
+        logging.info("Rqdata helper has been created.")
         return
 
     def auth(self, **kwargs):
@@ -53,7 +62,7 @@ class DHRqData(BaseDataHelper):
 
         rq.init(**kwargs)
         self.isAuthed = True
-        print("Rqdata has been authorized.")
+        logging.info("Rqdata has been authorized.")
 
     def dmpCodeListToFile(self, filename:str, hasIndex:bool=True, hasStock:bool=True):
         stocks = {
@@ -63,7 +72,7 @@ class DHRqData(BaseDataHelper):
         
         #个股列表
         if hasStock:
-            print("Fetching stock list...")
+            logging.info("Fetching stock list...")
             df_stocks = rq.all_instruments(type='CS', market="cn")
             for idx, row in df_stocks.iterrows():
                 rawcode = row["order_book_id"][:6]
@@ -82,7 +91,7 @@ class DHRqData(BaseDataHelper):
 
         if hasIndex:
             #上证指数列表
-            print("Fetching index list...")
+            logging.info("Fetching index list...")
             df_stocks = rq.all_instruments(type='INDX', market="cn")
             for idx, row in df_stocks.iterrows():
                 rawcode = row["order_book_id"][:6]
@@ -99,7 +108,7 @@ class DHRqData(BaseDataHelper):
                 
                 stocks[sInfo["exchg"]][rawcode] = sInfo
 
-        print("Writing code list into file %s..." % (filename))
+        logging.info("Writing code list into file %s..." % (filename))
         f = open(filename, 'w')
         f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
         f.close()
@@ -119,7 +128,7 @@ class DHRqData(BaseDataHelper):
             rq_code = code + "." + exchgStdToRQ(exchg)
 
             stocks[exchg][code] = list()
-            print("Fetching adjust factors of %s(%d/%s)..." % (code, count, length))
+            logging.info("Fetching adjust factors of %s(%d/%s)..." % (code, count, length))
             df_factors = rq.get_ex_factor(order_book_ids=rq_code, start_date="1990-01-01")
     
             for idx, row in df_factors.iterrows():
@@ -131,7 +140,7 @@ class DHRqData(BaseDataHelper):
                     "factor": factor
                 })
         
-        print("Writing adjust factors into file %s..." % (filename))
+        logging.info("Writing adjust factors into file %s..." % (filename))
         f = open(filename, 'w+')
         f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
         f.close()
@@ -165,7 +174,7 @@ class DHRqData(BaseDataHelper):
             count += 1
             rq_code = stdCodeToRQ(stdCode)
             
-            print("Fetching %s bars of %s(%d/%s)..." % (period, stdCode, count, length))
+            logging.info("Fetching %s bars of %s(%d/%s)..." % (period, stdCode, count, length))
             df_bars = rq.get_price(order_book_ids = rq_code,start_date=start_date, end_date=end_date,frequency=freq,adjust_type='none',expect_df=True)
             content = "date,time,open,high,low,close,volume,turnover,hold\n"
             total_nums = len(df_bars)
@@ -191,11 +200,11 @@ class DHRqData(BaseDataHelper):
 
                 cur_num += 1
                 if cur_num % 500 == 0:
-                    print("Processing bars %d/%d..." % (cur_num, total_nums))
+                    logging.info("Processing bars %d/%d..." % (cur_num, total_nums))
 
             filename = "%s_%s.csv" % (stdCode, filetag)
             filepath = os.path.join(folder, filename)
-            print("Writing bars into file %s..." % (filepath))
+            logging.info("Writing bars into file %s..." % (filepath))
             f = open(filepath, "w", encoding="utf-8")
             f.write(content)
             f.close()
@@ -215,7 +224,7 @@ class DHRqData(BaseDataHelper):
             rq_code = code + "." + exchgStdToRQ(exchg)
 
             stocks[exchg][code] = list()
-            print("Fetching adjust factors of %s(%d/%s)..." % (code, count, length))
+            logging.info("Fetching adjust factors of %s(%d/%s)..." % (code, count, length))
             df_factors = rq.get_ex_factor(order_book_ids=rq_code, start_date="1990-01-01")
     
             for idx, row in df_factors.iterrows():
@@ -227,7 +236,7 @@ class DHRqData(BaseDataHelper):
                     "factor": factor
                 })
         
-        print("Writing adjust factors into database...")
+        logging.info("Writing adjust factors into database...")
         dbHelper.writeFactors(stocks)
 
     def dmpBarsToDB(self, dbHelper:DBHelper, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
@@ -258,7 +267,7 @@ class DHRqData(BaseDataHelper):
             rq_code = stdCodeToRQ(stdCode)
             count += 1
             
-            print("Fetching %s bars of %s(%d/%s)..." % (period, stdCode, count, length))
+            logging.info("Fetching %s bars of %s(%d/%s)..." % (period, stdCode, count, length))
             df_bars = rq.get_price(order_book_ids = rq_code,start_date=start_date, end_date=end_date,frequency=freq,adjust_type='none',expect_df=True)
             bars = list()
             total_nums = len(df_bars)
@@ -292,7 +301,62 @@ class DHRqData(BaseDataHelper):
                 bars.append(curBar)
                 cur_num += 1
                 if cur_num % 500 == 0:
-                    print("Processing bars %d/%d..." % (cur_num, total_nums))
+                    logging.info("Processing bars %d/%d..." % (cur_num, total_nums))
 
-            print("Writing bars into database...")
+            logging.info("Writing bars into database...")
             dbHelper.writeBars(bars, period)
+
+    def dmpBars(self, codes:list, cb, start_date:datetime=None, end_date:datetime=None, period:str="day"):
+        if start_date is None:
+            start_date = datetime(year=1990, month=1, day=1)
+        
+        if end_date is None:
+            end_date = datetime.now()
+
+        freq = ''
+        isDay = False
+        if period == 'day':
+            freq = '1d'
+            isDay = True
+        elif period == "min5":
+            freq = '5m'
+        elif period == "min1":
+            freq = '1m'
+        else:
+            raise Exception("Unrecognized period")
+        
+        count = 0
+        length = len(codes)
+        for stdCode in codes:
+            count += 1
+            rq_code = stdCodeToRQ(stdCode)
+            
+            logging.info("Fetching %s bars of %s(%d/%s)..." % (period, stdCode, count, length))
+            df_bars = rq.get_price(order_book_ids = rq_code,start_date=start_date, end_date=end_date,frequency=freq,adjust_type='none',expect_df=True)
+
+            total_nums = len(df_bars)
+            BUFFER = WTSBarStruct*len(df_bars)
+            buffer = BUFFER()
+            cur_num = 0
+            for idx, row in df_bars.iterrows():
+                curBar = buffer[cur_num]
+                trade_date = row.name[1].to_pydatetime()
+                curBar.date = int(trade_date.strftime("%Y%m%d"))
+                if isDay:
+                    time = '0'
+                else:
+                    curBar.time = int(trade_date.strftime("%H:%M")) + (curBar.date-19900000)*10000
+                curBar.open = row["open"]
+                curBar.high = row["high"]
+                curBar.low = row["low"]
+                curBar.close = row["close"]
+                curBar.vol = row["volume"]
+                curBar.money = row["total_turnover"]
+                if "open_interest" in row:
+                    curBar.hold = row["open_interest"]
+                cur_num += 1
+                if cur_num % 500 == 0:
+                    logging.info("Processing bars %d/%d..." % (cur_num, total_nums))
+
+            ay = stdCode.split(".")
+            cb(ay[0], ay[1], buffer, total_nums, period)

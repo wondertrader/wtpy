@@ -1,0 +1,17 @@
+replayer:
+    basefiles:
+        commodity: ../common/commodities.json
+        contract: ../common/contracts.json
+        holiday: ../common/holidays.json
+        session: ../common/sessions.json
+        hot: ../common/hots.json
+        uft-8: true
+    mode: csv
+    store:
+      module: WtDataStorage
+      path: ../storage/
+    etime: 201912011500
+    stime: 201909010900
+    fees: ../common/fees.json
+env:
+    mocker: cta

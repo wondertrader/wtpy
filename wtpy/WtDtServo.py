@@ -1,9 +1,11 @@
+from wtpy.WtDataDefs import WtBarRecords, WtTickRecords
 from wtpy.WtUtilDefs import singleton
 from wtpy.wrapper import WtDtServoApi
-from wtpy.WtCoreDefs import BarList, TickList, WTSBarStruct, WTSTickStruct
+from wtpy.WtCoreDefs import WTSBarStruct, WTSTickStruct
+from wtpy.WtDataDefs import WtTickRecords,WtBarRecords
 
-from flask import Flask, session, redirect, request, make_response
-from flask_compress  import Compress
+from flask import Flask, request, make_response
+from flask_compress import Compress
 
 import urllib.request
 import io
@@ -58,17 +60,18 @@ def httpPost(url, datas:dict, encoding='utf-8') -> dict:
 @singleton
 class WtDtServo:
 
-    # 构造函数，传入动态库名
-    def __init__(self):
+    # 构造函数, 传入动态库名
+    def __init__(self, logcfg:str="logcfg.yaml"):
         self.__config__ = None
         self.__cfg_commited__ = False
         self.local_api = None
         self.server_inst = None
-        self.remote_api = None    
+        self.remote_api = None
+        self.logCfg = logcfg
 
     def __check_config__(self):
         '''
-        检查设置项\n
+        检查设置项
         主要会补充一些默认设置项
         '''
         if self.local_api is None:
@@ -94,22 +97,42 @@ class WtDtServo:
         
         self.remote_api = WtDtRemoteServo(url)
 
-
     def setBasefiles(self, folder:str="./common/", commfile:str="commodities.json", contractfile:str="contracts.json", 
                 holidayfile:str="holidays.json", sessionfile:str="sessions.json", hotfile:str="hots.json"):
         '''
-        C接口初始化
+        设置基础文件
+        @folder 基础文件目录
+        @commfile       品种文件, str/list
+        @contractfile   合约文件, str/list
+        @holidayfile    节假日文件
+        @sessionfile    交易时间模板文件
+        @hotfile        主力合约配置文件
         '''
         self.__check_config__()
 
-        self.__config__["basefiles"]["commodity"] = os.path.join(folder, commfile)
-        self.__config__["basefiles"]["contract"] = os.path.join(folder, contractfile)
+        if type(commfile) == str:
+            self.__config__["basefiles"]["commodity"] = os.path.join(folder, commfile)
+        elif type(commfile) == list:
+            absList = []
+            for filename in commfile:
+                absList.append(os.path.join(folder, filename))
+            self.__config__["basefiles"]["commodity"] = ','.join(absList)
+
+        if type(contractfile) == str:
+            self.__config__["basefiles"]["contract"] = os.path.join(folder, contractfile)
+        elif type(contractfile) == list:
+            absList = []
+            for filename in contractfile:
+                absList.append(os.path.join(folder, filename))
+            self.__config__["basefiles"]["contract"] = ','.join(absList)
+
         self.__config__["basefiles"]["holiday"] = os.path.join(folder, holidayfile)
         self.__config__["basefiles"]["session"] = os.path.join(folder, sessionfile)
         self.__config__["basefiles"]["hot"] = os.path.join(folder, hotfile)
 
-    def setStorage(self, path:str = "./storage/"):
+    def setStorage(self, path:str = "./storage/", adjfactor:str = "adjfactors.json"):
         self.__config__["data"]["store"]["path"] = path
+        self.__config__["data"]["store"]["adjfactor"] = adjfactor
     
     def commitConfig(self):
         if self.remote_api is not None:
@@ -121,7 +144,7 @@ class WtDtServo:
 
         cfgfile = json.dumps(self.__config__, indent=4, sort_keys=True)
         try:
-            self.local_api.initialize(cfgfile, False)
+            self.local_api.initialize(cfgfile, False, self.logCfg)
             self.__cfg_commited__ = True
         except OSError as oe:
             print(oe)
@@ -175,6 +198,72 @@ class WtDtServo:
 
             return pack_rsp(ret)
 
+        @app.route("/getdaysbars", methods=["POST"])
+        def on_get_day_sbars():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            stdCode = get_param(json_data, "code")
+            period = get_param(json_data, "second", int, None)
+            date = get_param(json_data, "date", int, None)
+
+            if date is None or period is None:
+                ret = {
+                    "result":-1,
+                    "message":"date or second cannot be null"
+                }
+            else:
+                bars = self.local_api.get_sbars_by_date(stdCode=stdCode, iSec=period, iDate=date)
+                if bars is None:
+                    ret = {
+                        "result":-2,
+                        "message":"Data not found"
+                    }
+                else:
+                    bar_list = [curBar.to_dict  for curBar in bars]
+                    
+                    ret = {
+                        "result":0,
+                        "message":"Ok",
+                        "bars": bar_list
+                    }
+
+            return pack_rsp(ret)
+
+        @app.route("/getdaybars", methods=["POST"])
+        def on_get_day_bars():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            stdCode = get_param(json_data, "code")
+            period = get_param(json_data, "period", str, None)
+            date = get_param(json_data, "date", int, None)
+
+            if date is None or period is None:
+                ret = {
+                    "result":-1,
+                    "message":"date or period cannot be null"
+                }
+            else:
+                bars = self.local_api.get_bars_by_date(stdCode=stdCode, period=period, iDate=date)
+                if bars is None:
+                    ret = {
+                        "result":-2,
+                        "message":"Data not found"
+                    }
+                else:
+                    bar_list = [curBar.to_dict  for curBar in bars]
+                    
+                    ret = {
+                        "result":0,
+                        "message":"Ok",
+                        "bars": bar_list
+                    }
+
+            return pack_rsp(ret)
+
         @app.route("/getticks", methods=["POST"])
         def on_get_ticks():
             bSucc, json_data = parse_data()
@@ -205,11 +294,43 @@ class WtDtServo:
                         curTick["exchg"] = curTick["exchg"].decode()
                         curTick["code"] = curTick["code"].decode()
 
-                        # TODO bid/ask还有问题，先剔除
-                        curTick.pop("bid_prices")
-                        curTick.pop("ask_prices")
-                        curTick.pop("bid_qty")
-                        curTick.pop("ask_qty")
+                        tick_list.append(curTick)
+                    
+                    ret = {
+                        "result":0,
+                        "message":"Ok",
+                        "ticks": tick_list
+                    }
+
+            return pack_rsp(ret)
+            
+        @app.route("/getdayticks", methods=["POST"])
+        def on_get_day_ticks():
+            bSucc, json_data = parse_data()
+            if not bSucc:
+                return pack_rsp(json_data)
+
+            stdCode = get_param(json_data, "code")
+            date = get_param(json_data, "count", int, None)
+
+            if date is None:
+                ret = {
+                    "result":-1,
+                    "message":"date cannot be null"
+                }
+            else:
+                ticks = self.local_api.get_ticks_by_date(stdCode=stdCode, iDate=date)
+                if ticks is None:
+                    ret = {
+                        "result":-2,
+                        "message":"Data not found"
+                    }
+                else:
+                    tick_list = list()
+                    for curTick in ticks:
+                        curTick = curTick.to_dict
+                        curTick["exchg"] = curTick["exchg"].decode()
+                        curTick["code"] = curTick["code"].decode()
 
                         tick_list.append(curTick)
                     
@@ -220,6 +341,7 @@ class WtDtServo:
                     }
 
             return pack_rsp(ret)
+            
 
         self.commitConfig()
         if bSync:
@@ -230,13 +352,13 @@ class WtDtServo:
             self.worker.setDaemon(True)
             self.worker.start()
 
-    def get_bars(self, stdCode:str, period:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> BarList:
+    def get_bars(self, stdCode:str, period:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> WtBarRecords:
         '''
-        获取K线数据\n
-        @stdCode    标准合约代码\n
-        @period     基础K线周期，m1/m5/d\n
-        @fromTime   开始时间，日线数据格式yyyymmdd，分钟线数据为格式为yyyymmddHHMM\n
-        @endTime    结束时间，日线数据格式yyyymmdd，分钟线数据为格式为yyyymmddHHMM，为0则读取到最后一条
+        获取K线数据
+        @stdCode    标准合约代码
+        @period     基础K线周期, m1/m5/d
+        @fromTime   开始时间, 日线数据格式yyyymmdd, 分钟线数据为格式为yyyymmddHHMM
+        @endTime    结束时间, 日线数据格式yyyymmdd, 分钟线数据为格式为yyyymmddHHMM, 为0则读取到最后一条
         '''
         if self.remote_api is not None:
             return self.remote_api.get_bars(stdCode=stdCode, period=period, fromTime=fromTime, dataCount=dataCount, endTime=endTime)
@@ -248,12 +370,12 @@ class WtDtServo:
 
         return self.local_api.get_bars(stdCode=stdCode, period=period, fromTime=fromTime, dataCount=dataCount, endTime=endTime)
 
-    def get_ticks(self, stdCode:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> TickList:
+    def get_ticks(self, stdCode:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> WtTickRecords:
         '''
-        获取tick数据\n
-        @stdCode    标准合约代码\n
-        @fromTime   开始时间，格式为yyyymmddHHMM\n
-        @endTime    结束时间，格式为yyyymmddHHMM，为0则读取到最后一条
+        获取tick数据
+        @stdCode    标准合约代码
+        @fromTime   开始时间, 格式为yyyymmddHHMM
+        @endTime    结束时间, 格式为yyyymmddHHMM, 为0则读取到最后一条
         '''
         if self.remote_api is not None:
             return self.remote_api.get_ticks(stdCode=stdCode, fromTime=fromTime, dataCount=dataCount, endTime=endTime)
@@ -265,18 +387,59 @@ class WtDtServo:
 
         return self.local_api.get_ticks(stdCode=stdCode, fromTime=fromTime, dataCount=dataCount, endTime=endTime)
 
+    def get_ticks_by_date(self, stdCode:str, iDate:int) -> WtTickRecords:
+        '''
+        按日期获取tick数据
+        @stdCode    标准合约代码
+        @iDate      日期, 格式为yyyymmdd
+        '''
+        if self.remote_api is not None:
+            return self.remote_api.get_ticks_by_date(stdCode=stdCode, iDate=iDate)
+
+        self.commitConfig()
+
+        return self.local_api.get_ticks_by_date(stdCode=stdCode, iDate=iDate)
+
+    def get_sbars_by_date(self, stdCode:str, iSec:int, iDate:int) -> WtTickRecords:
+        '''
+        按日期获取秒线数据
+        @stdCode    标准合约代码
+        @iSec       周期, 单位s
+        @iDate      日期, 格式为yyyymmdd
+        '''
+        if self.remote_api is not None:
+            return self.remote_api.get_sbars_by_date(stdCode=stdCode, iSec=iSec, iDate=iDate)
+
+        self.commitConfig()
+
+        return self.local_api.get_sbars_by_date(stdCode=stdCode, iSec=iSec, iDate=iDate)
+
+    def get_bars_by_date(self, stdCode:str, period:str, iDate:int) -> WtTickRecords:
+        '''
+        按日期获取K线数据
+        @stdCode    标准合约代码
+        @period     周期，只支持分钟线
+        @iDate      日期, 格式为yyyymmdd
+        '''
+        if self.remote_api is not None:
+            return self.remote_api.get_bars_by_date(stdCode=stdCode, period=period, iDate=iDate)
+
+        self.commitConfig()
+
+        return self.local_api.get_bars_by_date(stdCode=stdCode, period=period, iDate=iDate)
+
 class WtDtRemoteServo:
 
     def __init__(self, url:str="http://127.0.0.1:8081"):
         self.remote_url = url
 
-    def get_bars(self, stdCode:str, period:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> BarList:
+    def get_bars(self, stdCode:str, period:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> WtBarRecords:
         '''
-        获取K线数据\n
-        @stdCode    标准合约代码\n
-        @period     基础K线周期，m1/m5/d\n
-        @fromTime   开始时间，日线数据格式yyyymmdd，分钟线数据为格式为yyyymmddHHMM\n
-        @endTime    结束时间，日线数据格式yyyymmdd，分钟线数据为格式为yyyymmddHHMM，为0则读取到最后一条
+        获取K线数据
+        @stdCode    标准合约代码
+        @period     基础K线周期, m1/m5/d
+        @fromTime   开始时间, 日线数据格式yyyymmdd, 分钟线数据为格式为yyyymmddHHMM
+        @endTime    结束时间, 日线数据格式yyyymmdd, 分钟线数据为格式为yyyymmddHHMM, 为0则读取到最后一条
         '''
         if (fromTime is None and dataCount is None) or (fromTime is not None and dataCount is not None):
             raise Exception('Only one of fromTime and dataCount must be valid at the same time')
@@ -298,7 +461,7 @@ class WtDtRemoteServo:
             print(resObj["message"])
             return None
 
-        barCache = BarList()
+        barCache = WtBarRecords(len(resObj["bars"]))
         for curBar in resObj["bars"]:
             bs = WTSBarStruct()
             bs.date = curBar["date"]
@@ -315,14 +478,12 @@ class WtDtRemoteServo:
             barCache.append(bs)
         return barCache
             
-        
-
-    def get_ticks(self, stdCode:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> TickList:
+    def get_ticks(self, stdCode:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> WtTickRecords:
         '''
-        获取tick数据\n
-        @stdCode    标准合约代码\n
-        @fromTime   开始时间，格式为yyyymmddHHMM\n
-        @endTime    结束时间，格式为yyyymmddHHMM，为0则读取到最后一条
+        获取tick数据
+        @stdCode    标准合约代码
+        @fromTime   开始时间, 格式为yyyymmddHHMM
+        @endTime    结束时间, 格式为yyyymmddHHMM, 为0则读取到最后一条
         '''
         if (fromTime is None and dataCount is None) or (fromTime is not None and dataCount is not None):
             raise Exception('Only one of fromTime and dataCount must be valid at the same time')
@@ -343,7 +504,7 @@ class WtDtRemoteServo:
             print(resObj["message"])
             return None
 
-        tickCache = TickList()
+        tickCache = WtTickRecords(len(resObj["ticks"]))
         for curTick in resObj["ticks"]:
             ts = WTSTickStruct()
             ts.exchg = curTick["exchg"].encode('utf-8')
@@ -376,3 +537,126 @@ class WtDtRemoteServo:
 
             tickCache.append(ts)
         return tickCache
+
+    def get_ticks_by_date(self, stdCode:str, iDate:int) -> WtTickRecords:
+        '''
+        按日期获取tick数据
+        @stdCode    标准合约代码
+        @iDate      日期, 格式为yyyymmdd
+        '''
+        url = self.remote_url + "/getdayticks"
+        data = {
+            "code":stdCode,
+            "date":iDate
+        }
+
+        resObj = httpPost(url, data)
+        if resObj["result"] < 0:
+            print(resObj["message"])
+            return None
+
+        tickCache = WtTickRecords(len(resObj["ticks"]))
+        for curTick in resObj["ticks"]:
+            ts = WTSTickStruct()
+            ts.exchg = curTick["exchg"].encode('utf-8')
+            ts.code = stdCode.encode('utf-8')
+            ts.open = curTick["open"]
+            ts.high = curTick["high"]
+            ts.low = curTick["low"]
+            ts.price = curTick["price"]
+            ts.settle_price = curTick["settle_price"]
+
+            ts.upper_limit = curTick["upper_limit"]
+            ts.lower_limit = curTick["lower_limit"]
+
+            ts.total_volume = curTick["total_volume"]
+            ts.volume = curTick["volume"]
+            ts.total_turnover = curTick["total_turnover"]
+            ts.turn_over = curTick["turn_over"]
+            ts.open_interest = curTick["open_interest"]
+            ts.diff_interest = curTick["diff_interest"]
+
+            ts.trading_date = curTick["trading_date"]
+            ts.action_date = curTick["action_date"]
+            ts.action_time = curTick["action_time"]
+
+            ts.pre_close = curTick["pre_close"]
+            ts.pre_settle = curTick["pre_settle"]
+            ts.pre_interest = curTick["pre_interest"]
+
+            # TODO 还有bid和ask档位没处理
+
+            tickCache.append(ts)
+        return tickCache
+
+    def get_sbars_by_date(self, stdCode:str, iSec:int, iDate:int) -> WtTickRecords:
+        '''
+        按日期获取秒线数据
+        @stdCode    标准合约代码
+        @iSec       周期, 单位s
+        @iDate      日期, 格式为yyyymmdd
+        '''
+        url = self.remote_url + "/getdaysbars"
+        data = {
+            "code":stdCode,
+            "second":iSec,
+            "date":iDate
+        }
+
+        resObj = httpPost(url, data)
+        if resObj["result"] < 0:
+            print(resObj["message"])
+            return None
+
+        barCache = WtBarRecords(len(resObj["bars"]))
+        for curBar in resObj["bars"]:
+            bs = WTSBarStruct()
+            bs.date = curBar["date"]
+            bs.time = curBar["time"]
+            bs.open = curBar["open"]
+            bs.high = curBar["high"]
+            bs.low = curBar["low"]
+            bs.close = curBar["close"]
+            bs.settle = curBar["settle"]
+            bs.money = curBar["money"]
+            bs.vol = curBar["vol"]
+            bs.hold = curBar["hold"]
+            bs.diff = curBar["diff"]
+            barCache.append(bs)
+        return barCache
+
+    def get_bars_by_date(self, stdCode:str, period:str, iDate:int) -> WtTickRecords:
+        '''
+        按日期获取K线数据
+        @stdCode    标准合约代码
+        @period     周期，只支持分钟线
+        @iDate      日期, 格式为yyyymmdd
+        '''
+        url = self.remote_url + "/getdaybars"
+        data = {
+            "code":stdCode,
+            "second":period,
+            "date":iDate
+        }
+
+        resObj = httpPost(url, data)
+        if resObj["result"] < 0:
+            print(resObj["message"])
+            return None
+
+        barCache = WtBarRecords(len(resObj["bars"]))
+        for curBar in resObj["bars"]:
+            bs = WTSBarStruct()
+            bs.date = curBar["date"]
+            bs.time = curBar["time"]
+            bs.open = curBar["open"]
+            bs.high = curBar["high"]
+            bs.low = curBar["low"]
+            bs.close = curBar["close"]
+            bs.settle = curBar["settle"]
+            bs.money = curBar["money"]
+            bs.vol = curBar["vol"]
+            bs.hold = curBar["hold"]
+            bs.diff = curBar["diff"]
+            barCache.append(bs)
+        return barCache

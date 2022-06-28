@@ -45,7 +45,7 @@ class StraDualThrust(BaseCtaStrategy):
         if self.__is_stk__:
             theCode = theCode + "Q"
         df_bars = context.stra_get_bars(theCode, self.__period__, self.__bar_cnt__, isMain = True)
-        print(df_bars)
+        # print(df_bars)
 
         #把策略参数读进来，作为临时变量，方便引用
         days = self.__days__
@@ -94,7 +94,7 @@ class StraDualThrust(BaseCtaStrategy):
 
             if lowpx <= lower_bound and not self.__is_stk__:
                 context.stra_enter_short(code, 1*trdUnit, 'entershort')
-                context.stra_log_text("向下突破%.2f<=%.2f，空仓进场" % (lowpx, lower_bound))
+                # context.stra_log_text("向下突破%.2f<=%.2f，空仓进场" % (lowpx, lower_bound))
                 return
         elif curPos > 0:
             if lowpx <= lower_bound:
@@ -105,7 +105,7 @@ class StraDualThrust(BaseCtaStrategy):
         else:
             if highpx >= upper_bound and not self.__is_stk__:
                 context.stra_exit_short(code, 1*trdUnit, 'exitshort')
-                context.stra_log_text("向上突破%.2f>=%.2f，空仓出场" % (highpx, upper_bound))
+                # context.stra_log_text("向上突破%.2f>=%.2f，空仓出场" % (highpx, upper_bound))
                 return
 
 

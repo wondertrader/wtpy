@@ -86,6 +86,18 @@ class BaseCtaStrategy:
         '''
         return
 
+    def on_condition_triggered(self, context:CtaContext, stdCode:str, target:float, price:float, usertag:str):
+        '''
+        条件单触发回调
+
+        @context    策略上下文
+        @stdCode    合约代码
+        @target     触发以后的最终目标仓位
+        @price      触发价格
+        @usertag    用户标记
+        '''
+        return
+
 class BaseHftStrategy:
     '''
     HFT策略基础类，所有的策略都从该类派生
@@ -234,6 +246,21 @@ class BaseHftStrategy:
         @isBuy      是否买入
         @qty        成交数量
         @price      成交价格
+        '''
+        return
+
+    def on_position(self, context:HftContext, stdCode:str, isLong:bool, prevol:float, preavail:float, newvol:float, newavail:float):
+        '''
+        初始持仓回报
+        实盘可用, 回测的时候初始仓位都是空, 所以不需要
+
+        @context    策略上下文
+        @stdCode    合约代码
+        @isLong     是否为多
+        @prevol     昨仓
+        @preavail   可用昨仓
+        @newvol     今仓
+        @newavail   可用今仓
         '''
         return
 

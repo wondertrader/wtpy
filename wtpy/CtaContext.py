@@ -78,7 +78,7 @@ class CtaContext:
         for newTick in newTicks:
             ticks.append(newTick)
 
-    def on_getpositions(self, stdCode:str, qty:float, frozen:float, isLast:bool):
+    def on_getpositions(self, stdCode:str, qty:float, frozen:float):
         if len(stdCode) == 0:
             return
         self.__pos_cache__[stdCode] = qty
@@ -89,6 +89,9 @@ class CtaContext:
         bars = self.__bar_cache__[key]
         for newBar in newBars:
             bars.append(newBar)
+
+    def on_condition_triggered(self, stdCode:str, target:float, price:float, usertag:str):
+        pass
 
     def on_tick(self, stdCode:str, newTick:tuple):
         '''
@@ -146,12 +149,13 @@ class CtaContext:
         '''
         self.__stra_info__.on_calculate_done(self)
 
-    def stra_log_text(self, message:str):
+    def stra_log_text(self, message:str, level:int = 1):
         '''
         输出日志
+        @level      日志级别，0-debug，1-info，2-warn，3-error
         @message    消息内容，最大242字符
         '''
-        self.__wrapper__.cta_log_text(self.__id__, message[:242])
+        self.__wrapper__.cta_log_text(self.__id__, level, message[:242])
 
     def stra_get_tdate(self) -> int:
         '''
@@ -204,6 +208,14 @@ class CtaContext:
         @return 最新价格
         '''
         return self.__wrapper__.cta_get_price(stdCode)
+
+    def stra_get_day_price(self, stdCode:str, flag:int = 0) -> float:
+        '''
+        获取当日价格
+        @flag       价格标记，0-开盘价，1-最高价，2-最低价，3-最新价
+        @return 最新价格
+        '''
+        return self.__wrapper__.cta_get_day_price(stdCode, flag)
 
     def stra_get_all_position(self) -> dict:
         '''
@@ -400,7 +412,7 @@ class CtaContext:
         获取指定标记的持仓的盈亏
         @stdCode       合约代码
         @usertag    进场标记
-        @flag       盈亏记号，0-浮动盈亏，1-最大浮盈，-1-最大亏损（负数）
+        @flag       盈亏记号，0-浮动盈亏，1-最大浮盈，-1-最大亏损（负数），2-最高浮动价格，-2-最低浮动价格
         @return     盈亏 
         '''
         return self.__wrapper__.cta_get_detail_profit(self.__id__, stdCode, usertag, flag)
@@ -432,6 +444,16 @@ class CtaContext:
         if self.__engine__ is None:
             return None
         return self.__engine__.getProductInfo(stdCode)
+
+    def stra_get_rawcode(self, stdCode:str):
+        '''
+        获取分月合约代码
+        @stdCode   连续合约代码如SHFE.ag.HOT
+        @return 品种信息,结构请参考ProductMgr中的ProductInfo
+        '''
+        if self.__engine__ is None:
+            return ""
+        return self.__engine__.getRawStdCode(stdCode)
 
     def stra_get_sessinfo(self, stdCode:str) -> SessionInfo:
         '''

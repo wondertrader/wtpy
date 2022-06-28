@@ -5,6 +5,6 @@ if __name__ == "__main__":
     env = WtDtEngine()
     env.initialize()
     
-    env.run()
+    env.run(True)
 
     kw = input('press any key to exit\n')
