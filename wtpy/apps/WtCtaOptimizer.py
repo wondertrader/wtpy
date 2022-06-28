@@ -322,6 +322,9 @@ class WtCtaOptimizer:
         content =f.read()
         f.close()
         content = content.replace("$NAME$", gpName)
+        if is_yaml:
+            content = json.dumps(yaml.full_load(content))
+
         engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
         # 配置类型的参数相对固定
         engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
