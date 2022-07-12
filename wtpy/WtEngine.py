@@ -138,12 +138,12 @@ class WtEngine:
 
     def init(self, folder:str, 
         cfgfile:str = "config.yaml", 
-        contractfile:str="contracts.json",
-        sessionfile:str="sessions.json",
-        commfile:str="commodities.json", 
-        holidayfile:str="holidays.json",
-        hotfile:str="hots.json",
-        secondfile:str="seconds.json"):
+        contractfile:str = None,
+        sessionfile:str = None,
+        commfile:str = None, 
+        holidayfile:str = None,
+        hotfile:str = None,
+        secondfile:str = None):
         '''
         初始化
         @folder     基础数据文件目录，\\结尾
@@ -184,10 +184,18 @@ class WtEngine:
 
         self.productMgr = ProductMgr()
         if self.__config__["basefiles"]["commodity"] is not None:
-            self.productMgr.load(self.__config__["basefiles"]["commodity"])
+            if type(self.__config__["basefiles"]["commodity"]) == str:
+                self.productMgr.load(self.__config__["basefiles"]["commodity"])
+            elif type(self.__config__["basefiles"]["commodity"]) == list:
+                for fname in self.__config__["basefiles"]["commodity"]:
+                    self.productMgr.load(fname)
 
         self.contractMgr = ContractMgr(self.productMgr)
-        self.contractMgr.load(self.__config__["basefiles"]["contract"])
+        if type(self.__config__["basefiles"]["contract"]) == str:
+            self.contractMgr.load(self.__config__["basefiles"]["contract"])
+        elif type(self.__config__["basefiles"]["contract"]) == list:
+            for fname in self.__config__["basefiles"]["contract"]:
+                self.contractMgr.load(fname)
 
         self.sessionMgr = SessionMgr()
         self.sessionMgr.load(self.__config__["basefiles"]["session"])
