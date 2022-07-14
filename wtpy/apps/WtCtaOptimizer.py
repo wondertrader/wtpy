@@ -13,6 +13,7 @@ from pandas import DataFrame as df
 
 from wtpy import WtBtEngine,EngineType
 from wtpy.apps import WtBtAnalyst
+from wtpy.apps.WtBtAnalyst import summary_analyze
 
 def fmtNAN(val, defVal = 0):
     if math.isnan(val):
@@ -151,11 +152,14 @@ class WtCtaOptimizer:
 
         self.env_params["time_ranges"].append([start_time,end_time])
 
-    def __gen_tasks__(self, markerfile:str = "strategies.json"):
+    def __gen_tasks__(self, markerfile:str = "strategies.json", order_by_field:str=""):
         '''
         生成回测任务
         '''
         param_names = self.mutable_params.keys()
+        if order_by_field != "" and order_by_field in param_names:
+            param_names = [order_by_field] + param_names.remove(order_by_field)
+
         param_values = dict()
         # 先生成各个参数的变量数组
         # 并计算总的参数有多少组
@@ -216,7 +220,7 @@ class WtCtaOptimizer:
         f.close()
         return param_groups
 
-    def __ayalyze_result__(self, strName:str, time_range:tuple, params:dict):
+    def __ayalyze_result__(self, strName:str, time_range:tuple, params:dict, capital = 5000000, rf = 0, period = 240):
         folder = "./outputs_bt/%s/" % (strName)
         df_closes = pd.read_csv(folder + "closes.csv")
         df_funds = pd.read_csv(folder + "funds.csv")
@@ -265,25 +269,35 @@ class WtCtaOptimizer:
             max_consecutive_wins = max(max_consecutive_wins, consecutive_wins)
             max_consecutive_loses = max(max_consecutive_loses, consecutive_loses)
 
+        # 逐日绩效分析
+        summary_by_day = summary_analyze(df_funds, capital, rf, period)
+
         summary = params.copy()
         summary["开始时间"] = time_range[0]
         summary["结束时间"] = time_range[1]
+        summary["回测天数"] = summary_by_day["days"]
+        summary["区间收益率%"] = summary_by_day["total_return"]
+        summary["日胜率%"] = summary_by_day["win_rate"]
+        summary["年化收益率%"] = summary_by_day["annual_return"]
+        summary["最大回撤%"] = summary_by_day["max_falldown"]
+        summary["Calmar"] = summary_by_day["calmar_ratio"]
+        summary["Sharpe"] = summary_by_day["sharpe_ratio"]
         summary["总交易次数"] = totaltimes
         summary["盈利次数"] = wintimes
         summary["亏损次数"] = losetimes
         summary["毛盈利"] = float(winamout)
         summary["毛亏损"] = float(loseamount)
         summary["交易净盈亏"] = float(trdnetprofit)
-        summary["胜率"] = winrate*100
-        summary["单次平均盈亏"] = avgprof
-        summary["单次盈利均值"] = avgprof_win
-        summary["单次亏损均值"] = avgprof_lose
-        summary["单次盈亏均值比"] = winloseratio
+        summary["逐笔胜率%"] = winrate*100
+        summary["逐笔平均盈亏"] = avgprof
+        summary["逐笔平均净盈亏"] = accnetprofit/totaltimes
+        summary["逐笔平均盈利"] = avgprof_win
+        summary["逐笔逐笔亏损"] = avgprof_lose
+        summary["逐笔盈亏比"] = winloseratio
         summary["最大连续盈利次数"] = max_consecutive_wins
         summary["最大连续亏损次数"] = max_consecutive_loses
         summary["平均盈利周期"] = avg_bars_in_winner
         summary["平均亏损周期"] = avg_bars_in_loser
-        summary["平均账户收益率"] = accnetprofit/totaltimes
 
         f = open(folder+"summary.json", mode="w")
         f.write(json.dumps(obj=summary, indent=4))
@@ -291,96 +305,97 @@ class WtCtaOptimizer:
 
         return
 
-    def __execute_task__(self, params:dict):
+    def __start_task_group__(self, gpName:str, params:list, capital = 5000000, rf = 0, period = 240):
         '''
-        执行单个回测任务\n
-
-        @params kv形式的参数
+        启动多个回测任务，来回测一组参数，这里共用一个engine，因此可以避免多次io
+        @params 参数组
         '''
-        name = params["name"]
-        
         is_yaml = True
-        fname = "logcfg_tpl.yaml"
+        fname = "./logcfg_tpl.yaml"
         if not os.path.exists(fname):
             is_yaml = True
-            fname = "logcfg_tpl.json"
+            fname = "./logcfg_tpl.json"
+
+        print(f"{gpName} 共有{len(params)}组参数，开始回测...")
 
         f = open(fname, "r")
         content =f.read()
         f.close()
-        content = content.replace("$NAME$", name)
+        content = content.replace("$NAME$", gpName)
         if is_yaml:
             content = json.dumps(yaml.full_load(content))
+
         engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
+        # 配置类型的参数相对固定
         engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
-        engine.configBacktest(params["start_time"], params["end_time"])
         engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"], storage=self.env_params["storage"])
-
-        time_range = (params["start_time"], params["end_time"])
-
-        # 去掉多余的参数
-        params.pop("start_time")
-        params.pop("end_time")
-        
-        if self.cpp_stra_module is not None:
-            params.pop("name")
-            engine.setExternalCtaStrategy(name, self.cpp_stra_module, self.cpp_stra_type, params)
-        else:
-            straInfo = self.strategy_type(**params)
-            engine.set_cta_strategy(straInfo)
-
-        engine.commitBTConfig()
-        engine.run_backtest()
+        # 遍历参数组
+        total = len(params)
+        cnt = 0
+        for param in params:
+            cnt += 1
+            print(f"{gpName} 正在回测{cnt}/{total}")
+            name = param["name"]
+            param_content = content.replace("$NAME$", name)
+            if is_yaml:
+                param_content = json.dumps(yaml.full_load(param_content))
+            
+            engine.configBacktest(param["start_time"], param["end_time"])
+            time_range = (param["start_time"], param["end_time"])
+            # 去掉多余的参数
+            param.pop("start_time")
+            param.pop("end_time")
+            if self.cpp_stra_module is not None:
+                param.pop("name")
+                engine.setExternalCtaStrategy(name, self.cpp_stra_module, self.cpp_stra_type, param)
+            else:
+                straInfo = self.strategy_type(**param)
+                engine.set_cta_strategy(straInfo)
+            engine.commitBTConfig()
+            engine.run_backtest()
+            self.__ayalyze_result__(name, time_range, param, capital, rf, period)
         engine.release_backtest()
 
-        self.__ayalyze_result__(name, time_range, params)
-
-    def __start_task__(self, params:dict):
-        '''
-        启动单个回测任务\n
-        这里用线程启动子进程的目的是为了可以控制总的工作进程个数\n
-        可以在线程中join等待子进程结束，再更新running_worker变量\n
-        如果在__execute_task__中修改running_worker，因为在不同进程中，数据并不同步\n
-
-        @params kv形式的参数
-        '''
-        p = multiprocessing.Process(target=self.__execute_task__, args=(params,))
-        p.start()
-        p.join()
-        self.running_worker -= 1
-        print("工作进程%d个" % (self.running_worker))
-
-    def go(self, interval:float = 0.2, out_marker_file:str = "strategies.json", out_summary_file:str = "total_summary.csv"):
+    def go(self, order_by_field:str = "", out_marker_file:str = "strategies.json", out_summary_file:str = "total_summary.csv", capital = 5000000, rf = 0, period = 240):
         '''
         启动优化器\n
-        @interval   时间间隔，单位秒
-        @markerfile 标记文件名，回测完成以后分析会用到
+        @order_by_field     参数排序字段
+        @markerfile         标记文件名，回测完成以后分析会用到
         '''
-        self.tasks = self.__gen_tasks__(out_marker_file)
-        self.running_worker = 0
-        total_task = len(self.tasks)
-        left_task = total_task
-        while True:
-            if left_task == 0:
-                break
+        self.tasks = self.__gen_tasks__(out_marker_file, order_by_field)
+        pool = []
+        total_size = len(self.tasks)
+        gpSize = math.floor(total_size / self.worker_num)
+        leftSz = total_size % self.worker_num
+        if gpSize == 0:
+            gpSize = 1
+        work_id = 0
+        max_cnt = min(self.worker_num,total_size)
+        fromIdx = 0
+        for i in range(max_cnt):
+            work_id = i + 1
+            work_name = f"Worker[{work_id}]"
+            thisCnt = gpSize
+            if leftSz > 0:
+                thisCnt += 1
+                leftSz -= 1
 
-            if self.running_worker < self.worker_num:
-                params = self.tasks[total_task-left_task]
-                left_task -= 1
-                print("剩余任务%d个" % (left_task))
-                p = threading.Thread(target=self.__start_task__, args=(params,))
-                p.start()
-                self.running_worker += 1
-                print("工作进程%d个" % (self.running_worker))
-            else:
-                time.sleep(interval)
+            params = self.tasks[fromIdx: fromIdx + thisCnt]
+            p = multiprocessing.Process(target=self.__start_task_group__, args=(work_name, params, capital, rf, period), name=work_name)
+            p.start()
+            print(f"{work_name} 开始工作")
+            pool.append(p)
 
-        #最后，全部任务都已经启动完了，再等待所有工作进程结束
-        while True:
-            if self.running_worker == 0:
-                break
-            else:
-                time.sleep(interval)
+            fromIdx += thisCnt
+        
+        alive_cnt = len(pool)
+        while alive_cnt > 0:
+            for task in pool:
+                if not task.is_alive():
+                    pool.remove(task)
+                    alive_cnt -= 1
+                    print(f"{task.name} 结束工作了(剩余{alive_cnt})")
+            time.sleep(0.2)
 
         #开始汇总回测结果
         f = open(out_marker_file, "r")
@@ -441,5 +456,3 @@ class WtCtaOptimizer:
                 analyst.run()
             except:
                 pass
-
-                

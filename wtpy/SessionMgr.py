@@ -97,6 +97,15 @@ class SessionInfo:
     def getTradingSecs(self):
         return self.getTradingMins()*60
 
+    def getSectionIndex(self, rawTime:int) -> int:
+        offTime = self.offsetTime(rawTime)
+
+        for idx in range(len(self.sections)):
+            sec = self.sections[idx]
+            if sec.stime <= offTime and offTime <= sec.etime:
+                return idx
+        
+        return -1
 
     def isLastOfSection(self, rawTime:int):
         offTime = self.offsetTime(rawTime)

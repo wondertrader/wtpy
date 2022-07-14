@@ -1,6 +1,6 @@
 from ctypes import c_int32, cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, POINTER, sizeof, addressof
 from wtpy.WtCoreDefs import CB_EXECUTER_CMD, CB_EXECUTER_INIT, CB_PARSER_EVENT, CB_PARSER_SUBCMD
-from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION
+from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION, CB_STRATEGY_COND_TRIGGER
 from wtpy.WtCoreDefs import EVENT_PARSER_CONNECT, EVENT_PARSER_DISCONNECT, EVENT_PARSER_INIT, EVENT_PARSER_RELEASE
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT, CB_HFTSTRA_POSITION
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
@@ -53,6 +53,7 @@ class WtWrapper:
         self.api.cta_get_detail_cost.restype = c_double
         self.api.cta_get_detail_profit.restype = c_double
         self.api.cta_get_price.restype = c_double
+        self.api.cta_get_day_price.restype = c_double
         self.api.cta_get_fund_data.restype = c_double
 
         self.api.sel_save_userdata.argtypes = [c_ulong, c_char_p, c_char_p]
@@ -67,6 +68,7 @@ class WtWrapper:
         self.api.hft_load_userdata.restype = c_char_p
         self.api.hft_get_position.restype = c_double
         self.api.hft_get_position_profit.restype = c_double
+        self.api.hft_get_position_avgpx.restype = c_double
         self.api.hft_get_undone.restype = c_double
         self.api.hft_get_price.restype = c_double
 
@@ -78,6 +80,8 @@ class WtWrapper:
 
         self.api.create_ext_parser.restype = c_bool
         self.api.create_ext_parser.argtypes = [c_char_p]
+
+        self.api.get_raw_stdcode.restype = c_char_p
 
     def on_engine_event(self, evtid:int, evtDate:int, evtTime:int):
         engine = self._engine
@@ -190,6 +194,12 @@ class WtWrapper:
         ctx = engine.get_context(id)
         if ctx is not None:
             ctx.on_getpositions(bytes.decode(stdCode), qty, frozen)
+
+    def on_stra_cond_triggerd(self, id:int, stdCode:str, target:float, price:float, usertag:str):
+        engine = self._engine
+        ctx = engine.get_context(id)
+        if ctx is not None:
+            ctx.on_condition_triggered(bytes.decode(stdCode), target, price, bytes.decode(usertag))
 
     def on_hftstra_channel_evt(self, id:int, trader:str, evtid:int):
         engine = self._engine
@@ -405,6 +415,9 @@ class WtWrapper:
     def config(self, cfgfile:str = 'config.yaml', isFile:bool = True):
         self.api.config_porter(bytes(cfgfile, encoding = "utf8"), isFile)
 
+    def get_raw_stdcode(self, stdCode:str):
+        return bytes.decode(self.api.get_raw_stdcode(bytes(stdCode, encoding = "utf8")))
+
     def create_extended_parser(self, id:str) -> bool:
         return self.api.create_ext_parser(bytes(id, encoding = "utf8"))
 
@@ -448,11 +461,12 @@ class WtWrapper:
         self.cb_stra_calc = CB_STRATEGY_CALC(self.on_stra_calc)
         self.cb_stra_bar = CB_STRATEGY_BAR(self.on_stra_bar)
         self.cb_session_event = CB_SESSION_EVENT(self.on_session_event)
+        self.cb_stra_cond_trigger = CB_STRATEGY_COND_TRIGGER(self.on_stra_cond_triggerd)
 
         self.cb_engine_event = CB_ENGINE_EVENT(self.on_engine_event)
         try:
             self.api.register_evt_callback(self.cb_engine_event)
-            self.api.register_cta_callbacks(self.cb_stra_init, self.cb_stra_tick, self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event)
+            self.api.register_cta_callbacks(self.cb_stra_init, self.cb_stra_tick, self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_cond_trigger)
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile, bytes(genDir, encoding = "utf8"))
             self.register_extended_module_callbacks()
         except OSError as oe:
@@ -615,10 +629,20 @@ class WtWrapper:
 
     def cta_get_price(self, stdCode:str) -> float:
         '''
-        @stdCode   合约代码
+        获取最新价格
+        @stdCode    合约代码
         @return     指定合约的最新价格 
         '''
         return self.api.cta_get_price(bytes(stdCode, encoding = "utf8"))
+
+    def cta_get_day_price(self, stdCode:str, flag:int = 0) -> float:
+        '''
+        获取当日价格
+        @stdCode    合约代码
+        @flag       价格标记，0-开盘价，1-最高价，2-最低价，3-最新价
+        @return     指定合约的价格 
+        '''
+        return self.api.cta_get_day_price(bytes(stdCode, encoding = "utf8"), flag)
 
     def cta_set_position(self, id:int, stdCode:str, qty:float, usertag:str = "", limitprice:float = 0.0, stopprice:float = 0.0):
         '''
@@ -674,13 +698,14 @@ class WtWrapper:
         '''
         return self.api.cta_get_last_exittime(id, bytes(stdCode, encoding = "utf8"))
 
-    def cta_log_text(self, id:int, message:str):
+    def cta_log_text(self, id:int, level:int, message:str):
         '''
         日志输出
         @id         策略ID
+        @level      日志级别
         @message    日志内容
         '''
-        self.api.cta_log_text(id, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.cta_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
 
     def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
         '''
@@ -827,13 +852,14 @@ class WtWrapper:
         '''
         return self.api.sel_get_time()
 
-    def sel_log_text(self, id:int, message:str):
+    def sel_log_text(self, id:int, level:int, message:str):
         '''
         日志输出
         @id         策略ID
+        @level      日志级别
         @message    日志内容
         '''
-        self.api.sel_log_text(id, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.sel_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
 
     def sel_sub_ticks(self, id:int, stdCode:str):
         '''
@@ -928,6 +954,15 @@ class WtWrapper:
         '''
         return self.api.hft_get_position_profit(id, bytes(stdCode, encoding = "utf8"))
 
+    def hft_get_position_avgpx(self, id:int, stdCode:str):
+        '''
+        获取持仓均价
+        @id     策略id
+        @stdCode   合约代码
+        @return 指定持仓的浮动盈亏
+        '''
+        return self.api.hft_get_position_avgpx(id, bytes(stdCode, encoding = "utf8"))
+
     def hft_get_undone(self, id:int, stdCode:str):
         '''
         获取持仓
@@ -965,13 +1000,14 @@ class WtWrapper:
         '''
         return self.api.hft_get_secs()
 
-    def hft_log_text(self, id:int, message:str):
+    def hft_log_text(self, id:int, level:int, message:str):
         '''
         日志输出
         @id         策略ID
+        @level      日志级别
         @message    日志内容
         '''
-        self.api.hft_log_text(id, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.hft_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
 
     def hft_sub_ticks(self, id:int, stdCode:str):
         '''
@@ -1049,15 +1085,15 @@ class WtWrapper:
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''CTA接口'''
-    def create_cta_context(self, name:str) -> int:
+    def create_cta_context(self, name:str, slippage:int = 0) -> int:
         '''
         创建策略环境
         @name      策略名称
         @return    系统内策略ID 
         '''
-        return self.api.create_cta_context(bytes(name, encoding = "utf8") )
+        return self.api.create_cta_context(bytes(name, encoding = "utf8"), slippage)
 
-    def create_hft_context(self, name:str, trader:str, agent:bool) -> int:
+    def create_hft_context(self, name:str, trader:str, agent:bool, slippage:int = 0) -> int:
         '''
         创建策略环境
         @name      策略名称
@@ -1065,16 +1101,16 @@ class WtWrapper:
         @agent     数据是否托管
         @return    系统内策略ID 
         '''
-        return self.api.create_hft_context(bytes(name, encoding = "utf8"), bytes(trader, encoding = "utf8"), agent)
+        return self.api.create_hft_context(bytes(name, encoding = "utf8"), bytes(trader, encoding = "utf8"), agent, slippage)
 
-    def create_sel_context(self, name:str, date:int, time:int, period:str, trdtpl:str = 'CHINA', session:str = "TRADING") -> int:
+    def create_sel_context(self, name:str, date:int, time:int, period:str, trdtpl:str = 'CHINA', session:str = "TRADING", slippage:int = 0) -> int:
         '''
         创建策略环境
         @name      策略名称
         @return    系统内策略ID 
         '''
         return self.api.create_sel_context(bytes(name, encoding = "utf8"), date, time, 
-            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"))
+            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"), slippage)
 
     def reg_cta_factories(self, factFolder:str):
         return self.api.reg_cta_factories(bytes(factFolder, encoding = "utf8") )

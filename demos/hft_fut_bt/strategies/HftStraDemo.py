@@ -83,7 +83,7 @@ class HftStraDemo(BaseHftStrategy):
         #最新价作为基准价格
         price = newTick["price"]
         #计算理论价格
-        pxInThry = (newTick["bid_prices_0"]*newTick["ask_qty_0"] + newTick["ask_prices_0"]*newTick["bid_qty_0"]) / (newTick["ask_qty_0"] + newTick["bid_qty_0"])
+        pxInThry = (newTick["bid_price_0"]*newTick["ask_qty_0"] + newTick["ask_price_0"]*newTick["bid_qty_0"]) / (newTick["ask_qty_0"] + newTick["bid_qty_0"])
 
         context.stra_log_text("理论价格%f，最新价：%f" % (pxInThry, price))
 

@@ -170,7 +170,7 @@ class DataMgr:
             filepath = "./generated/marker.json"
             filepath = os.path.join(grpInfo["path"], filepath)
             if not os.path.exists(filepath):
-                return []
+                pass
             else:
                 try:
                     f = open(filepath, "r")
@@ -395,6 +395,9 @@ class DataMgr:
 
         grpInfo = self.__config__["groups"][grpid]
         self.__check_cache__(grpid, grpInfo)
+
+        if "strategies" not in self.__grp_cache__[grpid]:
+            return []
         
         return self.__grp_cache__[grpid]["strategies"]
 
@@ -405,6 +408,9 @@ class DataMgr:
         grpInfo = self.__config__["groups"][grpid]
         self.__check_cache__(grpid, grpInfo)
         
+        if "channels" not in self.__grp_cache__[grpid]:
+            return []
+
         return self.__grp_cache__[grpid]["channels"]
 
     def get_trades(self, grpid:str, straid:str, limit:int = 200):
@@ -413,6 +419,9 @@ class DataMgr:
 
         grpInfo = self.__config__["groups"][grpid]
         self.__check_cache__(grpid, grpInfo)
+
+        if "strategies" not in self.__grp_cache__[grpid]:
+            return []
             
         if straid not in self.__grp_cache__[grpid]["strategies"]:
             return []
@@ -470,6 +479,9 @@ class DataMgr:
 
         grpInfo = self.__config__["groups"][grpid]
         self.__check_cache__(grpid, grpInfo)
+
+        if "strategies" not in self.__grp_cache__[grpid]:
+            return []
             
         if straid not in self.__grp_cache__[grpid]["strategies"]:
             return []
@@ -553,6 +565,9 @@ class DataMgr:
 
         grpInfo = self.__config__["groups"][grpid]
         self.__check_cache__(grpid, grpInfo)
+
+        if "strategies" not in self.__grp_cache__[grpid]:
+            return []
             
         if straid not in self.__grp_cache__[grpid]["strategies"]:
             return []
@@ -603,6 +618,9 @@ class DataMgr:
 
         grpInfo = self.__config__["groups"][grpid]
         self.__check_cache__(grpid, grpInfo)
+
+        if "strategies" not in self.__grp_cache__[grpid]:
+            return []
             
         if straid not in self.__grp_cache__[grpid]["strategies"]:
             return []
@@ -657,6 +675,9 @@ class DataMgr:
 
         grpInfo = self.__config__["groups"][grpid]
         self.__check_cache__(grpid, grpInfo)
+
+        if "strategies" not in self.__grp_cache__[grpid]:
+            return []
             
         ret = list()
         if straid != "all":
@@ -727,6 +748,9 @@ class DataMgr:
 
         grpInfo = self.__config__["groups"][grpid]
         self.__check_cache__(grpid, grpInfo)
+
+        if "channels" not in self.__grp_cache__[grpid]:
+            return []
             
         if chnlid not in self.__grp_cache__[grpid]["channels"]:
             return []
@@ -781,6 +805,9 @@ class DataMgr:
 
         grpInfo = self.__config__["groups"][grpid]
         self.__check_cache__(grpid, grpInfo)
+
+        if "channels" not in self.__grp_cache__[grpid]:
+            return []
             
         if chnlid not in self.__grp_cache__[grpid]["channels"]:
             return []
@@ -839,6 +866,9 @@ class DataMgr:
 
         grpInfo = self.__config__["groups"][grpid]
         self.__check_cache__(grpid, grpInfo)
+
+        if "channels" not in self.__grp_cache__[grpid]:
+            return []
             
         ret = list()
         channels = list()
@@ -883,6 +913,9 @@ class DataMgr:
 
         grpInfo = self.__config__["groups"][grpid]
         self.__check_cache__(grpid, grpInfo)
+
+        if "channels" not in self.__grp_cache__[grpid]:
+            return None
             
         ret = dict()
         channels = list()
@@ -1229,13 +1262,15 @@ class DataMgr:
         if "code_filters" not in filters:
             filters["code_filters"] = dict()
 
-        for sid in gpCache["strategies"]:
-            if sid not in filters['strategy_filters']:
-                filters['strategy_filters'][sid] = False
+        if "strategies" in gpCache:
+            for sid in gpCache["strategies"]:
+                if sid not in filters['strategy_filters']:
+                    filters['strategy_filters'][sid] = False
         
-        for eid in gpCache["executers"]:
-            if eid not in filters['executer_filters']:
-                filters['executer_filters'][eid] = False
+        if "executers" in gpCache:
+            for eid in gpCache["executers"]:
+                if eid not in filters['executer_filters']:
+                    filters['executer_filters'][eid] = False
 
         for id in filters['strategy_filters'].keys():
             if type(filters['strategy_filters'][id]) != bool:

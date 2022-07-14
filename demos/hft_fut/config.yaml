@@ -4,7 +4,6 @@ basefiles:
     holiday: ../common/holidays.json
     hot: ../common/hots.json
     session: ../common/sessions.json
-bspolicy: actpolicy.yaml
 data:
     store:
         path: ../FUT_Data/
@@ -15,13 +14,6 @@ env:
     name: hft
     product:
         session: TRADING
-executers:
--   active: false
-    id: exe1
-    policy:
-        default:
-            name: WtExeFact.WtSimpExeUnit
-    scale: 1
-    trader: simnow
 parsers: tdparsers.yaml
 traders: tdtraders.yaml
+bspolicy: actpolicy.yaml

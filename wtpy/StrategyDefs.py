@@ -86,6 +86,18 @@ class BaseCtaStrategy:
         '''
         return
 
+    def on_condition_triggered(self, context:CtaContext, stdCode:str, target:float, price:float, usertag:str):
+        '''
+        条件单触发回调
+
+        @context    策略上下文
+        @stdCode    合约代码
+        @target     触发以后的最终目标仓位
+        @price      触发价格
+        @usertag    用户标记
+        '''
+        return
+
 class BaseHftStrategy:
     '''
     HFT策略基础类，所有的策略都从该类派生

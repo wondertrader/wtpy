@@ -14,6 +14,7 @@ from .WtDtServo import WtDtServo
 
 from wtpy.wrapper.WtExecApi import WtExecApi
 from wtpy.wrapper.ContractLoader import ContractLoader,LoaderType
+from wtpy.wrapper.TraderDumper import TraderDumper, DumperSink
 
 __all__ = ["BaseCtaStrategy", "BaseSelStrategy", "BaseHftStrategy", 
             "CtaContext", "SelContext", "HftContext",
@@ -24,4 +25,5 @@ __all__ = ["BaseCtaStrategy", "BaseSelStrategy", "BaseHftStrategy",
             "ContractLoader", "LoaderType",
             "WtBarRecords", "WtTickRecords",
             "BaseExtParser", "BaseExtExecuter",
-            "WtMsgQue", "WtMQClient", "WtMQServer"]
+            "WtMsgQue", "WtMQClient", "WtMQServer", 
+            "TraderDumper", "DumperSink"]

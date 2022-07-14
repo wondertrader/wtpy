@@ -84,7 +84,7 @@ class WtDtWrapper:
         self.cb_bars_dumper = FUNC_DUMP_HISBARS(self.dump_his_bars)
         self.cb_ticks_dumper = FUNC_DUMP_HISTICKS(self.dump_his_ticks)
 
-        self.api.register_parser_callbacks(self.cb_parser_event, self.cb_parser_subcmd)
+        self.api.register_extended_dumper(self.cb_bars_dumper, self.cb_ticks_dumper)
 
     def on_parser_event(self, evtId:int, id:str):
         id = bytes.decode(id)
