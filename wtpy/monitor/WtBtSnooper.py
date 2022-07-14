@@ -62,7 +62,7 @@ class WtBtSnooper:
 
     def run_as_server(self, port:int = 8081, host="127.0.0.1", bSync:bool = True):
         tags_info = [
-            {"name":"Robot APIs","description":"机器人调用接口"}
+            {"name":"Backtest APIs","description":"回测查探器接口"}
         ]
 
         app = FastAPI(title="WtBtSnooper", description="A simple http api of WtBtSnooper", openapi_tags=tags_info, redoc_url=None, version="1.0.0")
