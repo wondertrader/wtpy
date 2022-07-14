@@ -1277,6 +1277,7 @@ def summary_analyze(df_funds:df, capital = 5000000, rf = 0, period = 240) -> dic
     # key_indicator = ['交易天数', '累积收益（%）', '年化收益率（%）', '胜率（%）', '最大回撤（%）', '最大上涨（%）', '标准差（%）',
     #         '下行波动率（%）', 'Sharpe比率', 'Sortino比率', 'Calmar比率']
     return {
+        'capital': capital,
         "days": days,
         "total_return":(ayNetVals.iloc[-1]-1)*100, 
         "annual_return":ar*100, 
@@ -1552,6 +1553,13 @@ class WtBtAnalyst:
             funds_analyze(workbook, df_funds.copy(), capital=init_capital, rf=rf, period=annual_days)
 
             workbook.close()
+
+            filename = folder + '/summary.json'
+            sumObj = summary_analyze(df_funds, capital=init_capital, rf=rf, period=annual_days)
+            sumObj["name"] = sname
+            f = open(filename,"w")
+            f.write(json.dumps(sumObj, indent=4, ensure_ascii=True))
+            f.close()
 
             print("PnL analyzing of strategy %s done" % (sname))
 
