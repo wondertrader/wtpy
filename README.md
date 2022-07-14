@@ -82,6 +82,32 @@
 
 
 # 更新日志
+### 0.9.3
+* `C++`底层更新到`2022/07/14`发布的`v0.9.3`版本
+* 其他配合底层的优化和调整
+* 绩效分析器去掉对matplotlib的依赖，改成利用excel生成图表
+* 配置文件解析的时候，增加一个编码判断的逻辑
+* WTSTickStruct的买卖队列改成了单项，而不用数组，这样在python中转dataframe的时候便于处理
+* 停用BarList和TickList，全部改成更高效的WtBarRecords和WtTickRecords
+* WtDtServo配合底层新增了一个get_ticks_by_date接口用于按交易日读取tick数据以及一个get_sbars_by_date接口用于按交易日读取秒线数据
+* WtDtServo配合底层新增了一个get_bars_by_date用于按交易日获取分钟线数据
+* WTSBarStruct的to_tuple方法进行了扩展
+* apps.datahelper新增一个dumpBars接口，将要落地的K线数据直接通过回调的方式传出来，方便灵活控制如何保存K线数据
+* WtBtEngine和WtEngine中初始化的时候，把默认的基础文件名改成None，并加入判断，可以兼容配置文件中的配置项
+* 新增一个TraderDumper，调用底层的TraderDumper模块，可以将交易接口的数据转接出来
+* monitor.DataMgr模块读取数据的时候加了一些兼容处理，减少web控制台报错
+* WtBtEngine和WtEngine增加了配置自定义连续合约规则的接口registerCustomRule
+* WtHotPicker的演示demo中增加米筐数据源的支持
+* 绩效分析做了一些优化，主要是把目录改成output目录，后面的策略子目录通过策略id自动生产，这样就不用多次输入了
+* 完善了WtCtaOptimizer的一些细节
+* 遗传算法优化器优化
+* webui控制台发布包做了一个更新，主要增加了一些分页机制，页面可以不用那么卡
+* webui新增一个独立页面backtest.html，该页面主要提供可视化回测查看和分析功能
+* monitor下新增一个WtBtSnooper模块，可以运行一个简单的回测结果提取服务
+* demo进一步完善
+* 更多修改日志请参考[WonderTrader v0.9.3更新日志](https://github.com/wondertrader/wondertrader/blob/master/updatelog.md)
+* 调试资源请查看<https://gitee.com/wondertrader/wtpy_utils/raw/master/pdb_wtpy_v0.9.3.rar>
+
 ### 0.9.2
 * `C++`底层更新到`2022/03/28`发布的`v0.9.2`版本
 * demo进一步完善
