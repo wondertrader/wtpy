@@ -1,0 +1,136 @@
+{
+    "SSE": {
+        "STK": {
+            "category": 0,
+            "covermode": 0,
+            "exchg": "SSE",
+            "holiday": "CHINA",
+            "name": "上证股票",
+            "precision": 2,
+            "pricemode": 1,
+            "pricetick": 0.01,
+            "session": "SD0930",
+            "volscale": 1,
+            "trademode": 2
+        },
+        "IDX": {
+            "category": 0,
+            "covermode": 0,
+            "exchg": "SSE",
+            "holiday": "CHINA",
+            "name": "上证指数",
+            "precision": 2,
+            "pricemode": 1,
+            "pricetick": 0.01,
+            "session": "SD0930",
+            "volscale": 1,
+            "trademode": 2
+        },
+        "ETF": {
+            "category": 0,
+            "covermode": 0,
+            "exchg": "SSE",
+            "holiday": "CHINA",
+            "name": "上证ETF",
+            "precision": 3,
+            "pricemode": 1,
+            "pricetick": 0.001,
+            "session": "SD0930",
+            "volscale": 100,
+            "trademode": 2
+        },
+        "ETFT0": {
+            "category": 0,
+            "covermode": 0,
+            "exchg": "SSE",
+            "holiday": "CHINA",
+            "name": "上证T0ETF",
+            "precision": 3,
+            "pricemode": 1,
+            "pricetick": 0.001,
+            "session": "SD0930",
+            "volscale": 1,
+            "trademode": 0
+        },
+        "BOND": {
+            "category": 0,
+            "covermode": 0,
+            "exchg": "SSE",
+            "holiday": "CHINA",
+            "name": "上证可转债",
+            "precision": 3,
+            "pricemode": 1,
+            "pricetick": 0.001,
+            "session": "SD0930",
+            "volscale": 1,
+            "trademode": 0
+        }
+    },
+    "SZSE": {
+        "STK": {
+            "category": 0,
+            "covermode": 0,
+            "exchg": "SZSE",
+            "holiday": "CHINA",
+            "name": "深证股票",
+            "precision": 2,
+            "pricemode": 1,
+            "pricetick": 0.01,
+            "session": "SD0930",
+            "volscale": 1,
+            "trademode": 2
+        },
+        "IDX": {
+            "category": 0,
+            "covermode": 0,
+            "exchg": "SZSE",
+            "holiday": "CHINA",
+            "name": "深证指数",
+            "precision": 2,
+            "pricemode": 1,
+            "pricetick": 0.01,
+            "session": "SD0930",
+            "volscale": 1,
+            "trademode": 2
+        },
+        "ETF": {
+            "category": 0,
+            "covermode": 0,
+            "exchg": "SZSE",
+            "holiday": "CHINA",
+            "name": "深证ETF",
+            "precision": 3,
+            "pricemode": 1,
+            "pricetick": 0.001,
+            "session": "SD0930",
+            "volscale": 1,
+            "trademode": 2
+        },
+        "ETFT0": {
+            "category": 0,
+            "covermode": 0,
+            "exchg": "SZSE",
+            "holiday": "CHINA",
+            "name": "深证T0ETF",
+            "precision": 3,
+            "pricemode": 1,
+            "pricetick": 0.001,
+            "session": "SD0930",
+            "volscale": 1,
+            "trademode": 0
+        },
+        "BOND": {
+            "category": 0,
+            "covermode": 0,
+            "exchg": "SZSE",
+            "holiday": "CHINA",
+            "name": "深证可转债",
+            "precision": 3,
+            "pricemode": 1,
+            "pricetick": 0.001,
+            "session": "SD0930",
+            "volscale": 1,
+            "trademode": 0
+        }
+    }
+}

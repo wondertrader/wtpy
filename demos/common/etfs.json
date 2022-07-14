@@ -1,0 +1,30 @@
+{
+    "SSE": {
+        "510300": {
+            "name": "沪深300ETF",
+            "code": "510300",
+            "exchg": "SSE",
+            "product": "ETF",
+            "maxlimitqty": 50,
+            "maxmarketqty": 10
+        },
+        "510050": {
+            "name": "上证50ETF",
+            "code": "510050",
+            "exchg": "SSE",
+            "product": "ETF",
+            "maxlimitqty": 50,
+            "maxmarketqty": 10
+        }
+    },
+    "SZSE": {
+        "159919": {
+            "name": "沪深300ETF",
+            "code": "159919",
+            "exchg": "SZSE",
+            "product": "ETF",
+            "maxlimitqty": 50,
+            "maxmarketqty": 10
+        }
+    }
+}
