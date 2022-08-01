@@ -183,7 +183,7 @@ class WtBtSnooper:
                     "message":"Invalid workspace"
                 }
 
-            code, bars = self.get_bt_kline(path, straid)
+            code, bars, index, marks = self.get_bt_kline(path, straid)
             if bars is None:
                 ret = {
                     "result":-2,
@@ -197,6 +197,12 @@ class WtBtSnooper:
                     "bars": bars,
                     "code": code
                 }
+
+                if index is not None:
+                    ret["index"] = index
+
+                if marks is not None:
+                    ret["marks"] = marks
 
             return ret
 
@@ -471,6 +477,7 @@ class WtBtSnooper:
             items.append(item)
         
         return items
+        
 
     def get_bt_kline(self, path:str, straid:str) -> list:
         if self.dt_servo is None:
@@ -491,6 +498,28 @@ class WtBtSnooper:
         period = btState["period"]
         stime = btState["stime"]
         etime = btState["etime"]
+
+        index = None
+        marks = None
+
+        #如果有btchart，就用btchart定义的K线
+        filename = f"{straid}/btchart.json"
+        filename = os.path.join(path, filename)
+        if os.path.exists(filename):
+            f = open(filename, "r")
+            content = f.read()
+            f.close()
+
+            btchart = json.loads(content)
+            code = btchart['kline']["code"]
+            period = btchart['kline']["period"]
+
+            if "index":
+                index = btchart["index"]
+
+            if "marks" in btchart:
+                marks = btchart["marks"]
+
         barList = self.dt_servo.get_bars(stdCode=code, period=period, fromTime=stime, endTime=etime)
         if barList is None:
             return None
@@ -509,4 +538,4 @@ class WtBtSnooper:
             bar["turnover"] = realBar.money
             bars.append(bar)
 
-        return code, bars
+        return code, bars, index, marks
