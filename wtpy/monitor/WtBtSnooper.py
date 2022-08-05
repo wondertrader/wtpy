@@ -514,7 +514,7 @@ class WtBtSnooper:
             code = btchart['kline']["code"]
             period = btchart['kline']["period"]
 
-            if "index":
+            if "index" in btchart:
                 index = btchart["index"]
 
             if "marks" in btchart:
