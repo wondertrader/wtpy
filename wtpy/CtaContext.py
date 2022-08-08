@@ -91,7 +91,7 @@ class CtaContext:
             bars.append(newBar)
 
     def on_condition_triggered(self, stdCode:str, target:float, price:float, usertag:str):
-        pass
+        self.__stra_info__.on_condition_triggered(stdCode, target, price, usertag)
 
     def on_tick(self, stdCode:str, newTick:tuple):
         '''
