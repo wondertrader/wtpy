@@ -11,6 +11,7 @@ TOPIC_RT_TRADE = "TRD_TRADE"    # 生产环境下的成交通知
 TOPIC_RT_ORDER = "TRD_ORDER"    # 生产环境下的订单通知
 TOPIC_RT_NOTIFY = "TRD_NOTIFY"  # 生产环境下的普通通知
 TOPIC_RT_LOG = "LOG"            # 生产环境下的日志通知
+TOPIC_TIMEOUT = "TIMEOUT"       # 消息超时通知
 
 class EventSink:
     def __init__(self):
@@ -26,6 +27,9 @@ class EventSink:
         pass
 
     def on_log(self, tag:str, time:int, message:str):
+        pass
+
+    def on_timeout(self):
         pass
 
 def decode_bytes(data:bytes):
@@ -54,7 +58,10 @@ class EventReceiver(WtMQClient):
 
     def on_mq_message(self, topic:str, message:str, dataLen:int):
         topic = decode_bytes(topic)
-        message = decode_bytes(message[:dataLen])
+        message = None
+        if dataLen > 0:
+            message = decode_bytes(message[:dataLen])
+            
         if self._sink is not None:
             if topic == TOPIC_RT_TRADE:
                 msgObj = json.loads(message)
@@ -73,6 +80,8 @@ class EventReceiver(WtMQClient):
             elif topic == TOPIC_RT_LOG:
                 msgObj = json.loads(message)
                 self._sink.on_log(msgObj["tag"], msgObj["time"], msgObj["message"])
+            elif topic == TOPIC_TIMEOUT:
+                self._sink.on_timeout()
 
     def run(self):
         self.start()

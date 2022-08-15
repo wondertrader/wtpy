@@ -42,6 +42,9 @@ class WatcherSink:
     def on_notify(self, appid:str, chnl:str, message:str):
         pass
 
+    def on_timeout(self, appid:str):
+        pass
+
 
 class ActionType(Enum):
     '''
@@ -301,6 +304,11 @@ class AppInfo(EventSink):
     @property
     def memory(self):
         return self._mem
+
+    # EventSink.on_timeout
+    def on_timeout(self):
+        if self._sink is not None:
+            self._sink.on_timeout(self._id)
 
     # EventSink.on_order
     def on_order(self, chnl:str, ordInfo:dict):
