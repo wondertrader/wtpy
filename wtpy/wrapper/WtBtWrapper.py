@@ -35,6 +35,7 @@ class WtBtWrapper:
         self.api.get_version.restype = c_char_p
         self.api.cta_get_last_entertime.restype = c_uint64
         self.api.cta_get_first_entertime.restype = c_uint64
+        self.api.cta_get_last_exittime.restype = c_uint64
         self.api.cta_get_detail_entertime.restype = c_uint64
         self.api.cta_enter_long.argtypes = [c_ulong, c_char_p, c_double, c_char_p, c_double, c_double]
         self.api.cta_enter_short.argtypes = [c_ulong, c_char_p, c_double, c_char_p, c_double, c_double]
