@@ -3,15 +3,54 @@ import json
 import hashlib
 import datetime
 import pytz
-
+import time
 from fastapi import FastAPI, Body
 from starlette.responses import RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
+from pandas import DataFrame as df
+import pandas as pd
+import numpy as np
 
 from wtpy import WtDtServo
+
+
+def do_trading_analyze(df_closes, df_funds):
+    df_wins = df_closes[df_closes["profit"] > 0]
+    df_loses = df_closes[df_closes["profit"] <= 0]
+
+    ay_WinnerBarCnts = df_wins["closebarno"] - df_wins["openbarno"]
+    ay_LoserBarCnts = df_loses["closebarno"] - df_loses["openbarno"]
+
+
+    total_fee = df_closes['fee'].sum()  # 手续费
+
+    totaltimes = len(df_closes)  # 总交易次数
+    wintimes = len(df_wins)  # 盈利次数
+    losetimes = len(df_loses)  # 亏损次数
+    winamout = df_wins["profit"].sum()  # 毛盈利
+    loseamount = df_loses["profit"].sum()  # 毛亏损
+    trdnetprofit = winamout + loseamount  # 交易净盈亏
+    accnetprofit = trdnetprofit - total_fee  # 账户净盈亏
+    winrate = (wintimes / totaltimes) if totaltimes > 0 else 0  # 胜率
+    avgprof = (trdnetprofit / totaltimes) if totaltimes > 0 else 0  # 单次平均盈亏
+    avgprof_win = (winamout / wintimes) if wintimes > 0 else 0  # 单次盈利均值
+    avgprof_lose = (loseamount / losetimes) if losetimes > 0 else 0  # 单次亏损均值
+    winloseratio = abs(avgprof_win / avgprof_lose) if avgprof_lose != 0 else "N/A"  # 单次盈亏均值比
+
+    summary = dict()
+
+    summary["total_trades"] = totaltimes
+    summary["profit"] = float(winamout)
+    summary["loss"] = float(loseamount)
+    summary["net_profit"] = float(trdnetprofit)
+    summary["fee"] = total_fee
+    summary["accnet_profit"] = 0 if totaltimes == 0 else accnetprofit
+    summary["winrate"] = winrate * 100
+    return summary
+
 
 class WtBtSnooper:
     '''
@@ -183,7 +222,7 @@ class WtBtSnooper:
                     "message":"Invalid workspace"
                 }
 
-            code, bars, index, marks = self.get_bt_kline(path, straid)
+            code, bars = self.get_bt_kline(path, straid)
             if bars is None:
                 ret = {
                     "result":-2,
@@ -197,12 +236,6 @@ class WtBtSnooper:
                     "bars": bars,
                     "code": code
                 }
-
-                if index is not None:
-                    ret["index"] = index
-
-                if marks is not None:
-                    ret["marks"] = marks
 
             return ret
 
@@ -310,6 +343,48 @@ class WtBtSnooper:
             }
             return ret
 
+        @app.post("/bt/qrybtcloses", tags=["Backtest APIs"], description="读取成交数据")
+        def qry_stra_bt_closes(
+            wsid:str = Body(..., title="工作空间ID", embed=True),
+            straid:str = Body(..., title="策略ID", embed=True)
+        ):
+            path = self.get_workspace_path(wsid)
+            if len(path) == 0:
+                ret = {
+                    "result":-1,
+                    "message":"Invalid workspace"
+                }
+
+            ret = {
+                "result":0,
+                "message":"OK",
+                "closes_long":self.get_bt_closes(path, straid)[0],
+                "closes_short":self.get_bt_closes(path, straid)[1],
+                "closes_all":self.get_bt_closes(path, straid)[2],
+                "closes_month": self.get_bt_closes(path, straid)[3],
+                "closes_year": self.get_bt_closes(path, straid)[4]
+            }
+            return ret
+
+        @app.post("/bt/qrybtanalysis", tags=["Backtest APIs"], description="读取策略分析")
+        def qry_stra_bt_analysis(
+            wsid:str = Body(..., title="工作空间ID", embed=True),
+            straid:str = Body(..., title="策略ID", embed=True)
+        ):
+            path = self.get_workspace_path(wsid)
+            if len(path) == 0:
+                ret = {
+                    "result":-1,
+                    "message":"Invalid workspace"
+                }
+
+            ret = {
+                "result":0,
+                "message":"OK",
+                "analysis":self.get_bt_analysis(path, straid)
+            }
+            return ret
+
     def get_all_strategy(self, path) -> list:
         files = os.listdir(path)
         ret = list()
@@ -329,7 +404,7 @@ class WtBtSnooper:
         content = f.read()
         f.close()
         summary = json.loads(content)
-        
+
         filename = f"{straid}/btenv.json"
         filename = os.path.join(path, filename)
         if not os.path.exists(filename):
@@ -343,6 +418,32 @@ class WtBtSnooper:
         return {
             'summary': summary,
             'env': env
+        }
+
+    def get_bt_analysis(self, path: str, straid: str) -> dict:
+        funds_filename = f"{straid}/funds.csv"
+        funds_filename = os.path.join(path,funds_filename)
+        closes_filename = f"{straid}/closes.csv"
+        closes_filename = os.path.join(path,closes_filename)
+
+        if not (os.path.exists(funds_filename) or os.path.exists(closes_filename)):
+            return None
+
+        df_funds = pd.read_csv(funds_filename)
+        df_closes = pd.read_csv(closes_filename)
+        df_closes['fee'] = df_closes['profit'] - df_closes['totalprofit'] + df_closes['totalprofit'].shift(1).fillna(
+            value=0)
+        df_long = df_closes[df_closes['direct'].apply(lambda x: 'LONG' in x)]
+        df_short = df_closes[df_closes['direct'].apply(lambda x: 'SHORT' in x)]
+
+        summary_all = do_trading_analyze(df_closes, df_funds)
+        summary_short = do_trading_analyze(df_short, df_funds)
+        summary_long = do_trading_analyze(df_long, df_funds)
+
+        return {
+            'summary_all': summary_all,
+            'summary_short': summary_short,
+            'summary_long': summary_long
         }
 
     def get_bt_funds(self, path:str, straid:str) -> list:
@@ -376,6 +477,124 @@ class WtBtSnooper:
             funds.append(tItem)
         
         return funds
+
+    def get_bt_closes(self, path:str, straid:str):
+        summary_file = f"{straid}/summary.json"
+        summary_file = os.path.join(path, summary_file)
+        closes_file = f"{straid}/closes.csv"
+        closes_file = os.path.join(path, closes_file)
+        if not (os.path.exists(closes_file) or os.path.exists(summary_file)):
+            return None
+
+        f = open(summary_file, 'r')
+        content = f.read()
+        f.close()
+        summary = json.loads(content)
+        capital = summary["capital"]
+        df_closes = pd.read_csv(closes_file)
+        df_closes = df_closes.copy()
+        df_closes['fee'] = df_closes['profit'] - df_closes['totalprofit'] + df_closes['totalprofit'].shift(1).fillna(
+            value=0)
+        df_closes['profit'] = df_closes['profit'] - df_closes['fee']
+        df_closes['profit_sum'] = df_closes['profit'].expanding(1).sum()
+        df_closes['Withdrawal'] = df_closes['profit_sum'] - df_closes['profit_sum'].expanding(1).max()
+        df_closes['profit_ratio'] = 100 * df_closes['profit_sum'] / capital
+        withdrawal_ratio = []
+        sim_equity = df_closes['profit_sum'] + capital
+        for i in range(len(df_closes)):
+            withdrawal_ratio.append(100 * (sim_equity[i] / sim_equity[:i + 1].max() - 1))
+        df_closes['Withdrawal_ratio'] = withdrawal_ratio
+        np_trade = np.array(df_closes).tolist()
+        closes_all = list()
+        for item in np_trade:
+            litem = {
+                "opentime":int(item[2]),
+                "closetime":int(item[4]),
+                "profit":float(item[7]),
+                "direct":str(item[1]),
+                "openprice":float(item[3]),
+                "closeprice":float(item[5]),
+                "maxprofit":float(item[8]),
+                "maxloss":float(item[9]),
+                "qty":int(item[6]),
+                "capital": capital,
+                'profit_sum':float(item[16]),
+                'Withdrawal':float(item[17]),
+                'profit_ratio':float(item[18]),
+                'Withdrawal_ratio':float(item[19])
+            }
+            closes_all.append(litem)
+        df_closes['time'] = df_closes['closetime'].apply(lambda x: datetime.datetime.strptime(str(x), '%Y%m%d%H%M'))
+        df_c_m = df_closes.resample(rule='M', on='time', label='right',
+                                                                 closed='right').agg({
+            'profit': 'sum',
+            'maxprofit': 'sum',
+            'maxloss': 'sum',
+        })
+        df_c_m = df_c_m.reset_index()
+        df_c_m['equity'] = df_c_m['profit'].expanding(1).sum() + capital
+        df_c_m['monthly_profit'] = 100 * (df_c_m['equity'] / df_c_m['equity'].shift(1).fillna(value=capital) - 1)
+        closes_month = list()
+        np_m = np.array(df_c_m).tolist()
+        for item in np_m:
+            litem = {
+                "time":int(item[0].strftime('%Y%m')),
+                "profit":float(item[1]),
+                'maxprofit':float(item[2]),
+                'maxloss':float(item[3]),
+                'equity':float(item[4]),
+                'monthly_profit':float(item[5])
+            }
+            closes_month.append(litem)
+
+        df_c_y = df_closes.resample(rule='Y', on='time', label='right',
+                                    closed='right').agg({
+            'profit': 'sum',
+            'maxprofit': 'sum',
+            'maxloss': 'sum',
+        })
+        df_c_y = df_c_y.reset_index()
+        df_c_y['equity'] = df_c_y['profit'].expanding(1).sum() + capital
+        df_c_y['monthly_profit'] = 100 * (df_c_y['equity'] / df_c_y['equity'].shift(1).fillna(value=capital) - 1)
+        closes_year = list()
+        np_y = np.array(df_c_y).tolist()
+        for item in np_y:
+            litem = {
+                "time":int(item[0].strftime('%Y%m')),
+                "profit":float(item[1]),
+                'maxprofit':float(item[2]),
+                'maxloss':float(item[3]),
+                'equity':float(item[4]),
+                'annual_profit':float(item[5])
+            }
+            closes_year.append(litem)
+
+        df_long = df_closes[df_closes['direct'].apply(lambda x: 'LONG' in x)]
+        df_short = df_closes[df_closes['direct'].apply(lambda x: 'SHORT' in x)]
+        df_long = df_long.copy()
+        df_short = df_short.copy()
+        df_long["long_profit"] = df_long["profit"].expanding(1).sum()-df_long["fee"].expanding(1).sum()
+        closes_long = list()
+        closes_short = list()
+        np_long = np.array(df_long).tolist()
+        for item in np_long:
+            litem = {
+                "date":int(item[4]),
+                "long_profit":float(item[-1]),
+                "capital":capital
+            }
+            closes_long.append(litem)
+        df_short["short_profit"] = df_short["profit"].expanding(1).sum()-df_short["fee"].expanding(1).sum()
+        np_short = np.array(df_short).tolist()
+        for item in np_short:
+            litem = {
+                "date":int(item[4]),
+                "short_profit":float(item[-1]),
+                "capital":capital
+            }
+            closes_short.append(litem)
+
+        return closes_long, closes_short, closes_all, closes_month, closes_year
 
     def get_bt_trades(self, path:str, straid:str) -> list:
         filename = f"{straid}/trades.csv"
@@ -477,7 +696,6 @@ class WtBtSnooper:
             items.append(item)
         
         return items
-        
 
     def get_bt_kline(self, path:str, straid:str) -> list:
         if self.dt_servo is None:
@@ -498,28 +716,6 @@ class WtBtSnooper:
         period = btState["period"]
         stime = btState["stime"]
         etime = btState["etime"]
-
-        index = None
-        marks = None
-
-        #如果有btchart，就用btchart定义的K线
-        filename = f"{straid}/btchart.json"
-        filename = os.path.join(path, filename)
-        if os.path.exists(filename):
-            f = open(filename, "r")
-            content = f.read()
-            f.close()
-
-            btchart = json.loads(content)
-            code = btchart['kline']["code"]
-            period = btchart['kline']["period"]
-
-            if "index" in btchart:
-                index = btchart["index"]
-
-            if "marks" in btchart:
-                marks = btchart["marks"]
-
         barList = self.dt_servo.get_bars(stdCode=code, period=period, fromTime=stime, endTime=etime)
         if barList is None:
             return None
@@ -538,4 +734,4 @@ class WtBtSnooper:
             bar["turnover"] = realBar.money
             bars.append(bar)
 
-        return code, bars, index, marks
+        return code, bars
