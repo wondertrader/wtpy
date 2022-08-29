@@ -369,6 +369,14 @@ class CtaContext:
         '''
         return self.__wrapper__.cta_get_last_entertime(self.__id__, stdCode)
 
+    def stra_get_last_entrytag(self, stdCode:str) -> str:
+        '''
+        获取当前持仓最后一次进场标记
+        @stdCode    品种代码
+        @return     返回最后一次开仓标记
+        '''
+        return self.__wrapper__.cta_get_last_entertag(self.__id__, stdCode)
+
     def stra_get_last_exittime(self, stdCode:str) -> int:
         '''
         获取当前持仓最后一次出场时间
