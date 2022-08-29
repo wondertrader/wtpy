@@ -17,8 +17,8 @@ DESCRIPTION = 'Python Sub Framework Of WonderTrader'
 URL = 'https://github.com/wondertrader/wtpy'
 EMAIL = 'silencesword@foxmail.com'
 AUTHOR = 'Wesley Liu'
-REQUIRES_PYTHON = '>=3.5.0'
-VERSION = '0.9.3'
+REQUIRES_PYTHON = '>=3.8.0'
+VERSION = '0.9.4'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
@@ -31,7 +31,8 @@ REQUIRED = [
     'flask-compress', 
     'psutil', 
     'chardet',
-    'pyyaml'
+    'pyyaml',
+    'fastapi'
 ]
 
 # What packages are optional?

@@ -1,6 +1,6 @@
 ![WonderTrader2.png](http://wt.f-sailors.cn/wt/logo_qcode_noad.jpg)
 <p align="center">
-    <img src ="https://img.shields.io/badge/version-0.9.3-blueviolet.svg"/>
+    <img src ="https://img.shields.io/badge/version-0.9.4-blueviolet.svg"/>
     <img src ="https://img.shields.io/badge/platform-windows|linux-yellow.svg"/>
     <img src ="https://img.shields.io/badge/build-passing-brightgreen"/>
     <img src ="https://img.shields.io/badge/license-MIT-orange"/>
@@ -74,7 +74,6 @@
 
 # 相关资源
 * * *
-* 特别感谢@ZerounNet、@ZzzzHeJ、@jack52518、@jed057等用户，他们也对WonderTrader和wtpy贡献了很多代码和文档。
 * 关注公众号`wondertrader`，可以收到`WonderTrader`的实时资讯
 * 用户交流QQ群上线：`610730738`(加入前请先`star`一下, 然后提供`github`用户名)
 * 更多`WonderTrader`的文档请看<https://wondertrader.github.io/>
@@ -82,6 +81,14 @@
 
 
 # 更新日志
+### 0.9.4
+* `C++`底层更新到`2022/08/29`发布的`v0.9.4`版本
+* 其他配合底层的优化和调整
+* monitor下WtBtSnooper模块进一步完善，支持自定义指标数据处理
+* webui中的回测展示页面，完善了对自定义指标的绘制，以及其他的细节完善
+* 更多修改日志请参考[WonderTrader v0.9.4更新日志](https://github.com/wondertrader/wondertrader/blob/master/updatelog.md)
+* 调试资源请查看<https://gitee.com/wondertrader/wtpy_utils/raw/master/pdb_wtpy_v0.9.4.rar>
+
 ### 0.9.3
 * `C++`底层更新到`2022/07/14`发布的`v0.9.3`版本
 * 其他配合底层的优化和调整
