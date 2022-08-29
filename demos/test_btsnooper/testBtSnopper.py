@@ -4,6 +4,8 @@ from wtpy import WtDtServo
 def testBtSnooper():    
 
     dtServo = WtDtServo()
+    # dtServo.setBasefiles(folder="E:\\gitlocal\\MyStras\\CTA\\common\\", commfile='stk_comms.json', contractfile='stocks.json')
+    # dtServo.setStorage(path='E:/storage/', adjfactor='E:\\gitlocal\\MyStras\\CTA\\common\\adjfactors.json')
     dtServo.setBasefiles(folder="E:\\gitlocal\\MyStras\\CTA\\common\\")
     dtServo.setStorage(path='E:/storage/')
 

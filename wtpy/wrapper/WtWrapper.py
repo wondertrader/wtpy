@@ -35,7 +35,9 @@ class WtWrapper:
         self.api.get_version.restype = c_char_p
         self.api.cta_get_last_entertime.restype = c_uint64
         self.api.cta_get_first_entertime.restype = c_uint64
+        self.api.cta_get_last_exittime.restype = c_uint64
         self.api.cta_get_detail_entertime.restype = c_uint64
+        self.api.cta_get_last_entertag.restype = c_char_p
         self.api.cta_enter_long.argtypes = [c_ulong, c_char_p, c_double, c_char_p, c_double, c_double]
         self.api.cta_enter_short.argtypes = [c_ulong, c_char_p, c_double, c_char_p, c_double, c_double]
         self.api.cta_exit_long.argtypes = [c_ulong, c_char_p, c_double, c_char_p, c_double, c_double]
@@ -681,6 +683,14 @@ class WtWrapper:
         @return     进场时间，格式如201907260932 
         '''
         return self.api.cta_get_first_entertime(id, bytes(stdCode, encoding = "utf8"))
+
+    def cta_get_last_entertag(self, id:int, stdCode:str) -> str:
+        '''
+        获取当前持仓的最后进场标记
+        @stdCode    合约代码
+        @return     进场标记 
+        '''
+        return bytes.decode(self.api.cta_get_last_entertag(id, bytes(stdCode, encoding = "utf8")))
 
     def cta_get_last_entertime(self, id:int, stdCode:str) -> int:
         '''

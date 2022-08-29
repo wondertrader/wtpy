@@ -2349,3 +2349,8 @@ class WtMonSvr(WatcherSink):
     
     def on_notify(self, grpid:str, chnl:str, message:str):
         self.push_svr.notifyGrpChnlEvt(grpid, chnl, 'notify', message)
+
+    def on_timeout(self, grpid:str):
+        if self._sink_:
+            grpInfo = self.__data_mgr__.get_group(grpid)
+            self._sink_.notify("fatal", f'检测到 {grpInfo["name"]}[{grpid}]的MQ消息超时，请及时检查并处理!!!')

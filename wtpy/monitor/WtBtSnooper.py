@@ -5,12 +5,11 @@ import datetime
 import pytz
 import time
 from fastapi import FastAPI, Body
-from starlette.responses import RedirectResponse, FileResponse
+from starlette.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
-from pandas import DataFrame as df
 import pandas as pd
 import numpy as np
 
@@ -23,7 +22,8 @@ def do_trading_analyze(df_closes, df_funds):
 
     ay_WinnerBarCnts = df_wins["closebarno"] - df_wins["openbarno"]
     ay_LoserBarCnts = df_loses["closebarno"] - df_loses["openbarno"]
-
+    total_winbarcnts = ay_WinnerBarCnts.sum()
+    total_losebarcnts = ay_LoserBarCnts.sum()
 
     total_fee = df_closes['fee'].sum()  # 手续费
 
@@ -40,6 +40,43 @@ def do_trading_analyze(df_closes, df_funds):
     avgprof_lose = (loseamount / losetimes) if losetimes > 0 else 0  # 单次亏损均值
     winloseratio = abs(avgprof_win / avgprof_lose) if avgprof_lose != 0 else "N/A"  # 单次盈亏均值比
 
+    # 单笔最大盈利交易
+    largest_profit = df_wins['profit'].max()
+    # 单笔最大亏损交易
+    largest_loss = df_loses['profit'].min()
+    # 交易的平均持仓K线根数
+    avgtrd_hold_bar = 0 if totaltimes==0 else ((df_closes['closebarno'] - df_closes['openbarno']).sum()) / totaltimes
+    # 平均空仓K线根数
+    avb = (df_closes['openbarno'] - df_closes['closebarno'].shift(1).fillna(value=0))
+    avgemphold_bar = 0 if len(df_closes)==0 else avb.sum() / len(df_closes)
+
+    # 两笔盈利交易之间的平均空仓K线根数
+    win_holdbar_situ = (df_wins['openbarno'].shift(-1) - df_wins['closebarno']).dropna()
+    winempty_avgholdbar = 0 if len(df_wins)== 0 or len(df_wins) == 1 else win_holdbar_situ.sum() / (len(df_wins)-1)
+    # 两笔亏损交易之间的平均空仓K线根数
+    loss_holdbar_situ = (df_loses['openbarno'].shift(-1) - df_loses['closebarno']).dropna()
+    lossempty_avgholdbar = 0 if len(df_loses)== 0 or len(df_loses) == 1 else loss_holdbar_situ.sum() / (len(df_loses)-1)
+    max_consecutive_wins = 0  # 最大连续盈利次数
+    max_consecutive_loses = 0  # 最大连续亏损次数
+
+    avg_bars_in_winner = total_winbarcnts / wintimes if wintimes > 0 else "N/A"
+    avg_bars_in_loser = total_losebarcnts / losetimes if losetimes > 0 else "N/A"
+
+    consecutive_wins = 0
+    consecutive_loses = 0
+
+    for idx, row in df_closes.iterrows():
+        profit = row["profit"]
+        if profit > 0:
+            consecutive_wins += 1
+            consecutive_loses = 0
+        else:
+            consecutive_wins = 0
+            consecutive_loses += 1
+
+        max_consecutive_wins = max(max_consecutive_wins, consecutive_wins)
+        max_consecutive_loses = max(max_consecutive_loses, consecutive_loses)
+
     summary = dict()
 
     summary["total_trades"] = totaltimes
@@ -49,6 +86,22 @@ def do_trading_analyze(df_closes, df_funds):
     summary["fee"] = total_fee
     summary["accnet_profit"] = 0 if totaltimes == 0 else accnetprofit
     summary["winrate"] = winrate * 100
+    summary["avgprof"] = avgprof
+    summary["avgprof_win"] = avgprof_win
+    summary["avgprof_lose"] = avgprof_lose
+    summary["winloseratio"] = winloseratio
+    summary["largest_profit"] = largest_profit
+    summary["largest_loss"] = largest_loss
+    summary["avgtrd_hold_bar"] = avgtrd_hold_bar
+    summary["avgemphold_bar"] = avgemphold_bar
+    summary["winempty_avgholdbar"] = winempty_avgholdbar
+    summary["lossempty_avgholdbar"] = lossempty_avgholdbar
+    summary["avg_bars_in_winner"] = avg_bars_in_winner
+    summary["avg_bars_in_loser"] = avg_bars_in_loser
+    summary["max_consecutive_wins"] = max_consecutive_wins
+    summary["max_consecutive_loses"] = max_consecutive_loses
+
+
     return summary
 
 
@@ -222,7 +275,7 @@ class WtBtSnooper:
                     "message":"Invalid workspace"
                 }
 
-            code, bars = self.get_bt_kline(path, straid)
+            code, bars, index, marks = self.get_bt_kline(path, straid)
             if bars is None:
                 ret = {
                     "result":-2,
@@ -236,6 +289,12 @@ class WtBtSnooper:
                     "bars": bars,
                     "code": code
                 }
+
+                if index is not None:
+                    ret["index"] = index
+
+                if marks is not None:
+                    ret["marks"] = marks
 
             return ret
 
@@ -716,6 +775,28 @@ class WtBtSnooper:
         period = btState["period"]
         stime = btState["stime"]
         etime = btState["etime"]
+
+        index = None
+        marks = None
+
+        #如果有btchart，就用btchart定义的K线
+        filename = f"{straid}/btchart.json"
+        filename = os.path.join(path, filename)
+        if os.path.exists(filename):
+            f = open(filename, "r")
+            content = f.read()
+            f.close()
+
+            btchart = json.loads(content)
+            code = btchart['kline']["code"]
+            period = btchart['kline']["period"]
+
+            if "index" in btchart:
+                index = btchart["index"]
+
+            if "marks" in btchart:
+                marks = btchart["marks"]
+
         barList = self.dt_servo.get_bars(stdCode=code, period=period, fromTime=stime, endTime=etime)
         if barList is None:
             return None
@@ -734,4 +815,4 @@ class WtBtSnooper:
             bar["turnover"] = realBar.money
             bars.append(bar)
 
-        return code, bars
+        return code, bars, index, marks
