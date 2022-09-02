@@ -30,8 +30,8 @@ def do_trading_analyze(df_closes, df_funds):
     totaltimes = len(df_closes)  # 总交易次数
     wintimes = len(df_wins)  # 盈利次数
     losetimes = len(df_loses)  # 亏损次数
-    winamout = df_wins["profit"].sum()  # 毛盈利
-    loseamount = df_loses["profit"].sum()  # 毛亏损
+    winamout = float(df_wins["profit"].sum())  # 毛盈利
+    loseamount = float(df_loses["profit"].sum())  # 毛亏损
     trdnetprofit = winamout + loseamount  # 交易净盈亏
     accnetprofit = trdnetprofit - total_fee  # 账户净盈亏
     winrate = (wintimes / totaltimes) if totaltimes > 0 else 0  # 胜率
@@ -41,9 +41,9 @@ def do_trading_analyze(df_closes, df_funds):
     winloseratio = abs(avgprof_win / avgprof_lose) if avgprof_lose != 0 else "N/A"  # 单次盈亏均值比
 
     # 单笔最大盈利交易
-    largest_profit = df_wins['profit'].max()
+    largest_profit = float(df_wins['profit'].max())
     # 单笔最大亏损交易
-    largest_loss = df_loses['profit'].min()
+    largest_loss = float(df_loses['profit'].min())
     # 交易的平均持仓K线根数
     avgtrd_hold_bar = 0 if totaltimes==0 else ((df_closes['closebarno'] - df_closes['openbarno']).sum()) / totaltimes
     # 平均空仓K线根数
