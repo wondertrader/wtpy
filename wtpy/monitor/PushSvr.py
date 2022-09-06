@@ -1,51 +1,133 @@
-from flask_socketio import SocketIO, emit
-from flask import session, sessions
+import datetime
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from .WtLogger import WtLogger
-
-def get_param(json_data, key:str, type=str, defVal = ""):
-    if key not in json_data:
-        return defVal
-    else:
-        return type(json_data[key])
+import asyncio
+import json
+import threading
+import time
 
 class PushServer:
 
-    def __init__(self, app, dataMgr, logger:WtLogger = None):
-        sockio:SocketIO = SocketIO(app)
-        self.sockio = sockio
+    def __init__(self, app:FastAPI, dataMgr, logger:WtLogger = None):
         self.app = app
         self.dataMgr = dataMgr
         self.logger = logger
+        self.ready = False
 
-        @sockio.on('connect', namespace='/')
-        def on_connect():
-            usrInfo = session.get("userinfo")
+        self.active_connections = list()
+
+        self.lock = threading.Lock()
+
+    async def connect(self, ws: WebSocket):
+        # 等待连接
+        await ws.accept()
+
+        if "userinfo" in ws.session:
+            usrInfo = ws.session["userinfo"]
             if usrInfo is not None:
                 self.logger.info("%s connected" % usrInfo["loginid"])
+            # 存储ws连接对象
+            self.active_connections.append(ws)
 
-        @sockio.on('disconnect', namespace='/')
-        def on_disconnect():
-            usrInfo = session.get("userinfo")
+    def disconnect(self, ws: WebSocket):
+        # 关闭时 移除ws对象
+        self.active_connections.remove(ws)
+        if "userinfo" in ws.session:
+            usrInfo = ws.session["userinfo"]
             if usrInfo is not None:
                 self.logger.info("%s disconnected" % usrInfo["loginid"])
 
-        @sockio.on('setgroup', namespace='/')
-        def set_group(data):
-            groupid = get_param(data, "groupid")
-            if len(groupid) == 0:
-                emit('setgroup', {"result":-2, "message":"组合ID不能为空"})
-            else:
-                session["groupid"] = groupid         
+    @staticmethod
+    async def send_personal_message(data: dict, ws: WebSocket):
+        # 发送个人消息
+        await ws.send_json(data)
 
-    def run(self, port:int, host:str):
-        self.sockio.run(self.app, host, port)
+    def broadcast(self, data: dict, groupid:str=""):
+        self.lock.acquire()
+
+        loop = None
+        try:
+            loop = asyncio.get_event_loop()
+        except:
+            loop = None
+        
+        if loop is None or loop.is_closed():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        tasks = []
+        # 广播消息
+        for ws in self.active_connections:
+            if len(groupid)!=0 and "groupid" in ws.session and ws.session["groupid"]!=groupid:
+                continue
+            tasks.append(asyncio.ensure_future(ws.send_json(data)))
+        
+        if len(tasks) > 0:            
+            loop.run_until_complete(asyncio.gather(*tasks))
+
+        loop.close()
+        self.lock.release()
+
+    def on_subscribe_group(self, ws:WebSocket, data:dict):
+        if ws not in self.active_connections:
+            return
+
+        if "groupid" not in data:
+            return
+
+        usrInfo = ws.session["userinfo"]
+        ws.session["groupid"] = data["groupid"]
+        self.logger.info("%s@%s subscribed group %s" % (usrInfo["loginid"], usrInfo["loginip"] , data["groupid"]))
+
+    def run(self):
+        app = self.app
+        @app.websocket("/")
+        async def ws_listen(ws:WebSocket):
+            await self.connect(ws)
+            try:
+                while True:
+                    data = await ws.receive_text()
+                    try:
+                        req = json.loads(data)
+                        tp = req["type"]
+                        if tp == 'subscribe':
+                            self.on_subscribe_group(ws,req)
+                            await self.send_personal_message(req, ws)
+                        elif tp == 'heartbeat':
+                            await self.send_personal_message({"type":"heartbeat", "message":"pong"}, ws)
+                    except:
+                        continue
+
+            except WebSocketDisconnect:
+                self.disconnect(ws)
+        self.ready = True
 
     def notifyGrpLog(self, groupid, tag:str, time:int, message):
-        self.sockio.emit("notify", {"type":"gplog", "groupid":groupid, "tag":tag, "time":time, "message":message}, broadcast=True)
+        if not self.ready:
+            return
+
+        try:
+            self.broadcast({"type":"gplog", "groupid":groupid, "tag":tag, "time":time, "message":message}, groupid)
+        except RuntimeError as e:
+            print(e)
 
     def notifyGrpEvt(self, groupid, evttype):
-        self.sockio.emit("notify", {"type":"gpevt", "groupid":groupid, "evttype":evttype}, broadcast=True)
+        # self.logger.info("group event %s notified" % evttype)
+        if not self.ready:
+            return
+
+        try:
+            self.broadcast({"type":"gpevt", "groupid":groupid, "evttype":evttype})
+        except RuntimeError as e:
+            print(e)
 
     def notifyGrpChnlEvt(self, groupid, chnlid, evttype, data):
-        self.sockio.emit("notify", {"type":"chnlevt", "groupid":groupid, "channel":chnlid, "data":data, "evttype":evttype}, broadcast=True)
+        # self.logger.info("channel event %s notified" % evttype)
+        if not self.ready:
+            return
+
+        try:
+            self.broadcast({"type":"chnlevt", "groupid":groupid, "channel":chnlid, "data":data, "evttype":evttype})
+        except RuntimeError as e:
+            print(e)
