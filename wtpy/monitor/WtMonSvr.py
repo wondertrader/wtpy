@@ -1,18 +1,16 @@
-# from flask import Flask, session, redirect, request, make_response
-# from flask_compress  import Compress
 from fastapi import FastAPI, Body, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import RedirectResponse, FileResponse
 import uvicorn
+
 import json
 import yaml
 import datetime
 import os
 import hashlib
 import sys
-import base64
 import chardet
 import pytz
 
@@ -20,7 +18,6 @@ from .WtLogger import WtLogger
 from .DataMgr import DataMgr, backup_file
 from .PushSvr import PushServer
 from .WatchDog import WatchDog, WatcherSink
-from .EventReceiver import EventReceiver, EventSink
 from .WtBtMon import WtBtMon
 from wtpy import WtDtServo
 
@@ -297,10 +294,6 @@ class WtMonSvr(WatcherSink):
         # 看门狗模块，主要用于调度各个组合启动关闭
         self._dog = WatchDog(sink=self, db=self.__data_mgr__.get_db(), logger=self.logger)
 
-        # app = Flask(__name__, instance_relative_config=True, static_folder=static_folder, static_url_path=static_url_path)
-        # app.secret_key = "!@#$%^&*()"
-        # Compress(app)
-        # app.debug = True
         app = FastAPI(title="WtMonSvr", description="A http api of WtMonSvr", redoc_url=None, version="1.0.0")
         app.add_middleware(GZipMiddleware, minimum_size=1000)
         app.add_middleware(SessionMiddleware, secret_key='!@#$%^&*()', max_age=25200, session_cookie='WtMonSvr_sid')
@@ -343,12 +336,12 @@ class WtMonSvr(WatcherSink):
         # 拉取K线数据
         @app.post("/bt/qrybars", tags=["回测管理接口"])
         async def qry_bt_bars(
-                request: Request,
-                code: str = Body(..., title="合约代码", embed=True),
-                period: str = Body(..., title="K线周期", embed=True),
-                stime: int = Body(None, title="开始时间", embed=True),
-                etime: int = Body(..., title="结束时间", embed=True),
-                count: int = Body(None, title="数据条数", embed=True)
+            request: Request,
+            code: str = Body(..., title="合约代码", embed=True),
+            period: str = Body(..., title="K线周期", embed=True),
+            stime: int = Body(None, title="开始时间", embed=True),
+            etime: int = Body(..., title="结束时间", embed=True),
+            count: int = Body(None, title="数据条数", embed=True)
         ):
             bSucc, userInfo = check_auth(request)
             if not bSucc:
