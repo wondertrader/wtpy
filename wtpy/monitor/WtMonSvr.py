@@ -1066,6 +1066,7 @@ class WtMonSvr(WatcherSink):
                 name: str = Body('', title="组合名称", embed=True),
                 path: str = Body('', title="组合路径", embed=True),
                 gtype: str = Body('', title="组合类型", embed=True),
+                info: str = Body('', title="组合信息",embed=True),
                 env: str = Body('', title="组合环境，实盘/回测", embed=True),
                 datmod: str = Body('mannual', title="数据模式，mannal/auto", embed=True),
                 mqurl: str = Body('', title="消息队列地址", embed=True),
