@@ -400,7 +400,9 @@ class WatchDog:
 
         self.__logger__.info("手动启动%s" % (appid))
         appInfo = self.__apps__[appid]
-        appInfo.run()
+        thrd = threading.Thread(target=appInfo.run, daemon=True)
+        thrd.start()
+        # appInfo.run()
 
     def stop(self, appid:str):
         if appid not in self.__apps__:
@@ -408,7 +410,8 @@ class WatchDog:
 
         self.__logger__.info("手动停止%s" % (appid))
         appInfo = self.__apps__[appid]
-        appInfo.stop()
+        thrd = threading.Thread(target=appInfo.stop, daemon=True)
+        thrd.start()
 
     def has_app(self, appid:str):
         return appid in self.__apps__
