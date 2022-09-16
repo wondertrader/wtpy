@@ -134,6 +134,9 @@ class AppInfo(EventSink):
         return self._cmd_line
 
     def is_running(self, pids) -> bool:
+        if self._state == AppState.AS_Closing:
+            return True
+            
         bNeedCheck = (self._procid is None) or (not psutil.pid_exists(self._procid))
         if bNeedCheck:
             for pid in pids:
@@ -242,7 +245,9 @@ class AppInfo(EventSink):
             self.update_state(pids)
             if self._state == AppState.AS_NotRunning and self._guard:
                 self.__logger__.info("应用%s未启动，正在自动重启" % (self._id))
-                self.run()
+                thrd = threading.Thread(target=self.run, daemon=True)
+                thrd.start()
+                # self.run()
             elif self._schedule:
                 self.__schedule__()
 
@@ -285,14 +290,20 @@ class AppInfo(EventSink):
                 if action == ActionType.AT_START.value:
                     if self._state not in [AppState.AS_NotExist, AppState.AS_Running]:
                         self.__logger__.info("自动启动应用%s" % (appid))
-                        self.run()
+                        # self.run()
+                        thrd = threading.Thread(target=self.run, daemon=True)
+                        thrd.start()
                 elif action == ActionType.AT_STOP.value:
                     if self._state == AppState.AS_Running:
                         self.__logger__.info("自动停止应用%s" % (appid))
-                        self.stop()
+                        # self.stop()
+                        thrd = threading.Thread(target=self.stop, daemon=True)
+                        thrd.start()
                 elif action == ActionType.AT_RESTART.value:
                     self.__logger__.info("自动重启应用%s" % (appid))
-                    self.restart()
+                    # self.restart()
+                    thrd = threading.Thread(target=self.restart, daemon=True)
+                    thrd.start()
 
                 tInfo["lastDate"] = curDt
                 tInfo["lastTime"] = curMin
@@ -421,7 +432,9 @@ class WatchDog:
             return
 
         appInfo = self.__apps__[appid]
-        appInfo.restart()
+        thrd = threading.Thread(target=appInfo.restart, daemon=True)
+        thrd.start()
+        # appInfo.restart()
     
     def isRunning(self, appid:str):
         if appid not in self.__apps__:
