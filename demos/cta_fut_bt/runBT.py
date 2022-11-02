@@ -61,7 +61,7 @@ if __name__ == "__main__":
         #创建绩效分析模块
         analyst = WtBtAnalyst()
         #将回测的输出数据目录传递给绩效分析模块
-        analyst.add_strategy("pydt_IF", folder="./outputs_bt/pydt_IF/", init_capital=500000, rf=0.02, annual_trading_days=240)
+        analyst.add_strategy("pydt_IF", folder="./outputs_bt/", init_capital=500000, rf=0.02, annual_trading_days=240)
         #运行绩效模块
         analyst.run_new()
     else:
