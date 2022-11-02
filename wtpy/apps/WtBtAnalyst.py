@@ -1554,7 +1554,7 @@ class WtBtAnalyst:
 
             workbook.close()
 
-            filename = folder + '/summary.json'
+            filename = os.path.join(folder,"summary.json")
             sumObj = summary_analyze(df_funds, capital=init_capital, rf=rf, period=annual_days)
             sumObj["name"] = sname
             f = open(filename,"w")
@@ -1596,7 +1596,6 @@ class WtBtAnalyst:
         for sname in self.__strategies__:
             sInfo = self.__strategies__[sname]
             folder = os.path.join(sInfo["folder"],sname)
-            
 
             df_funds = pd.read_csv(os.path.join(folder, "funds.csv"))
 
