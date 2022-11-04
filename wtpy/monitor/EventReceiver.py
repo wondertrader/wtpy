@@ -1,5 +1,3 @@
-import threading
-import struct
 import json
 import chardet
 
@@ -58,9 +56,10 @@ class EventReceiver(WtMQClient):
 
     def on_mq_message(self, topic:str, message:str, dataLen:int):
         topic = decode_bytes(topic)
-        message = None
         if dataLen > 0:
             message = decode_bytes(message[:dataLen])
+        else:
+            message = None
             
         if self._sink is not None:
             if topic == TOPIC_RT_TRADE:

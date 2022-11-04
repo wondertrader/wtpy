@@ -4,8 +4,9 @@ from wtpy.wrapper import WtDtServoApi
 from wtpy.WtCoreDefs import WTSBarStruct, WTSTickStruct
 from wtpy.WtDataDefs import WtTickRecords,WtBarRecords
 
-from flask import Flask, request, make_response
-from flask_compress import Compress
+from fastapi import FastAPI, Body
+from fastapi.middleware.gzip import GZipMiddleware
+import uvicorn
 
 import urllib.request
 import io
@@ -13,28 +14,6 @@ import gzip
 import json
 
 import os
-
-def pack_rsp(obj):
-    rsp = make_response(json.dumps(obj))
-    rsp.headers["content-type"]= "text/json;charset=utf-8"
-    return rsp
-
-def parse_data():
-    try:
-        data = request.get_data()
-        json_data = json.loads(data.decode("utf-8"))
-        return True,json_data
-    except:
-        return False, {
-            "result": -998,
-            "message": "请求数据解析失败"
-        }
-
-def get_param(json_data, key:str, type=str, defVal = ""):
-    if key not in json_data:
-        return defVal
-    else:
-        return type(json_data[key])
 
 def httpPost(url, datas:dict, encoding='utf-8') -> dict:
     headers = {
@@ -150,63 +129,53 @@ class WtDtServo:
             print(oe)
 
     def __server_impl__(self, port:int, host:str):
-        self.server_inst.run(port = port, host = host)
-        
-    def runServer(self, port:int = 8081, host="0.0.0.0", bSync:bool = True):
-        if self.remote_api is not None:
-            raise Exception('WtDtServo is already in remote mode')
-            return
+        # self.server_inst.run(port = port, host = host)
+        uvicorn.run(self.server_inst, port=port, host=host)
 
-        app = Flask(__name__)
-        app.secret_key = "!@#$%^&*()"
-        Compress(app)
-
-        self.server_inst = app
-
-        @app.route("/getbars", methods=["POST"])
-        def on_get_bars():
-            bSucc, json_data = parse_data()
-            if not bSucc:
-                return pack_rsp(json_data)
-
-            stdCode = get_param(json_data, "code")
-            period = get_param(json_data, "period")
-            fromTime = get_param(json_data, "stime", int, None)
-            dataCount = get_param(json_data, "count", int, None)
-            endTime = get_param(json_data, "etime", int)
+    def __init_apis__(self, app:FastAPI):
+        @app.post("/getbars")
+        async def on_get_bars(
+            code: str = Body(..., title="合约代码", embed=True),
+            period: str = Body(..., title="K线周期", embed=True),
+            stime: int = Body(None, title="开始时间", embed=True),
+            etime: int = Body(..., title="结束时间", embed=True),
+            count: int = Body(None, title="数据条数", embed=True)
+        ):
+            stdCode = code
+            fromTime = stime
+            dataCount = count
+            endTime = etime
 
             if (fromTime is None and dataCount is None) or (fromTime is not None and dataCount is not None):
-                ret = {
+                return {
                     "result":-1,
                     "message":"Only one of stime and count must be valid at the same time"
                 }
             else:
                 bars = self.local_api.get_bars(stdCode=stdCode, period=period, fromTime=fromTime, dataCount=dataCount, endTime=endTime)
                 if bars is None:
-                    ret = {
+                    return {
                         "result":-2,
                         "message":"Data not found"
                     }
                 else:
                     bar_list = [curBar.to_dict  for curBar in bars]
                     
-                    ret = {
+                    return {
                         "result":0,
                         "message":"Ok",
                         "bars": bar_list
                     }
 
-            return pack_rsp(ret)
-
-        @app.route("/getdaysbars", methods=["POST"])
-        def on_get_day_sbars():
-            bSucc, json_data = parse_data()
-            if not bSucc:
-                return pack_rsp(json_data)
-
-            stdCode = get_param(json_data, "code")
-            period = get_param(json_data, "second", int, None)
-            date = get_param(json_data, "date", int, None)
+        @app.post("/getdaysbars")
+        def on_get_day_sbars(
+            code: str = Body(..., title="合约代码", embed=True),
+            second: int = Body(..., title="秒线周期", embed=True),
+            date: int = Body(..., title="交易日", embed=True)
+        ):
+            stdCode = code
+            period = second
+            date = date
 
             if date is None or period is None:
                 ret = {
@@ -229,18 +198,15 @@ class WtDtServo:
                         "bars": bar_list
                     }
 
-            return pack_rsp(ret)
+            return ret
 
-        @app.route("/getdaybars", methods=["POST"])
-        def on_get_day_bars():
-            bSucc, json_data = parse_data()
-            if not bSucc:
-                return pack_rsp(json_data)
-
-            stdCode = get_param(json_data, "code")
-            period = get_param(json_data, "period", str, None)
-            date = get_param(json_data, "date", int, None)
-
+        @app.post("/getdaybars")
+        def on_get_day_bars(
+            code: str = Body(..., title="合约代码", embed=True),
+            period: str = Body(..., title="K线周期", embed=True),
+            date: int = Body(..., title="交易日", embed=True)
+        ):
+            stdCode = code
             if date is None or period is None:
                 ret = {
                     "result":-1,
@@ -262,18 +228,19 @@ class WtDtServo:
                         "bars": bar_list
                     }
 
-            return pack_rsp(ret)
+            return ret
 
-        @app.route("/getticks", methods=["POST"])
-        def on_get_ticks():
-            bSucc, json_data = parse_data()
-            if not bSucc:
-                return pack_rsp(json_data)
-
-            stdCode = get_param(json_data, "code")
-            fromTime = get_param(json_data, "stime", int, None)
-            dataCount = get_param(json_data, "count", int, None)
-            endTime = get_param(json_data, "etime", int)
+        @app.post("/getticks")
+        def on_get_ticks(
+            code: str = Body(..., title="合约代码", embed=True),
+            stime: int = Body(None, title="开始时间", embed=True),
+            etime: int = Body(..., title="结束时间", embed=True),
+            count: int = Body(None, title="数据条数", embed=True)
+        ):
+            stdCode = code
+            fromTime = stime
+            dataCount = count
+            endTime = etime
 
             if (fromTime is None and dataCount is None) or (fromTime is not None and dataCount is not None):
                 ret = {
@@ -302,16 +269,14 @@ class WtDtServo:
                         "ticks": tick_list
                     }
 
-            return pack_rsp(ret)
+            return ret
             
-        @app.route("/getdayticks", methods=["POST"])
-        def on_get_day_ticks():
-            bSucc, json_data = parse_data()
-            if not bSucc:
-                return pack_rsp(json_data)
-
-            stdCode = get_param(json_data, "code")
-            date = get_param(json_data, "count", int, None)
+        @app.post("/getdayticks")
+        def on_get_day_ticks(
+            code: str = Body(..., title="合约代码", embed=True),
+            date: int = Body(..., title="交易日", embed=True)
+        ):
+            stdCode = code
 
             if date is None:
                 ret = {
@@ -340,8 +305,18 @@ class WtDtServo:
                         "ticks": tick_list
                     }
 
-            return pack_rsp(ret)
-            
+            return ret
+        
+    def runServer(self, port:int = 8081, host="0.0.0.0", bSync:bool = True):
+        if self.remote_api is not None:
+            raise Exception('WtDtServo is already in remote mode')
+
+        app = FastAPI(title="WtDtServo", description="A http api of WtDtServo", redoc_url=None, version="1.0.0")
+        app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+        self.server_inst = app 
+
+        self.__init_apis__(app)
 
         self.commitConfig()
         if bSync:

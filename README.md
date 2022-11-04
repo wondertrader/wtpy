@@ -1,6 +1,6 @@
 ![WonderTrader2.png](http://wt.f-sailors.cn/wt/logo_qcode_noad.jpg)
 <p align="center">
-    <img src ="https://img.shields.io/badge/version-0.9.4-blueviolet.svg"/>
+    <img src ="https://img.shields.io/badge/version-0.9.5-blueviolet.svg"/>
     <img src ="https://img.shields.io/badge/platform-windows|linux-yellow.svg"/>
     <img src ="https://img.shields.io/badge/build-passing-brightgreen"/>
     <img src ="https://img.shields.io/badge/license-MIT-orange"/>
@@ -81,6 +81,14 @@
 
 
 # 更新日志
+### 0.9.5
+* `C++`底层更新到`2022/11/04`发布的`v0.9.5`版本
+* 将flask改成fastapi（因为flask的依赖包版本繁复，直接安装会有一些依赖版本匹配的问题）
+* 其他配合底层的优化和调整
+* 修复了一些已知的bug
+* 更多修改日志请参考[WonderTrader v0.9.5更新日志](https://github.com/wondertrader/wondertrader/blob/master/updatelog.md)
+* 调试资源请查看<https://gitee.com/wondertrader/wtpy_utils/raw/master/pdb_wtpy_v0.9.5.rar>
+
 ### 0.9.4
 * `C++`底层更新到`2022/08/29`发布的`v0.9.4`版本
 * 其他配合底层的优化和调整

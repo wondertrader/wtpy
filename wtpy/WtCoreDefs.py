@@ -2,8 +2,6 @@ from ctypes import c_void_p, CFUNCTYPE, POINTER, c_char_p, c_bool, c_ulong, c_do
 from ctypes import Structure, c_char, c_int32, c_uint32,c_uint64
 from copy import copy
 import numpy as np
-import pandas as pd
-from typing import Any
 
 MAX_INSTRUMENT_LENGTH = c_char*32
 MAX_EXCHANGE_LENGTH = c_char*16

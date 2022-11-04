@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     #绩效分析
     analyst = WtBtAnalyst()
-    analyst.add_strategy("pydt_SH510300", folder="./outputs_bt/pydt_SH510300/", init_capital=5000, rf=0.02, annual_trading_days=240)
+    analyst.add_strategy("pydt_SH510300", folder="./outputs_bt/", init_capital=5000, rf=0.0, annual_trading_days=240)
     analyst.run()
 
     kw = input('press any key to exit\n')
