@@ -1,8 +1,3 @@
-from pandas import DataFrame as df
-import pandas as pd
-import os
-import json
-
 from wtpy.ProductMgr import ProductInfo
 from wtpy.SessionMgr import SessionInfo
 from wtpy.wrapper import WtWrapper
