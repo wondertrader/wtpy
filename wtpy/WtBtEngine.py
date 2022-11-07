@@ -41,7 +41,7 @@ class WtBtEngine:
         self.__idx_writer__ = None  #指标输出模块
 
         self.__dump_config__ = bDumpCfg #是否保存最终配置
-        self.__is_cfg_yaml__ = True
+        self.__is_cfg_yaml__ = False
 
         self.__ext_data_loader__:BaseExtDataLoader = None   #扩展历史数据加载器
 
@@ -66,6 +66,9 @@ class WtBtEngine:
                 "path":"./storage/"
             }
 
+        if "basefiles" not in self.__config__["replayer"]:
+            self.__config__["replayer"]["basefiles"] = dict()
+
         if "env" not in self.__config__:
             self.__config__["env"] = dict()
             self.__config__["env"]["mocker"] = "cta"
@@ -87,33 +90,15 @@ class WtBtEngine:
         if self.__idx_writer__ is not None:
             self.__idx_writer__.write_indicator(id, tag, time, data)
 
-    def init(self, folder:str, 
-        cfgfile:str = "configbt.yaml", 
+    def init_with_config(self, folder:str, 
+        config:dict, 
         commfile:str = None, 
         contractfile:str = None,
         sessionfile:str = None,
         holidayfile:str= None,
         hotfile:str = None,
         secondfile:str = None):
-        '''
-        初始化
-        @folder     基础数据文件目录，\\结尾
-        @cfgfile    配置文件，json/yaml格式
-        @commfile   品种定义文件，json/yaml格式
-        @contractfile   合约定义文件，json/yaml格式
-        '''
-        f = open(cfgfile, "rb")
-        content = f.read()
-        f.close()
-        encoding = chardet.detect(content[:500])["encoding"]
-        content = content.decode(encoding)
-
-        if cfgfile.lower().endswith(".json"):
-            self.__config__ = json.loads(content)
-            self.__is_cfg_yaml__ = False
-        else:
-            self.__config__ = yaml.full_load(content)
-            self.__is_cfg_yaml__ = True
+        self.__config__ = config.copy()
 
         self.__check_config__()
 
@@ -144,6 +129,34 @@ class WtBtEngine:
 
         self.sessionMgr = SessionMgr()
         self.sessionMgr.load(self.__config__["replayer"]["basefiles"]["session"])
+
+    def init(self, folder:str, 
+        cfgfile:str = "configbt.yaml", 
+        commfile:str = None, 
+        contractfile:str = None,
+        sessionfile:str = None,
+        holidayfile:str= None,
+        hotfile:str = None,
+        secondfile:str = None):
+        '''
+        初始化
+        @folder     基础数据文件目录，\\结尾
+        @cfgfile    配置文件，json/yaml格式
+        @commfile   品种定义文件，json/yaml格式
+        @contractfile   合约定义文件，json/yaml格式
+        '''
+        f = open(cfgfile, "rb")
+        content = f.read()
+        f.close()
+        encoding = chardet.detect(content[:500])["encoding"]
+        content = content.decode(encoding)
+
+        if cfgfile.lower().endswith(".json"):
+            self.init_with_config(folder, json.loads(content), commfile, contractfile, sessionfile, holidayfile, hotfile, secondfile)
+            self.__is_cfg_yaml__ = False
+        else:
+            self.init_with_config(folder, yaml.full_load(content), commfile, contractfile, sessionfile, holidayfile, hotfile, secondfile)
+            self.__is_cfg_yaml__ = True   
 
     def configMocker(self, name:str):
         '''
