@@ -53,12 +53,12 @@ class WtDtWrapper:
         '''
         self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
 
-    def initialize(self, cfgfile:str = "dtcfg.yaml", logprofile:str = "logcfgdt.jsyamlon"):
+    def initialize(self, cfgfile:str = "dtcfg.yaml", logprofile:str = "logcfgdt.jsyamlon", bCfgFile:bool = True, bLogCfgFile:bool = True):
         '''
         C接口初始化
         '''
         try:
-            self.api.initialize(bytes(cfgfile, encoding = "utf8"), bytes(logprofile, encoding = "utf8"))
+            self.api.initialize(bytes(cfgfile, encoding = "utf8"), bytes(logprofile, encoding = "utf8"), bCfgFile, bLogCfgFile)
             self.register_extended_module_callbacks()
         except OSError as oe:
             print(oe)
