@@ -136,6 +136,9 @@ class AppInfo(EventSink):
     def is_running(self, pids) -> bool:
         if self._state == AppState.AS_Closing:
             return True
+
+        if self._state == AppState.AS_Closed:
+            return False
             
         bNeedCheck = (self._procid is None) or (not psutil.pid_exists(self._procid))
         if bNeedCheck:
@@ -177,6 +180,7 @@ class AppInfo(EventSink):
         if self._mq_url != '':
             # 每次启动都重新创建接收器
             if self._evt_receiver is not None:
+                self.__logger__.info("应用%s正在释放原有事件接收器..." % (self._id))
                 self._evt_receiver.release()
             self._evt_receiver = EventReceiver(url=self._mq_url, logger=self.__logger__, sink=self)
             self._evt_receiver.run()
@@ -208,7 +212,7 @@ class AppInfo(EventSink):
         self._state = AppState.AS_Closing
         try:
             if isWindows():
-                os.system("taskkill /pid " + str(self._procid))
+                os.system("taskkill /f /pid " + str(self._procid))
             else:
                 os.system("kill -9 " + str(self._procid))
         except SystemError as e:
@@ -290,20 +294,20 @@ class AppInfo(EventSink):
                 if action == ActionType.AT_START.value:
                     if self._state not in [AppState.AS_NotExist, AppState.AS_Running]:
                         self.__logger__.info("自动启动应用%s" % (appid))
-                        # self.run()
-                        thrd = threading.Thread(target=self.run, daemon=True)
-                        thrd.start()
+                        self.run()
+                        # thrd = threading.Thread(target=self.run, daemon=True)
+                        # thrd.start()
                 elif action == ActionType.AT_STOP.value:
                     if self._state == AppState.AS_Running:
                         self.__logger__.info("自动停止应用%s" % (appid))
-                        # self.stop()
-                        thrd = threading.Thread(target=self.stop, daemon=True)
-                        thrd.start()
+                        self.stop()
+                        # thrd = threading.Thread(target=self.stop, daemon=True)
+                        # thrd.start()
                 elif action == ActionType.AT_RESTART.value:
                     self.__logger__.info("自动重启应用%s" % (appid))
-                    # self.restart()
-                    thrd = threading.Thread(target=self.restart, daemon=True)
-                    thrd.start()
+                    self.restart()
+                    # thrd = threading.Thread(target=self.restart, daemon=True)
+                    # thrd.start()
 
                 tInfo["lastDate"] = curDt
                 tInfo["lastTime"] = curMin
@@ -411,9 +415,9 @@ class WatchDog:
 
         self.__logger__.info("手动启动%s" % (appid))
         appInfo = self.__apps__[appid]
-        thrd = threading.Thread(target=appInfo.run, daemon=True)
-        thrd.start()
-        # appInfo.run()
+        # thrd = threading.Thread(target=appInfo.run, daemon=True)
+        # thrd.start()
+        appInfo.run()
 
     def stop(self, appid:str):
         if appid not in self.__apps__:
@@ -421,8 +425,9 @@ class WatchDog:
 
         self.__logger__.info("手动停止%s" % (appid))
         appInfo = self.__apps__[appid]
-        thrd = threading.Thread(target=appInfo.stop, daemon=True)
-        thrd.start()
+        # thrd = threading.Thread(target=appInfo.stop, daemon=True)
+        # thrd.start()
+        appInfo.stop()
 
     def has_app(self, appid:str):
         return appid in self.__apps__
@@ -432,9 +437,9 @@ class WatchDog:
             return
 
         appInfo = self.__apps__[appid]
-        thrd = threading.Thread(target=appInfo.restart, daemon=True)
-        thrd.start()
-        # appInfo.restart()
+        # thrd = threading.Thread(target=appInfo.restart, daemon=True)
+        # thrd.start()
+        appInfo.restart()
     
     def isRunning(self, appid:str):
         if appid not in self.__apps__:

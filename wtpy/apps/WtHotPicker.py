@@ -4,7 +4,6 @@ import time
 import json
 import os
 import logging
-import functools
 
 import urllib.request
 import io

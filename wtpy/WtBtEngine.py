@@ -41,7 +41,7 @@ class WtBtEngine:
         self.__idx_writer__ = None  #指标输出模块
 
         self.__dump_config__ = bDumpCfg #是否保存最终配置
-        self.__is_cfg_yaml__ = True
+        self.__is_cfg_yaml__ = False
 
         self.__ext_data_loader__:BaseExtDataLoader = None   #扩展历史数据加载器
 
@@ -90,7 +90,6 @@ class WtBtEngine:
         if self.__idx_writer__ is not None:
             self.__idx_writer__.write_indicator(id, tag, time, data)
 
-
     def init_with_config(self, folder:str, 
         config:dict, 
         commfile:str = None, 
@@ -99,14 +98,7 @@ class WtBtEngine:
         holidayfile:str= None,
         hotfile:str = None,
         secondfile:str = None):
-        '''
-        初始化
-        @folder     基础数据文件目录，\\结尾
-        @cfgfile    配置文件，json/yaml格式
-        @commfile   品种定义文件，json/yaml格式
-        @contractfile   合约定义文件，json/yaml格式
-        '''
-        self.__config__ = config
+        self.__config__ = config.copy()
 
         self.__check_config__()
 
@@ -160,11 +152,11 @@ class WtBtEngine:
         content = content.decode(encoding)
 
         if cfgfile.lower().endswith(".json"):
-            self.init_with_config(folder, json.loads(content), commfile, contractfile, secondfile, holidayfile, hotfile, secondfile)
+            self.init_with_config(folder, json.loads(content), commfile, contractfile, sessionfile, holidayfile, hotfile, secondfile)
             self.__is_cfg_yaml__ = False
         else:
-            self.init_with_config(folder, yaml.full_load(content), commfile, contractfile, secondfile, holidayfile, hotfile, secondfile)
-            self.__is_cfg_yaml__ = True
+            self.init_with_config(folder, yaml.full_load(content), commfile, contractfile, sessionfile, holidayfile, hotfile, secondfile)
+            self.__is_cfg_yaml__ = True   
 
     def configMocker(self, name:str):
         '''

@@ -3,7 +3,6 @@ import json
 import hashlib
 import datetime
 import pytz
-import time
 from fastapi import FastAPI, Body
 from starlette.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles

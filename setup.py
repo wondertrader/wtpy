@@ -17,21 +17,22 @@ DESCRIPTION = 'Python Sub Framework Of WonderTrader'
 URL = 'https://github.com/wondertrader/wtpy'
 EMAIL = 'silencesword@foxmail.com'
 AUTHOR = 'Wesley Liu'
-REQUIRES_PYTHON = '>=3.7.0'
+REQUIRES_PYTHON = '>=3.8.0'
 VERSION = '0.9.5'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
     'numpy', 
-    'pandas', 
-    'xlsxwriter', 
-    'websocktets', 
-    'pyquery', 
-    'uvicorn', 
-    'psutil', 
+    'pandas',     
     'chardet',
     'pyyaml',
-    'fastapi'
+    'xlsxwriter', 
+    'pyquery', 
+    'psutil', 
+    'fastapi',
+    'uvicorn',
+    'itsdangerous',
+    'deap'
 ]
 
 # What packages are optional?

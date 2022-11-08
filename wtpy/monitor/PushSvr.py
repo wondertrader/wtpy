@@ -1,4 +1,3 @@
-import datetime
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
 from .WtLogger import WtLogger
@@ -18,6 +17,11 @@ class PushServer:
         self.active_connections = list()
 
         self.lock = threading.Lock()
+
+        self.mutex = threading.Lock()
+        self.messages = list()
+        self.worker:threading.Thread = None
+        self.stopped = False
 
     async def connect(self, ws: WebSocket):
         # 等待连接
@@ -103,31 +107,60 @@ class PushServer:
                 self.disconnect(ws)
         self.ready = True
 
+        self.worker = threading.Thread(target=self.loop, daemon=True)
+        self.worker.start()
+
+    def loop(self):
+        while not self.stopped:
+            if len(self.messages) == 0:
+                time.sleep(1)
+                continue
+            
+            self.mutex.acquire()
+            messages = self.messages.copy()
+            self.messages = []
+            self.mutex.release()
+
+            for msg in messages:
+                if msg["type"] == "gplog":
+                    self.broadcast(msg, msg["groupid"])
+                else:
+                    self.broadcast(msg)
+
     def notifyGrpLog(self, groupid, tag:str, time:int, message):
         if not self.ready:
             return
 
-        try:
-            self.broadcast({"type":"gplog", "groupid":groupid, "tag":tag, "time":time, "message":message}, groupid)
-        except RuntimeError as e:
-            print(e)
+        self.mutex.acquire()
+        self.messages.append({"type":"gplog", "groupid":groupid, "tag":tag, "time":time, "message":message})
+        self.mutex.release()
+        # try:
+        #     self.broadcast({"type":"gplog", "groupid":groupid, "tag":tag, "time":time, "message":message}, groupid)
+        # except RuntimeError as e:
+        #     print(e)
 
     def notifyGrpEvt(self, groupid, evttype):
         # self.logger.info("group event %s notified" % evttype)
         if not self.ready:
             return
 
-        try:
-            self.broadcast({"type":"gpevt", "groupid":groupid, "evttype":evttype})
-        except RuntimeError as e:
-            print(e)
+        self.mutex.acquire()
+        self.messages.append({"type":"gpevt", "groupid":groupid, "evttype":evttype})
+        self.mutex.release()
+        # try:
+        #     self.broadcast({"type":"gpevt", "groupid":groupid, "evttype":evttype})
+        # except RuntimeError as e:
+        #     print(e)
 
     def notifyGrpChnlEvt(self, groupid, chnlid, evttype, data):
         # self.logger.info("channel event %s notified" % evttype)
         if not self.ready:
             return
 
-        try:
-            self.broadcast({"type":"chnlevt", "groupid":groupid, "channel":chnlid, "data":data, "evttype":evttype})
-        except RuntimeError as e:
-            print(e)
+        self.mutex.acquire()
+        self.messages.append({"type":"chnlevt", "groupid":groupid, "channel":chnlid, "data":data, "evttype":evttype})
+        self.mutex.release()
+        # try:
+        #     self.broadcast({"type":"chnlevt", "groupid":groupid, "channel":chnlid, "data":data, "evttype":evttype})
+        # except RuntimeError as e:
+        #     print(e)

@@ -1,6 +1,7 @@
 from wtpy.wrapper import WtDtWrapper
 from wtpy.ExtModuleDefs import BaseExtParser, BaseExtDataDumper
 from wtpy.WtUtilDefs import singleton
+import json
 
 @singleton
 class WtDtEngine:
@@ -10,13 +11,21 @@ class WtDtEngine:
         self.__ext_parsers__ = dict()   #外接的行情接入模块
         self.__ext_dumpers__ = dict()   #扩展数据Dumper
 
-    def initialize(self, cfgfile:str = "dtcfg.yaml", logprofile:str = "logcfgdt.yaml"):
+    def initialize(self, cfgfile:str = "dtcfg.yaml", logprofile:str = "logcfgdt.yaml", bCfgFile:bool = True, bLogCfgFile:bool = True):
         '''
-        数据引擎初始化\n
-        @cfgfile    配置文件\n
+        数据引擎初始化
+        @cfgfile    配置文件
         @logprofile 日志模块配置文件
         '''
-        self.__wrapper__.initialize(cfgfile, logprofile)
+        self.__wrapper__.initialize(cfgfile, logprofile, bCfgFile, bLogCfgFile)
+
+    def init_with_config(self, cfgfile:dict, logprofile:dict):
+        '''
+        数据引擎初始化
+        @cfgfile    配置
+        @logprofile 日志模块配置
+        '''
+        self.__wrapper__.initialize(json.dumps(cfgfile), json.dumps(logprofile), False, False)
     
     def run(self, bAsync:bool = False):
         '''

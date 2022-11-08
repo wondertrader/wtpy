@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 
-from json import encoder
 import multiprocessing
 import time
 import json
@@ -12,8 +11,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame as df
 from itertools import product
-from random import random, choice, seed
-from typing import Tuple
+from random import random, choice
 
 from deap import creator, base, tools, algorithms
 
