@@ -1143,7 +1143,6 @@ def strategy_analyze(workbook:Workbook, df_closes, df_trades,df_funds, capital, 
     chart_col.set_x_axis({'name': '交易列表'})
     worksheet.insert_chart('A171', chart_col, {'x_scale': 1.8, 'y_scale': 1.8})
 
-
 def output_closes(workbook:Workbook, df_closes:df, capital = 500000):
     worksheet = workbook.get_worksheet_by_name('交易列表')
     title_format = workbook.add_format({
@@ -1290,7 +1289,6 @@ def summary_analyze(df_funds:df, capital = 5000000, rf = 0, period = 240) -> dic
         "sortino_ratio":sortino, 
         "calmar_ratio":calmar
     }
-
 
 def funds_analyze(workbook:Workbook, df_funds:df, capital = 5000000, rf = 0, period = 240):
     '''
@@ -1512,6 +1510,94 @@ def funds_analyze(workbook:Workbook, df_funds:df, capital = 5000000, rf = 0, per
             down_time.append(l+1)
     worksheet.write_column('N3', down_time, fund_data_format)
 
+def do_trading_analyze(df_closes, df_funds):
+    df_wins = df_closes[df_closes["profit"] > 0]
+    df_loses = df_closes[df_closes["profit"] <= 0]
+
+    ay_WinnerBarCnts = df_wins["closebarno"] - df_wins["openbarno"]
+    ay_LoserBarCnts = df_loses["closebarno"] - df_loses["openbarno"]
+    total_winbarcnts = ay_WinnerBarCnts.sum()
+    total_losebarcnts = ay_LoserBarCnts.sum()
+
+    total_fee = df_closes['fee'].sum()  # 手续费
+
+    totaltimes = len(df_closes)  # 总交易次数
+    wintimes = len(df_wins)  # 盈利次数
+    losetimes = len(df_loses)  # 亏损次数
+    winamout = float(df_wins["profit"].sum())  # 毛盈利
+    loseamount = float(df_loses["profit"].sum())  # 毛亏损
+    trdnetprofit = winamout + loseamount  # 交易净盈亏
+    accnetprofit = trdnetprofit - total_fee  # 账户净盈亏
+    winrate = (wintimes / totaltimes) if totaltimes > 0 else 0  # 胜率
+    avgprof = (trdnetprofit / totaltimes) if totaltimes > 0 else 0  # 单次平均盈亏
+    avgprof_win = (winamout / wintimes) if wintimes > 0 else 0  # 单次盈利均值
+    avgprof_lose = (loseamount / losetimes) if losetimes > 0 else 0  # 单次亏损均值
+    winloseratio = abs(avgprof_win / avgprof_lose) if avgprof_lose != 0 else "N/A"  # 单次盈亏均值比
+
+    # 单笔最大盈利交易
+    largest_profit = float(df_wins['profit'].max())
+    # 单笔最大亏损交易
+    largest_loss = float(df_loses['profit'].min())
+    # 交易的平均持仓K线根数
+    avgtrd_hold_bar = 0 if totaltimes==0 else ((df_closes['closebarno'] - df_closes['openbarno']).sum()) / totaltimes
+    # 平均空仓K线根数
+    avb = (df_closes['openbarno'] - df_closes['closebarno'].shift(1).fillna(value=0))
+    avgemphold_bar = 0 if len(df_closes)==0 else avb.sum() / len(df_closes)
+
+    # 两笔盈利交易之间的平均空仓K线根数
+    win_holdbar_situ = (df_wins['openbarno'].shift(-1) - df_wins['closebarno']).dropna()
+    winempty_avgholdbar = 0 if len(df_wins)== 0 or len(df_wins) == 1 else win_holdbar_situ.sum() / (len(df_wins)-1)
+    # 两笔亏损交易之间的平均空仓K线根数
+    loss_holdbar_situ = (df_loses['openbarno'].shift(-1) - df_loses['closebarno']).dropna()
+    lossempty_avgholdbar = 0 if len(df_loses)== 0 or len(df_loses) == 1 else loss_holdbar_situ.sum() / (len(df_loses)-1)
+    max_consecutive_wins = 0  # 最大连续盈利次数
+    max_consecutive_loses = 0  # 最大连续亏损次数
+
+    avg_bars_in_winner = total_winbarcnts / wintimes if wintimes > 0 else "N/A"
+    avg_bars_in_loser = total_losebarcnts / losetimes if losetimes > 0 else "N/A"
+
+    consecutive_wins = 0
+    consecutive_loses = 0
+
+    for idx, row in df_closes.iterrows():
+        profit = row["profit"]
+        if profit > 0:
+            consecutive_wins += 1
+            consecutive_loses = 0
+        else:
+            consecutive_wins = 0
+            consecutive_loses += 1
+
+        max_consecutive_wins = max(max_consecutive_wins, consecutive_wins)
+        max_consecutive_loses = max(max_consecutive_loses, consecutive_loses)
+
+    summary = dict()
+
+    summary["total_trades"] = totaltimes
+    summary["profit"] = float(winamout)
+    summary["loss"] = float(loseamount)
+    summary["net_profit"] = float(trdnetprofit)
+    summary["fee"] = total_fee
+    summary["accnet_profit"] = 0 if totaltimes == 0 else accnetprofit
+    summary["winrate"] = winrate * 100
+    summary["avgprof"] = avgprof
+    summary["avgprof_win"] = avgprof_win
+    summary["avgprof_lose"] = avgprof_lose
+    summary["winloseratio"] = winloseratio
+    summary["largest_profit"] = largest_profit
+    summary["largest_loss"] = largest_loss
+    summary["avgtrd_hold_bar"] = avgtrd_hold_bar
+    summary["avgemphold_bar"] = avgemphold_bar
+    summary["winempty_avgholdbar"] = winempty_avgholdbar
+    summary["lossempty_avgholdbar"] = lossempty_avgholdbar
+    summary["avg_bars_in_winner"] = avg_bars_in_winner
+    summary["avg_bars_in_loser"] = avg_bars_in_loser
+    summary["max_consecutive_wins"] = max_consecutive_wins
+    summary["max_consecutive_loses"] = max_consecutive_loses
+
+
+    return summary
+
 class WtBtAnalyst:
 
     def __init__(self):
@@ -1605,6 +1691,155 @@ class WtBtAnalyst:
             
             filename = folder + 'summary.json'
             sumObj = summary_analyze(df_funds, capital=init_capital, rf=rf, period=annual_days)
+            sumObj["name"] = sname
+            f = open(filename,"w")
+            f.write(json.dumps(sumObj, indent=4, ensure_ascii=True))
+            f.close()
+
+    def run_flat(self):
+        for sname in self.__strategies__:
+            sInfo = self.__strategies__[sname]
+            capital = sInfo["cap"]
+            annual_days = sInfo["atd"]
+            rf = sInfo["rf"]
+
+            folder = os.path.join(sInfo["folder"],sname)
+
+            df_funds = pd.read_csv(os.path.join(folder, "funds.csv"))
+            df_closes = pd.read_csv(os.path.join(folder, "closes.csv"))
+
+            df_closes['fee'] = df_closes['profit'] - df_closes['totalprofit'] + df_closes['totalprofit'].shift(1).fillna(value=0)
+            df_long = df_closes[df_closes['direct'].apply(lambda x: 'LONG' in x)]
+            df_short = df_closes[df_closes['direct'].apply(lambda x: 'SHORT' in x)]
+
+            summary_all = do_trading_analyze(df_closes, df_funds)
+            summary_short = do_trading_analyze(df_short, df_funds)
+            summary_long = do_trading_analyze(df_long, df_funds)
+
+            filename = os.path.join(folder, 'trdana.json')
+            f = open(filename,"w")
+            f.write(json.dumps({
+                "all": summary_all,
+                "long": summary_long,
+                "short": summary_short
+            }, indent=4, ensure_ascii=True))
+            f.close()
+
+            df_closes = df_closes.copy()
+            df_closes['fee'] = df_closes['profit'] - df_closes['totalprofit'] + df_closes['totalprofit'].shift(1).fillna(
+                value=0)
+            df_closes['profit'] = df_closes['profit'] - df_closes['fee']
+            df_closes['profit_sum'] = df_closes['profit'].expanding(1).sum()
+            df_closes['Withdrawal'] = df_closes['profit_sum'] - df_closes['profit_sum'].expanding(1).max()
+            df_closes['profit_ratio'] = 100 * df_closes['profit_sum'] / capital
+            withdrawal_ratio = []
+            sim_equity = df_closes['profit_sum'] + capital
+            for i in range(len(df_closes)):
+                withdrawal_ratio.append(100 * (sim_equity[i] / sim_equity[:i + 1].max() - 1))
+            df_closes['Withdrawal_ratio'] = withdrawal_ratio
+            np_trade = np.array(df_closes).tolist()
+            closes_all = list()
+            for item in np_trade:
+                litem = {
+                    "opentime":int(item[2]),
+                    "closetime":int(item[4]),
+                    "profit":float(item[7]),
+                    "direct":str(item[1]),
+                    "openprice":float(item[3]),
+                    "closeprice":float(item[5]),
+                    "maxprofit":float(item[8]),
+                    "maxloss":float(item[9]),
+                    "qty":int(item[6]),
+                    "capital": capital,
+                    'profit_sum':float(item[16]),
+                    'Withdrawal':float(item[17]),
+                    'profit_ratio':float(item[18]),
+                    'Withdrawal_ratio':float(item[19])
+                }
+                closes_all.append(litem)
+            df_closes['time'] = df_closes['closetime'].apply(lambda x: datetime.strptime(str(x), '%Y%m%d%H%M'))
+            df_c_m = df_closes.resample(rule='M', on='time', label='right',
+                                                                    closed='right').agg({
+                'profit': 'sum',
+                'maxprofit': 'sum',
+                'maxloss': 'sum',
+            })
+            df_c_m = df_c_m.reset_index()
+            df_c_m['equity'] = df_c_m['profit'].expanding(1).sum() + capital
+            df_c_m['monthly_profit'] = 100 * (df_c_m['equity'] / df_c_m['equity'].shift(1).fillna(value=capital) - 1)
+            closes_month = list()
+            np_m = np.array(df_c_m).tolist()
+            for item in np_m:
+                litem = {
+                    "time":int(item[0].strftime('%Y%m')),
+                    "profit":float(item[1]),
+                    'maxprofit':float(item[2]),
+                    'maxloss':float(item[3]),
+                    'equity':float(item[4]),
+                    'monthly_profit':float(item[5])
+                }
+                closes_month.append(litem)
+
+            df_c_y = df_closes.resample(rule='Y', on='time', label='right',
+                                        closed='right').agg({
+                'profit': 'sum',
+                'maxprofit': 'sum',
+                'maxloss': 'sum',
+            })
+            df_c_y = df_c_y.reset_index()
+            df_c_y['equity'] = df_c_y['profit'].expanding(1).sum() + capital
+            df_c_y['monthly_profit'] = 100 * (df_c_y['equity'] / df_c_y['equity'].shift(1).fillna(value=capital) - 1)
+            closes_year = list()
+            np_y = np.array(df_c_y).tolist()
+            for item in np_y:
+                litem = {
+                    "time":int(item[0].strftime('%Y%m')),
+                    "profit":float(item[1]),
+                    'maxprofit':float(item[2]),
+                    'maxloss':float(item[3]),
+                    'equity':float(item[4]),
+                    'annual_profit':float(item[5])
+                }
+                closes_year.append(litem)
+
+            df_long = df_closes[df_closes['direct'].apply(lambda x: 'LONG' in x)]
+            df_short = df_closes[df_closes['direct'].apply(lambda x: 'SHORT' in x)]
+            df_long = df_long.copy()
+            df_short = df_short.copy()
+            df_long["long_profit"] = df_long["profit"].expanding(1).sum()-df_long["fee"].expanding(1).sum()
+            closes_long = list()
+            closes_short = list()
+            np_long = np.array(df_long).tolist()
+            for item in np_long:
+                litem = {
+                    "date":int(item[4]),
+                    "long_profit":float(item[-1]),
+                    "capital":capital
+                }
+                closes_long.append(litem)
+            df_short["short_profit"] = df_short["profit"].expanding(1).sum()-df_short["fee"].expanding(1).sum()
+            np_short = np.array(df_short).tolist()
+            for item in np_short:
+                litem = {
+                    "date":int(item[4]),
+                    "short_profit":float(item[-1]),
+                    "capital":capital
+                }
+                closes_short.append(litem)
+
+            filename = os.path.join(folder, 'rndana.json')
+            f = open(filename,"w")
+            f.write(json.dumps({
+                "long": closes_long,
+                "short": closes_short,
+                "all": closes_all,
+                "month": closes_month,
+                "year": closes_year
+            }, indent=4, ensure_ascii=True))
+            f.close()
+            
+            filename = os.path.join(folder,"summary.json")
+            sumObj = summary_analyze(df_funds, capital=capital, rf=rf, period=annual_days)
             sumObj["name"] = sname
             f = open(filename,"w")
             f.write(json.dumps(sumObj, indent=4, ensure_ascii=True))
