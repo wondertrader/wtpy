@@ -1510,7 +1510,7 @@ def funds_analyze(workbook:Workbook, df_funds:df, capital = 5000000, rf = 0, per
             down_time.append(l+1)
     worksheet.write_column('N3', down_time, fund_data_format)
 
-def do_trading_analyze(df_closes, df_funds):
+def do_trading_analyze2(df_closes, df_funds):
     df_wins = df_closes[df_closes["profit"] > 0]
     df_loses = df_closes[df_closes["profit"] <= 0]
 
@@ -1712,9 +1712,9 @@ class WtBtAnalyst:
             df_long = df_closes[df_closes['direct'].apply(lambda x: 'LONG' in x)]
             df_short = df_closes[df_closes['direct'].apply(lambda x: 'SHORT' in x)]
 
-            summary_all = do_trading_analyze(df_closes, df_funds)
-            summary_short = do_trading_analyze(df_short, df_funds)
-            summary_long = do_trading_analyze(df_long, df_funds)
+            summary_all = do_trading_analyze2(df_closes, df_funds)
+            summary_short = do_trading_analyze2(df_short, df_funds)
+            summary_long = do_trading_analyze2(df_long, df_funds)
 
             filename = os.path.join(folder, 'trdana.json')
             f = open(filename,"w")
