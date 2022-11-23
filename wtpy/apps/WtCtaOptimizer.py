@@ -124,7 +124,18 @@ class WtCtaOptimizer:
         self.name_prefix = name_prefix
         return
 
-    def config_backtest_env(self, deps_dir:str, cfgfile:str="configbt.yaml", storage_type:str="csv", storage_path:str = None, storage:dict = None):
+    def config_backtest_env(self, deps_dir:str, 
+        cfgfile:str="configbt.yaml", 
+        storage_type:str="csv", 
+        storage_path:str = None, 
+        storage:dict = None,
+        commfile:str = None, 
+        contractfile:str = None,
+        sessionfile:str = None,
+        holidayfile:str= None,
+        hotfile:str = None,
+        secondfile:str = None,
+        iscfgfile:bool = True):
         '''
         配置回测环境\n
 
@@ -134,7 +145,17 @@ class WtCtaOptimizer:
         @storage_path   存储路径
         '''
         self.env_params["deps_dir"] = deps_dir
+        self.env_params["deps_files"] = {
+            "commfile":commfile,
+            "contractfile":contractfile,
+            "sessionfile":sessionfile,
+            "holidayfile":holidayfile,
+            "hotfile":hotfile,
+            "secondfile":secondfile
+        }
+        
         self.env_params["cfgfile"] = cfgfile
+        self.env_params["iscfgfile"] = iscfgfile
         self.env_params["storage_type"] = storage_type
         self.env_params["storage"] = storage
         self.env_params["storage_path"] = storage_path
@@ -326,7 +347,16 @@ class WtCtaOptimizer:
 
         engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
         # 配置类型的参数相对固定
-        engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"])
+        if self.env_params["iscfgfile"]:
+            engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"], 
+                self.env_params["deps_files"]["commfile"], self.env_params["deps_files"]["contractfile"],
+                self.env_params["deps_files"]["sessionfile"], self.env_params["deps_files"]["holidayfile"],
+                self.env_params["deps_files"]["hotfile"], self.env_params["deps_files"]["secondfile"])
+        else:
+            engine.init_with_config(self.env_params["deps_dir"], self.env_params["cfgfile"],
+                self.env_params["deps_files"]["commfile"], self.env_params["deps_files"]["contractfile"],
+                self.env_params["deps_files"]["sessionfile"], self.env_params["deps_files"]["holidayfile"],
+                self.env_params["deps_files"]["hotfile"], self.env_params["deps_files"]["secondfile"])
         engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"], storage=self.env_params["storage"])
         # 遍历参数组
         total = len(params)
