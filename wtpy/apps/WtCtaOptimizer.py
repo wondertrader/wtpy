@@ -1,9 +1,9 @@
-from json import encoder
 import multiprocessing
 import time
-import threading
 import json
 import yaml
+import datetime
+import ctypes
 
 import os
 import math
@@ -13,12 +13,199 @@ from pandas import DataFrame as df
 from wtpy import WtBtEngine,EngineType
 from wtpy.apps import WtBtAnalyst
 from wtpy.apps.WtBtAnalyst import summary_analyze
+from wtpy.WtMsgQue import WtMsgQue,WtMQServer
 
 def fmtNAN(val, defVal = 0):
     if math.isnan(val):
         return defVal
 
     return val
+
+mq = WtMsgQue()
+class OptimizeNotifier:
+    def __init__(self, url:str):
+        self._url = url
+        self._server:WtMQServer = None
+
+    def run(self):
+        self._server = mq.add_mq_server(self._url)
+
+    def publish(self, topic:str, message:str):
+        if self._server is None:
+            return
+        self._server.publish_message(topic, message)
+
+    def on_start(self, pgroups:int):
+        data = {
+            "pgroups":pgroups
+        }
+        self.publish("OPT_START", json.dumps(data))
+
+    def on_stop(self, pgroups:int, elapse:int):
+        data = {
+            "pgroups": pgroups,
+            "elapse":int(elapse)
+        }
+        self.publish("OPT_STOP", json.dumps(data))
+
+    def on_state(self, pgroups:int, done:int, progress:float, elapse:float):
+        data = {
+            "pgroups": pgroups,
+            "done": done,
+            "progress":progress,
+            "elapse":int(elapse)
+        }
+        self.publish("OPT_STATE", json.dumps(data))
+
+def ayalyze_result(strName:str, time_range:tuple, params:dict, capital = 5000000, rf = 0, period = 240):
+    folder = "./outputs_bt/%s/" % (strName)
+    df_closes = pd.read_csv(folder + "closes.csv")
+    df_funds = pd.read_csv(folder + "funds.csv")
+
+    df_wins = df_closes[df_closes["profit"]>0]
+    df_loses = df_closes[df_closes["profit"]<=0]
+
+    ay_WinnerBarCnts = df_wins["closebarno"]-df_wins["openbarno"]
+    ay_LoserBarCnts = df_loses["closebarno"]-df_loses["openbarno"]
+
+    total_winbarcnts = ay_WinnerBarCnts.sum()
+    total_losebarcnts = ay_LoserBarCnts.sum()
+
+    total_fee = df_funds.iloc[-1]["fee"]
+
+    totaltimes = len(df_closes) # 总交易次数
+    wintimes = len(df_wins)     # 盈利次数
+    losetimes = len(df_loses)   # 亏损次数
+    winamout = df_wins["profit"].sum()      #毛盈利
+    loseamount = df_loses["profit"].sum()   #毛亏损
+    trdnetprofit = winamout + loseamount    #交易净盈亏
+    accnetprofit = trdnetprofit - total_fee #账户净盈亏
+    winrate = wintimes / totaltimes if totaltimes>0 else 0      # 胜率
+    avgprof = trdnetprofit/totaltimes if totaltimes>0 else 0    # 单次平均盈亏
+    avgprof_win = winamout/wintimes if wintimes>0 else 0        # 单次盈利均值
+    avgprof_lose = loseamount/losetimes if losetimes>0 else 0   # 单次亏损均值
+    winloseratio = abs(avgprof_win/avgprof_lose) if avgprof_lose!=0 else "N/A"   # 单次盈亏均值比
+        
+    max_consecutive_wins = 0    # 最大连续盈利次数
+    max_consecutive_loses = 0   # 最大连续亏损次数
+    
+    avg_bars_in_winner = total_winbarcnts/wintimes if wintimes>0 else "N/A"
+    avg_bars_in_loser = total_losebarcnts/losetimes if losetimes>0 else "N/A"
+
+    consecutive_wins = 0
+    consecutive_loses = 0
+    for idx, row in df_closes.iterrows():
+        profit = row["profit"]
+        if profit > 0:
+            consecutive_wins += 1
+            consecutive_loses = 0
+        else:
+            consecutive_wins = 0
+            consecutive_loses += 1
+        
+        max_consecutive_wins = max(max_consecutive_wins, consecutive_wins)
+        max_consecutive_loses = max(max_consecutive_loses, consecutive_loses)
+
+    # 逐日绩效分析
+    summary_by_day = summary_analyze(df_funds, capital, rf, period)
+
+    summary = params.copy()
+    summary["开始时间"] = time_range[0]
+    summary["结束时间"] = time_range[1]
+    summary["回测天数"] = summary_by_day["days"]
+    summary["区间收益率%"] = summary_by_day["total_return"]
+    summary["日胜率%"] = summary_by_day["win_rate"]
+    summary["年化收益率%"] = summary_by_day["annual_return"]
+    summary["最大回撤%"] = summary_by_day["max_falldown"]
+    summary["Calmar"] = summary_by_day["calmar_ratio"]
+    summary["Sharpe"] = summary_by_day["sharpe_ratio"]
+    summary["总交易次数"] = totaltimes
+    summary["盈利次数"] = wintimes
+    summary["亏损次数"] = losetimes
+    summary["毛盈利"] = float(winamout)
+    summary["毛亏损"] = float(loseamount)
+    summary["交易净盈亏"] = float(trdnetprofit)
+    summary["逐笔胜率%"] = winrate*100
+    summary["逐笔平均盈亏"] = avgprof
+    summary["逐笔平均净盈亏"] = accnetprofit/totaltimes
+    summary["逐笔平均盈利"] = avgprof_win
+    summary["逐笔逐笔亏损"] = avgprof_lose
+    summary["逐笔盈亏比"] = winloseratio
+    summary["最大连续盈利次数"] = max_consecutive_wins
+    summary["最大连续亏损次数"] = max_consecutive_loses
+    summary["平均盈利周期"] = avg_bars_in_winner
+    summary["平均亏损周期"] = avg_bars_in_loser
+
+    f = open(folder+"summary.json", mode="w")
+    f.write(json.dumps(obj=summary, indent=4))
+    f.close()
+
+    return
+
+def start_task_group(env_params, gpName:str, params:list, counter, capital = 5000000, rf = 0, period = 240, 
+    strategy_type = None, cpp_stra_module = None, cpp_stra_type = None):
+    '''
+    启动多个回测任务，来回测一组参数，这里共用一个engine，因此可以避免多次io
+    @params 参数组
+    '''
+    is_yaml = True
+    fname = "./logcfg_tpl.yaml"
+    if not os.path.exists(fname):
+        is_yaml = True
+        fname = "./logcfg_tpl.json"
+
+    print(f"{gpName} 共有{len(params)}组参数，开始回测...")
+
+    if not os.path.exists(fname):
+        content = "{}"
+    else:
+        f = open(fname, "r")
+        content =f.read()
+        f.close()
+        content = content.replace("$NAME$", gpName)
+        if is_yaml:
+            content = json.dumps(yaml.full_load(content))
+
+    engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
+    # 配置类型的参数相对固定
+    if env_params["iscfgfile"]:
+        engine.init(env_params["deps_dir"], env_params["cfgfile"], 
+            env_params["deps_files"]["commfile"], env_params["deps_files"]["contractfile"],
+            env_params["deps_files"]["sessionfile"], env_params["deps_files"]["holidayfile"],
+            env_params["deps_files"]["hotfile"], env_params["deps_files"]["secondfile"])
+    else:
+        engine.init_with_config(env_params["deps_dir"], env_params["cfgfile"],
+            env_params["deps_files"]["commfile"], env_params["deps_files"]["contractfile"],
+            env_params["deps_files"]["sessionfile"], env_params["deps_files"]["holidayfile"],
+            env_params["deps_files"]["hotfile"], env_params["deps_files"]["secondfile"])
+    engine.configBTStorage(mode=env_params["storage_type"], path=env_params["storage_path"], storage=env_params["storage"])
+    # 遍历参数组
+    total = len(params)
+    cnt = 0
+    for param in params:
+        cnt += 1
+        print(f"{gpName} 正在回测{cnt}/{total}")
+        name = param["name"]
+        param_content = content.replace("$NAME$", name)
+        if is_yaml:
+            param_content = json.dumps(yaml.full_load(param_content))
+        
+        engine.configBacktest(param["start_time"], param["end_time"])
+        time_range = (param["start_time"], param["end_time"])
+        # 去掉多余的参数
+        param.pop("start_time")
+        param.pop("end_time")
+        if cpp_stra_module is not None:
+            param.pop("name")
+            engine.setExternalCtaStrategy(name, cpp_stra_module, cpp_stra_type, param)
+        else:
+            straInfo = strategy_type(**param)
+            engine.set_cta_strategy(straInfo)
+        engine.commitBTConfig()
+        engine.run_backtest()
+        ayalyze_result(name, time_range, param, capital, rf, period)
+        counter.value += 1
+    engine.release_backtest()
 
 class ParamInfo:
     '''
@@ -54,7 +241,7 @@ class WtCtaOptimizer:
     参数优化器\n
     主要用于做策略参数优化的
     '''
-    def __init__(self, worker_num:int = 8):
+    def __init__(self, worker_num:int = 8, notifier:OptimizeNotifier = None):
         '''
         构造函数\n
 
@@ -67,6 +254,9 @@ class WtCtaOptimizer:
         self.env_params = dict()
 
         self.cpp_stra_module = None
+        self.cpp_stra_type = None
+
+        self.notifier = notifier        
         return
 
     def add_mutable_param(self, name:str, start_val, end_val, step_val, ndigits = 1):
@@ -240,154 +430,6 @@ class WtCtaOptimizer:
         f.close()
         return param_groups
 
-    def __ayalyze_result__(self, strName:str, time_range:tuple, params:dict, capital = 5000000, rf = 0, period = 240):
-        folder = "./outputs_bt/%s/" % (strName)
-        df_closes = pd.read_csv(folder + "closes.csv")
-        df_funds = pd.read_csv(folder + "funds.csv")
-
-        df_wins = df_closes[df_closes["profit"]>0]
-        df_loses = df_closes[df_closes["profit"]<=0]
-
-        ay_WinnerBarCnts = df_wins["closebarno"]-df_wins["openbarno"]
-        ay_LoserBarCnts = df_loses["closebarno"]-df_loses["openbarno"]
-
-        total_winbarcnts = ay_WinnerBarCnts.sum()
-        total_losebarcnts = ay_LoserBarCnts.sum()
-
-        total_fee = df_funds.iloc[-1]["fee"]
-
-        totaltimes = len(df_closes) # 总交易次数
-        wintimes = len(df_wins)     # 盈利次数
-        losetimes = len(df_loses)   # 亏损次数
-        winamout = df_wins["profit"].sum()      #毛盈利
-        loseamount = df_loses["profit"].sum()   #毛亏损
-        trdnetprofit = winamout + loseamount    #交易净盈亏
-        accnetprofit = trdnetprofit - total_fee #账户净盈亏
-        winrate = wintimes / totaltimes if totaltimes>0 else 0      # 胜率
-        avgprof = trdnetprofit/totaltimes if totaltimes>0 else 0    # 单次平均盈亏
-        avgprof_win = winamout/wintimes if wintimes>0 else 0        # 单次盈利均值
-        avgprof_lose = loseamount/losetimes if losetimes>0 else 0   # 单次亏损均值
-        winloseratio = abs(avgprof_win/avgprof_lose) if avgprof_lose!=0 else "N/A"   # 单次盈亏均值比
-            
-        max_consecutive_wins = 0    # 最大连续盈利次数
-        max_consecutive_loses = 0   # 最大连续亏损次数
-        
-        avg_bars_in_winner = total_winbarcnts/wintimes if wintimes>0 else "N/A"
-        avg_bars_in_loser = total_losebarcnts/losetimes if losetimes>0 else "N/A"
-
-        consecutive_wins = 0
-        consecutive_loses = 0
-        for idx, row in df_closes.iterrows():
-            profit = row["profit"]
-            if profit > 0:
-                consecutive_wins += 1
-                consecutive_loses = 0
-            else:
-                consecutive_wins = 0
-                consecutive_loses += 1
-            
-            max_consecutive_wins = max(max_consecutive_wins, consecutive_wins)
-            max_consecutive_loses = max(max_consecutive_loses, consecutive_loses)
-
-        # 逐日绩效分析
-        summary_by_day = summary_analyze(df_funds, capital, rf, period)
-
-        summary = params.copy()
-        summary["开始时间"] = time_range[0]
-        summary["结束时间"] = time_range[1]
-        summary["回测天数"] = summary_by_day["days"]
-        summary["区间收益率%"] = summary_by_day["total_return"]
-        summary["日胜率%"] = summary_by_day["win_rate"]
-        summary["年化收益率%"] = summary_by_day["annual_return"]
-        summary["最大回撤%"] = summary_by_day["max_falldown"]
-        summary["Calmar"] = summary_by_day["calmar_ratio"]
-        summary["Sharpe"] = summary_by_day["sharpe_ratio"]
-        summary["总交易次数"] = totaltimes
-        summary["盈利次数"] = wintimes
-        summary["亏损次数"] = losetimes
-        summary["毛盈利"] = float(winamout)
-        summary["毛亏损"] = float(loseamount)
-        summary["交易净盈亏"] = float(trdnetprofit)
-        summary["逐笔胜率%"] = winrate*100
-        summary["逐笔平均盈亏"] = avgprof
-        summary["逐笔平均净盈亏"] = accnetprofit/totaltimes
-        summary["逐笔平均盈利"] = avgprof_win
-        summary["逐笔逐笔亏损"] = avgprof_lose
-        summary["逐笔盈亏比"] = winloseratio
-        summary["最大连续盈利次数"] = max_consecutive_wins
-        summary["最大连续亏损次数"] = max_consecutive_loses
-        summary["平均盈利周期"] = avg_bars_in_winner
-        summary["平均亏损周期"] = avg_bars_in_loser
-
-        f = open(folder+"summary.json", mode="w")
-        f.write(json.dumps(obj=summary, indent=4))
-        f.close()
-
-        return
-
-    def __start_task_group__(self, gpName:str, params:list, capital = 5000000, rf = 0, period = 240):
-        '''
-        启动多个回测任务，来回测一组参数，这里共用一个engine，因此可以避免多次io
-        @params 参数组
-        '''
-        is_yaml = True
-        fname = "./logcfg_tpl.yaml"
-        if not os.path.exists(fname):
-            is_yaml = True
-            fname = "./logcfg_tpl.json"
-
-        print(f"{gpName} 共有{len(params)}组参数，开始回测...")
-
-        if not os.path.exists(fname):
-            content = "{}"
-        else:
-            f = open(fname, "r")
-            content =f.read()
-            f.close()
-            content = content.replace("$NAME$", gpName)
-            if is_yaml:
-                content = json.dumps(yaml.full_load(content))
-
-        engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
-        # 配置类型的参数相对固定
-        if self.env_params["iscfgfile"]:
-            engine.init(self.env_params["deps_dir"], self.env_params["cfgfile"], 
-                self.env_params["deps_files"]["commfile"], self.env_params["deps_files"]["contractfile"],
-                self.env_params["deps_files"]["sessionfile"], self.env_params["deps_files"]["holidayfile"],
-                self.env_params["deps_files"]["hotfile"], self.env_params["deps_files"]["secondfile"])
-        else:
-            engine.init_with_config(self.env_params["deps_dir"], self.env_params["cfgfile"],
-                self.env_params["deps_files"]["commfile"], self.env_params["deps_files"]["contractfile"],
-                self.env_params["deps_files"]["sessionfile"], self.env_params["deps_files"]["holidayfile"],
-                self.env_params["deps_files"]["hotfile"], self.env_params["deps_files"]["secondfile"])
-        engine.configBTStorage(mode=self.env_params["storage_type"], path=self.env_params["storage_path"], storage=self.env_params["storage"])
-        # 遍历参数组
-        total = len(params)
-        cnt = 0
-        for param in params:
-            cnt += 1
-            print(f"{gpName} 正在回测{cnt}/{total}")
-            name = param["name"]
-            param_content = content.replace("$NAME$", name)
-            if is_yaml:
-                param_content = json.dumps(yaml.full_load(param_content))
-            
-            engine.configBacktest(param["start_time"], param["end_time"])
-            time_range = (param["start_time"], param["end_time"])
-            # 去掉多余的参数
-            param.pop("start_time")
-            param.pop("end_time")
-            if self.cpp_stra_module is not None:
-                param.pop("name")
-                engine.setExternalCtaStrategy(name, self.cpp_stra_module, self.cpp_stra_type, param)
-            else:
-                straInfo = self.strategy_type(**param)
-                engine.set_cta_strategy(straInfo)
-            engine.commitBTConfig()
-            engine.run_backtest()
-            self.__ayalyze_result__(name, time_range, param, capital, rf, period)
-        engine.release_backtest()
-
     def go(self, order_by_field:str = "", out_marker_file:str = "strategies.json", out_summary_file:str = "total_summary.csv", capital = 5000000, rf = 0, period = 240):
         '''
         启动优化器\n
@@ -395,6 +437,11 @@ class WtCtaOptimizer:
         @markerfile         标记文件名，回测完成以后分析会用到
         '''
         self.tasks = self.__gen_tasks__(out_marker_file, order_by_field)
+        if self.notifier is not None:
+            self.notifier.on_start(len(self.tasks))
+        
+        stime = datetime.datetime.now()
+        self.counter = multiprocessing.Manager().Value(ctypes.c_int, 0)
         pool = []
         total_size = len(self.tasks)
         gpSize = math.floor(total_size / self.worker_num)
@@ -413,7 +460,10 @@ class WtCtaOptimizer:
                 leftSz -= 1
 
             params = self.tasks[fromIdx: fromIdx + thisCnt]
-            p = multiprocessing.Process(target=self.__start_task_group__, args=(work_name, params, capital, rf, period), name=work_name)
+            p = multiprocessing.Process(
+                target=start_task_group, 
+                args=(self.env_params, work_name, params, self.counter, capital, rf, period, self.strategy_type, self.cpp_stra_module, self.cpp_stra_type), 
+                name=work_name)
             p.start()
             print(f"{work_name} 开始工作")
             pool.append(p)
@@ -427,7 +477,11 @@ class WtCtaOptimizer:
                     pool.remove(task)
                     alive_cnt -= 1
                     print(f"{task.name} 结束工作了(剩余{alive_cnt})")
-            time.sleep(0.2)
+
+            if self.notifier is not None:
+                elapse = datetime.datetime.now() - stime
+                self.notifier.on_state(total_size, self.counter.value, self.counter.value*100/total_size, int(elapse.total_seconds()*1000))            
+            time.sleep(0.5)
 
         #开始汇总回测结果
         f = open(out_marker_file, "r")
@@ -451,6 +505,10 @@ class WtCtaOptimizer:
         df_summary = df(total_summary)
         # df_summary = df_summary.drop(labels=["name"], axis='columns')
         df_summary.to_csv(out_summary_file, encoding='utf-8-sig')
+
+        if self.notifier is not None:
+            elapse = datetime.datetime.now() - stime
+            self.notifier.on_stop(total_size, elapse.total_seconds()*1000) 
 
     def analyze(self, out_marker_file:str = "strategies.json", out_summary_file:str = "total_summary.csv"):
         #开始汇总回测结果
