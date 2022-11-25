@@ -338,12 +338,15 @@ class WtCtaOptimizer:
 
         print(f"{gpName} 共有{len(params)}组参数，开始回测...")
 
-        f = open(fname, "r")
-        content =f.read()
-        f.close()
-        content = content.replace("$NAME$", gpName)
-        if is_yaml:
-            content = json.dumps(yaml.full_load(content))
+        if not os.path.exists(fname):
+            content = "{}"
+        else:
+            f = open(fname, "r")
+            content =f.read()
+            f.close()
+            content = content.replace("$NAME$", gpName)
+            if is_yaml:
+                content = json.dumps(yaml.full_load(content))
 
         engine = WtBtEngine(eType=EngineType.ET_CTA, logCfg=content, isFile=False)
         # 配置类型的参数相对固定

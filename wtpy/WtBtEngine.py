@@ -67,7 +67,13 @@ class WtBtEngine:
             }
 
         if "basefiles" not in self.__config__["replayer"]:
-            self.__config__["replayer"]["basefiles"] = dict()
+            self.__config__["replayer"]["basefiles"] = {
+                "commodity": None,
+                "contract": None,
+                "holiday": None,
+                "hot": None,
+                "session": None
+            }
 
         if "env" not in self.__config__:
             self.__config__["env"] = dict()
