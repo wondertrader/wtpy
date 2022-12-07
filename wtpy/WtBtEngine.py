@@ -17,7 +17,7 @@ from .CodeHelper import CodeHelper
 import json
 import yaml
 import chardet
-
+import os
 
 @singleton
 class WtBtEngine:
@@ -109,22 +109,22 @@ class WtBtEngine:
         self.__check_config__()
 
         if contractfile is not None:
-            self.__config__["replayer"]["basefiles"]["contract"] = folder + contractfile
+            self.__config__["replayer"]["basefiles"]["contract"] = os.path.join(folder, contractfile)
         
         if sessionfile is not None:
-            self.__config__["replayer"]["basefiles"]["session"] = folder + sessionfile
+            self.__config__["replayer"]["basefiles"]["session"] = os.path.join(folder, sessionfile)
 
         if commfile is not None:
-            self.__config__["replayer"]["basefiles"]["commodity"] = folder + commfile
+            self.__config__["replayer"]["basefiles"]["commodity"] = os.path.join(folder, commfile)
 
         if holidayfile is not None:
-            self.__config__["replayer"]["basefiles"]["holiday"] = folder + holidayfile
+            self.__config__["replayer"]["basefiles"]["holiday"] = os.path.join(folder, holidayfile)
 
         if hotfile is not None:
-            self.__config__["replayer"]["basefiles"]["hot"] = folder + hotfile
+            self.__config__["replayer"]["basefiles"]["hot"] = os.path.join(folder, hotfile)
 
         if secondfile is not None:
-            self.__config__["replayer"]["basefiles"]["second"] = folder + secondfile
+            self.__config__["replayer"]["basefiles"]["second"] = os.path.join(folder, secondfile)
 
         self.productMgr = ProductMgr()
         if self.__config__["replayer"]["basefiles"]["commodity"] is not None:
