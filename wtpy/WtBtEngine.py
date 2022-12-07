@@ -193,6 +193,12 @@ class WtBtEngine:
         if storage is not None:
             self.__config__["replayer"]["store"] = storage
 
+    def configIncrementalBt(self, incrementBtBase:str):
+        '''
+        设置增量
+        '''
+        self.__config__["env"]["incremental_backtest_base"] = incrementBtBase
+        
     def registerCustomRule(self, ruleTag:str, filename:str):
         '''
         注册自定义连续合约规则
