@@ -71,6 +71,7 @@ class WtBtWrapper:
         self.api.hft_get_position_profit.restype = c_double
         self.api.hft_get_position_avgpx.restype = c_double
         self.api.hft_get_undone.restype = c_double
+        self.api.hft_get_price.restype = c_double
         
         self.api.hft_buy.restype = c_char_p
         self.api.hft_buy.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p, c_int]
