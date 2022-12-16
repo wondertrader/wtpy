@@ -186,9 +186,6 @@ def start_task_group(env_params, gpName:str, params:list, counter, capital = 500
         cnt += 1
         print(f"{gpName} 正在回测{cnt}/{total}")
         name = param["name"]
-        param_content = content.replace("$NAME$", name)
-        if is_yaml:
-            param_content = json.dumps(yaml.full_load(param_content))
         
         engine.configBacktest(param["start_time"], param["end_time"])
         time_range = (param["start_time"], param["end_time"])

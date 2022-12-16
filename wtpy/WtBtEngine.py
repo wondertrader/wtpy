@@ -341,7 +341,7 @@ class WtBtEngine:
         '''
         self.__wrapper__.set_time_range(beginTime, endTime)
 
-    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False, persistData:bool = True):
+    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False, persistData:bool = True, incremental:bool = False):
         '''
         添加CTA策略
         @strategy   策略对象
@@ -349,7 +349,7 @@ class WtBtEngine:
         @hook       是否安装钩子，主要用于单步控制重算
         @persistData    回测生成的数据是否落地，默认为True
         '''
-        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData)
+        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData, incremental)
         self.__context__ = CtaContext(ctxid, strategy, self.__wrapper__, self)
 
     def set_hft_strategy(self, strategy:BaseHftStrategy, hook:bool = False):
