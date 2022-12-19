@@ -1,6 +1,6 @@
 ![WonderTrader2.png](http://wt.f-sailors.cn/wt/logo_qcode_noad.jpg)
 <p align="center">
-    <img src ="https://img.shields.io/badge/version-0.9.5-blueviolet.svg"/>
+    <img src ="https://img.shields.io/badge/version-0.9.6-blueviolet.svg"/>
     <img src ="https://img.shields.io/badge/platform-windows|linux-yellow.svg"/>
     <img src ="https://img.shields.io/badge/build-passing-brightgreen"/>
     <img src ="https://img.shields.io/badge/license-MIT-orange"/>
@@ -81,6 +81,16 @@
 
 
 # 更新日志
+### 0.9.6
+* `C++`底层更新到`2022/12/19`发布的`v0.9.6`版本
+* 配合底层调整了WtDtServo的一些接口
+* 完善了WtWrapper中和底层关于图表的接口对接
+* 调整了WtCtaOptimizer和WtBtEngine一些接口，便于在终端中调用
+* WtCtaOptimize新增了一个消息队列的支持，可以发布优化的进度等信息
+* 配合底层扩展接口，完善了对增量回测的支持
+* 控制台webui做了一些优化
+* 其他配合底层的优化和调整
+
 ### 0.9.5
 * `C++`底层更新到`2022/11/04`发布的`v0.9.5`版本
 * 将flask改成fastapi（因为flask的依赖包版本繁复，直接安装会有一些依赖版本匹配的问题）
