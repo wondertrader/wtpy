@@ -793,8 +793,49 @@ class WtBtSnooper:
             if "index" in btchart:
                 index = btchart["index"]
 
-            if "marks" in btchart:
-                marks = btchart["marks"]
+        filename = f"{straid}/marks.csv"
+        filename = os.path.join(path, filename)
+        if os.path.exists(filename):
+            f = open(filename, "r")
+            lines = f.readlines()
+            f.close()
+
+            if len(lines) > 2:
+                marks = []
+                for line in lines[1:-1]:
+                    items = line.split(",")
+                    marks.append({
+                        "bartime": int(items[0]),
+                        "price": float(items[1]),
+                        "icon": items[2],
+                        "tag": items[3]
+                    })
+
+        filename = f"{straid}/indice.csv"
+        filename = os.path.join(path, filename)
+        if os.path.exists(filename):
+            f = open(filename, "r")
+            lines = f.readlines()
+            f.close()
+
+            if len(lines) > 2:
+                for line in lines[1:-1]:
+                    items = line.split(",")
+                    index_name = items[1]
+                    line_name = items[2]
+                    index_val = float(items[3])
+                    for iInfo in index:
+                        if iInfo["name"] != index_name:
+                            continue
+
+                        for lInfo in iInfo["lines"]:
+                            if lInfo["name"] != line_name:
+                                continue
+
+                            if "values" not in lInfo:
+                                lInfo["values"] = list()
+
+                            lInfo["values"].append(index_val)
 
         barList = self.dt_servo.get_bars(stdCode=code, period=period, fromTime=stime, endTime=etime)
         if barList is None:

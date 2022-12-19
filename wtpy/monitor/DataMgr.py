@@ -1070,51 +1070,55 @@ class DataMgr:
         
         filepath = "./generated/portfolio/funds.csv"
         filepath = os.path.join(grpInfo["path"], filepath)
-        if not os.path.exists(filepath):
-            return []
-        else:
+        if os.path.exists(filepath):
             trdCache = dict()
             trdCache["file"] = filepath
             trdCache["lastrow"] = 0
             trdCache["funds"] = list()
             self.__grp_cache__[grpid]["grpfunds"]["cache"] = trdCache
 
-        trdCache = self.__grp_cache__[grpid]["grpfunds"]['cache']
+        trdCache = None
+        if "cache" in self.__grp_cache__[grpid]["grpfunds"]:
+            trdCache = self.__grp_cache__[grpid]["grpfunds"]['cache']
 
-        f = open(trdCache["file"], "r")
-        last_row = trdCache["lastrow"]
-        lines = f.readlines()
-        f.close()
-        lines = lines[1+last_row:]
+        ret = []
+        if trdCache is not None:
+            f = open(trdCache["file"], "r")
+            last_row = trdCache["lastrow"]
+            lines = f.readlines()
+            f.close()
+            lines = lines[1+last_row:]
 
-        for line in lines:
-            cells = line.split(",")
+            for line in lines:
+                cells = line.split(",")
 
-            tItem = {
-                "date": int(cells[0]),
-                "predynbalance": float(cells[1]),
-                "prebalance": float(cells[2]),
-                "balance": float(cells[3]),
-                "closeprofit": float(cells[4]),
-                "dynprofit": float(cells[5]),
-                "fee": float(cells[6]),
-                "maxdynbalance": float(cells[7]),
-                "maxtime": float(cells[8]),
-                "mindynbalance": float(cells[9]),
-                "mintime": float(cells[10]),
-                "mdmaxbalance": float(cells[11]),
-                "mdmaxdate": float(cells[12]),
-                "mdminbalance": float(cells[13]),
-                "mdmindate": float(cells[14])
-            }
+                tItem = {
+                    "date": int(cells[0]),
+                    "predynbalance": float(cells[1]),
+                    "prebalance": float(cells[2]),
+                    "balance": float(cells[3]),
+                    "closeprofit": float(cells[4]),
+                    "dynprofit": float(cells[5]),
+                    "fee": float(cells[6]),
+                    "maxdynbalance": float(cells[7]),
+                    "maxtime": float(cells[8]),
+                    "mindynbalance": float(cells[9]),
+                    "mintime": float(cells[10]),
+                    "mdmaxbalance": float(cells[11]),
+                    "mdmaxdate": float(cells[12]),
+                    "mdminbalance": float(cells[13]),
+                    "mdmindate": float(cells[14])
+                }
 
-            trdCache["funds"].append(tItem)
-            trdCache["lastrow"] += 1
-        
-        ret = trdCache["funds"].copy()
+                trdCache["funds"].append(tItem)
+                trdCache["lastrow"] += 1
+            
+            ret = trdCache["funds"].copy()
 
-        if len(ret) > 0:
-            last_date = ret[-1]["date"]
+            if len(ret) > 0:
+                last_date = ret[-1]["date"]
+            else:
+                last_date = 0
         else:
             last_date = 0
 

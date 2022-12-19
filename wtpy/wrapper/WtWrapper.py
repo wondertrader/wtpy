@@ -1,4 +1,4 @@
-from ctypes import c_int32, cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, POINTER, sizeof, addressof
+from ctypes import c_int32, cdll, c_char_p, c_bool, c_ulong, c_uint64, c_uint32, c_double, POINTER, sizeof, addressof
 from wtpy.WtCoreDefs import CB_EXECUTER_CMD, CB_EXECUTER_INIT, CB_PARSER_EVENT, CB_PARSER_SUBCMD
 from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION, CB_STRATEGY_COND_TRIGGER
 from wtpy.WtCoreDefs import EVENT_PARSER_CONNECT, EVENT_PARSER_DISCONNECT, EVENT_PARSER_INIT, EVENT_PARSER_RELEASE
@@ -82,6 +82,13 @@ class WtWrapper:
 
         self.api.create_ext_parser.restype = c_bool
         self.api.create_ext_parser.argtypes = [c_char_p]
+
+        self.api.cta_set_chart_kline.argtypes = [c_ulong, c_char_p, c_char_p]
+        self.api.cta_add_chart_mark.argtypes = [c_ulong, c_double, c_char_p, c_char_p]
+        self.api.cta_register_index.argtypes = [c_ulong, c_char_p, c_uint32]
+        self.api.cta_register_index_line.argtypes = [c_ulong, c_char_p, c_char_p, c_uint32]
+        self.api.cta_add_index_baseline.argtypes = [c_ulong, c_char_p, c_char_p, c_double]
+        self.api.cta_set_index_value.argtypes = [c_ulong, c_char_p, c_char_p, c_double]
 
         self.api.get_raw_stdcode.restype = c_char_p
 
@@ -774,6 +781,57 @@ class WtWrapper:
         @stdCode    品种代码
         '''
         self.api.cta_sub_ticks(id, bytes(stdCode, encoding = "utf8"))
+
+    def cta_set_chart_kline(self, id:int, stdCode:str, period:str):
+        '''
+        设置图表K线
+        @stdCode    合约代码
+        @period     K线周期
+        '''
+        self.api.cta_set_chart_kline(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"))
+
+    def cta_add_chart_mark(self, id:int, price:float, icon:str, tag:str = 'Notag'):
+        '''
+        添加图表标记
+        @price  价格, 决定图标出现的位置
+        @icon   图标, 系统一定的图标ID
+        @tag    标签, 自定义的
+        '''
+        self.api.cta_add_chart_mark(id, price, bytes(icon, encoding = "utf8"), bytes(tag, encoding = "utf8"))
+
+    def cta_register_index(self, id:int, idxName:str, idxType:int = 1):
+        '''
+        注册指标, on_init调用
+        @idxName    指标名
+        @idxType    指标类型, 0-主图指标, 1-副图指标
+        '''
+        self.api.cta_register_index(id, bytes(idxName, encoding = "utf8"), idxType)
+
+    def cta_register_index_line(self, id:int, idxName:str, lineName:str, lineType:int = 0) -> bool:
+        '''
+        注册指标线, on_init调用
+        @idxName    指标名称
+        @lineName   线名称
+        @lineType   线型, 0-曲线, 1-柱子
+        '''
+        return self.api.cta_register_index_line(id, bytes(idxName, encoding = "utf8"), bytes(lineName, encoding = "utf8"), lineType)
+
+    def cta_add_index_baseline(self, id:int, idxName:str, lineName:str, value:float) -> bool:
+        '''
+        添加基准线, on_init调用
+        @idxName    指标名称
+        @lineName   线名称
+        @value      数值
+        '''
+        return self.api.cta_add_index_baseline(id, bytes(idxName, encoding = "utf8"), bytes(lineName, encoding = "utf8"), value)
+
+    def cta_set_index_value(self, id:int, idxName:str, lineName:str, val:float) -> bool:
+        '''
+        设置指标值, 只有在oncalc的时候才生效
+        @idxName    指标名称
+        @lineName   线名称
+        '''
+        return self.api.cta_set_index_value(id, bytes(idxName, encoding = "utf8"), bytes(lineName, encoding = "utf8"), val)
   
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''SEL接口'''

@@ -697,7 +697,7 @@ class WtHotPicker:
                         
                     if len(ay) > 1:
                         hot = ay[-1]
-                        sec = None
+                        sec = ay[-2]
                         #中金所算法，如果是当月第三个周三，并且主力合约月份小于次主力合约月份，
                         #说明没有根据数据自动换月，强制进行换月
                         if alg == 1 and wd == 2 and fri_cnt == 3 and hot.month==cur_month:

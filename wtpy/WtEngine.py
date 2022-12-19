@@ -16,6 +16,7 @@ from .CodeHelper import CodeHelper
 import json
 import yaml
 import chardet
+import os
 
 @singleton
 class WtEngine:
@@ -165,22 +166,22 @@ class WtEngine:
         self.__check_config__()
 
         if contractfile is not None:        
-            self.__config__["basefiles"]["contract"] = folder + contractfile
+            self.__config__["basefiles"]["contract"] = os.path.join(folder, contractfile)
         
         if sessionfile is not None:
-            self.__config__["basefiles"]["session"] = folder + sessionfile
+            self.__config__["basefiles"]["session"] = os.path.join(folder, sessionfile)
 
         if commfile is not None:
-            self.__config__["basefiles"]["commodity"] = folder + commfile
+            self.__config__["basefiles"]["commodity"] = os.path.join(folder, commfile)
 
         if holidayfile is not None:
-            self.__config__["basefiles"]["holiday"] = folder + holidayfile
+            self.__config__["basefiles"]["holiday"] = os.path.join(folder, holidayfile)
 
         if hotfile is not None:
-            self.__config__["basefiles"]["hot"] = folder + hotfile
+            self.__config__["basefiles"]["hot"] = os.path.join(folder, hotfile)
 
         if secondfile is not None:
-            self.__config__["basefiles"]["second"] = folder + secondfile
+            self.__config__["basefiles"]["second"] = os.path.join(folder, secondfile)
 
         self.productMgr = ProductMgr()
         if self.__config__["basefiles"]["commodity"] is not None:

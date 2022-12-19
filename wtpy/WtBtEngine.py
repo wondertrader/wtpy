@@ -17,7 +17,7 @@ from .CodeHelper import CodeHelper
 import json
 import yaml
 import chardet
-
+import os
 
 @singleton
 class WtBtEngine:
@@ -41,7 +41,7 @@ class WtBtEngine:
         self.__idx_writer__ = None  #指标输出模块
 
         self.__dump_config__ = bDumpCfg #是否保存最终配置
-        self.__is_cfg_yaml__ = True
+        self.__is_cfg_yaml__ = False
 
         self.__ext_data_loader__:BaseExtDataLoader = None   #扩展历史数据加载器
 
@@ -66,6 +66,15 @@ class WtBtEngine:
                 "path":"./storage/"
             }
 
+        if "basefiles" not in self.__config__["replayer"]:
+            self.__config__["replayer"]["basefiles"] = {
+                "commodity": None,
+                "contract": None,
+                "holiday": None,
+                "hot": None,
+                "session": None
+            }
+
         if "env" not in self.__config__:
             self.__config__["env"] = dict()
             self.__config__["env"]["mocker"] = "cta"
@@ -86,6 +95,46 @@ class WtBtEngine:
         '''
         if self.__idx_writer__ is not None:
             self.__idx_writer__.write_indicator(id, tag, time, data)
+
+    def init_with_config(self, folder:str, 
+        config:dict, 
+        commfile:str = None, 
+        contractfile:str = None,
+        sessionfile:str = None,
+        holidayfile:str= None,
+        hotfile:str = None,
+        secondfile:str = None):
+        self.__config__ = config.copy()
+
+        self.__check_config__()
+
+        if contractfile is not None:
+            self.__config__["replayer"]["basefiles"]["contract"] = os.path.join(folder, contractfile)
+        
+        if sessionfile is not None:
+            self.__config__["replayer"]["basefiles"]["session"] = os.path.join(folder, sessionfile)
+
+        if commfile is not None:
+            self.__config__["replayer"]["basefiles"]["commodity"] = os.path.join(folder, commfile)
+
+        if holidayfile is not None:
+            self.__config__["replayer"]["basefiles"]["holiday"] = os.path.join(folder, holidayfile)
+
+        if hotfile is not None:
+            self.__config__["replayer"]["basefiles"]["hot"] = os.path.join(folder, hotfile)
+
+        if secondfile is not None:
+            self.__config__["replayer"]["basefiles"]["second"] = os.path.join(folder, secondfile)
+
+        self.productMgr = ProductMgr()
+        if self.__config__["replayer"]["basefiles"]["commodity"] is not None:
+            self.productMgr.load(self.__config__["replayer"]["basefiles"]["commodity"])
+
+        self.contractMgr = ContractMgr(self.productMgr)
+        self.contractMgr.load(self.__config__["replayer"]["basefiles"]["contract"])
+
+        self.sessionMgr = SessionMgr()
+        self.sessionMgr.load(self.__config__["replayer"]["basefiles"]["session"])
 
     def init(self, folder:str, 
         cfgfile:str = "configbt.yaml", 
@@ -109,41 +158,11 @@ class WtBtEngine:
         content = content.decode(encoding)
 
         if cfgfile.lower().endswith(".json"):
-            self.__config__ = json.loads(content)
+            self.init_with_config(folder, json.loads(content), commfile, contractfile, sessionfile, holidayfile, hotfile, secondfile)
             self.__is_cfg_yaml__ = False
         else:
-            self.__config__ = yaml.full_load(content)
-            self.__is_cfg_yaml__ = True
-
-        self.__check_config__()
-
-        if contractfile is not None:
-            self.__config__["replayer"]["basefiles"]["contract"] = folder + contractfile
-        
-        if sessionfile is not None:
-            self.__config__["replayer"]["basefiles"]["session"] = folder + sessionfile
-
-        if commfile is not None:
-            self.__config__["replayer"]["basefiles"]["commodity"] = folder + commfile
-
-        if holidayfile is not None:
-            self.__config__["replayer"]["basefiles"]["holiday"] = folder + holidayfile
-
-        if hotfile is not None:
-            self.__config__["replayer"]["basefiles"]["hot"] = folder + hotfile
-
-        if secondfile is not None:
-            self.__config__["replayer"]["basefiles"]["second"] = folder + secondfile
-
-        self.productMgr = ProductMgr()
-        if self.__config__["replayer"]["basefiles"]["commodity"] is not None:
-            self.productMgr.load(self.__config__["replayer"]["basefiles"]["commodity"])
-
-        self.contractMgr = ContractMgr(self.productMgr)
-        self.contractMgr.load(self.__config__["replayer"]["basefiles"]["contract"])
-
-        self.sessionMgr = SessionMgr()
-        self.sessionMgr.load(self.__config__["replayer"]["basefiles"]["session"])
+            self.init_with_config(folder, yaml.full_load(content), commfile, contractfile, sessionfile, holidayfile, hotfile, secondfile)
+            self.__is_cfg_yaml__ = True   
 
     def configMocker(self, name:str):
         '''
@@ -174,6 +193,12 @@ class WtBtEngine:
         if storage is not None:
             self.__config__["replayer"]["store"] = storage
 
+    def configIncrementalBt(self, incrementBtBase:str):
+        '''
+        设置增量
+        '''
+        self.__config__["env"]["incremental_backtest_base"] = incrementBtBase
+        
     def registerCustomRule(self, ruleTag:str, filename:str):
         '''
         注册自定义连续合约规则
@@ -316,7 +341,7 @@ class WtBtEngine:
         '''
         self.__wrapper__.set_time_range(beginTime, endTime)
 
-    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False, persistData:bool = True):
+    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False, persistData:bool = True, incremental:bool = False):
         '''
         添加CTA策略
         @strategy   策略对象
@@ -324,7 +349,7 @@ class WtBtEngine:
         @hook       是否安装钩子，主要用于单步控制重算
         @persistData    回测生成的数据是否落地，默认为True
         '''
-        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData)
+        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData, incremental)
         self.__context__ = CtaContext(ctxid, strategy, self.__wrapper__, self)
 
     def set_hft_strategy(self, strategy:BaseHftStrategy, hook:bool = False):

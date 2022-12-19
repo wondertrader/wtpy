@@ -972,15 +972,10 @@ class WtMonSvr(WatcherSink):
                     encpwd = hashlib.md5((user + pwd).encode("utf-8")).hexdigest()
                     now = datetime.datetime.now()
                     usrInf = self.__data_mgr__.get_user(user)
-                    if usrInf is None:
+                    if usrInf is None or encpwd != usrInf["passwd"]:
                         ret = {
                             "result": -1,
-                            "message": "用户不存在"
-                        }
-                    elif encpwd != usrInf["passwd"]:
-                        ret = {
-                            "result": -1,
-                            "message": "登录密码错误"
+                            "message": "用户名或密码错误"
                         }
                     else:
                         usrInf.pop("passwd")

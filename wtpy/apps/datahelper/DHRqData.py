@@ -333,6 +333,9 @@ class DHRqData(BaseDataHelper):
             
             logging.info("Fetching %s bars of %s(%d/%s)..." % (period, stdCode, count, length))
             df_bars = rq.get_price(order_book_ids = rq_code,start_date=start_date, end_date=end_date,frequency=freq,adjust_type='none',expect_df=True)
+            if df_bars is None:
+                logging.info(f"{period} bars of {stdCode} not exist...")
+                continue
 
             total_nums = len(df_bars)
             BUFFER = WTSBarStruct*len(df_bars)
@@ -343,9 +346,9 @@ class DHRqData(BaseDataHelper):
                 trade_date = row.name[1].to_pydatetime()
                 curBar.date = int(trade_date.strftime("%Y%m%d"))
                 if isDay:
-                    time = '0'
+                    curBar.time = 0
                 else:
-                    curBar.time = int(trade_date.strftime("%H:%M")) + (curBar.date-19900000)*10000
+                    curBar.time = int(trade_date.strftime("%H%M")) + (curBar.date-19900000)*10000
                 curBar.open = row["open"]
                 curBar.high = row["high"]
                 curBar.low = row["low"]
@@ -359,4 +362,4 @@ class DHRqData(BaseDataHelper):
                     logging.info("Processing bars %d/%d..." % (cur_num, total_nums))
 
             ay = stdCode.split(".")
-            cb(ay[0], ay[1], buffer, total_nums, period)
+            cb(ay[0], stdCode, buffer, total_nums, period)

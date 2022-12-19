@@ -1,7 +1,4 @@
 from wtpy.apps.datahelper.DHDefs import BaseDataHelper
-from wtpy.apps.datahelper.DHBaostock import DHBaostock
-from wtpy.apps.datahelper.DHTushare import DHTushare
-from wtpy.apps.datahelper.DHRqData import DHRqData
 
 class DHFactory:
     
@@ -13,10 +10,13 @@ class DHFactory:
         '''
         name = name.lower()
         if name == "baostock":
+            from wtpy.apps.datahelper.DHBaostock import DHBaostock
             return DHBaostock()
         elif name == "tushare":
+            from wtpy.apps.datahelper.DHTushare import DHTushare
             return DHTushare()
         elif name == "rqdata":
+            from wtpy.apps.datahelper.DHRqData import DHRqData
             return DHRqData()
         else:
             raise Exception("Cannot recognize helper with name %s" % (name))

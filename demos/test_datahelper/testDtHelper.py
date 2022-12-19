@@ -67,10 +67,10 @@ def test_store_ticks():
         curTick.pre_interest = float(df[i]["昨持仓量"])
 
         for x in range(5):
-            curTick.bid_prices[x] = float(df[i]["申买价"+tags[x]])
-            curTick.bid_qty[x] = float(df[i]["申买量"+tags[x]])
-            curTick.ask_prices[x] = float(df[i]["申卖价"+tags[x]])
-            curTick.ask_qty[x] = float(df[i]["申卖量"+tags[x]])
+            setattr(curTick, f"bid_price_{x}", float(df[i]["申买价"+tags[x]]))
+            setattr(curTick, f"bid_qty_{x}", float(df[i]["申买量"+tags[x]]))
+            setattr(curTick, f"ask_price_{x}", float(df[i]["申卖价"+tags[x]]))
+            setattr(curTick, f"ask_qty_{x}", float(df[i]["申卖量"+tags[x]]))
 
     dtHelper.store_ticks(tickFile="./SHFE.rb.HOT_ticks.dsb", firstTick=buffer, count=len(df))
 

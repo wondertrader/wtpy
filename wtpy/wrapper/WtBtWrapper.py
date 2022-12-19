@@ -71,6 +71,7 @@ class WtBtWrapper:
         self.api.hft_get_position_profit.restype = c_double
         self.api.hft_get_position_avgpx.restype = c_double
         self.api.hft_get_undone.restype = c_double
+        self.api.hft_get_price.restype = c_double
         
         self.api.hft_buy.restype = c_char_p
         self.api.hft_buy.argtypes = [c_ulong, c_char_p, c_double, c_double, c_char_p, c_int]
@@ -1157,13 +1158,13 @@ class WtBtWrapper:
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''本地撮合接口'''
-    def init_cta_mocker(self, name:str, slippage:int = 0, hook:bool = False, persistData:bool = True) -> int:
+    def init_cta_mocker(self, name:str, slippage:int = 0, hook:bool = False, persistData:bool = True, incremental:bool = False) -> int:
         '''
         创建策略环境
         @name      策略名称
         @return    系统内策略ID 
         '''
-        return self.api.init_cta_mocker(bytes(name, encoding = "utf8"), slippage, hook, persistData)
+        return self.api.init_cta_mocker(bytes(name, encoding = "utf8"), slippage, hook, persistData, incremental)
 
     def init_hft_mocker(self, name:str, hook:bool = False) -> int:
         '''

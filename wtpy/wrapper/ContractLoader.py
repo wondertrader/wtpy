@@ -1,14 +1,6 @@
-'''
-Descripttion: Automatically generated file comment
-version: 
-Author: Wesley
-Date: 2021-05-24 15:05:01
-LastEditors: Wesley
-LastEditTime: 2021-08-13 15:35:59
-'''
 from .PlatformHelper import PlatformHelper as ph
-import os
-from ctypes import cdll,c_char_p
+import os, json
+from ctypes import cdll,c_char_p, c_bool, c_bool
 
 from enum import Enum
 class LoaderType(Enum):
@@ -42,7 +34,7 @@ class ContractLoader:
     def __init__(self, lType:LoaderType = LoaderType.LT_CTP):
         print(getModuleName(lType))
         self.api = cdll.LoadLibrary(getModuleName(lType))
-        self.api.run.argtypes = [ c_char_p]
+        self.api.run.argtypes = [ c_char_p, c_bool, c_bool]
 
     def start(self, cfgfile:str = 'config.ini', bAsync:bool = False):
         '''
@@ -50,4 +42,12 @@ class ContractLoader:
         @cfgfile    配置文件名
         @bAsync     是否异步，异步则立即返回，默认False
         '''
-        self.api.run(bytes(cfgfile, encoding = "utf8"), bAsync)
+        self.api.run(bytes(cfgfile, encoding = "utf8"), bAsync, True)
+
+    def start_with_config(self, config:dict, bAsync:bool = False):
+        '''
+        启动合约加载器
+        @cfgfile    配置文件名
+        @bAsync     是否异步，异步则立即返回，默认False
+        '''
+        self.api.run(bytes(json.dumps(config), encoding = "utf8"), bAsync, False)
