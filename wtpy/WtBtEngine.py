@@ -128,10 +128,18 @@ class WtBtEngine:
 
         self.productMgr = ProductMgr()
         if self.__config__["replayer"]["basefiles"]["commodity"] is not None:
-            self.productMgr.load(self.__config__["replayer"]["basefiles"]["commodity"])
+            if type(self.__config__["replayer"]["basefiles"]["commodity"]) == str:
+                self.productMgr.load(self.__config__["replayer"]["basefiles"]["commodity"])
+            elif type(self.__config__["replayer"]["basefiles"]["commodity"]) == list:
+                for fname in self.__config__["replayer"]["basefiles"]["commodity"]:
+                    self.productMgr.load(fname)
 
         self.contractMgr = ContractMgr(self.productMgr)
-        self.contractMgr.load(self.__config__["replayer"]["basefiles"]["contract"])
+        if type(self.__config__["replayer"]["basefiles"]["contract"]) == str:
+            self.contractMgr.load(self.__config__["replayer"]["basefiles"]["contract"])
+        elif type(self.__config__["replayer"]["basefiles"]["contract"]) == list:
+            for fname in self.__config__["replayer"]["basefiles"]["contract"]:
+                self.contractMgr.load(fname)
 
         self.sessionMgr = SessionMgr()
         self.sessionMgr.load(self.__config__["replayer"]["basefiles"]["session"])
