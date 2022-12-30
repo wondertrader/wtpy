@@ -270,6 +270,7 @@ class WtMonSink:
     def notify(self, level: str, msg: str):
         return
 
+from fastapi.middleware.cors import CORSMiddleware
 
 class WtMonSvr(WatcherSink):
 
@@ -297,6 +298,12 @@ class WtMonSvr(WatcherSink):
         app = FastAPI(title="WtMonSvr", description="A http api of WtMonSvr", redoc_url=None, version="1.0.0")
         app.add_middleware(GZipMiddleware, minimum_size=1000)
         app.add_middleware(SessionMiddleware, secret_key='!@#$%^&*()', max_age=25200, session_cookie='WtMonSvr_sid')
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"])
 
         script_dir = os.path.dirname(__file__)
         static_folder = os.path.join(script_dir, static_folder)
