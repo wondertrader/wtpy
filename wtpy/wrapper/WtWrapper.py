@@ -456,7 +456,7 @@ class WtWrapper:
         self.cb_load_adjfacts = FUNC_LOAD_ADJFACTS(self.on_load_adj_factors)
         self.api.register_ext_data_loader(self.cb_load_fnlbars, self.cb_load_rawbars, self.cb_load_adjfacts, self.cb_load_histicks)
 
-        self.cb_load_hisbars = FUNC_LOAD_HISBARS(self.on_load_his_bars)
+        self.cb_load_hisbars = FUNC_LOAD_HISBARS(self.on_load_fnl_his_bars)
         self.cb_load_histicks = FUNC_LOAD_HISTICKS(self.on_load_his_ticks)
         self.api.register_ext_data_loader(self.cb_load_fnlbars, self.cb_load_rawbars, self.cb_load_adjfacts, self.cb_load_histicks)
 
@@ -853,6 +853,16 @@ class WtWrapper:
         @count  条数
         '''
         return self.api.sel_get_ticks(id, bytes(stdCode, encoding = "utf8"), count, CB_STRATEGY_GET_TICK(self.on_stra_get_tick))
+
+    def sel_get_position_avgpx(self, id:int, stdCode:str):
+        '''
+        获取持仓均价
+        @id         策略id
+        @stdCode    合约代码
+        @return     指定合约的持仓均价
+        '''
+        return self.api.sel_get_position_avgpx(id, bytes(stdCode, encoding = "utf8"))
+
 
     def sel_save_user_data(self, id:int, key:str, val:str):
         '''

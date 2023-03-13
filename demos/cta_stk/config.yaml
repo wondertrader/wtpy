@@ -6,7 +6,7 @@ basefiles:
 
 data:
     store:
-        module: WtDtStorage
+        module: WtDataStorage
         path: ../STK_Data/
 env:
     name: cta               #引擎名称：cta/hft/sel
