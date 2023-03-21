@@ -1,6 +1,6 @@
 ![WonderTrader2.png](http://wt.f-sailors.cn/wt/logo_qcode_noad.jpg)
 <p align="center">
-    <img src ="https://img.shields.io/badge/version-0.9.6-blueviolet.svg"/>
+    <img src ="https://img.shields.io/badge/version-0.9.7-blueviolet.svg"/>
     <img src ="https://img.shields.io/badge/platform-windows|linux-yellow.svg"/>
     <img src ="https://img.shields.io/badge/build-passing-brightgreen"/>
     <img src ="https://img.shields.io/badge/license-MIT-orange"/>
@@ -81,6 +81,12 @@
 
 
 # 更新日志
+### 0.9.7
+* `C++`底层更新到`2023/03/21`发布的`v0.9.7`版本
+* 监控服务的DataMgr获取资金的接口增加了对一次性读取全部策略资金数据的机制
+* 控制台webui做了一些优化
+* 其他配合底层的优化和调整
+
 ### 0.9.6
 * `C++`底层更新到`2022/12/19`发布的`v0.9.6`版本
 * 配合底层调整了WtDtServo的一些接口
