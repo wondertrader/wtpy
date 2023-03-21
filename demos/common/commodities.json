@@ -36,6 +36,18 @@
             "session": "SD0930",
             "holiday": "CHINA"
         },
+        "IM": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 1,
+            "precision": 1,
+            "pricetick": 0.2,
+            "volscale": 200,
+            "name": "IM",
+            "exchg": "CFFEX",
+            "session": "SD0930",
+            "holiday": "CHINA"
+        },
         "T": {
             "covermode": 0,
             "pricemode": 0,
@@ -45,7 +57,7 @@
             "volscale": 10000,
             "name": "10年债",
             "exchg": "CFFEX",
-            "session": "SD0930",
+            "session": "FD0915",
             "holiday": "CHINA"
         },
         "TF": {
@@ -57,7 +69,7 @@
             "volscale": 10000,
             "name": "5年债",
             "exchg": "CFFEX",
-            "session": "SD0930",
+            "session": "FD0915",
             "holiday": "CHINA"
         },
         "TS": {
@@ -69,7 +81,7 @@
             "volscale": 20000,
             "name": "2年债",
             "exchg": "CFFEX",
-            "session": "SD0930",
+            "session": "FD0915",
             "holiday": "CHINA"
         }
     },
@@ -602,6 +614,20 @@
             "name": "豆油",
             "exchg": "DCE",
             "session": "FN2300",
+            "holiday": "CHINA"
+        }
+    },
+    "GFEX": {
+        "si": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 1,
+            "precision": 0,
+            "pricetick": 5.0,
+            "volscale": 5,
+            "name": "工业硅",
+            "exchg": "GFEX",
+            "session": "FD0900",
             "holiday": "CHINA"
         }
     },
