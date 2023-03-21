@@ -482,82 +482,132 @@ class DataMgr:
 
         if "strategies" not in self.__grp_cache__[grpid]:
             return []
-            
-        if straid not in self.__grp_cache__[grpid]["strategies"]:
-            return []
-
-        if "funds" not in self.__grp_cache__[grpid]:
-            self.__grp_cache__[grpid]["funds"] = dict()
         
-        if straid not in self.__grp_cache__[grpid]["funds"]:
-            filepath = "./generated/outputs/%s/funds.csv" % (straid)
-            filepath = os.path.join(grpInfo["path"], filepath)
-            if not os.path.exists(filepath):
+        if straid != "all":
+            if straid not in self.__grp_cache__[grpid]["strategies"]:
                 return []
-            else:
-                trdCache = dict()
-                trdCache["file"] = filepath
-                trdCache["lastrow"] = 0
-                trdCache["funds"] = list()
-                self.__grp_cache__[grpid]["funds"][straid] = trdCache
 
-        trdCache = self.__grp_cache__[grpid]["funds"][straid]
+            if "funds" not in self.__grp_cache__[grpid]:
+                self.__grp_cache__[grpid]["funds"] = dict()
+            
+            if straid not in self.__grp_cache__[grpid]["funds"]:
+                filepath = "./generated/outputs/%s/funds.csv" % (straid)
+                filepath = os.path.join(grpInfo["path"], filepath)
+                if not os.path.exists(filepath):
+                    return []
+                else:
+                    trdCache = dict()
+                    trdCache["file"] = filepath
+                    trdCache["lastrow"] = 0
+                    trdCache["funds"] = list()
+                    self.__grp_cache__[grpid]["funds"][straid] = trdCache
 
-        f = open(trdCache["file"], "r")
-        last_row = trdCache["lastrow"]
-        lines = f.readlines()
-        f.close()
-        lines = lines[1+last_row:]
+            trdCache = self.__grp_cache__[grpid]["funds"][straid]
 
-        for line in lines:
-            cells = line.split(",")
-            if len(cells) > 10:
-                continue
+            f = open(trdCache["file"], "r")
+            last_row = trdCache["lastrow"]
+            lines = f.readlines()
+            f.close()
+            lines = lines[1+last_row:]
 
-            tItem = {
-                "strategy":straid,
-                "date": int(cells[0]),
-                "closeprofit": float(cells[1]),
-                "dynprofit": float(cells[2]),
-                "dynbalance": float(cells[3]),
-                "fee": 0
-            }
+            for line in lines:
+                cells = line.split(",")
+                if len(cells) > 10:
+                    continue
 
-            if len(cells) > 4:
-                tItem["fee"] = float(cells[4])
-
-            trdCache["funds"].append(tItem)
-            trdCache["lastrow"] += 1
-
-        ret = trdCache["funds"].copy()
-
-        if len(ret) > 0:
-            last_date = ret[-1]["date"]
-        else:
-            last_date = 0
-
-        # 这里再更新一条实时数据
-        filepath = "./generated/stradata/%s.json" % (straid)
-        filepath = os.path.join(grpInfo["path"], filepath)
-        f = open(filepath, "r")
-        try:
-            content = f.read()
-            json_data = json.loads(content)
-            fund = json_data["fund"]
-            if fund["tdate"] > last_date:
-                ret.append({
+                tItem = {
                     "strategy":straid,
-                    "date": fund["tdate"],
-                    "closeprofit": fund["total_profit"],
-                    "dynprofit": fund["total_dynprofit"],
-                    "dynbalance": fund["total_profit"] + fund["total_dynprofit"] - fund["total_fees"],
-                    "fee": fund["total_fees"]
-                })
-        except:
-            pass
-        f.close()
-        
-        return ret
+                    "date": int(cells[0]),
+                    "closeprofit": float(cells[1]),
+                    "dynprofit": float(cells[2]),
+                    "dynbalance": float(cells[3]),
+                    "fee": 0
+                }
+
+                if len(cells) > 4:
+                    tItem["fee"] = float(cells[4])
+
+                trdCache["funds"].append(tItem)
+                trdCache["lastrow"] += 1
+
+            ret = trdCache["funds"].copy()
+
+            if len(ret) > 0:
+                last_date = ret[-1]["date"]
+            else:
+                last_date = 0
+
+            # 这里再更新一条实时数据
+            filepath = "./generated/stradata/%s.json" % (straid)
+            filepath = os.path.join(grpInfo["path"], filepath)
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                json_data = json.loads(content)
+                fund = json_data["fund"]
+                if fund["tdate"] > last_date:
+                    ret.append({
+                        "strategy":straid,
+                        "date": fund["tdate"],
+                        "closeprofit": fund["total_profit"],
+                        "dynprofit": fund["total_dynprofit"],
+                        "dynbalance": fund["total_profit"] + fund["total_dynprofit"] - fund["total_fees"],
+                        "fee": fund["total_fees"]
+                    })
+            except:
+                pass
+            f.close()
+            
+            return ret
+        else:
+            ret = list()
+            for straid in self.__grp_cache__[grpid]["strategies"]:
+                filepath = "./generated/outputs/%s/funds.csv" % (straid)
+                filepath = os.path.join(grpInfo["path"], filepath)
+                f = open(filepath, "r")
+                lines = f.readlines()
+                f.close()
+
+                filepath = "./generated/stradata/%s.json" % (straid)
+                filepath = os.path.join(grpInfo["path"], filepath)
+                if not os.path.exists(filepath):
+                    continue
+
+                f = open(filepath, "r")
+                content = f.read()
+                f.close()
+                try:
+                    
+                    json_data = json.loads(content)
+                    fund = json_data["fund"]
+                    curDate = fund["tdate"]
+                    item = {
+                        "strategy":straid,
+                        "date": fund["tdate"],
+                        "closeprofit": fund["total_profit"],
+                        "dynprofit": fund["total_dynprofit"],
+                        "dynbalance": fund["total_profit"] + fund["total_dynprofit"] - fund["total_fees"],
+                        "fee": fund["total_fees"]
+                    }
+
+                    line = lines[-1]
+                    cells = line.split(",")
+                    last_date = int(cells[0])
+                    if last_date == curDate:
+                        line = lines[-1]
+                        cells = line.split(",")
+                    preprof = float(cells[1])
+                    prebalance = float(cells[3])
+                    prefee = float(cells[4])
+
+                    item['profit'] = item['closeprofit']-preprof
+                    item['thisfee'] = item['fee'] - prefee
+                    item['addition'] = item['dynbalance']-prebalance
+
+                    ret.append(item)
+                except:
+                    pass
+            return ret
 
     def get_signals(self, grpid:str, straid:str, limit:int = 200):
         if grpid not in self.__config__["groups"]:
@@ -716,7 +766,7 @@ class DataMgr:
                 filepath = "./generated/stradata/%s.json" % (straid)
                 filepath = os.path.join(grpInfo["path"], filepath)
                 if not os.path.exists(filepath):
-                    return []
+                    continue
                 
                 f = open(filepath, "r")
                 try:

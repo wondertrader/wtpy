@@ -414,7 +414,7 @@ class WtCtaOptimizer:
 
                 endix = endix[:-1]
                 straName = self.name_prefix + endix
-                straName += "_%d_%d" % (start_time, end_time)
+                straName += f"_{start_time}_{end_time}"
                 thisGrp["name"] = straName
                 thisGrp["start_time"] = start_time
                 thisGrp["end_time"] = end_time
@@ -488,9 +488,9 @@ class WtCtaOptimizer:
         obj_stras = json.loads(content)
         total_summary = list()
         for straName in obj_stras:
-            filename = "./outputs_bt/%s/summary.json" % (straName)
+            filename = f"./outputs_bt/{straName}/summary.json"
             if not os.path.exists(filename):
-                print("%s不存在，请检查数据" % (filename))
+                print(f"{filename}不存在，请检查数据")
                 continue
                 
             f = open(filename, "r")
@@ -517,7 +517,7 @@ class WtCtaOptimizer:
         obj_stras = json.loads(content)
         for straName in obj_stras:
             params = obj_stras[straName]
-            filename = "./outputs_bt/%s/summary.json" % (straName)
+            filename = f"./outputs_bt/{straName}/summary.json"
             if not os.path.exists(filename):
                 print("%s不存在，请检查数据" % (filename))
                 continue
@@ -539,7 +539,7 @@ class WtCtaOptimizer:
         for straname in json.load(open(out_marker_file, mode='r')).keys():
             try:
                 analyst = WtBtAnalyst()
-                analyst.add_strategy(straname, folder="./outputs_bt/%s/"%straname, init_capital=init_capital, rf=rf, annual_trading_days=annual_trading_days)
+                analyst.add_strategy(straname, folder=f"./outputs_bt/{straname}/", init_capital=init_capital, rf=rf, annual_trading_days=annual_trading_days)
                 analyst.run()
             except:
                 pass

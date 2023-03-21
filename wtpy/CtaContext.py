@@ -25,9 +25,47 @@ class CtaContext:
 
         self.is_backtest = self.__engine__.is_backtest
 
+        self.__alias__()
+
     @property
     def id(self):
         return self.__id__
+    
+    def __alias__(self):
+        '''
+        接口函数别名
+        '''
+        self.enter_long = self.stra_enter_long
+        self.enter_short = self.stra_enter_short
+        self.exit_long = self.stra_exit_long
+        self.exit_short = self.stra_exit_short
+        self.get_all_position = self.stra_get_all_position
+        self.get_bars = self.stra_get_bars
+        self.get_comminfo = self.stra_get_comminfo
+        self.get_date = self.stra_get_date
+        self.get_day_price = self.stra_get_day_price
+        self.get_detail_cost = self.stra_get_detail_cost
+        self.get_detail_entertime = self.stra_get_detail_entertime
+        self.get_detail_profit = self.stra_get_detail_profit
+        self.get_first_entertime = self.stra_get_first_entrytime
+        self.get_fund_data = self.stra_get_fund_data
+        self.get_last_entrytag = self.stra_get_last_entrytag
+        self.get_last_entrytime = self.stra_get_last_entrytime
+        self.get_last_exittime = self.stra_get_last_exittime
+        self.get_position = self.stra_get_position
+        self.get_position_avgpx = self.stra_get_position_avgpx
+        self.get_position_profit = self.stra_get_position_profit
+        self.get_price = self.stra_get_price
+        self.get_rawcode = self.stra_get_rawcode
+        self.get_sessinfo = self.stra_get_sessinfo
+        self.get_tdate = self.stra_get_tdate
+        self.get_ticks = self.stra_get_ticks
+        self.get_time = self.stra_get_time
+        self.log_text = self.stra_log_text
+        self.prepare_bars = self.stra_prepare_bars
+        self.set_position = self.stra_set_position
+        self.sub_ticks = self.stra_sub_ticks
+        pass
 
     def write_indicator(self, tag:str, time:int, data:dict):
         '''

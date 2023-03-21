@@ -424,7 +424,7 @@ class HftContext:
             localids.append(int(localid))
         return localids
 
-    def stra_buy(self, stdCode:str, price:float, qty:float, userTag:str, flag:int = 0):
+    def stra_buy(self, stdCode:str, price:float, qty:float, userTag:str = "", flag:int = 0):
         '''
         买入指令
         @id         策略ID
@@ -443,7 +443,7 @@ class HftContext:
             localids.append(int(localid))
         return localids
 
-    def stra_sell(self, stdCode:str, price:float, qty:float, userTag:str, flag:int = 0):
+    def stra_sell(self, stdCode:str, price:float, qty:float, userTag:str = "", flag:int = 0):
         '''
         卖出指令
         @id         策略ID
