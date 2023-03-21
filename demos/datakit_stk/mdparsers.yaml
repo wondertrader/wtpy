@@ -8,6 +8,7 @@ parsers:
     buffsize: 128
     clientid: 1    
     hbinterval: 15    
+    local_ip: 0.0.0.0
     user: 你的XTP仿真账号
     pass: 你的XTP仿真密码
     code: SSE.000001,SSE.600009,SSE.600036,SSE.600276,SZSE.000001
