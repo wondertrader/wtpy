@@ -338,7 +338,7 @@ class WtCacheMonExchg(WtCacheMon):
             # 交割月份
             item = DayData()
             item.pid = pname_map[pzname]
-            item.code = item.pid + doc(tdlis[1]).text()
+            item.code = doc(tdlis[1]).text()
             # 收盘价
             spj = doc(tdlis[5]).text()
             item.close = float(spj if spj != '' else 0)
