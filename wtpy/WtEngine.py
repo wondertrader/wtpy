@@ -362,8 +362,25 @@ class WtEngine:
         获取全部合约代码
         '''
         return self.contractMgr.getTotalCodes()
+    
+    def getCodesByProduct(self, stdPID:str) -> list:
+        '''
+        根据品种id获取对应合约代码
+        @stdPID 品种代码, 格式如SHFE.rb
+        '''
+        return self.contractMgr.getCodesByProduct(stdPID)
+    
+    def getCodesByUnderlying(self, underlying:str) -> list:
+        '''
+        根据underlying获取对应合约代码
+        @underlying 品种代码, 格式如SHFE.rb2305
+        '''
+        return self.contractMgr.getCodesByUnderlying(underlying)
 
     def getRawStdCode(self, stdCode:str):
+        '''
+        根据连续合约代码获取原始合约代码
+        '''
         return self.__wrapper__.get_raw_stdcode(stdCode)
 
     def add_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0):
