@@ -18,6 +18,12 @@ class ContractInfo:
         self.strikePrice:float = 0      # 行权价
         self.underlyingScale:float = 0  # 放大倍数
 
+        self.openDate:int = 0           # 上市日期
+        self.expireDate:int = 0         # 到期日
+
+        self.longMarginRatio:float = 0  # 多头保证金率
+        self.shortMarginRatio:float = 0 # 空头保证金率
+
 
 class ContractMgr:
 
@@ -50,6 +56,18 @@ class ContractMgr:
                 cInfo.exchg = exchg
                 cInfo.code = code
                 cInfo.name = cObj["name"]
+
+                # By Wesley @ 2021-03-31 
+                # 增加了对合约的上市日期和到期日的读取
+                # 增加了对合约的保证金率的读取
+                if "opendate" in cObj:
+                    cInfo.openDate = int(cObj["opendate"])
+                if "expiredate" in cObj:
+                    cInfo.expireDate = int(cObj["expiredate"])
+                if "longmarginratio" in cObj:
+                    cInfo.longMarginRatio = float(cObj["longmarginratio"])
+                if "shortmarginratio" in cObj:
+                    cInfo.shortMarginRatio = float(cObj["shortmarginratio"])
 
                 if "product" in cObj:
                     cInfo.product = cObj["product"]                    
