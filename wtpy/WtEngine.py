@@ -184,7 +184,7 @@ class WtEngine:
             self.__config__["basefiles"]["second"] = os.path.join(folder, secondfile)
 
         self.productMgr = ProductMgr()
-        if self.__config__["basefiles"]["commodity"] is not None:
+        if "commodity" in self.__config__["basefiles"] and self.__config__["basefiles"]["commodity"] is not None:
             if type(self.__config__["basefiles"]["commodity"]) == str:
                 self.productMgr.load(self.__config__["basefiles"]["commodity"])
             elif type(self.__config__["basefiles"]["commodity"]) == list:
