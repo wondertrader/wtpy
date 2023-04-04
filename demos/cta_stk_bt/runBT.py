@@ -1,6 +1,9 @@
 from wtpy import WtBtEngine,EngineType
-from Strategies.DualThrust import StraDualThrustStk
 from wtpy.apps import WtBtAnalyst
+
+import sys
+sys.path.append('../Strategies')
+from DualThrust import StraDualThrust
 
 if __name__ == "__main__":
     #创建一个运行环境，并加入策略
@@ -10,7 +13,7 @@ if __name__ == "__main__":
     engine.configBTStorage(mode="csv", path="../storage/")
     engine.commitBTConfig()
     
-    straInfo = StraDualThrustStk(name='pydt_SH510300', code="SSE.ETF.510300", barCnt=50, period="m5", days=30, k1=0.1, k2=0.1)
+    straInfo = StraDualThrust(name='pydt_SH510300', code="SSE.ETF.510300", barCnt=50, period="m5", days=30, k1=0.1, k2=0.1)
     engine.set_cta_strategy(straInfo)
 
     engine.run_backtest()

@@ -1,8 +1,10 @@
 # -- coding: utf-8 --
 
 from wtpy.apps.WtCtaGAOptimizer import WtCtaGAOptimizer
-from Strategies.DualThrust import StraDualThrust
 
+import sys
+sys.path.append('../Strategies')
+from DualThrust import StraDualThrust
 
 # 适应度函数
 def my_optimizing_target(summary: dict):  # 单目标优化

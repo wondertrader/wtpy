@@ -1,6 +1,8 @@
 from wtpy.apps import WtCtaOptimizer
 
-from Strategies.DualThrust import StraDualThrust
+import sys
+sys.path.append('../Strategies')
+from DualThrust import StraDualThrust
 
 def runBaseOptimizer():
     # 新建一个优化器，并设置最大工作进程数为8
@@ -28,7 +30,7 @@ def runBaseOptimizer():
     optimizer.config_backtest_time(start_time=201909260930, end_time=202010121500)
 
     # 启动优化器
-    optimizer.go(interval=0.2, out_marker_file="strategies.json",out_summary_file="total_summary.csv")
+    optimizer.go(out_marker_file="strategies.json",out_summary_file="total_summary.csv")
 
 
 
@@ -55,7 +57,7 @@ def runStopLossOptimizer():
     optimizer.config_backtest_time(start_time=201909100930, end_time=202010121500)
 
     # 启动优化器
-    optimizer.go(interval=0.2, out_marker_file="strategies.json",out_summary_file="total_summary_sl.csv")
+    optimizer.go(out_marker_file="strategies.json",out_summary_file="total_summary_sl.csv")
 
 def runStopProfOptimizer():
     # 新建一个优化器，并设置最大工作进程数为8
@@ -80,7 +82,7 @@ def runStopProfOptimizer():
     optimizer.config_backtest_time(start_time=201909100930, end_time=202010121500)
 
     # 启动优化器
-    optimizer.go(interval=0.2, out_marker_file="strategies.json",out_summary_file="total_summary_sp.csv")
+    optimizer.go(out_marker_file="strategies.json",out_summary_file="total_summary_sp.csv")
 
 def runStopAllOptimizer():
     # 新建一个优化器，并设置最大工作进程数为8
@@ -106,7 +108,7 @@ def runStopAllOptimizer():
     optimizer.config_backtest_time(start_time=201909100930, end_time=202010121500)
 
     # 启动优化器
-    optimizer.go(interval=0.2, out_marker_file="strategies.json",out_summary_file="total_summary_all.csv")
+    optimizer.go(out_marker_file="strategies.json",out_summary_file="total_summary_all.csv")
 
 
 
