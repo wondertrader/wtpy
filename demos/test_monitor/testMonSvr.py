@@ -23,3 +23,6 @@ svr = WtMonSvr(deploy_dir="./deploy")
 # 启动服务
 svr.run(port=8099, bSync=False)
 input("press enter key to exit\n")
+
+# PC版控制台入口地址： http://127.0.0.1:8099/console
+# 移动版控制台入口地址： http://127.0.0.1:8099/mobile
