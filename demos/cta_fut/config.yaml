@@ -10,7 +10,7 @@ basefiles:
 data:
     store:
         module: WtDataStorage   #模块名
-        path: ../FUT_Data/      #数据存储根目录
+        path: ../storage/      #数据存储根目录
         #his_path: ''           #历史数据存储目录，如果历史数据存储目录是单独的，则可以通过该配置项进行设置
 #环境配置
 env:

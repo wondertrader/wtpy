@@ -26,7 +26,7 @@ def runBaseOptimizer():
     # optimizer.add_mutable_param(name="k2", start_val=0.1, end_val=1.0, step_val=0.1, ndigits = 1)
 
     # 配置回测环境，主要是将直接回测的一些参数通过这种方式动态传递，优化器中会在每个子进程动态构造回测引擎
-    optimizer.config_backtest_env(deps_dir='../common/', cfgfile='configbt.yaml', storage_type="bin", storage_path="../storage/FUT_DATA/")
+    optimizer.config_backtest_env(deps_dir='../common/', cfgfile='configbt.yaml', storage_type="bin", storage_path="../storage/")
     optimizer.config_backtest_time(start_time=202104112100, end_time=202104201500)
     # optimizer.config_backtest_time(start_time=201909260930, end_time=202010121500)
 

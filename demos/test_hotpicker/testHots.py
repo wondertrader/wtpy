@@ -30,7 +30,7 @@ def rebuild_hot_rules():
     cacher = WtCacheMonExchg()  
 
     # 从datakit落地的行情快照直接读取
-    # cacher = WtCacheMonSS("./FUT_DATA/his/snapshot/")
+    # cacher = WtCacheMonSS("../storage/his/snapshot/")
 
     picker = WtHotPicker(hotFile="hots.json", secFile="seconds.json")
     picker.set_cacher(cacher)
@@ -49,7 +49,7 @@ def daily_hot_rules():
     cacher = WtCacheMonExchg()  
 
     # 从datakit落地的行情快照直接读取
-    # cacher = WtCacheMonSS("./FUT_DATA/his/snapshot/")
+    # cacher = WtCacheMonSS("../storage/his/snapshot/")
 
     picker = WtHotPicker(hotFile="hots.json", secFile="seconds.json")
     picker.set_cacher(cacher)
