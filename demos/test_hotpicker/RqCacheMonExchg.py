@@ -169,7 +169,7 @@ class RqCacheMonExchg(WtCacheMon):
             date = rq.get_previous_trading_date(date,work_day_delay)
         return date
 
- if __name__ == '__main__':
+if __name__ == '__main__':
     root = "../common"
     start_date = dt.datetime(2010,1,1)
     end_date = None
