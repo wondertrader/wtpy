@@ -104,9 +104,9 @@ class WtEngine:
         return self.__ext_parsers__[id]
 
     def get_extended_executer(self, id:str)->BaseExtExecuter:
-        if id not in self.__ext_executers__:
+        if id.decode() not in self.__ext_executers__:
             return None
-        return self.__ext_executers__[id]
+        return self.__ext_executers__[id.decode()]
 
     def push_quote_from_extended_parser(self, id:str, newTick, uProcFlag:int):
         '''

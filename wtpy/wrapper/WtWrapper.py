@@ -365,7 +365,7 @@ class WtWrapper:
         if executer is None:
             return
 
-        executer.set_position(stdCode, targetPos)
+        executer.set_position(stdCode.decode(), targetPos)
 
     def on_load_fnl_his_bars(self, stdCode:str, period:str):
         engine = self._engine
