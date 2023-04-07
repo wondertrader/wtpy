@@ -362,10 +362,10 @@ def stat_closes_by_day(df_closes:df, capital) -> df:
     df_closes['times'] = 1
     df_closes['gross_profit'] = df_closes['profit'].apply(lambda x: x if x > 0 else 0)
     df_closes['gross_loss'] = df_closes['profit'].apply(lambda x: x if x < 0 else 0)
-    profit = df_closes.groupby(df_closes['day']).sum()
+    profit = df_closes.groupby(df_closes['day'])[['win', 'times', 'profit', 'gross_profit', 'gross_loss']].sum()
     profit['win_rate'] = profit['win'] / profit['times']
     profit['profit_ratio'] = profit['profit']*100.0/capital
-    res = profit[['profit', 'gross_profit', 'gross_loss', 'times', 'win_rate','profit_ratio']]
+    res = profit[['profit', 'gross_profit', 'gross_loss', 'times', 'win_rate', 'profit_ratio']]
     return res.iloc[::-1]
 
 def stat_closes_by_month(df_closes:df, capital) -> df:
@@ -377,10 +377,10 @@ def stat_closes_by_month(df_closes:df, capital) -> df:
     df_closes['times'] = 1
     df_closes['gross_profit'] = df_closes['profit'].apply(lambda x: x if x > 0 else 0)
     df_closes['gross_loss'] = df_closes['profit'].apply(lambda x: x if x < 0 else 0)
-    profit = df_closes.groupby(df_closes['month']).sum()
+    profit = df_closes.groupby(df_closes['month'])[['win', 'times', 'profit', 'gross_profit', 'gross_loss']].sum()
     profit['win_rate'] = profit['win'] / profit['times']
     profit['profit_ratio'] = profit['profit']*100.0/capital
-    res = profit[['profit', 'gross_profit', 'gross_loss', 'times', 'win_rate','profit_ratio']]
+    res = profit[['profit', 'gross_profit', 'gross_loss', 'times', 'win_rate', 'profit_ratio']]
     return res.iloc[::-1]
 
 def stat_closes_by_year(df_closes:df, capital) -> df:
@@ -392,10 +392,10 @@ def stat_closes_by_year(df_closes:df, capital) -> df:
     df_closes['times'] = 1
     df_closes['gross_profit'] = df_closes['profit'].apply(lambda x: x if x > 0 else 0)
     df_closes['gross_loss'] = df_closes['profit'].apply(lambda x: x if x < 0 else 0)
-    profit = df_closes.groupby(df_closes['year']).sum()
+    profit = df_closes.groupby(df_closes['year'])[['win', 'times', 'profit', 'gross_profit', 'gross_loss']].sum()
     profit['win_rate'] = profit['win'] / profit['times']
     profit['profit_ratio'] = profit['profit']*100.0/capital
-    res = profit[['profit', 'gross_profit', 'gross_loss', 'times', 'win_rate','profit_ratio']]
+    res = profit[['profit', 'gross_profit', 'gross_loss', 'times', 'win_rate', 'profit_ratio']]
     return res.iloc[::-1]
 
 def time_analysis(df_closes:df,df_funds:df) -> dict:
