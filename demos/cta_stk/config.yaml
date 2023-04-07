@@ -6,8 +6,8 @@ basefiles:
 
 data:
     store:
-        module: WtDtStorage
-        path: ../STK_Data/
+        module: WtDataStorage
+        path: ../storage/
 env:
     name: cta               #引擎名称：cta/hft/sel
     fees: ../common/fees_stk.json   #佣金配置文件
