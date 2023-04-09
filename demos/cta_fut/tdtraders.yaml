@@ -21,5 +21,6 @@ traders:
     user: "yoursimnowaccount"
     pass: "yoursimnowpassword"
     quick: true                       # 是否订阅快速私有流，如果为true，则不会接受上次之前的私有流，这个一定要为true！！！
-    # ctpmodule: thosttraderapi_se    # ctp模块名，如果需要使用其他仿制CTP模块，使用该配置项直接将仿制的CTP模块传给TraderCTP即可
+    # 如果要使用openctp，启用该配置项即可
+    # ctpmodule: tts_thostmduserapi_se    # ctp模块名，如果需要使用其他仿制CTP模块，使用该配置项直接将仿制的CTP模块传给TraderCTP即可
     # flowdir: CTPTDFlow              # 数据流存储目录，可不填，也可以自己定义
