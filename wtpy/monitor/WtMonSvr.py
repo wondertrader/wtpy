@@ -307,7 +307,11 @@ class WtMonSvr(WatcherSink):
 
         script_dir = os.path.dirname(__file__)
         static_folder = os.path.join(script_dir, static_folder)
-        app.mount("/console", StaticFiles(directory=os.path.join(static_folder,"console")), name="static")
+        target_dir = os.path.join(static_folder,"console")
+        app.mount("/console", StaticFiles(directory=target_dir), name="console")
+
+        target_dir = os.path.join(static_folder,"mobile")
+        app.mount("/mobile", StaticFiles(directory=target_dir), name="mobile")
 
         self.app = app
         self.worker = None
@@ -2304,9 +2308,13 @@ class WtMonSvr(WatcherSink):
         @app.get("/console")
         async def console_entry():
             return RedirectResponse("/console/index.html")
+        
+        @app.get("/mobile")
+        async def mobile_entry():
+            return RedirectResponse("/mobile/index.html")
 
         @app.get("/favicon.ico")
-        async def console_entry():
+        async def favicon_entry():
             return FileResponse(os.path.join(self.static_folder, "favicon.ico"))
 
     def __run_impl__(self, port: int, host: str):

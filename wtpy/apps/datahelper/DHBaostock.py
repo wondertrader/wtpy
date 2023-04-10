@@ -1,7 +1,7 @@
 from wtpy.apps.datahelper.DHDefs import BaseDataHelper, DBHelper
 from wtpy.WtCoreDefs import WTSBarStruct
 import baostock as bs
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 import logging
@@ -44,7 +44,69 @@ class DHBaostock(BaseDataHelper):
         logging.info("Baostock has been authorized.")
 
     def dmpCodeListToFile(self, filename:str, hasIndex:bool=True, hasStock:bool=True):
-        raise Exception("Baostock has not code list api")
+        stocks = {
+            "SSE":{},
+            "SZSE":{}
+        }
+
+
+        logging.info("Confirming latest tradingday...")
+        rs = bs.query_trade_dates()
+        dates = []
+        while (rs.error_code == '0') & rs.next():
+            row = rs.get_row_data()
+            if row[1] == '1':
+                dates.append(row[0])
+        prevDate = dates[-2]
+        
+        logging.info(f"Feting all stocks of  latest tradingday: {prevDate}...")
+        rs = bs.query_all_stock(day=prevDate)
+
+        print(rs.fields)
+        while (rs.error_code == '0') & rs.next():
+            row = rs.get_row_data()
+            code = row[0]
+            name = row[2]
+            state = row[1]
+            if state != '1' or name=='':
+                continue
+
+            rss = bs.query_stock_basic(code)
+
+            sInfo = dict()
+            if code[:2] == "sh":
+                sInfo["exchg"] = "SSE"
+            else:
+                sInfo["exchg"] = "SZSE"
+            code = code[3:]
+            sInfo["code"] = code
+            sInfo["name"] = name
+
+            if sInfo["exchg"] == 'SSE':
+                if code[0] == '0':
+                    sInfo["product"] = 'IDX'   
+                elif code[0] == '5':
+                    sInfo["product"] = 'ETF' 
+                elif code[:4] == '1000':
+                    sInfo["product"] = 'ETFO'
+                else:
+                    sInfo["product"] = 'STK'
+            elif sInfo["exchg"] == 'SZSE':
+                if code[:3] == '399':
+                    sInfo["product"] = 'IDX'   
+                elif code[:3] == '159':
+                    sInfo["product"] = 'ETF'   
+                elif code[:4] == '9000':
+                    sInfo["product"] = 'ETFO'
+                else:
+                    sInfo["product"] = 'STK'
+            
+            stocks[sInfo["exchg"]][code] = sInfo
+
+        logging.info("Writing code list into file %s..." % (filename))
+        f = open(filename, 'w')
+        f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
+        f.close()
 
     def dmpAdjFactorsToFile(self, codes:list, filename:str):
         codes = transCodes(codes)

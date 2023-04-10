@@ -169,8 +169,8 @@ class RqCacheMonExchg(WtCacheMon):
             date = rq.get_previous_trading_date(date,work_day_delay)
         return date
 
- if __name__ == '__main__':
-    root = r".\common"
+if __name__ == '__main__':
+    root = "../common"
     start_date = dt.datetime(2010,1,1)
     end_date = None
     
@@ -179,7 +179,7 @@ class RqCacheMonExchg(WtCacheMon):
     cacher = RqCacheMonExchg(start_date,end_date,"rq_daily_cache.pkl") 
 
     # 从datakit落地的行情快照直接读取
-    # cacher = WtCacheMonSS("./FUT_DATA/his/snapshot/")
+    # cacher = WtCacheMonSS("../storage/his/snapshot/")
 
     picker = hotpicker.WtHotPicker(hotFile=hotFile, secFile=secFile)
     picker.set_cacher(cacher)

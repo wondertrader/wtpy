@@ -9,5 +9,5 @@ replayer:
     etime: 201912011500
     fees: ../common/fees_stk.json
     mode: csv
-    path: ./storage/
+    path: ../storage/
     stime: 201909010900

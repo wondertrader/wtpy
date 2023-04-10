@@ -475,6 +475,32 @@ class CtaContext:
         @return     进场时间, 格式如201907260932 
         '''
         return self.__wrapper__.cta_get_detail_entertime(self.__id__, stdCode, usertag)
+    
+    def stra_get_all_codes(self) -> list:
+        '''
+        获取全部合约代码列表
+        '''
+        if self.__engine__ is None:
+            return []
+        return self.__engine__.getAllCodes()
+    
+    def stra_get_codes_by_product(self, stdPID:str) -> list:
+        '''
+        根据品种代码读取合约列表
+        @stdPID 品种代码，格式如SHFE.rb
+        '''
+        if self.__engine__ is None:
+            return []
+        return self.__engine__.getCodesByProduct(stdPID)
+    
+    def stra_get_codes_by_underlying(self, underlying:str) -> list:
+        '''
+        根据underlying读取合约列表
+        @underlying 格式如CFFEX.IM2304
+        '''
+        if self.__engine__ is None:
+            return []
+        return self.__engine__.getCodesByUnderlying(underlying)
 
     def stra_get_comminfo(self, stdCode:str) -> ProductInfo:
         '''

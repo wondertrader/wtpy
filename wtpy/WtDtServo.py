@@ -133,6 +133,11 @@ class WtDtServo:
         uvicorn.run(self.server_inst, port=port, host=host)
 
     def __init_apis__(self, app:FastAPI):
+
+        @app.post("/clearcache")
+        async def on_clear_cache():
+            self.local_api.clear_cache()
+                
         @app.post("/getbars")
         async def on_get_bars(
             code: str = Body(..., title="合约代码", embed=True),
@@ -327,6 +332,15 @@ class WtDtServo:
             self.worker.setDaemon(True)
             self.worker.start()
 
+    def clear_cache(self):
+        '''
+        清除缓存数据
+        '''
+        if self.remote_api is not None:
+            return self.remote_api.clear_cache()()
+        
+        self.local_api.clear_cache()
+
     def get_bars(self, stdCode:str, period:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> WtBarRecords:
         '''
         获取K线数据
@@ -407,6 +421,17 @@ class WtDtRemoteServo:
 
     def __init__(self, url:str="http://127.0.0.1:8081"):
         self.remote_url = url
+
+    def clear_cache(self):
+        '''
+        清除缓存数据
+        '''
+        url = self.remote_url + "/clearcache"
+        data = {}
+
+        resObj = httpPost(url, data)
+        if resObj["result"] < 0:
+            print(resObj["message"])
 
     def get_bars(self, stdCode:str, period:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> WtBarRecords:
         '''

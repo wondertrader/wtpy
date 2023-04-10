@@ -1,6 +1,9 @@
 from wtpy import WtBtEngine,EngineType
 from wtpy.apps import WtBtAnalyst
-from Strategies.DualThrust import StraDualThrust
+
+import sys
+sys.path.append('../Strategies')
+from DualThrust import StraDualThrust
 
 def analyze_with_pyfolio(fund_filename:str, capital:float=500000):
     import pyfolio as pf
@@ -31,7 +34,7 @@ if __name__ == "__main__":
     engine.configBTStorage(mode="csv", path="../storage/")
 
     # 注册自定义连续合约规则
-    engine.registerCustomRule(ruleTag="0001", filename="../common/hots.json")
+    # engine.registerCustomRule(ruleTag="0001", filename="../common/hots.json")
     
     engine.commitBTConfig()
 
@@ -47,11 +50,12 @@ if __name__ == "__main__":
     isForStk    DualThrust策略用于控制交易品种的代码
     '''
     # 主力合约回测
-    # straInfo = StraDualThrust(name='pydt_IF', code="CFFEX.IF.HOT", barCnt=50, period="m5", days=30, k1=0.1, k2=0.1, isForStk=False)
+    straInfo = StraDualThrust(name='pydt_IF', code="CFFEX.IF.HOT", barCnt=50, period="m5", days=30, k1=0.1, k2=0.1, isForStk=False)
      
     # 自定义连续合约回测
     # 测试的时候把storage中的CFFEX.IF.HOT_m5.csv复制一份，改名为CFFEX.IF.0001_m5.csv即可
-    straInfo = StraDualThrust(name='pydt_IF', code="CFFEX.IF.0001", barCnt=50, period="m5", days=30, k1=0.1, k2=0.1, isForStk=False)
+    # straInfo = StraDualThrust(name='pydt_IF', code="CFFEX.IF.0001", barCnt=50, period="m5", days=30, k1=0.1, k2=0.1, isForStk=False)
+    # 
     engine.set_cta_strategy(straInfo)
 
     #开始运行回测

@@ -352,6 +352,7 @@ class WtWrapper:
             parser.unsubscribe(fullCode)
 
     def on_executer_init(self, id:str):
+        id = bytes.decode(id)
         engine = self._engine
         executer = engine.get_extended_executer(id)
         if executer is None:
@@ -360,12 +361,13 @@ class WtWrapper:
         executer.init()
 
     def on_executer_cmd(self, id:str, stdCode:str, targetPos:float):
+        id = bytes.decode(id)
         engine = self._engine
         executer = engine.get_extended_executer(id)
         if executer is None:
             return
 
-        executer.set_position(stdCode, targetPos)
+        executer.set_position(bytes.decode(stdCode), targetPos)
 
     def on_load_fnl_his_bars(self, stdCode:str, period:str):
         engine = self._engine

@@ -9,7 +9,7 @@ basefiles:
 data:
     store:
         session: TRADING
-        path: ../FUT_Data/      #数据存储根目录
+        path: ../storage/      #数据存储根目录
             
 fees: ../common/fees.json   #佣金配置文件
 executers: executers.yaml   #执行器配置文件

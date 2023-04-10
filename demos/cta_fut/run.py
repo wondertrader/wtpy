@@ -1,7 +1,9 @@
 from wtpy import WtEngine,EngineType
-from Strategies.DualThrust import StraDualThrust
-
 from ConsoleIdxWriter import ConsoleIdxWriter
+
+import sys
+sys.path.append('../Strategies')
+from DualThrust import StraDualThrust
 
 if __name__ == "__main__":
     #创建一个运行环境，并加入策略

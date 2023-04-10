@@ -58,7 +58,7 @@ class MyDataLoader(BaseExtDataLoader):
         '''
         print("loading ticks on %d of %s from extended loader" % (uDate, stdCode))
 
-        df = pd.read_csv('./storage/csv/rb主力连续_20201030.csv')
+        df = pd.read_csv('../storage/csv/rb主力连续_20201030.csv')
         BUFFER = WTSTickStruct*len(df)
         buffer = BUFFER()
 

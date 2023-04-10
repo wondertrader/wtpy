@@ -7,7 +7,7 @@ basefiles:
 bspolicy: actpolicy.yaml
 data:
     store:
-        path: ../FUT_Data/
+        path: ../storage/
 env:
     fees: ../common/fees.json
     filters: filters.yaml
