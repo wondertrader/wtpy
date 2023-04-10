@@ -23,6 +23,13 @@ class PlatformHelper:
         return False
 
     @staticmethod
+    def isDarwin() -> bool:
+        if "darwin" in platform.system().lower():
+            return True
+
+        return False
+
+    @staticmethod
     def getModule(moduleName:str, subdir:str="") -> str:
         dllname = ""
         ext = ""
@@ -33,6 +40,10 @@ class PlatformHelper:
                 dllname = "x64/"
             else:
                 dllname = "x86/"
+        elif PlatformHelper.isDarwin():
+            dllname = "darwin/"
+            prefix = "lib"
+            ext = ".dylib"
         else:#Linux平台
             dllname = "linux/"
             prefix = "lib"
