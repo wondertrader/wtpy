@@ -1,5 +1,6 @@
 from wtpy.ProductMgr import ProductInfo
 from wtpy.SessionMgr import SessionInfo
+from wtpy.ContractMgr import ContractInfo
 from wtpy.wrapper import WtWrapper
 from wtpy.WtDataDefs import WtBarRecords, WtTickRecords
 
@@ -511,6 +512,16 @@ class CtaContext:
         if self.__engine__ is None:
             return None
         return self.__engine__.getProductInfo(stdCode)
+    
+    def stra_get_contract(self, stdCode:str) -> ContractInfo:
+        '''
+        获取合约详情，回测框架下支持不够完善，慎用！
+        @stdCode   合约代码如SHFE.ag.2302
+        @return 品种信息, 结构请参考ContractMgr中的ContractInfo
+        '''
+        if self.__engine__ is None:
+            return None
+        return self.__engine__.getContractInfo(stdCode)
 
     def stra_get_rawcode(self, stdCode:str):
         '''
