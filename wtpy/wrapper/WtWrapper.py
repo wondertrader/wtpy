@@ -458,9 +458,6 @@ class WtWrapper:
         self.cb_load_adjfacts = FUNC_LOAD_ADJFACTS(self.on_load_adj_factors)
         self.api.register_ext_data_loader(self.cb_load_fnlbars, self.cb_load_rawbars, self.cb_load_adjfacts, self.cb_load_histicks)
 
-        self.cb_load_hisbars = FUNC_LOAD_HISBARS(self.on_load_his_bars)
-        self.cb_load_histicks = FUNC_LOAD_HISTICKS(self.on_load_his_ticks)
-        self.api.register_ext_data_loader(self.cb_load_fnlbars, self.cb_load_rawbars, self.cb_load_adjfacts, self.cb_load_histicks)
 
     ### 实盘和回测有差异 ###
     def initialize_cta(self, logCfg:str = "logcfg.yaml", isFile:bool = True, genDir:str = 'generated'):
