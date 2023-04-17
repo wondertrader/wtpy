@@ -78,7 +78,7 @@ class StraDualThrustSel(BaseSelStrategy):
             if curPos == 0:
                 if highpx >= upper_bound:
                     context.stra_set_position(code, 1*trdUnit, 'enterlong')
-                    context.stra_log_text("{} 向上突破{}>=%{}，多仓进场".format(code, highpx, upper_bound))
+                    context.stra_log_text("{} 向上突破{}>={}，多仓进场".format(code, highpx, upper_bound))
                     continue
 
                 if lowpx <= lower_bound and not self.__is_stk__:
