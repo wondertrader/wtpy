@@ -6,6 +6,11 @@ sys.path.append('../Strategies')
 from DualThrust import StraDualThrust
 
 def analyze_with_pyfolio(fund_filename:str, capital:float=500000):
+	'''
+	这里只是一个演示的入口
+	演示如何将WonderTrader的回测结果通过pyfolio进行绩效分析
+	如果这里出现错误，请自行调试，谢谢
+	'''
     import pyfolio as pf
     import pandas as pd
     from datetime import datetime
