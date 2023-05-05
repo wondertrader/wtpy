@@ -366,15 +366,17 @@ class WtBtEngine:
         '''
         self.__wrapper__.set_time_range(beginTime, endTime)
 
-    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False, persistData:bool = True, incremental:bool = False):
+    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False, persistData:bool = True, incremental:bool = False, isRatioSlp:bool = False):
         '''
         添加CTA策略
         @strategy   策略对象
         @slippage   滑点大小
         @hook       是否安装钩子，主要用于单步控制重算
-        @persistData    回测生成的数据是否落地，默认为True
+        @persistData    回测生成的数据是否落地, 默认为True
+        @incremental    是否增量回测, 默认为False
+        @isRatioSlp     滑点是否是比例, 默认为False, 如果为True, 则slippage为万分比
         '''
-        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData, incremental)
+        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData, incremental, isRatioSlp)
         self.__context__ = CtaContext(ctxid, strategy, self.__wrapper__, self)
 
     def set_hft_strategy(self, strategy:BaseHftStrategy, hook:bool = False):

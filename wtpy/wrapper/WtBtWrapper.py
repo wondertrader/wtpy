@@ -180,7 +180,7 @@ class WtBtWrapper:
         period = bytes.decode(period)
         engine = self._engine
         ctx = engine.get_context(id)
-        newBar = newBar.contents
+        newBar:WTSBarStruct = newBar.contents
         # curBar = dict()
         # if period[0] == 'd':
         #     curBar["time"] = newBar.date
@@ -1158,13 +1158,18 @@ class WtBtWrapper:
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''本地撮合接口'''
-    def init_cta_mocker(self, name:str, slippage:int = 0, hook:bool = False, persistData:bool = True, incremental:bool = False) -> int:
+    def init_cta_mocker(self, name:str, slippage:int = 0, hook:bool = False, persistData:bool = True, incremental:bool = False, isRatioSlp:bool = False) -> int:
         '''
         创建策略环境
-        @name      策略名称
-        @return    系统内策略ID 
+        @name       策略名称 
+        @slippage   滑点大小
+        @hook       是否安装钩子，主要用于单步控制重算
+        @persistData    回测生成的数据是否落地, 默认为True
+        @incremental    是否增量回测, 默认为False
+        @isRatioSlp     滑点是否是比例, 默认为False, 如果为True, 则slippage为万分比
+        @return    系统内策略ID
         '''
-        return self.api.init_cta_mocker(bytes(name, encoding = "utf8"), slippage, hook, persistData, incremental)
+        return self.api.init_cta_mocker(bytes(name, encoding = "utf8"), slippage, hook, persistData, incremental, isRatioSlp)
 
     def init_hft_mocker(self, name:str, hook:bool = False) -> int:
         '''
