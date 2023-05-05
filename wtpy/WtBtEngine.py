@@ -390,6 +390,9 @@ class WtBtEngine:
         '''
         添加SEL策略
         @strategy   策略对象
+        @date       日期,根据周期变化,每日为0,每周为0~6,对应周日到周六,每月为1~31,每年为0101~1231
+        @time       时间,精确到分钟
+        @period     周期,min-分钟,d-每天,w-每周,m-每月,y-每年
         '''
         ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session, slippage)
         self.__context__ = SelContext(ctxid, strategy, self.__wrapper__, self)
