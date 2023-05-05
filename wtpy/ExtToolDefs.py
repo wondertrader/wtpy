@@ -21,11 +21,11 @@ class BaseIndexWriter:
 
     def write_indicator(self, id:str, tag:str, time:int, data:dict):
         '''
-        将指标数据出\n
-        @id     指标ID\n
-        @tag    数据标记\n
-        @time   指标时间\n
-        @data   数据对象，一个dict
+        将指标数据出
+        @id     指标ID
+        @tag    数据标记
+        @time   指标时间
+        @data   数据对象, 一个dict
         '''
         raise Exception("Basic writer cannot output index data to any media")
 
