@@ -56,7 +56,13 @@ if __name__ == "__main__":
     # 测试的时候把storage中的CFFEX.IF.HOT_m5.csv复制一份，改名为CFFEX.IF.0001_m5.csv即可
     # straInfo = StraDualThrust(name='pydt_IF', code="CFFEX.IF.0001", barCnt=50, period="m5", days=30, k1=0.1, k2=0.1, isForStk=False)
     # 
-    engine.set_cta_strategy(straInfo)
+    
+    '''
+    @slippage       滑点大小
+    @incremental    是否增量回测, 默认为False, 如果为True, 则会自动根据策略ID到output_bt目录下加载对应的数据
+    @isRatioSlp     滑点是否是比例, 默认为False, 如果为True, 则slippage为万分比
+    '''
+    engine.set_cta_strategy(straInfo, slippage=0, isRatioSlp=False, incremental=False)
 
     #开始运行回测
     engine.run_backtest(bAsync=False)

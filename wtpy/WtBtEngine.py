@@ -373,7 +373,7 @@ class WtBtEngine:
         @slippage   滑点大小
         @hook       是否安装钩子，主要用于单步控制重算
         @persistData    回测生成的数据是否落地, 默认为True
-        @incremental    是否增量回测, 默认为False
+        @incremental    是否增量回测, 默认为False, 如果为True, 则会自动根据策略ID到output_bt目录下加载对应的数据
         @isRatioSlp     滑点是否是比例, 默认为False, 如果为True, 则slippage为万分比
         '''
         ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData, incremental, isRatioSlp)
