@@ -399,8 +399,16 @@ class WtEngine:
         id = self.__wrapper__.create_hft_context(strategy.name(), trader, agent, slippage)
         self.__hft_ctxs__[id] = HftContext(id, strategy, self.__wrapper__, self)
 
-    def add_sel_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str, slippage:int = 0):
-        id = self.__wrapper__.create_sel_context(strategy.name(), date, time, period, slippage)
+    def add_sel_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str, trdtpl:str="CHINA", session:str="TRADING", slippage:int = 0):
+        '''
+        添加SEL策略
+        @ strategy  SEL策略对象
+        @date       日期,根据周期变化,每日为0,每周为0~6,对应周日到周六,每月为1~31,每年为0101~1231
+	    @time       时间,精确到分钟
+	    @period	    时间周期,可以是分钟min、天d、周w、月m、年y
+        @slippage   滑点大小
+        '''
+        id = self.__wrapper__.create_sel_context(name=strategy.name(), date=date, time=time, period=period, trdtpl=trdtpl, session=session, slippage=slippage)
         self.__sel_ctxs__[id] = SelContext(id, strategy, self.__wrapper__, self)
 
     def get_context(self, id:int):

@@ -1172,8 +1172,11 @@ class WtWrapper:
     def create_sel_context(self, name:str, date:int, time:int, period:str, trdtpl:str = 'CHINA', session:str = "TRADING", slippage:int = 0) -> int:
         '''
         创建策略环境
-        @name      策略名称
-        @return    系统内策略ID 
+        @name       策略名称
+        @date       日期,根据周期变化,每日为0,每周为0~6,对应周日到周六,每月为1~31,每年为0101~1231
+	    @time       时间,精确到分钟
+	    @period	    时间周期,可以是分钟min、天d、周w、月m、年y
+        @return     系统内策略ID 
         '''
         return self.api.create_sel_context(bytes(name, encoding = "utf8"), date, time, 
             bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"), slippage)
