@@ -388,12 +388,19 @@ class WtBtEngine:
         ctxid = self.__wrapper__.init_hft_mocker(strategy.name(), hook)
         self.__context__ = HftContext(ctxid, strategy, self.__wrapper__, self)
 
-    def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING", slippage:int = 0):
+    def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING", slippage:int = 0, isRatioSlp:bool = False):
         '''
         添加SEL策略
         @strategy   策略对象
+        @date       日期,根据周期变化,每日为0,每周为0~6,对应周日到周六,每月为1~31,每年为0101~1231
+	    @time       时间,精确到分钟
+	    @period	    时间周期,可以是分钟min、天d、周w、月m、年y
+        @trdtpl     交易日历模板,默认为CHINA
+        @session    交易时间模板,默认为TRADING
+        @slippage   滑点大小
+        @isRatioSlp 滑点是否是比例, 默认为False, 如果为True, 则slippage为万分比
         '''
-        ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session, slippage)
+        ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session, slippage, isRatioSlp)
         self.__context__ = SelContext(ctxid, strategy, self.__wrapper__, self)
 
     def get_context(self, id:int):

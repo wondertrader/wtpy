@@ -1179,11 +1179,11 @@ class WtBtWrapper:
         '''
         return self.api.init_hft_mocker(bytes(name, encoding = "utf8"), hook)
 
-    def init_sel_mocker(self, name:str, date:int, time:int, period:str, trdtpl:str = "CHINA", session:str = "TRADING", slippage:int = 0) -> int:
+    def init_sel_mocker(self, name:str, date:int, time:int, period:str, trdtpl:str = "CHINA", session:str = "TRADING", slippage:int = 0, isRatioSlp:bool = False) -> int:
         '''
         创建策略环境
         @name      策略名称
         @return    系统内策略ID 
         '''
         return self.api.init_sel_mocker(bytes(name, encoding = "utf8"), date, time, 
-            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"), slippage)
+            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"), slippage, isRatioSlp)
