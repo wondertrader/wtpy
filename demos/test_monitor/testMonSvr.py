@@ -14,6 +14,9 @@ from wtpy.monitor import WtMonSvr
 # 创建监控服务，deploy_dir是策略组合部署的根目录
 svr = WtMonSvr(deploy_dir="./deploy")
 
+# 开启令牌访问，这样适合一些跨域访问的场景
+# svr.enable_token(seckey="UM1kbkmdfpRdkBAt")
+
 # 将回测管理模块提交给WtMonSvr
 # from wtpy.monitor import WtBtMon
 # btMon = WtBtMon(deploy_folder="./bt_deploy", logger=svr.logger) # 创建回测管理器
