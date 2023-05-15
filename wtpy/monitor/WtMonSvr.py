@@ -1033,8 +1033,6 @@ class WtMonSvr(WatcherSink):
                         usrInf["loginip"] = request.client.host
                         usrInf["logintime"] = now.strftime("%Y/%m/%d %H:%M:%S")
                         products = usrInf["products"]
-                        if len(products) != 0:
-                            products = products.split(',')
 
                         exptime = now + datetime.timedelta(minutes=360)  # 360分钟令牌超时
                         tokenInfo = {
@@ -1962,7 +1960,7 @@ class WtMonSvr(WatcherSink):
                 passwd: str = Body("", title="登录密码", embed=True),
                 role: str = Body("", title="用户角色", embed=True),
                 iplist: str = Body("", title="限定ip", embed=True),
-                products: str = Body("", title="产品列表", embed=True),
+                products: list = Body([], title="产品列表", embed=True),
                 remark: str = Body("", title="备注信息", embed=True)
         ):
             bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
@@ -1975,7 +1973,7 @@ class WtMonSvr(WatcherSink):
                 "passwd": passwd,
                 "role": role,
                 "iplist": iplist,
-                "products": products,
+                "products": ",".join(products),
                 "remark": remark
             }
 

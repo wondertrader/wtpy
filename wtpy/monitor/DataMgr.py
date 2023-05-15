@@ -60,7 +60,12 @@ class DataMgr:
             usrInfo["createtime"] = row[8]
             usrInfo["modifyby"] = row[9]
             usrInfo["modifytime"] = row[10]
-            usrInfo["products"] = row[11]
+            products = row[11]
+            if len(products) != 0:
+                products = products.split(',')
+            else:
+                products = []
+            usrInfo["products"] = products
             self.__config__["users"][usrInfo["loginid"]] = usrInfo
 
     def get_db(self):
@@ -354,7 +359,8 @@ class DataMgr:
                 (usrInfo["name"], usrInfo["role"], usrInfo["iplist"], usrInfo["products"], usrInfo["remark"], admin, loginid))
         self.__db_conn__.commit()
 
-        self.__config__["users"][loginid] = usrInfo
+        self.__config__["users"][loginid]["modifyby"] = admin
+        self.__config__["users"][loginid]["modifyby"] = usrInfo["modifytime"]
 
     def mod_user_pwd(self, loginid:str, newpwd:str, admin:str):
         cur = self.__db_conn__.cursor()
