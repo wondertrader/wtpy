@@ -48,7 +48,7 @@ class DataMgr:
             grpInfo["mqurl"] = row[8]
             self.__config__["groups"][grpInfo["id"]] = grpInfo
 
-        for row in cur.execute("SELECT * FROM users;"):
+        for row in cur.execute("SELECT id,loginid,name,role,passwd,iplist,remark,createby,createtime,modifyby,modifytime,products FROM users;"):
             usrInfo = dict()
             usrInfo["loginid"] = row[1]
             usrInfo["name"] = row[2]
@@ -60,6 +60,7 @@ class DataMgr:
             usrInfo["createtime"] = row[8]
             usrInfo["modifyby"] = row[9]
             usrInfo["modifytime"] = row[10]
+            usrInfo["products"] = row[11]
             self.__config__["users"][usrInfo["loginid"]] = usrInfo
 
     def get_db(self):
@@ -138,6 +139,7 @@ class DataMgr:
             sql += "[role] VARCHAR(10) NOT NULL DEFAULT '',\n"
             sql += "[passwd] VARCHAR(30) NOT NULL DEFAULT 'cta',\n"
             sql += "[iplist] VARCHAR(100) NOT NULL DEFAULT 'mannual',\n"
+            sql += "[products] VARCHAR(256) NOT NULL DEFAULT 'mannual',\n"
             sql += "[remark] VARCHAR(256) NOT NULL DEFAULT '',\n"
             sql += "[createby] VARCHAR(20) NOT NULL DEFAULT '',\n"
             sql += "[createtime] DATETIME default (datetime('now', 'localtime')),\n"
@@ -155,7 +157,7 @@ class DataMgr:
         else:
             cache_time = self.__grp_cache__[grpid]["cachetime"]
             bNeedReset = False
-            if cache_time is None:
+            if cache_time is None or "strategies" not in self.__grp_cache__[grpid]:
                 bNeedReset = True
             else:
                 td = now - cache_time
@@ -194,9 +196,16 @@ class DataMgr:
                         "channels":[],
                         "executers":[]
                     } 
-            self.__grp_cache__[grpid]["strategies"].sort()
-            self.__grp_cache__[grpid]["channels"].sort()
-            self.__grp_cache__[grpid]["executers"].sort()
+
+            if "strategies" in self.__grp_cache__[grpid]:
+                self.__grp_cache__[grpid]["strategies"].sort()
+
+            if "channels" in self.__grp_cache__[grpid]:
+                self.__grp_cache__[grpid]["channels"].sort()
+
+            if "executers" in self.__grp_cache__[grpid]:
+                self.__grp_cache__[grpid]["executers"].sort()
+
             self.__grp_cache__[grpid]["cachetime"] = now
 
     def get_groups(self, tpfilter:str=''):
@@ -336,13 +345,13 @@ class DataMgr:
             usrInfo["modifyby"] = admin
             usrInfo["createtime"] = now.strftime("%Y-%m-%d %H:%M:%S")
             usrInfo["modifytime"] = now.strftime("%Y-%m-%d %H:%M:%S")
-            cur.execute("INSERT INTO users(loginid,name,role,passwd,iplist,remark,createby,modifyby) VALUES(?,?,?,?,?,?,?,?);", 
-                (loginid, usrInfo["name"], usrInfo["role"], encpwd, usrInfo["iplist"], usrInfo["remark"], admin, admin))
+            cur.execute("INSERT INTO users(loginid,name,role,passwd,iplist,products,remark,createby,modifyby) VALUES(?,?,?,?,?,?,?,?,?);", 
+                (loginid, usrInfo["name"], usrInfo["role"], encpwd, usrInfo["iplist"], usrInfo["products"], usrInfo["remark"], admin, admin))
         else:
             usrInfo["modifyby"] = admin
             usrInfo["modifytime"] = now.strftime("%Y-%m-%d %H:%M:%S")
-            cur.execute("UPDATE users SET name=?,role=?,iplist=?,remark=?,modifyby=?,modifytime=datetime('now','localtime') WHERE loginid=?;", 
-                (usrInfo["name"], usrInfo["role"], usrInfo["iplist"], usrInfo["remark"], admin, loginid))
+            cur.execute("UPDATE users SET name=?,role=?,iplist=?,products=?,remark=?,modifyby=?,modifytime=datetime('now','localtime') WHERE loginid=?;", 
+                (usrInfo["name"], usrInfo["role"], usrInfo["iplist"], usrInfo["products"], usrInfo["remark"], admin, loginid))
         self.__db_conn__.commit()
 
         self.__config__["users"][loginid] = usrInfo
@@ -384,7 +393,8 @@ class DataMgr:
                 "passwd":"25ed305a56504e95fd1ca9900a1da174",
                 "iplist":"",
                 "remark":"内置超管账号",
-                'builtin':True
+                'builtin':True,
+                'products':''
             }
         else:
             return None
@@ -1175,32 +1185,33 @@ class DataMgr:
         # 这里再更新一条实时数据
         filepath = "./generated/portfolio/datas.json"
         filepath = os.path.join(grpInfo["path"], filepath)
-        f = open(filepath, "r")
-        try:
-            content = f.read()
-            json_data = json.loads(content)
-            fund = json_data["fund"]
-            if fund["date"] > last_date:
-                ret.append({
-                    "date": fund["date"],
-                    "predynbalance": fund["predynbal"],
-                    "prebalance": fund["prebalance"],
-                    "balance": fund["balance"],
-                    "closeprofit": fund["profit"],
-                    "dynprofit": fund["dynprofit"],
-                    "fee": fund["fees"],
-                    "maxdynbalance": fund["max_dyn_bal"],
-                    "maxtime": fund["max_time"],
-                    "mindynbalance": fund["min_dyn_bal"],
-                    "mintime": fund["min_time"],
-                    "mdmaxbalance": fund["maxmd"]["dyn_balance"],
-                    "mdmaxdate": fund["maxmd"]["date"],
-                    "mdminbalance": fund["minmd"]["dyn_balance"],
-                    "mdmindate": fund["minmd"]["date"]
-                })
-        except:
-            pass
-        f.close()
+        if os.path.exists(filepath):
+            f = open(filepath, "r")
+            try:
+                content = f.read()
+                json_data = json.loads(content)
+                fund = json_data["fund"]
+                if fund["date"] > last_date:
+                    ret.append({
+                        "date": fund["date"],
+                        "predynbalance": fund["predynbal"],
+                        "prebalance": fund["prebalance"],
+                        "balance": fund["balance"],
+                        "closeprofit": fund["profit"],
+                        "dynprofit": fund["dynprofit"],
+                        "fee": fund["fees"],
+                        "maxdynbalance": fund["max_dyn_bal"],
+                        "maxtime": fund["max_time"],
+                        "mindynbalance": fund["min_dyn_bal"],
+                        "mintime": fund["min_time"],
+                        "mdmaxbalance": fund["maxmd"]["dyn_balance"],
+                        "mdmaxdate": fund["maxmd"]["date"],
+                        "mdminbalance": fund["minmd"]["dyn_balance"],
+                        "mdmindate": fund["minmd"]["date"]
+                    })
+            except:
+                pass
+            f.close()
         return ret
 
     def get_group_positions(self, grpid:str):
