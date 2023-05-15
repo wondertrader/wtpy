@@ -13,6 +13,7 @@ import hashlib
 import sys
 import chardet
 import pytz
+import base64
 
 from .WtLogger import WtLogger
 from .DataMgr import DataMgr, backup_file
@@ -21,46 +22,48 @@ from .WatchDog import WatchDog, WatcherSink
 from .WtBtMon import WtBtMon
 from wtpy import WtDtServo
 
-
 def get_session(request: Request, key: str):
     if key not in request["session"]:
         return None
-
     return request["session"][key]
-
 
 def set_session(request: Request, key: str, val):
     request["session"][key] = val
 
-
 def pop_session(request: Request, key: str):
     if key not in request["session"]:
         return
-
     request["session"].pop(key)
 
+def AES_Encrypt(key:str, data:str):
+    from Crypto.Cipher import AES # pip install pycryptodome
+    vi = '0102030405060708'
+    pad = lambda s: s + (16 - len(s) % 16) * chr(16 - len(s) % 16)
+    data = pad(data)
+    # 字符串补位
+    cipher = AES.new(key.encode('utf8'), AES.MODE_CBC, vi.encode('utf8'))
+    encryptedbytes = cipher.encrypt(data.encode('utf8'))
+    # 加密后得到的是bytes类型的数据
+    encodestrs = base64.b64encode(encryptedbytes)
+    # 使用Base64进行编码,返回byte字符串
+    enctext = encodestrs.decode('utf8')
+    # 对byte字符串按utf-8进行解码
+    return enctext
 
-# def pack_rsp(obj):
-#     rsp = make_response(json.dumps(obj))
-#     rsp.headers["content-type"]= "text/json;charset=utf-8"
-#     return rsp
-#
-# def parse_data():
-#     try:
-#         data = request.get_data()
-#         json_data = json.loads(data.decode("utf-8"))
-#         return True,json_data
-#     except:
-#         return False, {
-#             "result": -998,
-#             "message": "请求数据解析失败"
-#         }
+def AES_Decrypt(key:str, data:str):
+    from Crypto.Cipher import AES # pip install pycryptodome
+    vi = '0102030405060708'
+    data = data.encode('utf8')
+    encodebytes = base64.decodebytes(data)
+    # 将加密数据转换位bytes类型数据
+    cipher = AES.new(key.encode('utf8'), AES.MODE_CBC, vi.encode('utf8'))
+    text_decrypted = cipher.decrypt(encodebytes)
+    unpad = lambda s: s[0:-s[-1]]
+    text_decrypted = unpad(text_decrypted)
+    # 去补位
+    text_decrypted = text_decrypted.decode('utf8')
+    return text_decrypted
 
-# def get_param(json_data, key:str, type=str, defVal = ""):
-#     if key not in json_data:
-#         return defVal
-#     else:
-#         return type(json_data[key])
 
 # 获取文件最后N行的函数
 def get_tail(filename, N: int = 100, encoding="GBK"):
@@ -80,26 +83,45 @@ def get_tail(filename, N: int = 100, encoding="GBK"):
     return ''.join(last_line), len(last_line)
 
 
-def check_auth(request: Request):
-    usrInfo = get_session(request, "userinfo")
-    # session里没有用户信息
-    if usrInfo is None:
-        return False, {
-            "result": -999,
-            "message": "请先登录"
-        }
+def check_auth(request: Request, token:str = None, seckey:str = None):
+    if token is None:
+        tokeninfo = get_session(request, "tokeninfo")
+        # session里没有用户信息
+        if tokeninfo is None:
+            return False, {
+                "result": -999,
+                "message": "请先登录"
+            }
 
-    # session里有用户信息，则要读取
-    exptime = get_session(request, "expiretime")
-    now = datetime.datetime.now().replace(tzinfo=pytz.timezone('UTC')).strftime("%Y.%m.%d %H:%M:%S")
-    if now > exptime:
-        return False, {
-            "result": -999,
-            "message": "登录已超时，请重新登录"
-        }
+        # session里有用户信息，则要读取
+        exptime = tokeninfo["expiretime"]
+        now = datetime.datetime.now().replace(tzinfo=pytz.timezone('UTC')).strftime("%Y.%m.%d %H:%M:%S")
+        if now > exptime:
+            return False, {
+                "result": -999,
+                "message": "登录已超时，请重新登录"
+            }
 
-    return True, usrInfo
+        return True, tokeninfo
+    else:
+        tokeninfo = AES_Decrypt(seckey, token)
+        # session里没有用户信息
+        if tokeninfo is None:
+            return False, {
+                "result": -999,
+                "message": "请先登录"
+            }
 
+        # session里有用户信息，则要读取
+        exptime = tokeninfo["expiretime"]
+        now = datetime.datetime.now().replace(tzinfo=pytz.timezone('UTC')).strftime("%Y.%m.%d %H:%M:%S")
+        if now > exptime:
+            return False, {
+                "result": -999,
+                "message": "登录已超时，请重新登录"
+            }
+
+        return True, tokeninfo
 
 def get_cfg_tree(root: str, name: str):
     if not os.path.exists(root):
@@ -292,6 +314,10 @@ class WtMonSvr(WatcherSink):
         self.__bt_mon__: WtBtMon = None
         self.__dt_servo__: WtDtServo = None
 
+        # 秘钥和开启token访问，单独控制，减少依赖项
+        self.__sec_key__ = ""
+        self.__token_enabled__ = False
+
         # 看门狗模块，主要用于调度各个组合启动关闭
         self._dog = WatchDog(sink=self, db=self.__data_mgr__.get_db(), logger=self.logger)
 
@@ -325,6 +351,15 @@ class WtMonSvr(WatcherSink):
         self.init_mgr_apis(app)
         self.init_comm_apis(app)
 
+    def enable_token(self, seckey: str = "WtMonSvr@2021"):
+        '''
+        启用访问令牌, 默认通过session方式验证
+        注意: 这里如果启用令牌访问的话, 需要安装pycryptodome, 所以改成单独控制
+        '''
+        
+        self.__sec_key__ = seckey
+        self.__token_enabled__ = True
+
     def set_bt_mon(self, btMon: WtBtMon):
         '''
         设置回测管理器
@@ -348,13 +383,14 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/qrybars", tags=["回测管理接口"])
         async def qry_bt_bars(
             request: Request,
+            token: str = Body(None, title="访问令牌", embed=True),
             code: str = Body(..., title="合约代码", embed=True),
             period: str = Body(..., title="K线周期", embed=True),
             stime: int = Body(None, title="开始时间", embed=True),
             etime: int = Body(..., title="结束时间", embed=True),
             count: int = Body(None, title="数据条数", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -401,9 +437,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/qrystras", tags=["回测管理接口"])
         @app.get("/bt/qrystras", tags=["回测管理接口"])
         async def qry_my_stras(
-                request: Request
+                request: Request,
+                token: str = Body(None, title="访问令牌", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -428,9 +465,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/qrycode", tags=["回测管理接口"])
         async def qry_stra_code(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 straid: str = Body(..., title="策略ID", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -468,10 +506,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/setcode", tags=["回测管理接口"])
         def set_stra_code(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 straid: str = Body(..., title="策略ID", embed=True),
                 content: str = Body(..., title="策略代码", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -521,9 +560,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/addstra", tags=["回测管理接口"])
         async def cmd_add_stra(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 name: str = Body(..., title="策略名称", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -569,9 +609,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/delstra", tags=["回测管理接口"])
         async def cmd_del_stra(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 straid: str = Body(..., title="策略ID", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -621,9 +662,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/qrystrabts", tags=["回测管理接口"])
         async def qry_stra_bts(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 straid: str = Body(..., title="策略ID", embed=True),
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -667,10 +709,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/qrybtsigs", tags=["回测管理接口"])
         async def qry_stra_bt_signals(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 straid: str = Body(..., title="策略ID", embed=True),
                 btid: str = Body(..., title="回测ID", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -714,9 +757,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/delstrabt", tags=["回测管理接口"])
         async def cmd_del_stra_bt(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 btid: str = Body(..., title="回测ID", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -754,10 +798,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/qrybttrds", tags=["回测管理接口"])
         async def qry_stra_bt_trades(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 straid: str = Body(..., title="策略ID", embed=True),
                 btid: str = Body(..., title="回测ID", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -801,10 +846,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/qrybtfunds", tags=["回测管理接口"])
         async def qry_stra_bt_funds(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 straid: str = Body(..., title="策略ID", embed=True),
                 btid: str = Body(..., title="回测ID", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -848,10 +894,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/qrybtrnds", tags=["回测管理接口"])
         async def qry_stra_bt_rounds(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 straid: str = Body(..., title="策略ID", embed=True),
                 btid: str = Body(..., title="回测ID", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -895,13 +942,14 @@ class WtMonSvr(WatcherSink):
         @app.post("/bt/runstrabt", tags=["回测管理接口"])
         def cmd_run_stra_bt(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 straid: str = Body(..., title="策略ID", embed=True),
                 stime: int = Body(None, title="开始时间", embed=True),
                 etime: int = Body(None, title="结束时间", embed=True),
                 capital: int = Body(500000, title="本金", embed=True),
                 slippage: int = Body(0, title="滑点", embed=True)
         ):
-            bSucc, userInfo = check_auth(request)
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return userInfo
 
@@ -954,14 +1002,6 @@ class WtMonSvr(WatcherSink):
 
     def init_mgr_apis(self, app: FastAPI):
 
-        # @app.route("/console", methods=["GET"])
-        # def stc_console_index():
-        #     return redirect("./console/index.html")
-
-        # @app.route("/mobile", methods=["GET"])
-        # def stc_mobile_index():
-        #    return redirect("./mobile/index.html")
-
         '''下面是API接口的编写'''
 
         @app.post("/mgr/login", tags=["用户接口"])
@@ -992,17 +1032,35 @@ class WtMonSvr(WatcherSink):
                         usrInf.pop("passwd")
                         usrInf["loginip"] = request.client.host
                         usrInf["logintime"] = now.strftime("%Y/%m/%d %H:%M:%S")
+                        products = usrInf["products"]
+                        if len(products) != 0:
+                            products = products.split(',')
 
                         exptime = now + datetime.timedelta(minutes=360)  # 360分钟令牌超时
-                        set_session(request, "userinfo", usrInf)
-                        set_session(request, "expiretime",
-                                    exptime.replace(tzinfo=pytz.timezone('UTC')).strftime("%Y.%m.%d %H:%M:%S"))
-
-                        ret = {
-                            "result": 0,
-                            "message": "Ok",
-                            "userinfo": usrInf
+                        tokenInfo = {
+                            "loginid": user,
+                            "role": usrInf["role"],
+                            "logintime": now.strftime("%Y/%m/%d %H:%M:%S"),
+                            "expiretime": exptime.replace(tzinfo=pytz.timezone('UTC')).strftime("%Y.%m.%d %H:%M:%S"),
+                            "products": products,
+                            "loginip": request.client.host
                         }
+                        set_session(request, "tokeninfo", tokenInfo)
+
+                        if self.__token_enabled__:
+                            token = AES_Encrypt(self.__sec_key__, json.dumps(tokenInfo))
+                            ret = {
+                                "result": 0,
+                                "message": "Ok",
+                                "userinfo": usrInf,
+                                "token": token
+                            }
+                        else:
+                            ret = {
+                                "result": 0,
+                                "message": "Ok",
+                                "userinfo": usrInf
+                            }
 
                         self.__data_mgr__.log_action(usrInf, "login", json.dumps(request.headers.get('User-Agent')))
             else:
@@ -1020,10 +1078,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/modpwd", tags=["用户接口"])
         async def mod_pwd(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 oldpwd: str = Body(..., title="旧密码", embed=True),
                 newpwd: str = Body(..., title="新密码", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1068,6 +1127,7 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/addgrp", tags=["策略组管理接口"])
         async def cmd_add_group(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 name: str = Body('', title="组合名称", embed=True),
                 path: str = Body('', title="组合路径", embed=True),
@@ -1078,7 +1138,7 @@ class WtMonSvr(WatcherSink):
                 mqurl: str = Body('', title="消息队列地址", embed=True),
                 action: str = Body('add', title="操作类型，add/mod", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1144,9 +1204,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/delgrp", tags=["策略组管理接口"])
         async def cmd_del_group(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1189,9 +1250,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/stopgrp", tags=["策略组管理接口"])
         async def cmd_stop_group(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1218,9 +1280,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/startgrp", tags=["策略组管理接口"])
         async def cmd_start_group(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1245,9 +1308,10 @@ class WtMonSvr(WatcherSink):
         # 获取执行的python进程的路径
         @app.post("/mgr/qryexec", tags=["通用接口"])
         def qry_exec_path(
-                request: Request
+                request: Request,
+                token: str = Body(None, title="访问令牌", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1262,9 +1326,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrymon", tags=["调度器管理接口"])
         async def qry_mon_cfg(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1295,9 +1360,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/cfgmon", tags=["调度器管理接口"])
         async def cmd_config_monitor(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 config: dict = Body(..., title="监控配置", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1318,9 +1384,10 @@ class WtMonSvr(WatcherSink):
         # 查询目录结构
         @app.post("/mgr/qrydir", tags=["通用接口"])
         async def qry_directories(
-                request: Request
+                request: Request,
+                token: str = Body(None, title="访问令牌", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1345,9 +1412,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrygrpdir", tags=["策略组管理接口"])
         async def qry_grp_directories(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1373,20 +1441,27 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrygrp", tags=["策略组管理接口"])
         @app.get("/mgr/qrygrp", tags=["策略组管理接口"])
         async def qry_groups(
-                request: Request
+                request: Request,
+                token: str = Body(None, title="访问令牌", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, tokenInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
-                return usrInfo
+                return tokenInfo
 
+            products = tokenInfo["products"]
+            
             try:
                 groups = self.__data_mgr__.get_groups()
+                rets = list()
                 for grpInfo in groups:
-                    grpInfo["running"] = self._dog.isRunning(grpInfo["id"])
+                    if len(products) == 0 or grpInfo["id"] in products:
+                        grpInfo["running"] = self._dog.isRunning(grpInfo["id"])
+                        rets.append(grpInfo)
+
                 ret = {
                     "result": 0,
                     "message": "Ok",
-                    "groups": groups
+                    "groups": rets
                 }
             except:
                 ret = {
@@ -1400,10 +1475,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrygrpfile", tags=["策略组管理接口"])
         async def qry_group_file(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 path: str = Body(..., title="文件路径", embed=True),
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1442,11 +1518,12 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/cmtgrpfile", tags=["策略组管理接口"])
         async def cmd_commit_group_file(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 path: str = Body(..., title="文件路径", embed=True),
                 content: str = Body(..., title="文件内容", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1494,9 +1571,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrystras", tags=["策略组管理接口"])
         async def qry_strategys(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1520,9 +1598,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrychnls", tags=["策略组管理接口"])
         async def qry_channels(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1546,10 +1625,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrylogs", tags=["策略组管理接口"])
         async def qry_logs(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 id: str = Body(..., title="组合ID", embed=True),
                 type: str = Body(..., title="日志类型", embed=True),
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1592,10 +1672,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrytrds", tags=["策略管理接口"])
         async def qry_trades(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 strategyid: str = Body(..., title="策略ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1620,10 +1701,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrysigs", tags=["策略管理接口"])
         async def qry_signals(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 strategyid: str = Body(..., title="策略ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1648,10 +1730,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qryrnds", tags=["策略管理接口"])
         async def qry_rounds(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 strategyid: str = Body(..., title="策略ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1676,10 +1759,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrypos", tags=["策略管理接口"])
         async def qry_positions(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 strategyid: str = Body(..., title="策略ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1704,10 +1788,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qryfunds", tags=["策略管理接口"])
         async def qry_funds(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 strategyid: str = Body(..., title="策略ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1732,10 +1817,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrychnlords", tags=["交易通道管理接口"])
         async def qry_channel_orders(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 channelid: str = Body(..., title="通道ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1760,10 +1846,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrychnltrds", tags=["交易通道管理接口"])
         async def qry_channel_trades(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 channelid: str = Body(..., title="通道ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1788,10 +1875,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrychnlpos", tags=["交易通道管理接口"])
         async def qry_channel_position(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 channelid: str = Body(..., title="通道ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1816,10 +1904,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrychnlfund", tags=["交易通道管理接口"])
         async def qry_channel_funds(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 channelid: str = Body(..., title="通道ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1844,9 +1933,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qryusers", tags=["系统管理接口"])
         @app.get("/mgr/qryusers", tags=["系统管理接口"])
         async def qry_users(
-                request: Request
+                request: Request,
+                token: str = Body(None, title="访问令牌", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -1866,14 +1956,16 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/cmtuser", tags=["系统管理接口"])
         async def cmd_commit_user(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 loginid: str = Body(..., title="登录名", embed=True),
                 name: str = Body(..., title="用户姓名", embed=True),
                 passwd: str = Body("", title="登录密码", embed=True),
                 role: str = Body("", title="用户角色", embed=True),
                 iplist: str = Body("", title="限定ip", embed=True),
+                products: str = Body("", title="产品列表", embed=True),
                 remark: str = Body("", title="备注信息", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1883,6 +1975,7 @@ class WtMonSvr(WatcherSink):
                 "passwd": passwd,
                 "role": role,
                 "iplist": iplist,
+                "products": products,
                 "remark": remark
             }
 
@@ -1900,9 +1993,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/deluser", tags=["系统管理接口"])
         async def cmd_delete_user(
                 request: Request,
-                loginid: dict = Body(..., title="用户名", embed=True)
+                token: str = Body(None, title="访问令牌", embed=True),
+                loginid: str = Body(..., title="用户名", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1919,10 +2013,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/resetpwd", tags=["系统管理接口"])
         async def reset_pwd(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 loginid: str = Body(..., title="用户名", embed=True),
                 passwd: str = Body(..., title="新密码", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1956,10 +2051,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qryacts", tags=["系统管理接口"])
         async def qry_actions(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 sdate: int = Body(..., title="开始日期", embed=True),
                 edate: int = Body(..., title="结束日期", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1975,9 +2071,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrymons", tags=["调度器管理接口"])
         @app.get("/mgr/qrymons", tags=["调度器管理接口"])
         async def qry_mon_apps(
-                request: Request
+                request: Request,
+                token: str = Body(None, title="访问令牌", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -1996,9 +2093,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/startapp", tags=["调度器管理接口"])
         async def cmd_start_app(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 appid: str = Body(..., title="AppID", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -2022,9 +2120,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/stopapp", tags=["调度器管理接口"])
         async def cmd_stop_app(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 appid: str = Body(..., title="AppID", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -2049,9 +2148,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qrymonlog", tags=["调度器管理接口"])
         @app.get("/mgr/qrymonlog", tags=["调度器管理接口"])
         async def qry_mon_logs(
-                request: Request
+                request: Request,
+                token: str = Body(None, title="访问令牌", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -2070,9 +2170,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/delapp", tags=["调度器管理接口"])
         async def cmd_del_app(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 appid: str = Body(..., title="AppID", embed=True)
         ):
-            bSucc, adminInfo = check_auth(request)
+            bSucc, adminInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return adminInfo
 
@@ -2119,9 +2220,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qryportpos", tags=["组合盘管理接口"])
         async def qry_group_positions(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -2145,9 +2247,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qryporttrd", tags=["组合盘管理接口"])
         async def qry_group_trades(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -2171,9 +2274,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qryportrnd", tags=["组合盘管理接口"])
         async def qry_group_rounds(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -2197,9 +2301,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qryportfunds", tags=["组合盘管理接口"])
         async def qry_group_funds(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -2223,9 +2328,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qryportperfs", tags=["组合盘管理接口"])
         async def qry_group_perfs(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -2249,9 +2355,10 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/qryportfilters", tags=["组合盘管理接口"])
         async def qry_group_filters(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -2275,10 +2382,11 @@ class WtMonSvr(WatcherSink):
         @app.post("/mgr/cmtgrpfilters", tags=["组合盘管理接口"])
         async def cmd_commit_group_filters(
                 request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
                 groupid: str = Body(..., title="组合ID", embed=True),
                 filters: dict = Body(..., title="过滤器", embed=True)
         ):
-            bSucc, usrInfo = check_auth(request)
+            bSucc, usrInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
                 return usrInfo
 
@@ -2316,6 +2424,19 @@ class WtMonSvr(WatcherSink):
         @app.get("/favicon.ico")
         async def favicon_entry():
             return FileResponse(os.path.join(self.static_folder, "favicon.ico"))
+        
+        @app.get("/hasbt")
+        async def check_btmon():
+            if self.__bt_mon__ is None:
+                return {
+                    "result": -1,
+                    "message": "不支持在线回测"
+                }
+            else:
+                return {
+                    "result": 0,
+                    "message": "Ok"
+                }
 
     def __run_impl__(self, port: int, host: str):
         self._dog.run()
