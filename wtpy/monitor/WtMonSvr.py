@@ -2424,6 +2424,7 @@ class WtMonSvr(WatcherSink):
             return FileResponse(os.path.join(self.static_folder, "favicon.ico"))
         
         @app.get("/hasbt")
+        @app.post("/hasbt")
         async def check_btmon():
             if self.__bt_mon__ is None:
                 return {
