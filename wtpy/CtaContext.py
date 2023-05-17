@@ -275,11 +275,7 @@ class CtaContext:
             return self.__bar_cache__[key]
 
         self.__bar_cache__[key] = WtBarRecords(size=count)
-        cnt =  self.__wrapper__.cta_get_bars(self.__id__, stdCode, period, count, isMain)
-        if cnt == 0:
-            return None
-
-        df_bars = self.__bar_cache__[key]
+        self.__wrapper__.cta_get_bars(self.__id__, stdCode, period, count, isMain)
 
     def stra_get_bars(self, stdCode:str, period:str, count:int, isMain:bool = False) -> WtBarRecords:
         '''

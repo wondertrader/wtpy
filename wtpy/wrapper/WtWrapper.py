@@ -64,6 +64,17 @@ class WtWrapper:
         self.api.sel_get_position.restype = c_double
         self.api.sel_set_position.argtypes = [c_ulong, c_char_p, c_double, c_char_p]
         self.api.sel_get_price.restype = c_double
+        self.api.sel_get_position_profit.restype = c_double
+        self.api.sel_get_position_avgpx.restype = c_double
+        self.api.sel_get_detail_cost.restype = c_double
+        self.api.sel_get_detail_profit.restype = c_double
+        self.api.sel_get_day_price.restype = c_double
+        self.api.sel_get_fund_data.restype = c_double
+        self.api.sel_get_last_entertime.restype = c_uint64
+        self.api.sel_get_first_entertime.restype = c_uint64
+        self.api.sel_get_last_exittime.restype = c_uint64
+        self.api.sel_get_detail_entertime.restype = c_uint64
+        self.api.sel_get_last_entertag.restype = c_char_p
 
         self.api.hft_save_userdata.argtypes = [c_ulong, c_char_p, c_char_p]
         self.api.hft_load_userdata.argtypes = [c_ulong, c_char_p, c_char_p]
@@ -904,6 +915,13 @@ class WtWrapper:
         '''
         self.api.sel_set_position(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"))
 
+    def sel_get_tdate(self) -> int:
+        '''
+        获取当前交易日
+        @return    当前交易日
+        '''
+        return self.api.sel_get_tdate()
+    
     def sel_get_date(self):
         '''
         获取当前日期
@@ -934,6 +952,105 @@ class WtWrapper:
         @stdCode    品种代码
         '''
         self.api.sel_sub_ticks(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_day_price(self, stdCode:str, flag:int = 0) -> float:
+        '''
+        获取当日价格
+        @stdCode    合约代码
+        @flag       价格标记, 0-开盘价, 1-最高价, 2-最低价, 3-最新价
+        @return     指定合约的价格 
+        '''
+        return self.api.sel_get_day_price(bytes(stdCode, encoding = "utf8"), flag)
+
+    def sel_get_fund_data(self, id:int, flag:int) -> float:
+        '''
+        获取资金数据
+        @id     策略id
+        @flag   0-动态权益, 1-总平仓盈亏, 2-总浮动盈亏, 3-总手续费
+        @return 资金数据
+        '''
+        return self.api.sel_get_fund_data(id, flag)
+
+    def sel_get_position_profit(self, id:int, stdCode:str):
+        '''
+        获取浮动盈亏
+        @id         策略id
+        @stdCode    合约代码
+        @return     指定合约的浮动盈亏
+        '''
+        return self.api.sel_get_position_profit(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_position_avgpx(self, id:int, stdCode:str):
+        '''
+        获取持仓均价
+        @id         策略id
+        @stdCode    合约代码
+        @return     指定合约的持仓均价
+        '''
+        return self.api.sel_get_position_avgpx(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_first_entertime(self, id:int, stdCode:str) -> int:
+        '''
+        获取当前持仓的首次进场时间
+        @stdCode    合约代码
+        @return     进场时间, 格式如201907260932 
+        '''
+        return self.api.sel_get_first_entertime(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_last_entertime(self, id:int, stdCode:str) -> int:
+        '''
+        获取当前持仓的最后进场时间
+        @stdCode    合约代码
+        @return     进场时间, 格式如201907260932 
+        '''
+        return self.api.sel_get_last_entertime(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_last_entertag(self, id:int, stdCode:str) -> str:
+        '''
+        获取当前持仓的最后进场标记
+        @stdCode    合约代码
+        @return     进场标记 
+        '''
+        return bytes.decode(self.api.sel_get_last_entertag(id, bytes(stdCode, encoding = "utf8")))
+
+    def sel_get_last_exittime(self, id:int, stdCode:str) -> int:
+        '''
+        获取当前持仓的最后出场时间
+        @stdCode    合约代码
+        @return     进场时间, 格式如201907260932 
+        '''
+        return self.api.sel_get_last_exittime(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
+        '''
+        获取指定标记的持仓的进场时间
+        @id         策略id
+        @stdCode    合约代码
+        @usertag    进场标记
+        @return     进场时间, 格式如201907260932 
+        '''
+        return self.api.sel_get_detail_entertime(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8")) 
+
+    def sel_get_detail_cost(self, id:int, stdCode:str, usertag:str) -> float:
+        '''
+        获取指定标记的持仓的开仓价
+        @id         策略id
+        @stdCode    合约代码
+        @usertag    进场标记
+        @return     开仓价 
+        '''
+        return self.api.sel_get_detail_cost(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8")) 
+
+    def sel_get_detail_profit(self, id:int, stdCode:str, usertag:str, flag:int):
+        '''
+        获取指定标记的持仓的盈亏
+        @id         策略id
+        @stdCode       合约代码
+        @usertag    进场标记
+        @flag       盈亏记号, 0-浮动盈亏, 1-最大浮盈, -1-最大亏损（负数）, 2-最大浮盈价格， -2-最大浮亏价格
+        @return     盈亏 
+        '''
+        return self.api.sel_get_detail_profit(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"), flag) 
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''HFT接口'''
