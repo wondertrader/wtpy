@@ -12,6 +12,15 @@ def transCode(stdCode:str) -> str:
         exchg = "SH"
     elif exchg == "SZSE":
         exchg = "SZ"
+
+    elif exchg == "SHFE":
+        exchg = "SHF"
+    elif exchg == "CFFEX":
+        exchg = "CFX"
+    elif exchg == "CZCE":
+        exchg = "ZCE"
+    elif exchg == "GFEX":
+        exchg = "GFE"
     
     if exchg in ['SH','SZ']:
         rawCode = ''
@@ -22,13 +31,13 @@ def transCode(stdCode:str) -> str:
     else:
         # 期货合约代码，格式为DCE.a.2018
         rawCode = ''
-        if exchg == "CZCE":
+        if items[2] != 'HOT':
+            rawCode = items[1]  # 如果是主力合约，就转成ZC.ZCE
+        elif exchg == "CZCE":
             rawCode = items[1] + items[2][1:]
         else:
             rawCode = ''.join(items[1:])
-    return rawCode.upper() + "." + exchg
-
-    
+    return rawCode.upper() + "." + exchg   
 
 class DHTushare(BaseDataHelper):
 
@@ -50,7 +59,7 @@ class DHTushare(BaseDataHelper):
 
         self.api = ts.pro_api(**kwargs)
         self.isAuthed = True
-        logging.info("Tushare has been authorized, use_pro is %s." % ("enabled" if self.use_pro else "disabled"))
+        logging.info(f"Tushare has been authorized, use_pro is {'enabled' if self.use_pro else 'disabled'}.")
 
     def dmpCodeListToFile(self, filename:str, hasIndex:bool=True, hasStock:bool=True):
         stocks = {
@@ -62,7 +71,7 @@ class DHTushare(BaseDataHelper):
         if hasStock:
             logging.info("Fetching stock list...")
             df_stocks = self.api.stock_basic(exchange='', list_status='L', fields='ts_code,symbol,name,area,industry,list_date')
-            for idx, row in df_stocks.iterrows():
+            for _, row in df_stocks.iterrows():
                 code = row["ts_code"]
                 rawcode = row["symbol"]
                 sInfo = dict()
@@ -82,7 +91,7 @@ class DHTushare(BaseDataHelper):
             #上证指数列表
             logging.info("Fetching index list of SSE...")
             df_stocks = self.api.index_basic(market='SSE')
-            for idx, row in df_stocks.iterrows():
+            for _, row in df_stocks.iterrows():
                 code = row["ts_code"]
                 rawcode = code[:6]
                 if rawcode[0] != '0':
@@ -100,7 +109,7 @@ class DHTushare(BaseDataHelper):
             #深证指数列表
             logging.info("Fetching index list of SZSE...")
             df_stocks = self.api.index_basic(market='SZSE')
-            for idx, row in df_stocks.iterrows():
+            for _, row in df_stocks.iterrows():
                 code = row["ts_code"]
                 rawcode = code[:6]
                 if rawcode[:3] != '399':
@@ -115,7 +124,7 @@ class DHTushare(BaseDataHelper):
                 
                 stocks[sInfo["exchg"]][code] = sInfo
 
-        logging.info("Writing code list into file %s..." % (filename))
+        logging.info(f"Writing code list into file {filename}...")
         f = open(filename, 'w')
         f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
         f.close()
@@ -134,7 +143,7 @@ class DHTushare(BaseDataHelper):
             code = stdCode[-6:]
             count += 1
 
-            logging.info("Fetching adjust factors of %s(%d/%s)..." % (stdCode, count, length))
+            logging.info(f"Fetching adjust factors of {stdCode}({count}/{length})...")
             stocks[exchg][code] = list()
             df_factors = self.api.adj_factor(ts_code=ts_code)
 
@@ -154,7 +163,7 @@ class DHTushare(BaseDataHelper):
                     stocks[exchg][code].append(item)
                     pre_factor = item["factor"]
 
-        logging.info("Writing adjust factors into file %s..." % (filename))
+        logging.info(f"Writing adjust factors into file {filename}...")
         f = open(filename, 'w+')
         f.write(json.dumps(stocks, sort_keys=True, indent=4, ensure_ascii=False))
         f.close()
@@ -202,7 +211,7 @@ class DHTushare(BaseDataHelper):
                 asset_type = "FT"
             count += 1
             
-            logging.info("Fetching %s bars of %s(%d/%s)..." % (period, code, count, length))
+            logging.info(f"Fetching {period} bars of {code}({count}/{length})...")
             df_bars = ts.pro_bar(api=self.api, ts_code=ts_code, start_date=start_date, end_date=end_date, freq=freq, asset=asset_type)
             df_bars = df_bars.iloc[::-1]
             content = "date,time,open,high,low,close,volume,turnover\n"
@@ -225,9 +234,9 @@ class DHTushare(BaseDataHelper):
 
                 content += ",".join(items) + "\n"
 
-            filename = "%s.%s_%s.csv" % (exchg, code, filetag)
+            filename = f"{stdCode}_{filetag}.csv"
             filepath = os.path.join(folder, filename)
-            logging.info("Writing bars into file %s..." % (filepath))
+            logging.info(f"Writing bars into file {filepath}...")
             f = open(filepath, "w", encoding="utf-8")
             f.write(content)
             f.close()
@@ -264,7 +273,7 @@ class DHTushare(BaseDataHelper):
             if (exchg == 'SSE' and code[0] == '0') | (exchg == 'SZSE' and code[:3] == '399'):
                 raise Exception("Old api only supports stocks")
             
-            logging.info("Fetching %s bars of %s(%d/%s)..." % (period, code, count, length))
+            logging.info(f"Fetching {period} bars of {code}({count}/{length})...")
             df_bars = ts.get_k_data(code, start=start_date, end=end_date, ktype=freq)
             content = "date,time,open,high,low,close,volume\n"
             for idx, row in df_bars.iterrows():
@@ -284,9 +293,9 @@ class DHTushare(BaseDataHelper):
 
                 content += ",".join(items) + "\n"
 
-            filename = "%s.%s_%s.csv" % (exchg, code, filetag)
+            filename = f"{stdCode}_{filetag}.csv"
             filepath = os.path.join(folder, filename)
-            logging.info("Writing bars into file %s..." % (filepath))
+            logging.info(f"Writing bars into file {filepath}...")
             f = open(filepath, "w", encoding="utf-8")
             f.write(content)
             f.close()
@@ -311,7 +320,7 @@ class DHTushare(BaseDataHelper):
             code = stdCode[-6:]
             count += 1
 
-            logging.info("Fetching adjust factors of %s(%d/%s)..." % (stdCode, count, length))
+            logging.info(f"Fetching adjust factors of {stdCode}({count}/{length})...")
             stocks[exchg][code] = list()
             df_factors = self.api.adj_factor(ts_code=ts_code)
 
@@ -377,7 +386,7 @@ class DHTushare(BaseDataHelper):
                 asset_type = "FT"
             count += 1
             
-            logging.info("Fetching %s bars of %s(%d/%s)..." % (period, code, count, length))
+            logging.info(f"Fetching {period} bars of {code}({count}/{length})...")
             df_bars = ts.pro_bar(api=self.api, ts_code=ts_code, start_date=start_date, end_date=end_date, freq=freq, asset=asset_type)
             bars = []
             for idx, row in df_bars.iterrows():          
@@ -444,7 +453,7 @@ class DHTushare(BaseDataHelper):
                 raise Exception("Old api only supports stocks")
             count += 1
             
-            logging.info("Fetching %s bars of %s(%d/%s)..." % (period, code, count, length))
+            logging.info(f"Fetching {period} bars of {code}({count}/{length})...")
             df_bars = ts.get_k_data(code, start=start_date, end=end_date, ktype=freq)
             bars = []
             for idx, row in df_bars.iterrows():          
