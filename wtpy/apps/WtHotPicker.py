@@ -198,7 +198,11 @@ class WtCacheMonExchg(WtCacheMon):
             item = DayData()
             item.pid = pid
             item.code = code
-            item.hold = int(day['OPENINTEREST'])
+            if day['OPENINTEREST'] != '':
+                item.hold = int(day['OPENINTEREST'])
+            else:
+                item.hold = 0
+
             if day['VOLUME'] != '':
                 item.volume = int(day['VOLUME'])
             item.close = float(day["CLOSEPRICE"])
