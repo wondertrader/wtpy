@@ -2409,6 +2409,22 @@ class WtMonSvr(WatcherSink):
                     }
 
             return ret
+        
+        @app.get("/mgr/auth", tags=["令牌认证"])
+        @app.post("/mgr/auth")
+        async def authority(
+            request: Request,
+            token: str = Body(None, title="访问令牌", embed=True)
+        ):
+            bSucc, userInfo = check_auth(request, token, self.__sec_key__)
+            if not bSucc:
+                return userInfo
+            else:
+                return {
+                    "result": 0,
+                    "message": "Ok",
+                    "userinfo": userInfo
+                }
 
     def init_comm_apis(self, app: FastAPI):
         @app.get("/console")
