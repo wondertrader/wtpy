@@ -359,8 +359,9 @@ class DataMgr:
                 (usrInfo["name"], usrInfo["role"], usrInfo["iplist"], usrInfo["products"], usrInfo["remark"], admin, loginid))
         self.__db_conn__.commit()
 
-        self.__config__["users"][loginid]["modifyby"] = admin
-        self.__config__["users"][loginid]["modifyby"] = usrInfo["modifytime"]
+        if loginid in self.__config__["users"]:
+            self.__config__["users"][loginid]["modifyby"] = admin
+            self.__config__["users"][loginid]["modifytime"] = usrInfo["modifytime"]
 
     def mod_user_pwd(self, loginid:str, newpwd:str, admin:str):
         cur = self.__db_conn__.cursor()
