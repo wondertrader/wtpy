@@ -1083,7 +1083,7 @@ class WtBtWrapper:
         @stdCode   合约代码
         @count     条数
         '''
-        return self.api.hft_get_ordque(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_ORDQUE(self.on_hftstra_order_queue))
+        return self.api.hft_get_ordque(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_ORDQUE(self.on_hftstra_get_order_queue))
 
     def hft_get_orddtl(self, id:int, stdCode:str, count:int):
         '''
@@ -1092,7 +1092,7 @@ class WtBtWrapper:
         @stdCode   合约代码
         @count     条数
         '''
-        return self.api.hft_get_orddtl(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_ORDDTL(self.on_hftstra_order_queue))
+        return self.api.hft_get_orddtl(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_ORDDTL(self.on_hftstra_get_order_detail))
 
     def hft_get_trans(self, id:int, stdCode:str, count:int):
         '''
@@ -1101,7 +1101,7 @@ class WtBtWrapper:
         @stdCode   合约代码
         @count     条数
         '''
-        return self.api.hft_get_trans(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_TRANS(self.on_hftstra_order_queue))
+        return self.api.hft_get_trans(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_TRANS(self.on_hftstra_get_transaction))
 
     def hft_save_user_data(self, id:int, key:str, val:str):
         '''
