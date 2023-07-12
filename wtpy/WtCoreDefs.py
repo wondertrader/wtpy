@@ -1,5 +1,5 @@
 from ctypes import c_void_p, CFUNCTYPE, POINTER, c_char_p, c_bool, c_ulong, c_double
-from ctypes import Structure, c_char, c_int32, c_uint32,c_uint64
+from ctypes import Structure, c_char, c_int32, c_uint32,c_uint64,c_int64
 from copy import copy
 import numpy as np
 
@@ -95,7 +95,7 @@ class WTSTickStruct(WTSStruct):
                 ("ask_qty_7", c_double),
                 ("ask_qty_8", c_double),
                 ("ask_qty_9", c_double)]
-    _pack_ = 1
+    _pack_ = 8
 
     @property
     def fields(self) -> list:
@@ -242,7 +242,7 @@ class WTSBarStruct(WTSStruct):
                 ("vol", c_double),
                 ("hold", c_double),
                 ("diff", c_double)]
-    _pack_ = 1
+    _pack_ = 8
 
     def to_tuple(self, flag:int=0) -> tuple:
         '''
@@ -280,15 +280,15 @@ class WTSTransStruct(WTSStruct):
                 ("action_date", c_uint32),
                 ("action_time", c_uint32),
 
-                ("index", c_uint32),
+                ("index", c_int64),
                 ("ttype", c_int32),
                 ("side", c_int32),
 
                 ("price", c_double),
                 ("volume", c_uint32),
-                ("askorder", c_int32),
-                ("bidorder", c_int32)]
-    _pack_ = 1
+                ("askorder", c_int64),
+                ("bidorder", c_int64)]
+    _pack_ = 8
 
     def to_tuple(self) -> tuple:
         return (
@@ -323,7 +323,7 @@ class WTSOrdQueStruct(WTSStruct):
                 ("order_items", c_uint32),
                 ("qsize", c_uint32),
                 ("volumes", c_uint32*50)]
-    _pack_ = 1
+    _pack_ = 8
 
     def to_tuple(self) -> tuple:
         return (
@@ -350,12 +350,12 @@ class WTSOrdDtlStruct(WTSStruct):
                 ("action_date", c_uint32),
                 ("action_time", c_uint32),
 
-                ("index", c_uint32),
-                ("side", c_int32),
+                ("index", c_uint64),
                 ("price", c_double),
                 ("volume", c_uint32),
-                ("otype", c_int32)]
-    _pack_ = 1
+                ("side", c_uint32),
+                ("otype", c_uint32)]
+    _pack_ = 8
 
     def to_tuple(self) -> tuple:
         return (
