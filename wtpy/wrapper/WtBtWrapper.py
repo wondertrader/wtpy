@@ -415,7 +415,7 @@ class WtBtWrapper:
         return loader.load_his_ticks(bytes.decode(stdCode), uDate, self.api.feed_raw_ticks)
 
     def write_log(self, level, message:str, catName:str = ""):
-        self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
+        self.api.write_log(level, bytes(message, encoding = "utf8"), bytes(catName, encoding = "utf8"))
 
     def set_time_range(self, beginTime:int, endTime:int):
         '''
@@ -725,7 +725,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.cta_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.cta_log_text(id, level, bytes(message, encoding = "utf8"))
 
     def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
         '''
@@ -945,7 +945,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.sel_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.sel_log_text(id, level, bytes(message, encoding = "utf8"))
 
     def sel_sub_ticks(self, id:int, stdCode:str):
         '''
@@ -1193,7 +1193,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.hft_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.hft_log_text(id, level, bytes(message, encoding = "utf8"))
 
     def hft_sub_ticks(self, id:int, stdCode:str):
         '''

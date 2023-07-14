@@ -23,7 +23,7 @@ class WtWrapper:
     api = None
     ver = "Unknown"
     
-    # 构造函数，传入动态库名
+    # 构造函数, 传入动态库名
     def __init__(self, engine):
         self._engine = engine
         paths = os.path.split(__file__)
@@ -161,7 +161,7 @@ class WtWrapper:
 
     def on_stra_get_bar(self, id:int, stdCode:str, period:str, curBar:POINTER(WTSBarStruct), count:int, isLast:bool):
         '''
-        获取K线回调，该回调函数因为是python主动发起的，需要同步执行，所以不走事件推送
+        获取K线回调, 该回调函数因为是python主动发起的, 需要同步执行, 所以不走事件推送
         @id     策略id
         @stdCode   合约代码
         @period K线周期
@@ -188,7 +188,7 @@ class WtWrapper:
 
     def on_stra_get_tick(self, id:int, stdCode:str, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
         '''
-        获取Tick回调，该回调函数因为是python主动发起的，需要同步执行，所以不走事件推送
+        获取Tick回调, 该回调函数因为是python主动发起的, 需要同步执行, 所以不走事件推送
         @id         策略id
         @stdCode       合约代码
         @curTick    最新一笔Tick
@@ -425,7 +425,7 @@ class WtWrapper:
         loader.load_his_ticks(bytes.decode(stdCode), uDate, self.api.feed_raw_ticks)
 
     def write_log(self, level, message:str, catName:str = ""):
-        self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
+        self.api.write_log(level, bytes(message, encoding = "utf8"), bytes(catName, encoding = "utf8"))
 
     ### 实盘和回测有差异 ###
     def run(self, bAsync:bool = True):
@@ -490,7 +490,7 @@ class WtWrapper:
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "WonderTrader CTA production framework initialzied，version: %s" % (self.ver))
+        self.write_log(102, "WonderTrader CTA production framework initialzied, version: %s" % (self.ver))
 
     def initialize_hft(self, logCfg:str = "logcfg.yaml", isFile:bool = True, genDir:str = 'generated'):
         '''
@@ -520,7 +520,7 @@ class WtWrapper:
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "WonderTrader HFT production framework initialzied，version: %s" % (self.ver))
+        self.write_log(102, "WonderTrader HFT production framework initialzied, version: %s" % (self.ver))
 
     def initialize_sel(self, logCfg:str = "logcfg.yaml", isFile:bool = True, genDir:str = 'generated'):
         '''
@@ -542,14 +542,14 @@ class WtWrapper:
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "WonderTrader SEL production framework initialzied，version: %s" % (self.ver))
+        self.write_log(102, "WonderTrader SEL production framework initialzied, version: %s" % (self.ver))
 
     def cta_enter_long(self, id:int, stdCode:str, qty:float, usertag:str, limitprice:float = 0.0, stopprice:float = 0.0):
         '''
         开多
         @id         策略id
         @stdCode    合约代码
-        @qty        手数，大于等于0
+        @qty        手数, 大于等于0
         '''
         self.api.cta_enter_long(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
@@ -558,7 +558,7 @@ class WtWrapper:
         平多
         @id         策略id
         @stdCode    合约代码
-        @qty        手数，大于等于0
+        @qty        手数, 大于等于0
         '''
         self.api.cta_exit_long(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
@@ -567,7 +567,7 @@ class WtWrapper:
         开空
         @id         策略id
         @stdCode    合约代码
-        @qty        手数，大于等于0
+        @qty        手数, 大于等于0
         '''
         self.api.cta_enter_short(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
@@ -576,7 +576,7 @@ class WtWrapper:
         平空
         @id         策略id
         @stdCode    合约代码
-        @qty        手数，大于等于0
+        @qty        手数, 大于等于0
         '''
         self.api.cta_exit_short(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
@@ -585,7 +585,7 @@ class WtWrapper:
         读取K线
         @id         策略id
         @stdCode    合约代码
-        @period     周期，如m1/m3/d1等
+        @period     周期, 如m1/m3/d1等
         @count      条数
         @isMain     是否主K线
         '''
@@ -630,9 +630,9 @@ class WtWrapper:
         获取持仓
         @id     策略id
         @stdCode    合约代码
-        @bonlyvalid 只读可用持仓，默认为False
-        @usertag    进场标记，如果为空则获取该合约全部持仓
-        @return 指定合约的持仓手数，正为多，负为空
+        @bonlyvalid 只读可用持仓, 默认为False
+        @usertag    进场标记, 如果为空则获取该合约全部持仓
+        @return 指定合约的持仓手数, 正为多, 负为空
         '''
         return self.api.cta_get_position(id, bytes(stdCode, encoding = "utf8"), bonlyvalid, bytes(usertag, encoding = "utf8"))
 
@@ -640,7 +640,7 @@ class WtWrapper:
         '''
         获取资金数据
         @id     策略id
-        @flag   0-动态权益，1-总平仓盈亏，2-总浮动盈亏，3-总手续费
+        @flag   0-动态权益, 1-总平仓盈亏, 2-总浮动盈亏, 3-总手续费
         @return 资金数据
         '''
         return self.api.cta_get_fund_data(id, flag)
@@ -657,7 +657,7 @@ class WtWrapper:
         '''
         获取当日价格
         @stdCode    合约代码
-        @flag       价格标记，0-开盘价，1-最高价，2-最低价，3-最新价
+        @flag       价格标记, 0-开盘价, 1-最高价, 2-最低价, 3-最新价
         @return     指定合约的价格 
         '''
         return self.api.cta_get_day_price(bytes(stdCode, encoding = "utf8"), flag)
@@ -667,7 +667,7 @@ class WtWrapper:
         设置目标仓位
         @id         策略id
         @stdCode    合约代码
-        @qty        目标仓位，正为多，负为空
+        @qty        目标仓位, 正为多, 负为空
         '''
         self.api.cta_set_position(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
 
@@ -696,7 +696,7 @@ class WtWrapper:
         '''
         获取当前持仓的首次进场时间
         @stdCode    合约代码
-        @return     进场时间，格式如201907260932 
+        @return     进场时间, 格式如201907260932 
         '''
         return self.api.cta_get_first_entertime(id, bytes(stdCode, encoding = "utf8"))
 
@@ -712,7 +712,7 @@ class WtWrapper:
         '''
         获取当前持仓的最后进场时间
         @stdCode    合约代码
-        @return     进场时间，格式如201907260932 
+        @return     进场时间, 格式如201907260932 
         '''
         return self.api.cta_get_last_entertime(id, bytes(stdCode, encoding = "utf8"))
 
@@ -720,7 +720,7 @@ class WtWrapper:
         '''
         获取当前持仓的最后出场时间
         @stdCode    合约代码
-        @return     进场时间，格式如201907260932 
+        @return     进场时间, 格式如201907260932 
         '''
         return self.api.cta_get_last_exittime(id, bytes(stdCode, encoding = "utf8"))
 
@@ -731,7 +731,7 @@ class WtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.cta_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.cta_log_text(id, level, bytes(message, encoding = "utf8"))
 
     def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
         '''
@@ -739,7 +739,7 @@ class WtWrapper:
         @id         策略id
         @stdCode    合约代码
         @usertag    进场标记
-        @return     进场时间，格式如201907260932 
+        @return     进场时间, 格式如201907260932 
         '''
         return self.api.cta_get_detail_entertime(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8")) 
 
@@ -759,7 +759,7 @@ class WtWrapper:
         @id         策略id
         @stdCode       合约代码
         @usertag    进场标记
-        @flag       盈亏记号，0-浮动盈亏，1-最大浮盈，2-最大亏损（负数）
+        @flag       盈亏记号, 0-浮动盈亏, 1-最大浮盈, 2-最大亏损（负数）
         @return     盈亏 
         '''
         return self.api.cta_get_detail_profit(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"), flag) 
@@ -849,7 +849,7 @@ class WtWrapper:
         读取K线
         @id     策略id
         @stdCode   合约代码
-        @period 周期，如m1/m3/d1等
+        @period 周期, 如m1/m3/d1等
         @count  条数
         '''
         return self.api.sel_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, CB_STRATEGY_GET_BAR(self.on_stra_get_bar))
@@ -894,8 +894,8 @@ class WtWrapper:
         获取持仓
         @id     策略id
         @stdCode   合约代码
-        @usertag    进场标记，如果为空则获取该合约全部持仓
-        @return 指定合约的持仓手数，正为多，负为空
+        @usertag    进场标记, 如果为空则获取该合约全部持仓
+        @return 指定合约的持仓手数, 正为多, 负为空
         '''
         return self.api.sel_get_position(id, bytes(stdCode, encoding = "utf8"), bonlyvalid, bytes(usertag, encoding = "utf8"))
 
@@ -911,7 +911,7 @@ class WtWrapper:
         设置目标仓位
         @id     策略id
         @stdCode   合约代码
-        @qty    目标仓位，正为多，负为空
+        @qty    目标仓位, 正为多, 负为空
         '''
         self.api.sel_set_position(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"))
 
@@ -943,7 +943,7 @@ class WtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.sel_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.sel_log_text(id, level, bytes(message, encoding = "utf8"))
 
     def sel_sub_ticks(self, id:int, stdCode:str):
         '''
@@ -1047,7 +1047,7 @@ class WtWrapper:
         @id         策略id
         @stdCode       合约代码
         @usertag    进场标记
-        @flag       盈亏记号, 0-浮动盈亏, 1-最大浮盈, -1-最大亏损（负数）, 2-最大浮盈价格， -2-最大浮亏价格
+        @flag       盈亏记号, 0-浮动盈亏, 1-最大浮盈, -1-最大亏损（负数）, 2-最大浮盈价格,  -2-最大浮亏价格
         @return     盈亏 
         '''
         return self.api.sel_get_detail_profit(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"), flag) 
@@ -1059,7 +1059,7 @@ class WtWrapper:
         读取K线
         @id     策略id
         @stdCode   合约代码
-        @period 周期，如m1/m3/d1等
+        @period 周期, 如m1/m3/d1等
         @count  条数
         '''
         return self.api.hft_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, CB_STRATEGY_GET_BAR(self.on_stra_get_bar))
@@ -1124,7 +1124,7 @@ class WtWrapper:
         获取持仓
         @id     策略id
         @stdCode   合约代码
-        @return 指定合约的持仓手数，正为多，负为空
+        @return 指定合约的持仓手数, 正为多, 负为空
         '''
         return self.api.hft_get_position(id, bytes(stdCode, encoding = "utf8"), bonlyvalid)
 
@@ -1151,7 +1151,7 @@ class WtWrapper:
         获取持仓
         @id     策略id
         @stdCode   合约代码
-        @return 指定合约的持仓手数，正为多，负为空
+        @return 指定合约的持仓手数, 正为多, 负为空
         '''
         return self.api.hft_get_undone(id, bytes(stdCode, encoding = "utf8"))
 
@@ -1190,7 +1190,7 @@ class WtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.hft_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.hft_log_text(id, level, bytes(message, encoding = "utf8"))
 
     def hft_sub_ticks(self, id:int, stdCode:str):
         '''
