@@ -198,7 +198,11 @@ class WtCacheMonExchg(WtCacheMon):
             item = DayData()
             item.pid = pid
             item.code = code
-            item.hold = int(day['OPENINTEREST'])
+            if day['OPENINTEREST'] != '':
+                item.hold = int(day['OPENINTEREST'])
+            else:
+                item.hold = 0
+
             if day['VOLUME'] != '':
                 item.volume = int(day['VOLUME'])
             item.close = float(day["CLOSEPRICE"])
@@ -338,7 +342,10 @@ class WtCacheMonExchg(WtCacheMon):
             # 交割月份
             item = DayData()
             item.pid = pname_map[pzname]
-            item.code = item.pid + doc(tdlis[1]).text()
+            if item.pid in doc(tdlis[1]).text():
+                item.code = doc(tdlis[1]).text()
+            else:
+                item.code = item.pid + doc(tdlis[1]).text()
             # 收盘价
             spj = doc(tdlis[5]).text()
             item.close = float(spj if spj != '' else 0)
