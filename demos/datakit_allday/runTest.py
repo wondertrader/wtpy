@@ -3,7 +3,9 @@ from wtpy import BaseExtParser
 from wtpy import WTSTickStruct
 from ctypes import byref
 
+# if not exists, install websocket-client v1.2.3+
 import websocket
+
 import json   
 import threading
 import ssl
@@ -103,21 +105,21 @@ class MyParser(BaseExtParser):
             data = json.dumps(obj)
             self._ws.send(data)
 
-    def on_open(self):
+    def on_open(self, ws):
         self.connected = True
         self.do_subscribe(self.subs)
 
-    def on_close(self, ec, errmsg):
+    def on_close(self, ws, ec, errmsg):
         print("onclose:")
         if errmsg is not None:
             print(errmsg)
 
-    def on_error(self, error):
+    def on_error(self, ws, error):
         print("on_error")
         print(error)
         return
     
-    def on_message(self, message):
+    def on_message(self, ws, message):
         # print(message)
         root = json.loads(message)
         if "event" in root:
@@ -246,9 +248,9 @@ if __name__ == "__main__":
     engine.initialize("dtcfg.yaml", "logcfgdt.yaml")
     
     myParser = MyParser("test", url="wss://ws.okex.com:8443/ws/v5/public", proxy={
-        "host": "127.0.0.1",
+        "host": "192.168.61.1",
         "port": 10811
-    }, trace=True)
+    }, trace=False)
     myParser.init(engine)
     engine.add_exetended_parser(myParser)
 
