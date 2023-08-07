@@ -1,0 +1,11 @@
+numpy
+pandas==1.3.5
+chardet
+pyyaml
+xlsxwriter
+pyquery
+psutil
+fastapi
+uvicorn
+deap
+websockets>=10.4
