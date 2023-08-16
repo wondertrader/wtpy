@@ -21,6 +21,14 @@ from .PushSvr import PushServer
 from .WatchDog import WatchDog, WatcherSink
 from .WtBtMon import WtBtMon
 from wtpy import WtDtServo
+import signal
+import platform
+
+def isWindows():
+    if "windows" in platform.system().lower():
+        return True
+
+    return False
 
 def get_session(request: Request, key: str):
     if key not in request["session"]:
@@ -2459,6 +2467,9 @@ class WtMonSvr(WatcherSink):
         uvicorn.run(self.app, port=port, host=host)
 
     def run(self, port: int = 8080, host="0.0.0.0", bSync: bool = True):
+        # 仅linux生效，在linux中，子进程会一直等待父进程处理其结束信号才能释放，如果不加这一句忽略子进程的结束信号，子进程就无法结束
+        if not isWindows():
+            signal.signal(signal.SIGCHLD, signal.SIG_IGN)
         if bSync:
             self.__run_impl__(port, host)
         else:
