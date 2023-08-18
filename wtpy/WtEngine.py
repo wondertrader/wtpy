@@ -184,7 +184,7 @@ class WtEngine:
             self.__config__["basefiles"]["second"] = os.path.join(folder, secondfile)
 
         self.productMgr = ProductMgr()
-        if self.__config__["basefiles"]["commodity"] is not None:
+        if "commodity" in self.__config__["basefiles"] and self.__config__["basefiles"]["commodity"] is not None:
             if type(self.__config__["basefiles"]["commodity"]) == str:
                 self.productMgr.load(self.__config__["basefiles"]["commodity"])
             elif type(self.__config__["basefiles"]["commodity"]) == list:
@@ -362,8 +362,25 @@ class WtEngine:
         获取全部合约代码
         '''
         return self.contractMgr.getTotalCodes()
+    
+    def getCodesByProduct(self, stdPID:str) -> list:
+        '''
+        根据品种id获取对应合约代码
+        @stdPID 品种代码, 格式如SHFE.rb
+        '''
+        return self.contractMgr.getCodesByProduct(stdPID)
+    
+    def getCodesByUnderlying(self, underlying:str) -> list:
+        '''
+        根据underlying获取对应合约代码
+        @underlying 品种代码, 格式如SHFE.rb2305
+        '''
+        return self.contractMgr.getCodesByUnderlying(underlying)
 
     def getRawStdCode(self, stdCode:str):
+        '''
+        根据连续合约代码获取原始合约代码
+        '''
         return self.__wrapper__.get_raw_stdcode(stdCode)
 
     def add_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0):
@@ -382,8 +399,16 @@ class WtEngine:
         id = self.__wrapper__.create_hft_context(strategy.name(), trader, agent, slippage)
         self.__hft_ctxs__[id] = HftContext(id, strategy, self.__wrapper__, self)
 
-    def add_sel_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str, slippage:int = 0):
-        id = self.__wrapper__.create_sel_context(strategy.name(), date, time, period, slippage)
+    def add_sel_strategy(self, strategy:BaseSelStrategy, date:int, time:int, period:str, trdtpl:str="CHINA", session:str="TRADING", slippage:int = 0):
+        '''
+        添加SEL策略
+        @ strategy  SEL策略对象
+        @date       日期,根据周期变化,每日为0,每周为0~6,对应周日到周六,每月为1~31,每年为0101~1231
+	    @time       时间,精确到分钟
+	    @period	    时间周期,可以是分钟min、天d、周w、月m、年y
+        @slippage   滑点大小
+        '''
+        id = self.__wrapper__.create_sel_context(name=strategy.name(), date=date, time=time, period=period, trdtpl=trdtpl, session=session, slippage=slippage)
         self.__sel_ctxs__[id] = SelContext(id, strategy, self.__wrapper__, self)
 
     def get_context(self, id:int):

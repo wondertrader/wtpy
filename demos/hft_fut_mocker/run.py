@@ -1,5 +1,8 @@
 from wtpy import WtEngine,EngineType
-from strategies.HftStraDemo import HftStraDemo
+
+import sys
+sys.path.append('../Strategies')
+from HftStraDemo import HftStraDemo
 
 if __name__ == "__main__":
     #创建一个运行环境，并加入策略
@@ -7,7 +10,7 @@ if __name__ == "__main__":
     engine.init('../common/', "config.yaml")
     engine.commitConfig()
 
-    straInfo = HftStraDemo(name="hft_IF", code="CFFEX.IF.2204", expsecs=5, offset=100, freq=0)
+    straInfo = HftStraDemo(name="hft_IF", code="CFFEX.IF.2304", expsecs=5, offset=100, freq=0)
     engine.add_hft_strategy(straInfo, 'mocker')
     
     engine.run()

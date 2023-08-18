@@ -60,7 +60,7 @@ class BaseDataHelper:
         '''
         pass
 
-    def dmpBarsToFile(self, folder:str, codes:list, start_date:datetime=None, end_date:datetime=None, period:str="day"):
+    def dmpBarsToFile(self, folder:str, codes:list, start_date:datetime=None, end_date:datetime=None, period="day"):
         '''
         将K线导出到指定的目录下的csv文件，文件名格式如SSE.600000_d.csv
         @folder 要输出的文件夹

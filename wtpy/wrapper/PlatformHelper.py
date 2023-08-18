@@ -43,4 +43,11 @@ class PlatformHelper:
 
         dllname += prefix + moduleName + ext
         return dllname
+    
+    @staticmethod
+    def auto_encode(s:str) -> bytes:
+        if PlatformHelper.isWindows():
+            return bytes(s, encoding = "utf-8").decode('utf-8').encode('gbk')
+        else:
+            return bytes(s, encoding = "utf-8")
             

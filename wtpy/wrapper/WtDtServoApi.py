@@ -90,6 +90,9 @@ class WtDtServoApi:
     def initialize(self, cfgfile:str, isFile:bool, logcfg:str = 'logcfg.yaml'):
         self.api.initialize(bytes(cfgfile, encoding = "utf8"), isFile, bytes(logcfg, encoding = "utf8"))
 
+    def clear_cache(self):
+        self.api.clear_cache()
+
     def get_bars(self, stdCode:str, period:str, fromTime:int = None, dataCount:int = None, endTime:int = 0) -> WtBarRecords:
         '''
         获取K线数据

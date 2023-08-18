@@ -1,8 +1,10 @@
 from wtpy import WtBtEngine,EngineType
 from wtpy.apps import WtBtAnalyst
-
-from Strategies.StraCtaUnitTest import StraCtaUnitTest
 from ConsoleIdxWriter import ConsoleIdxWriter
+
+import sys
+sys.path.append('../Strategies')
+from StraCtaUnitTest import StraCtaUnitTest
 
 # from Strategies.XIM import XIM
 
@@ -21,7 +23,7 @@ if __name__ == "__main__":
     engine.run_backtest()
 
     analyst = WtBtAnalyst()
-    analyst.add_strategy("pydt_IF", folder="./outputs_bt/pydt_IF/", init_capital=500000, rf=0.02, annual_trading_days=240)
+    analyst.add_strategy("pydt_IF", folder="./outputs_bt/", init_capital=500000, rf=0.02, annual_trading_days=240)
     analyst.run()
 
     kw = input('press any key to exit\n')

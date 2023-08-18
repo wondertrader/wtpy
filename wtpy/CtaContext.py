@@ -1,5 +1,6 @@
 from wtpy.ProductMgr import ProductInfo
 from wtpy.SessionMgr import SessionInfo
+from wtpy.ContractMgr import ContractInfo
 from wtpy.wrapper import WtWrapper
 from wtpy.WtDataDefs import WtBarRecords, WtTickRecords
 
@@ -274,11 +275,7 @@ class CtaContext:
             return self.__bar_cache__[key]
 
         self.__bar_cache__[key] = WtBarRecords(size=count)
-        cnt =  self.__wrapper__.cta_get_bars(self.__id__, stdCode, period, count, isMain)
-        if cnt == 0:
-            return None
-
-        df_bars = self.__bar_cache__[key]
+        self.__wrapper__.cta_get_bars(self.__id__, stdCode, period, count, isMain)
 
     def stra_get_bars(self, stdCode:str, period:str, count:int, isMain:bool = False) -> WtBarRecords:
         '''
@@ -475,6 +472,32 @@ class CtaContext:
         @return     进场时间, 格式如201907260932 
         '''
         return self.__wrapper__.cta_get_detail_entertime(self.__id__, stdCode, usertag)
+    
+    def stra_get_all_codes(self) -> list:
+        '''
+        获取全部合约代码列表
+        '''
+        if self.__engine__ is None:
+            return []
+        return self.__engine__.getAllCodes()
+    
+    def stra_get_codes_by_product(self, stdPID:str) -> list:
+        '''
+        根据品种代码读取合约列表
+        @stdPID 品种代码，格式如SHFE.rb
+        '''
+        if self.__engine__ is None:
+            return []
+        return self.__engine__.getCodesByProduct(stdPID)
+    
+    def stra_get_codes_by_underlying(self, underlying:str) -> list:
+        '''
+        根据underlying读取合约列表
+        @underlying 格式如CFFEX.IM2304
+        '''
+        if self.__engine__ is None:
+            return []
+        return self.__engine__.getCodesByUnderlying(underlying)
 
     def stra_get_comminfo(self, stdCode:str) -> ProductInfo:
         '''
@@ -485,6 +508,16 @@ class CtaContext:
         if self.__engine__ is None:
             return None
         return self.__engine__.getProductInfo(stdCode)
+    
+    def stra_get_contract(self, stdCode:str) -> ContractInfo:
+        '''
+        获取合约详情，回测框架下支持不够完善，慎用！
+        @stdCode   合约代码如SHFE.ag.2302
+        @return 品种信息, 结构请参考ContractMgr中的ContractInfo
+        '''
+        if self.__engine__ is None:
+            return None
+        return self.__engine__.getContractInfo(stdCode)
 
     def stra_get_rawcode(self, stdCode:str):
         '''

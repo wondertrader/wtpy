@@ -63,6 +63,18 @@ class WtBtWrapper:
         self.api.sel_load_userdata.restype = c_char_p
         self.api.sel_get_position.restype = c_double
         self.api.sel_set_position.argtypes = [c_ulong, c_char_p, c_double, c_char_p]
+        self.api.sel_get_position_profit.restype = c_double
+        self.api.sel_get_position_avgpx.restype = c_double
+        self.api.sel_get_detail_cost.restype = c_double
+        self.api.sel_get_detail_profit.restype = c_double
+        self.api.sel_get_price.restype = c_double
+        self.api.sel_get_day_price.restype = c_double
+        self.api.sel_get_fund_data.restype = c_double
+        self.api.sel_get_last_entertime.restype = c_uint64
+        self.api.sel_get_first_entertime.restype = c_uint64
+        self.api.sel_get_last_exittime.restype = c_uint64
+        self.api.sel_get_detail_entertime.restype = c_uint64
+        self.api.sel_get_last_entertag.restype = c_char_p
 
         self.api.hft_save_userdata.argtypes = [c_ulong, c_char_p, c_char_p]
         self.api.hft_load_userdata.argtypes = [c_ulong, c_char_p, c_char_p]
@@ -127,37 +139,6 @@ class WtBtWrapper:
         ctx = engine.get_context(id)
 
         realTick = newTick.contents
-        # tick = dict()
-        # tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
-        # tick["open"] = realTick.open
-        # tick["high"] = realTick.high
-        # tick["low"] = realTick.low
-        # tick["price"] = realTick.price
-        
-        # tick["bidprice"] = list()
-        # tick["bidqty"] = list()
-        # tick["askprice"] = list()
-        # tick["askqty"] = list()
-
-        # tick["upper_limit"] = realTick.total_volume
-        # tick["lower_limit"] = realTick.lower_limit
-        
-        # tick["total_volume"] = realTick.total_volume
-        # tick["volume"] = realTick.volume
-        # tick["total_turnover"] = realTick.total_turnover
-        # tick["turn_over"] = realTick.turn_over
-        # tick["open_interest"] = realTick.open_interest
-        # tick["diff_interest"] = realTick.diff_interest
-
-        # for i in range(10):
-        #     if realTick.bid_qty[i] != 0:
-        #         tick["bidprice"].append(realTick.bid_prices[i])
-        #         tick["bidqty"].append(realTick.bid_qty[i])
-
-        #     if realTick.ask_qty[i] != 0:
-        #         tick["askprice"].append(realTick.ask_prices[i])
-        #         tick["askqty"].append(realTick.ask_qty[i])
-
         if ctx is not None:
             ctx.on_tick(bytes.decode(stdCode), realTick.to_tuple())
         return
@@ -180,18 +161,7 @@ class WtBtWrapper:
         period = bytes.decode(period)
         engine = self._engine
         ctx = engine.get_context(id)
-        newBar = newBar.contents
-        # curBar = dict()
-        # if period[0] == 'd':
-        #     curBar["time"] = newBar.date
-        # else:
-        #     curBar["time"] = 1990*100000000 + newBar.time
-        # curBar["bartime"] = curBar["time"]
-        # curBar["open"] = newBar.open
-        # curBar["high"] = newBar.high
-        # curBar["low"] = newBar.low
-        # curBar["close"] = newBar.close
-        # curBar["volume"] = newBar.vol
+        newBar:WTSBarStruct = newBar.contents
         if ctx is not None:
             ctx.on_bar(bytes.decode(stdCode), period, newBar.to_tuple(period[0]=='d'))
         return
@@ -403,7 +373,7 @@ class WtBtWrapper:
         return loader.load_his_ticks(bytes.decode(stdCode), uDate, self.api.feed_raw_ticks)
 
     def write_log(self, level, message:str, catName:str = ""):
-        self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
+        self.api.write_log(level, ph.auto_encode(message), bytes(catName, encoding = "utf8"))
 
     def set_time_range(self, beginTime:int, endTime:int):
         '''
@@ -713,7 +683,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.cta_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.cta_log_text(id, level, ph.auto_encode(message))
 
     def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
         '''
@@ -741,7 +711,7 @@ class WtBtWrapper:
         @id         策略id
         @stdCode       合约代码
         @usertag    进场标记
-        @flag       盈亏记号, 0-浮动盈亏, 1-最大浮盈, 2-最大亏损（负数）
+        @flag       盈亏记号, 0-浮动盈亏, 1-最大浮盈, -1-最大亏损（负数）, 2-最大浮盈价格， -2-最大浮亏价格
         @return     盈亏 
         '''
         return self.api.cta_get_detail_profit(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"), flag) 
@@ -904,7 +874,14 @@ class WtBtWrapper:
         @qty    目标仓位, 正为多, 负为空
         '''
         self.api.sel_set_position(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"))
-
+    
+    def sel_get_tdate(self) -> int:
+        '''
+        获取当前交易日
+        @return    当前交易日
+        '''
+        return self.api.sel_get_tdate()
+    
     def sel_get_date(self):
         '''
         获取当前日期
@@ -926,7 +903,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.sel_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.sel_log_text(id, level, ph.auto_encode(message))
 
     def sel_sub_ticks(self, id:int, stdCode:str):
         '''
@@ -935,6 +912,106 @@ class WtBtWrapper:
         @stdCode    品种代码
         '''
         self.api.sel_sub_ticks(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_day_price(self, stdCode:str, flag:int = 0) -> float:
+        '''
+        获取当日价格
+        @stdCode    合约代码
+        @flag       价格标记, 0-开盘价, 1-最高价, 2-最低价, 3-最新价
+        @return     指定合约的价格 
+        '''
+        return self.api.sel_get_day_price(bytes(stdCode, encoding = "utf8"), flag)
+
+    def sel_get_fund_data(self, id:int, flag:int) -> float:
+        '''
+        获取资金数据
+        @id     策略id
+        @flag   0-动态权益, 1-总平仓盈亏, 2-总浮动盈亏, 3-总手续费
+        @return 资金数据
+        '''
+        return self.api.sel_get_fund_data(id, flag)
+
+    def sel_get_position_profit(self, id:int, stdCode:str):
+        '''
+        获取浮动盈亏
+        @id         策略id
+        @stdCode    合约代码
+        @return     指定合约的浮动盈亏
+        '''
+        return self.api.sel_get_position_profit(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_position_avgpx(self, id:int, stdCode:str):
+        '''
+        获取持仓均价
+        @id         策略id
+        @stdCode    合约代码
+        @return     指定合约的持仓均价
+        '''
+        return self.api.sel_get_position_avgpx(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_first_entertime(self, id:int, stdCode:str) -> int:
+        '''
+        获取当前持仓的首次进场时间
+        @stdCode    合约代码
+        @return     进场时间, 格式如201907260932 
+        '''
+        return self.api.sel_get_first_entertime(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_last_entertime(self, id:int, stdCode:str) -> int:
+        '''
+        获取当前持仓的最后进场时间
+        @stdCode    合约代码
+        @return     进场时间, 格式如201907260932 
+        '''
+        return self.api.sel_get_last_entertime(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_last_entertag(self, id:int, stdCode:str) -> str:
+        '''
+        获取当前持仓的最后进场标记
+        @stdCode    合约代码
+        @return     进场标记 
+        '''
+        return bytes.decode(self.api.sel_get_last_entertag(id, bytes(stdCode, encoding = "utf8")))
+
+    def sel_get_last_exittime(self, id:int, stdCode:str) -> int:
+        '''
+        获取当前持仓的最后出场时间
+        @stdCode    合约代码
+        @return     进场时间, 格式如201907260932 
+        '''
+        return self.api.sel_get_last_exittime(id, bytes(stdCode, encoding = "utf8"))
+
+    def sel_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
+        '''
+        获取指定标记的持仓的进场时间
+        @id         策略id
+        @stdCode    合约代码
+        @usertag    进场标记
+        @return     进场时间, 格式如201907260932 
+        '''
+        return self.api.sel_get_detail_entertime(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8")) 
+
+    def sel_get_detail_cost(self, id:int, stdCode:str, usertag:str) -> float:
+        '''
+        获取指定标记的持仓的开仓价
+        @id         策略id
+        @stdCode    合约代码
+        @usertag    进场标记
+        @return     开仓价 
+        '''
+        return self.api.sel_get_detail_cost(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8")) 
+
+    def sel_get_detail_profit(self, id:int, stdCode:str, usertag:str, flag:int):
+        '''
+        获取指定标记的持仓的盈亏
+        @id         策略id
+        @stdCode       合约代码
+        @usertag    进场标记
+        @flag       盈亏记号, 0-浮动盈亏, 1-最大浮盈, -1-最大亏损（负数）, 2-最大浮盈价格， -2-最大浮亏价格
+        @return     盈亏 
+        '''
+        return self.api.sel_get_detail_profit(id, bytes(stdCode, encoding = "utf8"), bytes(usertag, encoding = "utf8"), flag) 
+
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''HFT接口'''
@@ -964,7 +1041,7 @@ class WtBtWrapper:
         @stdCode   合约代码
         @count     条数
         '''
-        return self.api.hft_get_ordque(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_ORDQUE(self.on_hftstra_order_queue))
+        return self.api.hft_get_ordque(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_ORDQUE(self.on_hftstra_get_order_queue))
 
     def hft_get_orddtl(self, id:int, stdCode:str, count:int):
         '''
@@ -973,7 +1050,7 @@ class WtBtWrapper:
         @stdCode   合约代码
         @count     条数
         '''
-        return self.api.hft_get_orddtl(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_ORDDTL(self.on_hftstra_order_queue))
+        return self.api.hft_get_orddtl(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_ORDDTL(self.on_hftstra_get_order_detail))
 
     def hft_get_trans(self, id:int, stdCode:str, count:int):
         '''
@@ -982,7 +1059,7 @@ class WtBtWrapper:
         @stdCode   合约代码
         @count     条数
         '''
-        return self.api.hft_get_trans(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_TRANS(self.on_hftstra_order_queue))
+        return self.api.hft_get_trans(id, bytes(stdCode, encoding = "utf8"), count, CB_HFTSTRA_GET_TRANS(self.on_hftstra_get_transaction))
 
     def hft_save_user_data(self, id:int, key:str, val:str):
         '''
@@ -1074,7 +1151,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.hft_log_text(id, level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'))
+        self.api.hft_log_text(id, level, ph.auto_encode(message))
 
     def hft_sub_ticks(self, id:int, stdCode:str):
         '''
@@ -1158,13 +1235,18 @@ class WtBtWrapper:
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''本地撮合接口'''
-    def init_cta_mocker(self, name:str, slippage:int = 0, hook:bool = False, persistData:bool = True, incremental:bool = False) -> int:
+    def init_cta_mocker(self, name:str, slippage:int = 0, hook:bool = False, persistData:bool = True, incremental:bool = False, isRatioSlp:bool = False) -> int:
         '''
         创建策略环境
-        @name      策略名称
-        @return    系统内策略ID 
+        @name       策略名称 
+        @slippage   滑点大小
+        @hook       是否安装钩子，主要用于单步控制重算
+        @persistData    回测生成的数据是否落地, 默认为True
+        @incremental    是否增量回测, 默认为False
+        @isRatioSlp     滑点是否是比例, 默认为False, 如果为True, 则slippage为万分比
+        @return    系统内策略ID
         '''
-        return self.api.init_cta_mocker(bytes(name, encoding = "utf8"), slippage, hook, persistData, incremental)
+        return self.api.init_cta_mocker(bytes(name, encoding = "utf8"), slippage, hook, persistData, incremental, isRatioSlp)
 
     def init_hft_mocker(self, name:str, hook:bool = False) -> int:
         '''
@@ -1174,11 +1256,11 @@ class WtBtWrapper:
         '''
         return self.api.init_hft_mocker(bytes(name, encoding = "utf8"), hook)
 
-    def init_sel_mocker(self, name:str, date:int, time:int, period:str, trdtpl:str = "CHINA", session:str = "TRADING", slippage:int = 0) -> int:
+    def init_sel_mocker(self, name:str, date:int, time:int, period:str, trdtpl:str = "CHINA", session:str = "TRADING", slippage:int = 0, isRatioSlp:bool = False) -> int:
         '''
         创建策略环境
         @name      策略名称
         @return    系统内策略ID 
         '''
         return self.api.init_sel_mocker(bytes(name, encoding = "utf8"), date, time, 
-            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"), slippage)
+            bytes(period, encoding = "utf8"), bytes(trdtpl, encoding = "utf8"), bytes(session, encoding = "utf8"), slippage, isRatioSlp)

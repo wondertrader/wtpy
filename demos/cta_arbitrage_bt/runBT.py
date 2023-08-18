@@ -1,7 +1,9 @@
 from wtpy import WtBtEngine,EngineType
 from wtpy.apps import WtBtAnalyst
 
-from Strategies.T1 import StraT1
+import sys
+sys.path.append('../Strategies')
+from T1 import StraT1
 
 if __name__ == "__main__":
     #创建一个运行环境，并加入策略
@@ -17,7 +19,7 @@ if __name__ == "__main__":
     engine.run_backtest()
 
     analyst = WtBtAnalyst()
-    analyst.add_strategy("t1_rb_i", folder="./outputs_bt/t1_rb_i/", init_capital=350000, rf=0.02, annual_trading_days=240)
+    analyst.add_strategy("t1_rb_i", folder="./outputs_bt/", init_capital=350000, rf=0.02, annual_trading_days=240)
     analyst.run_new()
 
     kw = input('press any key to exit\n')

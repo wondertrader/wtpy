@@ -9,6 +9,9 @@ traders:
     user: 你的SIMNOW账号
     pass: 你的SIMNOW密码
     quick: true
+    # 如果要使用openctp，启用该配置项即可
+    # ctpmodule: tts_thostmduserapi_se    # ctp模块名，如果需要使用其他仿制CTP模块，使用该配置项直接将仿制的CTP模块传给TraderCTP即可
+    # flowdir: CTPTDFlow              # 数据流存储目录，可不填，也可以自己定义
     riskmon:
         active: true
         policy:

@@ -27,20 +27,20 @@ class PushServer:
         # 等待连接
         await ws.accept()
 
-        if "userinfo" in ws.session:
-            usrInfo = ws.session["userinfo"]
-            if usrInfo is not None:
-                self.logger.info("%s connected" % usrInfo["loginid"])
+        if "tokeninfo" in ws.session:
+            tInfo = ws.session["tokeninfo"]
+            if tInfo is not None:
+                self.logger.info(f"{tInfo['loginid']} connected")
             # 存储ws连接对象
             self.active_connections.append(ws)
 
     def disconnect(self, ws: WebSocket):
         # 关闭时 移除ws对象
         self.active_connections.remove(ws)
-        if "userinfo" in ws.session:
-            usrInfo = ws.session["userinfo"]
-            if usrInfo is not None:
-                self.logger.info("%s disconnected" % usrInfo["loginid"])
+        if "tokeninfo" in ws.session:
+            tInfo = ws.session["tokeninfo"]
+            if tInfo is not None:
+                self.logger.info(f"{tInfo['loginid']} disconnected")
 
     @staticmethod
     async def send_personal_message(data: dict, ws: WebSocket):
@@ -80,9 +80,9 @@ class PushServer:
         if "groupid" not in data:
             return
 
-        usrInfo = ws.session["userinfo"]
+        tokenInfo = ws.session["tokeninfo"]
         ws.session["groupid"] = data["groupid"]
-        self.logger.info("%s@%s subscribed group %s" % (usrInfo["loginid"], usrInfo["loginip"] , data["groupid"]))
+        self.logger.info("{}@{} subscribed group {}".format(tokenInfo["loginid"], tokenInfo["loginip"] , data["groupid"]))
 
     def run(self):
         app = self.app
@@ -134,33 +134,19 @@ class PushServer:
         self.mutex.acquire()
         self.messages.append({"type":"gplog", "groupid":groupid, "tag":tag, "time":time, "message":message})
         self.mutex.release()
-        # try:
-        #     self.broadcast({"type":"gplog", "groupid":groupid, "tag":tag, "time":time, "message":message}, groupid)
-        # except RuntimeError as e:
-        #     print(e)
 
     def notifyGrpEvt(self, groupid, evttype):
-        # self.logger.info("group event %s notified" % evttype)
         if not self.ready:
             return
 
         self.mutex.acquire()
         self.messages.append({"type":"gpevt", "groupid":groupid, "evttype":evttype})
         self.mutex.release()
-        # try:
-        #     self.broadcast({"type":"gpevt", "groupid":groupid, "evttype":evttype})
-        # except RuntimeError as e:
-        #     print(e)
 
     def notifyGrpChnlEvt(self, groupid, chnlid, evttype, data):
-        # self.logger.info("channel event %s notified" % evttype)
         if not self.ready:
             return
 
         self.mutex.acquire()
         self.messages.append({"type":"chnlevt", "groupid":groupid, "channel":chnlid, "data":data, "evttype":evttype})
         self.mutex.release()
-        # try:
-        #     self.broadcast({"type":"chnlevt", "groupid":groupid, "channel":chnlid, "data":data, "evttype":evttype})
-        # except RuntimeError as e:
-        #     print(e)

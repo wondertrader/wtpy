@@ -23,6 +23,44 @@ class SelContext:
 
         self.is_backtest = self.__engine__.is_backtest
 
+        self.__alias__()
+        
+    @property
+    def id(self):
+        return self.__id__
+    
+    def __alias__(self):
+        '''
+        接口函数别名
+        '''
+        self.get_all_position = self.stra_get_all_position
+        self.get_bars = self.stra_get_bars
+        self.get_comminfo = self.stra_get_comminfo
+        self.get_date = self.stra_get_date
+        self.get_day_price = self.stra_get_day_price
+        self.get_detail_cost = self.stra_get_detail_cost
+        self.get_detail_entertime = self.stra_get_detail_entertime
+        self.get_detail_profit = self.stra_get_detail_profit
+        self.get_first_entertime = self.stra_get_first_entrytime
+        self.get_fund_data = self.stra_get_fund_data
+        self.get_last_entrytag = self.stra_get_last_entrytag
+        self.get_last_entrytime = self.stra_get_last_entrytime
+        self.get_last_exittime = self.stra_get_last_exittime
+        self.get_position = self.stra_get_position
+        self.get_position_avgpx = self.stra_get_position_avgpx
+        self.get_position_profit = self.stra_get_position_profit
+        self.get_price = self.stra_get_price
+        self.get_rawcode = self.stra_get_rawcode
+        self.get_sessinfo = self.stra_get_sessioninfo
+        self.get_tdate = self.stra_get_tdate
+        self.get_ticks = self.stra_get_ticks
+        self.get_time = self.stra_get_time
+        self.log_text = self.stra_log_text
+        self.prepare_bars = self.stra_prepare_bars
+        self.set_position = self.stra_set_position
+        self.sub_ticks = self.stra_sub_ticks
+        pass
+
     def write_indicator(self, tag, time, data):
         '''
         输出指标数据
@@ -119,13 +157,44 @@ class SelContext:
         @message    消息内容，最大242字符
         '''
         self.__wrapper__.sel_log_text(self.__id__, level, message[:242])
-        
+    
+    def stra_get_tdate(self) -> int:
+        '''
+        获取当前交易日
+        @return int, 格式如20180513
+        '''
+        return self.__wrapper__.sel_get_tdate()
+    
     def stra_get_date(self):
         '''
         获取当前日期
         @return int，格式如20180513
         '''
         return self.__wrapper__.sel_get_date()
+    
+    def stra_get_position_avgpx(self, stdCode:str = "") -> float:
+        '''
+        获取当前持仓均价
+        @stdCode   合约代码
+        @return 持仓均价
+        '''
+        return self.__wrapper__.sel_get_position_avgpx(self.__id__, stdCode)
+
+    def stra_get_position_profit(self, stdCode:str = "") -> float:
+        '''
+        获取持仓浮动盈亏
+        @stdCode   合约代码, 为None时读取全部品种的浮动盈亏
+        @return 浮动盈亏
+        '''
+        return self.__wrapper__.sel_get_position_profit(self.__id__, stdCode)
+
+    def stra_get_fund_data(self, flag:int = 0) -> float:
+        '''
+        获取资金数据
+        @flag   0-动态权益, 1-总平仓盈亏, 2-总浮动盈亏, 3-总手续费
+        @return 资金数据
+        '''
+        return self.__wrapper__.sel_get_fund_data(self.__id__, flag)
 
     def stra_get_time(self):
         '''
@@ -140,6 +209,14 @@ class SelContext:
         @return 最新价格
         '''
         return self.__wrapper__.sel_get_price(stdCode)
+    
+    def stra_get_day_price(self, stdCode:str, flag:int = 0) -> float:
+        '''
+        获取当日价格
+        @flag       价格标记, 0-开盘价, 1-最高价, 2-最低价, 3-最新价
+        @return 最新价格
+        '''
+        return self.__wrapper__.sel_get_day_price(stdCode, flag)
 
     def stra_get_all_position(self):
         '''
@@ -148,6 +225,24 @@ class SelContext:
         self.__pos_cache__ = dict() #
         self.__wrapper__.sel_get_all_position(self.__id__)
         return self.__pos_cache__
+    
+    def stra_prepare_bars(self, stdCode:str, period:str, count:int, isMain:bool = False):
+        '''
+        准备历史K线
+        一般在on_init调用
+        @stdCode   合约代码
+        @period K线周期, 如m3/d7
+        @count  要拉取的K线条数
+        @isMain 是否是主K线
+        '''
+        key = "%s#%s" % (stdCode, period)
+
+        if key in self.__bar_cache__:
+            #这里做一个数据长度处理
+            return self.__bar_cache__[key]
+
+        self.__bar_cache__[key] = WtBarRecords(size=count)
+        self.__wrapper__.sel_get_bars(self.__id__, stdCode, period, count, isMain)
 
     def stra_get_bars(self, stdCode:str, period:str, count:int) -> WtBarRecords:
         '''
@@ -210,6 +305,38 @@ class SelContext:
         @return 设置结果TRUE/FALSE
         '''
         self.__wrapper__.sel_set_position(self.__id__, stdCode, qty, usertag)
+
+    def stra_get_last_entrytime(self, stdCode:str) -> int:
+        '''
+        获取当前持仓最后一次进场时间
+        @stdCode   品种代码
+        @return 返回最后一次开仓的时间, 格式如201903121047
+        '''
+        return self.__wrapper__.sel_get_last_entertime(self.__id__, stdCode)
+
+    def stra_get_last_entrytag(self, stdCode:str) -> str:
+        '''
+        获取当前持仓最后一次进场标记
+        @stdCode    品种代码
+        @return     返回最后一次开仓标记
+        '''
+        return self.__wrapper__.sel_get_last_entertag(self.__id__, stdCode)
+
+    def stra_get_last_exittime(self, stdCode:str) -> int:
+        '''
+        获取当前持仓最后一次出场时间
+        @stdCode   品种代码
+        @return 返回最后一次开仓的时间, 格式如201903121047
+        '''
+        return self.__wrapper__.sel_get_last_exittime(self.__id__, stdCode)
+
+    def stra_get_first_entrytime(self, stdCode:str) -> int:
+        '''
+        获取当前持仓第一次进场时间
+        @stdCode   品种代码
+        @return 返回最后一次开仓的时间, 格式如201903121047
+        '''
+        return self.__wrapper__.sel_get_first_entertime(self.__id__, stdCode)
         
     def user_save_data(self, key:str, val):
         '''
@@ -231,7 +358,35 @@ class SelContext:
             return defVal
 
         return vType(ret)
+    
+    def stra_get_detail_profit(self, stdCode:str, usertag:str, flag:int = 0) -> float:
+        '''
+        获取指定标记的持仓的盈亏
+        @stdCode       合约代码
+        @usertag    进场标记
+        @flag       盈亏记号, 0-浮动盈亏, 1-最大浮盈, -1-最大亏损（负数）, 2-最高浮动价格, -2-最低浮动价格
+        @return     盈亏 
+        '''
+        return self.__wrapper__.sel_get_detail_profit(self.__id__, stdCode, usertag, flag)
 
+    def stra_get_detail_cost(self, stdCode:str, usertag:str) -> float:
+        '''
+        获取指定标记的持仓的开仓价
+        @stdCode       合约代码
+        @usertag    进场标记
+        @return     开仓价 
+        '''
+        return self.__wrapper__.sel_get_detail_cost(self.__id__, stdCode, usertag)
+
+    def stra_get_detail_entertime(self, stdCode:str, usertag:str) -> int:
+        '''
+        获取指定标记的持仓的进场时间
+        @stdCode       合约代码
+        @usertag    进场标记
+        @return     进场时间, 格式如201907260932 
+        '''
+        return self.__wrapper__.sel_get_detail_entertime(self.__id__, stdCode, usertag)
+    
     def stra_get_comminfo(self, stdCode:str):
         '''
         获取品种详情
@@ -272,8 +427,28 @@ class SelContext:
             return None
         return self.__engine__.getContractInfo(stdCode)
 
-    def stra_get_all_codes(self):
+    def stra_get_all_codes(self) -> list:
+        '''
+        获取全部合约代码列表
+        '''
         if self.__engine__ is None:
-            return None
-
+            return []
         return self.__engine__.getAllCodes()
+    
+    def stra_get_codes_by_product(self, stdPID:str) -> list:
+        '''
+        根据品种代码读取合约列表
+        @stdPID 品种代码，格式如SHFE.rb
+        '''
+        if self.__engine__ is None:
+            return []
+        return self.__engine__.getCodesByProduct(stdPID)
+    
+    def stra_get_codes_by_underlying(self, underlying:str) -> list:
+        '''
+        根据underlying读取合约列表
+        @underlying 格式如CFFEX.IM2304
+        '''
+        if self.__engine__ is None:
+            return []
+        return self.__engine__.getCodesByUnderlying(underlying)

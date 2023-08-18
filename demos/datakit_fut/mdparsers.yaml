@@ -7,3 +7,5 @@ parsers:
     module: ParserCTP
     pass: test
     user: test
+    # 如果要使用openctp，启用该配置项即可
+    # ctpmodule: tts_thostmduserapi_se

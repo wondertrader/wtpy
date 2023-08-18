@@ -36,7 +36,7 @@ def test_store_bars():
     
 def test_store_ticks():
 
-    df = pd.read_csv('./storage/csv/rb主力连续_20201030.csv')
+    df = pd.read_csv('../storage/csv/rb主力连续_20201030.csv')
     BUFFER = WTSTickStruct*len(df)
     buffer = BUFFER()
 
@@ -77,7 +77,9 @@ def test_store_ticks():
 def test_resample():
     # 测试重采样
     sessMgr = SessionMgr()
-    sessMgr.load("sessions.json")
+    sessMgr.load("../common/sessions.json")
     sInfo = sessMgr.getSession("SD0930")
-    ret = dtHelper.resample_bars("IC2009.dsb",'m1',5,202001010931,202009181500,sInfo)
+    ret = dtHelper.resample_bars("IC2212_m5.dsb",'m5',5,202201010931,202212311500,sInfo, True).to_df().to_csv("IC2212_m5.csv")
     print(ret)
+
+test_resample()

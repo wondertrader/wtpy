@@ -3,7 +3,9 @@ from wtpy import BaseExtParser
 from wtpy import WTSTickStruct
 from ctypes import byref
 
+# if not exists, install websocket-client v1.2.3+
 import websocket
+
 import json   
 import threading
 import ssl
@@ -118,6 +120,7 @@ class MyParser(BaseExtParser):
         return
     
     def on_message(self, ws, message):
+        # print(message)
         root = json.loads(message)
         if "event" in root:
             print(root)
@@ -141,10 +144,10 @@ class MyParser(BaseExtParser):
                 curTick.low = float(data["low24h"])
 
                 curTick.volume = float(data["lastSz"])
-                curTick.ask_prices[0] = float(data["askPx"])
-                curTick.ask_qty[0] = float(data["askSz"])
-                curTick.bid_prices[0] = float(data["bidPx"])
-                curTick.bid_qty[0] = float(data["bidSz"])
+                curTick.ask_price_0 = float(data["askPx"])
+                curTick.ask_qty_0 = float(data["askSz"])
+                curTick.bid_prices_0 = float(data["bidPx"])
+                curTick.bid_qty_0 = float(data["bidSz"])
 
                 #先处理本地时间
                 tm = datetime.datetime.fromtimestamp(int(data["ts"])/1000)
@@ -158,11 +161,15 @@ class MyParser(BaseExtParser):
                 if code in self.depth_cache:
                     myDepth = self.depth_cache[code]
                     for i in range(1,len(myDepth["asks"])):
-                        curTick.ask_prices[i] = float(myDepth["asks"][i][0])
-                        curTick.ask_qty[i] = float(myDepth["asks"][i][1])
+                        setattr(curTick, f"ask_price_{i}", float(myDepth["asks"][i][0]))
+                        setattr(curTick, f"ask_qty_{i}", float(myDepth["asks"][i][1]))
+                        # curTick.ask_prices[i] = float(myDepth["asks"][i][0])
+                        # curTick.ask_qty[i] = float(myDepth["asks"][i][1])
                     for i in range(1,len(myDepth["bids"])):
-                        curTick.bid_prices[i] = float(myDepth["bids"][i][0])
-                        curTick.bid_qty[i] = float(myDepth["bids"][i][1])
+                        setattr(curTick, f"bid_price_{i}", float(myDepth["bids"][i][0]))
+                        setattr(curTick, f"bid_qty_{i}", float(myDepth["bids"][i][1]))
+                        # curTick.bid_prices[i] = float(myDepth["bids"][i][0])
+                        # curTick.bid_qty[i] = float(myDepth["bids"][i][1])
 
                 if code in self.oi_cache:
                     myOI = self.oi_cache[code]
@@ -241,8 +248,8 @@ if __name__ == "__main__":
     engine.initialize("dtcfg.yaml", "logcfgdt.yaml")
     
     myParser = MyParser("test", url="wss://ws.okex.com:8443/ws/v5/public", proxy={
-        "host": "127.0.0.1",
-        "port": 10809
+        "host": "192.168.61.1",
+        "port": 10811
     }, trace=False)
     myParser.init(engine)
     engine.add_exetended_parser(myParser)

@@ -301,11 +301,11 @@ if __name__ == '__main__':
     # 从米筐下载数据
     feed = RqFeed()
     # 数据存储的目录
-    storage_path = "./storage"
+    storage_path = "../storage"
     # 输入的代码记得区分大小写
     feed.store_his_bar(storage_path,"SHFE.ni.2201",start_date="20211225",end_date="20220101",frequency="m1",skip_saved=False)
     feed.store_his_tick(storage_path,"SHFE.ni.2201",start_date="20211225",end_date="20220101",skip_saved=False)
     # 读取dsb数据
     dtHelper = WtDataHelper()
-    dtHelper.dump_bars(binFolder="./storage/his/min1/SHFE/", csvFolder="min1_csv")
-    dtHelper.dump_ticks(binFolder="./storage/his/ticks/SHFE/20211227/", csvFolder="ticks_csv")
+    dtHelper.dump_bars(binFolder="../storage/his/min1/SHFE/", csvFolder="min1_csv")
+    dtHelper.dump_ticks(binFolder="../storage/his/ticks/SHFE/20211227/", csvFolder="ticks_csv")

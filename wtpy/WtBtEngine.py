@@ -338,7 +338,24 @@ class WtBtEngine:
         return self.contractMgr.getTotalCodes()
 
     def getRawStdCode(self, stdCode:str):
+        '''
+        根据连续合约代码获取原始合约代码
+        '''
         return self.__wrapper__.get_raw_stdcode(stdCode)
+    
+    def getCodesByProduct(self, stdPID:str) -> list:
+        '''
+        根据品种id获取对应合约代码
+        @stdPID 品种代码, 格式如SHFE.rb
+        '''
+        return self.contractMgr.getCodesByProduct(stdPID)
+    
+    def getCodesByUnderlying(self, underlying:str) -> list:
+        '''
+        根据underlying获取对应合约代码
+        @underlying 品种代码, 格式如SHFE.rb2305
+        '''
+        return self.contractMgr.getCodesByUnderlying(underlying)
 
     def set_time_range(self, beginTime:int, endTime:int):
         '''
@@ -349,15 +366,17 @@ class WtBtEngine:
         '''
         self.__wrapper__.set_time_range(beginTime, endTime)
 
-    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False, persistData:bool = True, incremental:bool = False):
+    def set_cta_strategy(self, strategy:BaseCtaStrategy, slippage:int = 0, hook:bool = False, persistData:bool = True, incremental:bool = False, isRatioSlp:bool = False):
         '''
         添加CTA策略
         @strategy   策略对象
         @slippage   滑点大小
         @hook       是否安装钩子，主要用于单步控制重算
-        @persistData    回测生成的数据是否落地，默认为True
+        @persistData    回测生成的数据是否落地, 默认为True
+        @incremental    是否增量回测, 默认为False, 如果为True, 则会自动根据策略ID到output_bt目录下加载对应的数据
+        @isRatioSlp     滑点是否是比例, 默认为False, 如果为True, 则slippage为万分比
         '''
-        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData, incremental)
+        ctxid = self.__wrapper__.init_cta_mocker(strategy.name(), slippage, hook, persistData, incremental, isRatioSlp)
         self.__context__ = CtaContext(ctxid, strategy, self.__wrapper__, self)
 
     def set_hft_strategy(self, strategy:BaseHftStrategy, hook:bool = False):
@@ -369,12 +388,19 @@ class WtBtEngine:
         ctxid = self.__wrapper__.init_hft_mocker(strategy.name(), hook)
         self.__context__ = HftContext(ctxid, strategy, self.__wrapper__, self)
 
-    def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING", slippage:int = 0):
+    def set_sel_strategy(self, strategy:BaseSelStrategy, date:int=0, time:int=0, period:str="d", trdtpl:str="CHINA", session:str="TRADING", slippage:int = 0, isRatioSlp:bool = False):
         '''
         添加SEL策略
         @strategy   策略对象
+        @date       日期,根据周期变化,每日为0,每周为0~6,对应周日到周六,每月为1~31,每年为0101~1231
+	    @time       时间,精确到分钟
+	    @period	    时间周期,可以是分钟min、天d、周w、月m、年y
+        @trdtpl     交易日历模板,默认为CHINA
+        @session    交易时间模板,默认为TRADING
+        @slippage   滑点大小
+        @isRatioSlp 滑点是否是比例, 默认为False, 如果为True, 则slippage为万分比
         '''
-        ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session, slippage)
+        ctxid = self.__wrapper__.init_sel_mocker(strategy.name(), date, time, period, trdtpl, session, slippage, isRatioSlp)
         self.__context__ = SelContext(ctxid, strategy, self.__wrapper__, self)
 
     def get_context(self, id:int):

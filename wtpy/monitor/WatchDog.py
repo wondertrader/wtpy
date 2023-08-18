@@ -164,6 +164,7 @@ class AppInfo(EventSink):
                                 self._evt_receiver = EventReceiver(url=self._mq_url, logger=self.__logger__, sink=self)
                                 self._evt_receiver.run()
                                 self.__logger__.info("应用%s开始接收%s的通知信息" % (self._id, self._mq_url))
+                        return True
                 except:
                     pass
             return False
