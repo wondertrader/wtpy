@@ -22,7 +22,7 @@ VERSION = '0.9.8'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'numpy==1.21.5', 
+    'numpy', 
     'pandas==1.3.5',     
     'chardet',
     'pyyaml',
