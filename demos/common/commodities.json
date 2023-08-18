@@ -72,6 +72,18 @@
             "session": "FD0915",
             "holiday": "CHINA"
         },
+        "TL": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 1,
+            "precision": 2,
+            "pricetick": 0.01,
+            "volscale": 10000,
+            "name": "30ÄêÕ®",
+            "exchg": "CFFEX",
+            "session": "FD0915",
+            "holiday": "CHINA"
+        },
         "TS": {
             "covermode": 0,
             "pricemode": 0,
@@ -618,6 +630,18 @@
         }
     },
     "GFEX": {
+        "lc": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 1,
+            "precision": 0,
+            "pricetick": 50.0,
+            "volscale": 1,
+            "name": "Ì¼Ëáï®",
+            "exchg": "GFEX",
+            "session": "FD0900",
+            "holiday": "CHINA"
+        },
         "si": {
             "covermode": 0,
             "pricemode": 0,
@@ -642,6 +666,18 @@
             "name": "¹ú¼ÊÍ­",
             "exchg": "INE",
             "session": "FN0100",
+            "holiday": "CHINA"
+        },
+        "ec": {
+            "covermode": 1,
+            "pricemode": 1,
+            "category": 1,
+            "precision": 1,
+            "pricetick": 0.1,
+            "volscale": 50,
+            "name": "SCFISÅ·Ïß",
+            "exchg": "INE",
+            "session": "",
             "holiday": "CHINA"
         },
         "lu": {
@@ -706,6 +742,18 @@
             "session": "FN0100",
             "holiday": "CHINA"
         },
+        "ao": {
+            "covermode": 1,
+            "pricemode": 1,
+            "category": 1,
+            "precision": 0,
+            "pricetick": 1.0,
+            "volscale": 20,
+            "name": "Ñõ»¯ÂÁ",
+            "exchg": "SHFE",
+            "session": "FN0100",
+            "holiday": "CHINA"
+        },
         "au": {
             "covermode": 1,
             "pricemode": 1,
@@ -716,6 +764,18 @@
             "name": "»¦½ð",
             "exchg": "SHFE",
             "session": "FN0230",
+            "holiday": "CHINA"
+        },
+        "br": {
+            "covermode": 1,
+            "pricemode": 1,
+            "category": 1,
+            "precision": 0,
+            "pricetick": 5.0,
+            "volscale": 5,
+            "name": "¶¡¶þÏ©Ïð½º",
+            "exchg": "SHFE",
+            "session": "",
             "holiday": "CHINA"
         },
         "bu": {

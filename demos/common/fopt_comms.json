@@ -55,7 +55,7 @@
             "precision": 1,
             "pricetick": 0.5,
             "volscale": 10,
-            "name": "菜油305买权",
+            "name": "菜油401买权",
             "exchg": "CZCE",
             "session": "",
             "holiday": "CHINA"
@@ -67,7 +67,7 @@
             "precision": 1,
             "pricetick": 0.5,
             "volscale": 10,
-            "name": "菜油305卖权",
+            "name": "菜油311卖权",
             "exchg": "CZCE",
             "session": "",
             "holiday": "CHINA"
@@ -201,7 +201,7 @@
             "precision": 1,
             "pricetick": 0.5,
             "volscale": 10,
-            "name": "a2307-P-6400",
+            "name": "a2403-C-4450",
             "exchg": "DCE",
             "session": "",
             "holiday": "CHINA"
@@ -213,7 +213,7 @@
             "precision": 1,
             "pricetick": 0.5,
             "volscale": 10,
-            "name": "b2309-C-5200",
+            "name": "b2404-C-3350",
             "exchg": "DCE",
             "session": "",
             "holiday": "CHINA"
@@ -228,6 +228,30 @@
             "name": "玉米期权",
             "exchg": "DCE",
             "session": "FN2300",
+            "holiday": "CHINA"
+        },
+        "eb_o": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 0,
+            "precision": 1,
+            "pricetick": 0.5,
+            "volscale": 5,
+            "name": "eb2402-P-6400",
+            "exchg": "DCE",
+            "session": "",
+            "holiday": "CHINA"
+        },
+        "eg_o": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 0,
+            "precision": 1,
+            "pricetick": 0.5,
+            "volscale": 10,
+            "name": "eg2401-P-3750",
+            "exchg": "DCE",
+            "session": "",
             "holiday": "CHINA"
         },
         "i_o": {
@@ -273,7 +297,7 @@
             "precision": 1,
             "pricetick": 0.5,
             "volscale": 10,
-            "name": "p2306-P-7800",
+            "name": "p2312-P-9200",
             "exchg": "DCE",
             "session": "",
             "holiday": "CHINA"
@@ -321,13 +345,25 @@
             "precision": 1,
             "pricetick": 0.5,
             "volscale": 10,
-            "name": "y2307-P-8100",
+            "name": "y2403-C-6300",
             "exchg": "DCE",
             "session": "",
             "holiday": "CHINA"
         }
     },
     "GFEX": {
+        "lc_o": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 0,
+            "precision": 0,
+            "pricetick": 10.0,
+            "volscale": 1,
+            "name": "lc2406-P-260000",
+            "exchg": "GFEX",
+            "session": "",
+            "holiday": "CHINA"
+        },
         "si_o": {
             "covermode": 0,
             "pricemode": 0,
@@ -335,7 +371,7 @@
             "precision": 0,
             "pricetick": 1.0,
             "volscale": 5,
-            "name": "si2402-P-15000",
+            "name": "si2311-P-13400",
             "exchg": "GFEX",
             "session": "",
             "holiday": "CHINA"
@@ -349,7 +385,7 @@
             "precision": 2,
             "pricetick": 0.05,
             "volscale": 1000,
-            "name": "sc2305C480",
+            "name": "sc2310P660",
             "exchg": "INE",
             "session": "",
             "holiday": "CHINA"
@@ -363,7 +399,7 @@
             "precision": 1,
             "pricetick": 0.5,
             "volscale": 15,
-            "name": "ag2305C4100",
+            "name": "ag2312C6600",
             "exchg": "SHFE",
             "session": "",
             "holiday": "CHINA"
@@ -375,7 +411,7 @@
             "precision": 0,
             "pricetick": 1.0,
             "volscale": 5,
-            "name": "al2307C21600",
+            "name": "al2310C16400",
             "exchg": "SHFE",
             "session": "",
             "holiday": "CHINA"
@@ -390,6 +426,18 @@
             "name": "沪金期权",
             "exchg": "SHFE",
             "session": "FN0230",
+            "holiday": "CHINA"
+        },
+        "br_o": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 0,
+            "precision": 0,
+            "pricetick": 1.0,
+            "volscale": 5,
+            "name": "br2401C13200",
+            "exchg": "SHFE",
+            "session": "",
             "holiday": "CHINA"
         },
         "cu_o": {
@@ -435,7 +483,7 @@
             "precision": 0,
             "pricetick": 1.0,
             "volscale": 5,
-            "name": "zn2304C27500",
+            "name": "zn2309C19400",
             "exchg": "SHFE",
             "session": "",
             "holiday": "CHINA"
