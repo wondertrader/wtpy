@@ -10,6 +10,15 @@ from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
 import os
 
+def auto_encode(s:str) -> bytes:
+    '''
+    自动编码
+    '''
+    if ph.isWindows():
+        return bytes(s, encoding = "utf-8").decode("utf-8").encode("gbk")
+    else:
+        return bytes(s, encoding = "utf-8")
+
 # Python对接C接口的库
 @singleton
 class WtBtWrapper:
@@ -415,7 +424,7 @@ class WtBtWrapper:
         return loader.load_his_ticks(bytes.decode(stdCode), uDate, self.api.feed_raw_ticks)
 
     def write_log(self, level, message:str, catName:str = ""):
-        self.api.write_log(level, bytes(message, encoding = "utf8"), bytes(catName, encoding = "utf8"))
+        self.api.write_log(level, auto_encode(message), bytes(catName, encoding = "utf8"))
 
     def set_time_range(self, beginTime:int, endTime:int):
         '''
@@ -725,7 +734,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.cta_log_text(id, level, bytes(message, encoding = "utf8"))
+        self.api.cta_log_text(id, level, auto_encode(message))
 
     def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
         '''
@@ -945,7 +954,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.sel_log_text(id, level, bytes(message, encoding = "utf8"))
+        self.api.sel_log_text(id, level, auto_encode(message))
 
     def sel_sub_ticks(self, id:int, stdCode:str):
         '''
@@ -1193,7 +1202,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.hft_log_text(id, level, bytes(message, encoding = "utf8"))
+        self.api.hft_log_text(id, level, auto_encode(message))
 
     def hft_sub_ticks(self, id:int, stdCode:str):
         '''
