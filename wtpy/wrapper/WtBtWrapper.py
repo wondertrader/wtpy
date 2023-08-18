@@ -139,37 +139,6 @@ class WtBtWrapper:
         ctx = engine.get_context(id)
 
         realTick = newTick.contents
-        # tick = dict()
-        # tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
-        # tick["open"] = realTick.open
-        # tick["high"] = realTick.high
-        # tick["low"] = realTick.low
-        # tick["price"] = realTick.price
-        
-        # tick["bidprice"] = list()
-        # tick["bidqty"] = list()
-        # tick["askprice"] = list()
-        # tick["askqty"] = list()
-
-        # tick["upper_limit"] = realTick.total_volume
-        # tick["lower_limit"] = realTick.lower_limit
-        
-        # tick["total_volume"] = realTick.total_volume
-        # tick["volume"] = realTick.volume
-        # tick["total_turnover"] = realTick.total_turnover
-        # tick["turn_over"] = realTick.turn_over
-        # tick["open_interest"] = realTick.open_interest
-        # tick["diff_interest"] = realTick.diff_interest
-
-        # for i in range(10):
-        #     if realTick.bid_qty[i] != 0:
-        #         tick["bidprice"].append(realTick.bid_prices[i])
-        #         tick["bidqty"].append(realTick.bid_qty[i])
-
-        #     if realTick.ask_qty[i] != 0:
-        #         tick["askprice"].append(realTick.ask_prices[i])
-        #         tick["askqty"].append(realTick.ask_qty[i])
-
         if ctx is not None:
             ctx.on_tick(bytes.decode(stdCode), realTick.to_tuple())
         return
@@ -193,17 +162,6 @@ class WtBtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         newBar:WTSBarStruct = newBar.contents
-        # curBar = dict()
-        # if period[0] == 'd':
-        #     curBar["time"] = newBar.date
-        # else:
-        #     curBar["time"] = 1990*100000000 + newBar.time
-        # curBar["bartime"] = curBar["time"]
-        # curBar["open"] = newBar.open
-        # curBar["high"] = newBar.high
-        # curBar["low"] = newBar.low
-        # curBar["close"] = newBar.close
-        # curBar["volume"] = newBar.vol
         if ctx is not None:
             ctx.on_bar(bytes.decode(stdCode), period, newBar.to_tuple(period[0]=='d'))
         return
@@ -415,7 +373,7 @@ class WtBtWrapper:
         return loader.load_his_ticks(bytes.decode(stdCode), uDate, self.api.feed_raw_ticks)
 
     def write_log(self, level, message:str, catName:str = ""):
-        self.api.write_log(level, bytes(message, encoding = "utf8"), bytes(catName, encoding = "utf8"))
+        self.api.write_log(level, ph.auto_encode(message), bytes(catName, encoding = "utf8"))
 
     def set_time_range(self, beginTime:int, endTime:int):
         '''
@@ -725,7 +683,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.cta_log_text(id, level, bytes(message, encoding = "utf8"))
+        self.api.cta_log_text(id, level, ph.auto_encode(message))
 
     def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
         '''
@@ -945,7 +903,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.sel_log_text(id, level, bytes(message, encoding = "utf8"))
+        self.api.sel_log_text(id, level, ph.auto_encode(message))
 
     def sel_sub_ticks(self, id:int, stdCode:str):
         '''
@@ -1193,7 +1151,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.hft_log_text(id, level, bytes(message, encoding = "utf8"))
+        self.api.hft_log_text(id, level, ph.auto_encode(message))
 
     def hft_sub_ticks(self, id:int, stdCode:str):
         '''

@@ -731,7 +731,7 @@ class WtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.cta_log_text(id, level, bytes(message, encoding = "utf8"))
+        self.api.cta_log_text(id, level, ph.auto_encode(message))
 
     def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
         '''
@@ -943,7 +943,7 @@ class WtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.sel_log_text(id, level, bytes(message, encoding = "utf8"))
+        self.api.sel_log_text(id, level, ph.auto_encode(message))
 
     def sel_sub_ticks(self, id:int, stdCode:str):
         '''
@@ -1190,7 +1190,7 @@ class WtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.hft_log_text(id, level, bytes(message, encoding = "utf8"))
+        self.api.hft_log_text(id, level, ph.auto_encode(message))
 
     def hft_sub_ticks(self, id:int, stdCode:str):
         '''
