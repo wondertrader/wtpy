@@ -1,10 +1,12 @@
 from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_uint32, c_uint64
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, WTSOrdDtlStruct, WTSOrdQueStruct, WTSTransStruct
+from wtpy.WtNpDefs import WtNpKline
 from wtpy.WtDataDefs import WtTickRecords,WtBarRecords,WtOrdQueRecords,WtOrdDtlRecords,WtTransRecords
 from wtpy.SessionMgr import SessionInfo
 from wtpy.wrapper.PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
-import os,logging
+import os,logging,ctypes
+import numpy as np
 
 CB_DTHELPER_LOG = CFUNCTYPE(c_void_p,  c_char_p)
 CB_DTHELPER_TICK = CFUNCTYPE(c_void_p,  POINTER(WTSTickStruct), c_uint32, c_bool)
@@ -197,6 +199,7 @@ class WtDataHelper:
         else:
             return data_cache.records
         
+    
     def read_dsb_bars(self, barFile: str, isDay:bool = False) -> WtBarRecords:
         '''
         读取.dsb格式的K线数据
@@ -207,13 +210,13 @@ class WtDataHelper:
             def __init__(self):
                 self.records = None
 
-            def on_read_bar(self, curTick:POINTER(WTSBarStruct), count:int, isLast:bool):
+            def on_read_bar(self, firstBar:POINTER(WTSBarStruct), count:int, isLast:bool):
                 if self.records is None:
                     self.records = WtBarRecords(count)
 
                 from ctypes import sizeof, addressof
                 bsSize = sizeof(WTSBarStruct)
-                addr = addressof(curTick.contents)
+                addr = addressof(firstBar.contents)
                 for i in range(count):
                     realBar = WTSBarStruct.from_address(addr)
                     self.records.append(realBar.to_tuple(1 if isDay else 0))
@@ -221,6 +224,29 @@ class WtDataHelper:
 
             def on_data_count(self, count:int):
                 self.records = WtBarRecords(count)
+        
+        bar_cache = BarCache()
+        if 0 == self.api.read_dsb_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), CB_DTHELPER_COUNT(bar_cache.on_data_count), self.cb_dthelper_log):
+            return None
+        else:
+            return bar_cache.records
+
+    def read_dsb_bars_np(self, barFile: str) -> WtNpKline:
+        '''
+        读取.dsb格式的K线数据
+        @tickFile   .dsb的K线数据文件
+        @return     WtBarRecords
+        '''
+        class BarCache:
+            def __init__(self):
+                self.records:WtNpKline = None
+
+            def on_read_bar(self, firstBar:POINTER(WTSBarStruct), count:int, isLast:bool):
+                self.records = WtNpKline(isDay=False)
+                self.records.set_data(firstBar, count)
+
+            def on_data_count(self, count:int):
+                pass
         
         bar_cache = BarCache()
         if 0 == self.api.read_dsb_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), CB_DTHELPER_COUNT(bar_cache.on_data_count), self.cb_dthelper_log):
@@ -283,6 +309,29 @@ class WtDataHelper:
 
             def on_data_count(self, count:int):
                 self.records = WtBarRecords(count)
+        
+        bar_cache = BarCache()
+        if 0 == self.api.read_dmb_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), CB_DTHELPER_COUNT(bar_cache.on_data_count), self.cb_dthelper_log):
+            return None
+        else:
+            return bar_cache.records
+        
+    def read_dmb_bars_np(self, barFile: str) -> WtNpKline:
+        '''
+        读取.dmb格式的K线数据
+        @tickFile   .dmb的K线数据文件
+        @return     WTSBarStruct的list
+        '''
+        class BarCache:
+            def __init__(self):
+                self.records:WtNpKline = None
+
+            def on_read_bar(self, firstBar:POINTER(WTSBarStruct), count:int, isLast:bool):
+                self.records = WtNpKline(isDay=False)
+                self.records.set_data(firstBar, count)
+
+            def on_data_count(self, count:int):
+                pass
         
         bar_cache = BarCache()
         if 0 == self.api.read_dmb_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), CB_DTHELPER_COUNT(bar_cache.on_data_count), self.cb_dthelper_log):
