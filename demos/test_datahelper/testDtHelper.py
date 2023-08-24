@@ -82,4 +82,7 @@ def test_resample():
     ret = dtHelper.resample_bars("IC2212_m5.dsb",'m5',5,202201010931,202212311500,sInfo, True).to_df().to_csv("IC2212_m5.csv")
     print(ret)
 
-test_resample()
+import time 
+
+ret = dtHelper.read_dsb_bars_np("CFFEX.IF_HOT.dsb")
+print(ret.get_bar(-1))
