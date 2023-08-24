@@ -3,6 +3,9 @@ from wtpy.SessionMgr import SessionInfo
 from wtpy.ContractMgr import ContractInfo
 from wtpy.wrapper import WtWrapper
 from wtpy.WtDataDefs import WtBarRecords, WtTickRecords
+from wtpy.WtCoreDefs import WTSBarStruct
+from wtpy.WtNpDefs import WtNpKline
+from ctypes import POINTER
 
 class CtaContext:
     '''
@@ -19,6 +22,7 @@ class CtaContext:
         self.__wrapper__ = wrapper  #底层接口转换器
         self.__id__ = id            #策略ID
         self.__bar_cache__ = dict() #K线缓存
+        self.__bar_cache_np__ = dict() #K线缓存
         self.__tick_cache__ = dict()    #tTick缓存, 每次都重新去拉取, 这个只做中转用, 不在python里维护副本
         self.__sname__ = stra.name()    
         self.__engine__ = engine          #交易环境
@@ -124,6 +128,11 @@ class CtaContext:
         for newBar in newBars:
             bars.append(newBar)
 
+    def on_getbars_np(self, stdCode:str, period:str, npBars:WtNpKline):
+        key = "%s#%s" % (stdCode, period)
+
+        self.__bar_cache_np__[key] = npBars
+
     def on_condition_triggered(self, stdCode:str, target:float, price:float, usertag:str):
         self.__stra_info__.on_condition_triggered(self,stdCode, target, price, usertag)
 
@@ -145,7 +154,7 @@ class CtaContext:
         self.__stra_info__.on_tick(self, stdCode, self.__tick_cache__[stdCode][-1])
 
 
-    def on_bar(self, stdCode:str, period:str, newBar:tuple):
+    def on_bar(self, stdCode:str, period:str, newBar:POINTER(WTSBarStruct)):
         '''
         K线闭合事件响应
         @stdCode   品种代码
@@ -155,9 +164,14 @@ class CtaContext:
         '''        
         key = "%s#%s" % (stdCode, period)
 
+        if key in self.__bar_cache_np__:
+            self.__stra_info__.on_bar(self, stdCode, period, newBar.contents.to_tuple(period[0]=='d'))
+
+        # 如果走的是np模式，这里判断就会失败退出
         if key not in self.__bar_cache__:
             return
-
+        
+        newBar = newBar.contents.to_tuple(period[0]=='d')
         try:
             self.__bar_cache__[key].append(newBar)
 
@@ -277,6 +291,22 @@ class CtaContext:
         self.__bar_cache__[key] = WtBarRecords(size=count)
         self.__wrapper__.cta_get_bars(self.__id__, stdCode, period, count, isMain)
 
+    def stra_prepare_bars_np(self, stdCode:str, period:str, count:int, isMain:bool = False):
+        '''
+        准备历史K线
+        一般在on_init调用
+        @stdCode   合约代码
+        @period K线周期, 如m3/d7
+        @count  要拉取的K线条数
+        @isMain 是否是主K线
+        '''
+        key = "%s#%s" % (stdCode, period)
+        if key in self.__bar_cache_np__:
+            #这里做一个数据长度处理
+            return self.__bar_cache_np__[key]
+        
+        self.__wrapper__.cta_get_bars_np(self.__id__, stdCode, period, count, isMain)
+
     def stra_get_bars(self, stdCode:str, period:str, count:int, isMain:bool = False) -> WtBarRecords:
         '''
         获取历史K线
@@ -299,6 +329,26 @@ class CtaContext:
         df_bars = self.__bar_cache__[key]
 
         return df_bars
+    
+    def stra_get_bars_np(self, stdCode:str, period:str, count:int, isMain:bool = False) -> WtNpKline:
+        '''
+        获取历史K线
+        @stdCode   合约代码
+        @period K线周期, 如m3/d7
+        @count  要拉取的K线条数
+        @isMain 是否是主K线
+        '''
+        key = "%s#%s" % (stdCode, period)
+
+        # 每次都重新构造，不然onbar处理会更麻烦
+        self.__bar_cache_np__[key] = WtNpKline(period[0]=='d')
+        cnt =  self.__wrapper__.cta_get_bars_np(self.__id__, stdCode, period, count, isMain)
+        if cnt == 0:
+            return None
+
+        npBars = self.__bar_cache_np__[key]
+
+        return npBars
 
     def stra_get_ticks(self, stdCode:str, count:int) -> WtTickRecords:
         '''

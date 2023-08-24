@@ -1,4 +1,4 @@
-from ctypes import c_uint32, cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, c_int, POINTER, addressof, sizeof
+from ctypes import c_uint32, cdll, c_char_p, c_bool, c_ulong, c_uint64, c_double, c_int, POINTER, addressof, sizeof, string_at
 from wtpy.WtCoreDefs import CB_STRATEGY_INIT, CB_STRATEGY_TICK, CB_STRATEGY_CALC, CB_STRATEGY_BAR, CB_STRATEGY_GET_BAR, CB_STRATEGY_GET_TICK, CB_STRATEGY_GET_POSITION, CB_STRATEGY_COND_TRIGGER
 from wtpy.WtCoreDefs import CB_HFTSTRA_CHNL_EVT, CB_HFTSTRA_ENTRUST, CB_HFTSTRA_ORD, CB_HFTSTRA_TRD, CB_SESSION_EVENT
 from wtpy.WtCoreDefs import CB_HFTSTRA_ORDQUE, CB_HFTSTRA_ORDDTL, CB_HFTSTRA_TRANS, CB_HFTSTRA_GET_ORDQUE, CB_HFTSTRA_GET_ORDDTL, CB_HFTSTRA_GET_TRANS
@@ -8,7 +8,9 @@ from wtpy.WtCoreDefs import EVENT_ENGINE_INIT, EVENT_SESSION_BEGIN, EVENT_SESSIO
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, WTSOrdQueStruct, WTSOrdDtlStruct, WTSTransStruct
 from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
+from wtpy.WtNpDefs import WtNpKline
 import os
+import numpy as np
 
 # Python对接C接口的库
 @singleton
@@ -158,12 +160,11 @@ class WtBtWrapper:
         return
 
     def on_stra_bar(self, id:int, stdCode:str, period:str, newBar:POINTER(WTSBarStruct)):
-        period = bytes.decode(period)
+        
         engine = self._engine
         ctx = engine.get_context(id)
-        newBar:WTSBarStruct = newBar.contents
         if ctx is not None:
-            ctx.on_bar(bytes.decode(stdCode), period, newBar.to_tuple(period[0]=='d'))
+            ctx.on_bar(bytes.decode(stdCode), bytes.decode(period), newBar)
         return
 
 
@@ -192,6 +193,27 @@ class WtBtWrapper:
 
         if ctx is not None:
             ctx.on_getbars(bytes.decode(stdCode), period, bars)
+
+    def on_stra_get_bar_np(self, id:int, stdCode:str, period:str, curBar:POINTER(WTSBarStruct), count:int, isLast:bool):
+        '''
+        获取K线回调, 该回调函数因为是python主动发起的, 需要同步执行, 所以不走事件推送
+        @id     策略id
+        @stdCode   合约代码
+        @period K线周期
+        @curBar 最新一条K线
+        @isLast 是否是最后一条
+        '''
+        engine = self._engine
+        ctx = engine.get_context(id)
+        period = bytes.decode(period)
+
+        isDay = period[0]=='d'
+
+        npBars = WtNpKline(isDay)
+        npBars.set_data(curBar, count)
+
+        if ctx is not None:
+            ctx.on_getbars_np(bytes.decode(stdCode), period, npBars)
 
     def on_stra_get_tick(self, id:int, stdCode:str, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
         '''
@@ -544,6 +566,17 @@ class WtBtWrapper:
         @isMain     是否主K线
         '''
         return self.api.cta_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, isMain, CB_STRATEGY_GET_BAR(self.on_stra_get_bar))
+    
+    def cta_get_bars_np(self, id:int, stdCode:str, period:str, count:int, isMain:bool):
+        '''
+        读取K线
+        @id         策略id
+        @stdCode    合约代码
+        @period     周期, 如m1/m3/d1等
+        @count      条数
+        @isMain     是否主K线
+        '''
+        return self.api.cta_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, isMain, CB_STRATEGY_GET_BAR(self.on_stra_get_bar_np))
 
     def cta_get_ticks(self, id:int, stdCode:str, count:int):
         '''
