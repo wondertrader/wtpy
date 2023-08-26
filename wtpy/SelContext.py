@@ -118,7 +118,7 @@ class SelContext:
         self.__bar_cache__[key] = npBars
 
     def on_tick(self, stdCode:str, newTick:POINTER(WTSTickStruct)):
-        self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_tuple())
+        self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_dict)
 
     def on_bar(self, stdCode:str, period:str, newBar:POINTER(WTSBarStruct)):
         '''
@@ -134,7 +134,7 @@ class SelContext:
             return
         
         try:
-            self.__stra_info__.on_bar(self, stdCode, period, newBar.contents.to_tuple(period[0]=='d'))
+            self.__stra_info__.on_bar(self, stdCode, period, newBar.contents.to_dict)
         except ValueError as ve:
             print(ve)
         else:

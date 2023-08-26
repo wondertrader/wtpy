@@ -183,7 +183,7 @@ class WtBtWrapper:
         npBars.set_data(curBar, count)
 
         if ctx is not None:
-            ctx.on_getbar(bytes.decode(stdCode), period, npBars)
+            ctx.on_getbars(bytes.decode(stdCode), period, npBars)
 
     def on_stra_get_tick(self, id:int, stdCode:str, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
         '''

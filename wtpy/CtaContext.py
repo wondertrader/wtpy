@@ -130,7 +130,7 @@ class CtaContext:
         tick回调事件响应
         '''
         if stdCode in self.__tick_cache__:
-            self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_tuple())
+            self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_dict)
             return
 
     def on_bar(self, stdCode:str, period:str, newBar:POINTER(WTSBarStruct)):
@@ -147,7 +147,7 @@ class CtaContext:
             return
         
         try:
-            self.__stra_info__.on_bar(self, stdCode, period, newBar.contents.to_tuple(period[0]=='d'))
+            self.__stra_info__.on_bar(self, stdCode, period, newBar.contents.to_dict)
         except ValueError as ve:
             print(ve)
         else:

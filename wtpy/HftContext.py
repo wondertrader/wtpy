@@ -71,7 +71,7 @@ class HftContext:
         '''
         tick回调事件响应
         '''
-        self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_tuple())
+        self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_dict)
 
     def on_order_queue(self, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct)):
         self.__stra_info__.on_order_queue(self, stdCode, newOrdQue.contents.to_tuple())
@@ -124,7 +124,7 @@ class HftContext:
             return
         
         try:
-            self.__stra_info__.on_bar(self, stdCode, period, newBar.contents.to_tuple(period[0]=='d'))
+            self.__stra_info__.on_bar(self, stdCode, period, newBar.contents.to_dict)
         except ValueError as ve:
             print(ve)
         else:

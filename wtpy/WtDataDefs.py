@@ -139,6 +139,7 @@ class WtNpTicks:
         self.__data__:np.ndarray = None
         self.__times__:np.ndarray = None
         self.__force_copy__:bool = forceCopy
+        self.__df__:pd.DataFrame = None
 
     def set_data(self, firstTick, count:int):
         BarList = WTSTickStruct*count
@@ -158,15 +159,25 @@ class WtNpTicks:
             self.__data__.flags.writeable = False
 
     @property
+    def times(self) -> np.ndarray:
+        '''
+        这里应该会构造一个副本, 可以暂存一个
+        '''
+        if self.__times__ is None:
+            self.__times__ = np.uint64(self.__data__["action_date"])*1000000000 + self.__data__["action_time"]
+        return self.__times__
+
+
+    def to_df(self) -> pd.DataFrame:
+        if self.__df__ is None:
+            self.__df__ = pd.DataFrame(self.__data__, index=self.times)
+            self.__df__.drop(columns=["reserve"], inplace=True)
+            self.__df__["time"] = self.__df__.index
+        return self.__df__
+
+    @property
     def ndarray(self) -> np.ndarray:
         return self.__data__
-    
-    @property
-    def times(self) -> np.ndarray:
-        if self.__times__ is None:
-            self.__times__ = self.__data__["action_date"] * 1000000000 + self.__data__["action_time"]
-
-        return self.__times__
     
 class WtNpTransactions:
     '''
