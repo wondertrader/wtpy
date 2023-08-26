@@ -26,7 +26,7 @@ class StraDualThrust(BaseCtaStrategy):
         #pInfo = context.stra_get_comminfo(code)
         #print(pInfo)
 
-        context.stra_prepare_bars_np(code, self.__period__, self.__bar_cnt__, isMain = True)
+        context.stra_prepare_bars(code, self.__period__, self.__bar_cnt__, isMain = True)
         context.stra_log_text("DualThrust inited")
 
         #读取存储的数据
@@ -44,7 +44,7 @@ class StraDualThrust(BaseCtaStrategy):
         theCode = code
         if self.__is_stk__:
             theCode = theCode + "-" # 如果是股票代码，后面加上一个+/-，+表示后复权，-表示前复权
-        df_bars = context.stra_get_bars_np(theCode, self.__period__, self.__bar_cnt__, isMain = True)
+        np_bars = context.stra_get_bars(theCode, self.__period__, self.__bar_cnt__, isMain = True)
 
         #把策略参数读进来，作为临时变量，方便引用
         days = self.__days__
@@ -52,9 +52,9 @@ class StraDualThrust(BaseCtaStrategy):
         k2 = self.__k2__
 
         #平仓价序列、最高价序列、最低价序列
-        closes = df_bars.closes
-        highs = df_bars.highs
-        lows = df_bars.lows
+        closes = np_bars.closes
+        highs = np_bars.highs
+        lows = np_bars.lows
 
         #读取days天之前到上一个交易日位置的数据
         hh = np.amax(highs[-days:-1])
@@ -64,9 +64,9 @@ class StraDualThrust(BaseCtaStrategy):
 
         #读取今天的开盘价、最高价和最低价
         # lastBar = df_bars.get_last_bar()
-        openpx = df_bars.opens[-1]
-        highpx = df_bars.highs[-1]
-        lowpx = df_bars.lows[-1]
+        openpx = np_bars.opens[-1]
+        highpx = np_bars.highs[-1]
+        lowpx = np_bars.lows[-1]
 
         '''
         !!!!!这里是重点
