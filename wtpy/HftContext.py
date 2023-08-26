@@ -1,6 +1,8 @@
+from ctypes import POINTER
 from wtpy.SessionMgr import SessionInfo
+from wtpy.WtCoreDefs import WTSBarStruct, WTSOrdDtlStruct, WTSOrdQueStruct, WTSTickStruct, WTSTransStruct
 from wtpy.wrapper import WtWrapper
-from wtpy.WtDataDefs import WtBarRecords, WtTickRecords, WtOrdDtlRecords, WtOrdQueRecords, WtTransRecords
+from wtpy.WtDataDefs import WtNpKline, WtNpOrdDetails, WtNpOrdQueues, WtNpTicks, WtNpTransactions
 
 class HftContext:
     '''
@@ -58,83 +60,37 @@ class HftContext:
         '''
         self.__stra_info__.on_backtest_end(self)
 
-    def on_getticks(self, stdCode:str, newTicks:list):
-        key = stdCode
+    def on_getticks(self, stdCode:str, newTicks:WtNpTicks):
+        self.__tick_cache__[stdCode] = newTicks
 
-        ticks = self.__tick_cache__[key]
-        for newTick in newTicks:
-            ticks.append(newTick)
-
-    def on_getbars(self, stdCode:str, period:str, newBars:list):
+    def on_getbars(self, stdCode:str, period:str, npBars:WtNpKline):
         key = "%s#%s" % (stdCode, period)
+        self.__bar_cache__[key] = npBars
 
-        bars = self.__bar_cache__[key]
-        for newBar in newBars:
-            bars.append(newBar)
-
-    def on_tick(self, stdCode:str, newTick:tuple):
+    def on_tick(self, stdCode:str, newTick:POINTER(WTSTickStruct)):
         '''
         tick回调事件响应
         '''
+        self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_tuple())
 
-        # By Wesley @ 2021.12.24
-        # 因为新的数据结构传进来是一个tuple
-        # 所以必须通过缓存中抓一下，才能当成dict传给策略
-        # 如果合约的tick没有缓存，则预先分配一个长度为4的tick容器
-        # 如果调用stra_get_ticks，再重新分配容器
-        if stdCode not in self.__tick_cache__:
-            self.__tick_cache__[stdCode] = WtTickRecords(size = 4)
+    def on_order_queue(self, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct)):
+        self.__stra_info__.on_order_queue(self, stdCode, newOrdQue.contents.to_tuple())
 
-        self.__tick_cache__[stdCode].append(newTick)
-        self.__stra_info__.on_tick(self, stdCode, self.__tick_cache__[stdCode][-1])
+    def on_get_order_queue(self, stdCode:str, newOdrQues:WtNpOrdQueues):
+        self.__ordque_cache__[stdCode] = newOdrQues
 
-    def on_order_queue(self, stdCode:str, newOrdQue:tuple):
-        # By Wesley @ 2021.12.24
-        # 因为新的数据结构传进来是一个tuple
-        # 所以必须通过缓存中抓一下，才能当成dict传给策略
-        if stdCode not in self.__ordque_cache__:
-            return
+    def on_order_detail(self, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct)):
+        self.__stra_info__.on_order_detail(self, stdCode, newOrdDtl.contents.to_tuple())
 
-        self.__ordque_cache__[stdCode].append(newOrdQue)
-        self.__stra_info__.on_order_queue(self, stdCode, self.__ordque_cache__[stdCode][-1])
+    def on_get_order_detail(self, stdCode:str, newOrdDtls:WtNpOrdDetails):
+        self.__orddtl_cache__[stdCode] = newOrdDtls
 
-    def on_get_order_queue(self, stdCode:str, newOdrQues:list):
+    def on_transaction(self, stdCode:str, newTrans:POINTER(WTSTransStruct)):
+        self.__stra_info__.on_transaction(self, stdCode, newTrans.contents.to_tuple())
+
+    def on_get_transaction(self, stdCode:str, newTranses:WtNpTransactions):
         key = stdCode
-        items = self.__ordque_cache__[key]
-        for newItem in newOdrQues:
-            items.append(newItem)
-
-    def on_order_detail(self, stdCode:str, newOrdDtl:tuple):
-        # By Wesley @ 2021.12.24
-        # 因为新的数据结构传进来是一个tuple
-        # 所以必须通过缓存中抓一下，才能当成dict传给策略
-        if stdCode not in self.__orddtl_cache__:
-            return
-
-        self.__orddtl_cache__[stdCode].append(newOrdDtl)
-        self.__stra_info__.on_order_detail(self, stdCode, self.__orddtl_cache__[stdCode][-1])
-
-    def on_get_order_detail(self, stdCode:str, newOrdDtls:list):
-        key = stdCode
-        items = self.__orddtl_cache__[key]
-        for newItem in newOrdDtls:
-            items.append(newItem)
-
-    def on_transaction(self, stdCode:str, newTrans:tuple):
-        # By Wesley @ 2021.12.24
-        # 因为新的数据结构传进来是一个tuple
-        # 所以必须通过缓存中抓一下，才能当成dict传给策略
-        if stdCode not in self.__trans_cache__:
-            return
-
-        self.__trans_cache__[stdCode].append(newTrans)
-        self.__stra_info__.on_transaction(self, stdCode, self.__trans_cache__[stdCode][-1])
-
-    def on_get_transaction(self, stdCode:str, newTranses:list):
-        key = stdCode
-        items = self.__trans_cache__[key]
-        for newItem in newTranses:
-            items.append(newItem)
+        self.__trans_cache__[key] = newTranses
 
     def on_channel_ready(self):
         self.__stra_info__.on_channel_ready(self)
@@ -153,26 +109,22 @@ class HftContext:
 
     def on_trade(self, localid:int, stdCode:str, isBuy:bool, qty:float, price:float, userTag:str):
         self.__stra_info__.on_trade(self, localid, stdCode, isBuy, qty, price, userTag)
-
-    def on_bar(self, stdCode:str, period:str, newBar:tuple):
+        
+    def on_bar(self, stdCode:str, period:str, newBar:POINTER(WTSBarStruct)):
         '''
         K线闭合事件响应
         @stdCode   品种代码
-        @period K线基础周期
-        @times  周期倍数
-        @newBar 最新K线
+        @period     K线基础周期
+        @times      周期倍数
+        @newBar     最新K线
         '''        
         key = "%s#%s" % (stdCode, period)
 
         if key not in self.__bar_cache__:
             return
-
+        
         try:
-            self.__bar_cache__[key].append(newBar)
-
-            # By Wesley @ 2021.12.24
-            # 因为基础数据结构改变了，传进来的newBar是一个tuple，一定要通过缓存中转一下，才能当成dict传给策略
-            self.__stra_info__.on_bar(self, stdCode, period, self.__bar_cache__[key][-1])
+            self.__stra_info__.on_bar(self, stdCode, period, newBar.contents.to_tuple(period[0]=='d'))
         except ValueError as ve:
             print(ve)
         else:
@@ -213,8 +165,20 @@ class HftContext:
         @return 最新价格
         '''
         return self.__wrapper__.hft_get_price(stdCode)
+    
+    def stra_prepare_bars(self, stdCode:str, period:str, count:int):
+        '''
+        准备历史K线
+        一般在on_init调用
+        @stdCode   合约代码
+        @period K线周期, 如m3/d7
+        @count  要拉取的K线条数
+        @isMain 是否是主K线
+        '''
 
-    def stra_get_bars(self, stdCode:str, period:str, count:int) -> WtBarRecords:
+        self.__wrapper__.hft_get_bars(self.__id__, stdCode, period, count)
+
+    def stra_get_bars(self, stdCode:str, period:str, count:int) -> WtNpKline:
         '''
         获取历史K线
         @stdCode   合约代码
@@ -224,59 +188,37 @@ class HftContext:
         '''
         key = "%s#%s" % (stdCode, period)
 
-        if key in self.__bar_cache__:
-            #这里做一个数据长度处理
-            return self.__bar_cache__[key]
-
-        self.__bar_cache__[key] = WtBarRecords(size=count)
         cnt =  self.__wrapper__.hft_get_bars(self.__id__, stdCode, period, count)
         if cnt == 0:
             return None
 
-        df_bars = self.__bar_cache__[key]
+        return self.__bar_cache__[key]
 
-        return df_bars
-
-    def stra_get_ticks(self, stdCode:str, count:int) -> WtTickRecords:
+    def stra_get_ticks(self, stdCode:str, count:int) -> WtNpTicks:
         '''
         获取tick数据
         @stdCode   合约代码
         @count  要拉取的tick数量
         '''
-        # By Wesley @ 2021.12.24
-        # 之前在stra_get_bars的时候生成了一个size为4的临时tick缓存
-        # 所以这里要加一个判断，如果没有缓存，或者缓存的长度为4，则重新分配新的缓存
-        if stdCode in self.__tick_cache__ and self.__tick_cache__[stdCode].size > 4:
-            #这里做一个数据长度处理
-            return self.__tick_cache__[stdCode]
-
-        self.__tick_cache__[stdCode] = WtTickRecords(size=count)
         cnt = self.__wrapper__.hft_get_ticks(self.__id__, stdCode, count)
         if cnt == 0:
             return None
         
-        hftData = self.__tick_cache__[stdCode]
-        return hftData
+        return self.__tick_cache__[stdCode]
 
-    def stra_get_order_queue(self, stdCode:str, count:int) -> WtOrdQueRecords:
+    def stra_get_order_queue(self, stdCode:str, count:int) -> WtNpOrdQueues:
         '''
         获取委托队列数据
         @stdCode   合约代码
         @count  要拉取的tick数量
         '''
-        if stdCode in self.__ordque_cache__:
-            #这里做一个数据长度处理
-            return self.__ordque_cache__[stdCode]
-
-        self.__ordque_cache__[stdCode] = WtOrdQueRecords(size=count)
         cnt = self.__wrapper__.hft_get_ordque(self.__id__, stdCode, count)
         if cnt == 0:
             return None
         
-        hftData = self.__ordque_cache__[stdCode]
-        return hftData
+        return  self.__ordque_cache__[stdCode]
 
-    def stra_get_order_detail(self, stdCode:str, count:int) -> WtOrdDtlRecords:
+    def stra_get_order_detail(self, stdCode:str, count:int) -> WtNpOrdDetails:
         '''
         获取逐笔委托数据
         @stdCode   合约代码
@@ -286,31 +228,23 @@ class HftContext:
             #这里做一个数据长度处理
             return self.__orddtl_cache__[stdCode]
 
-        self.__orddtl_cache__[stdCode] = WtOrdDtlRecords(size=count)
         cnt = self.__wrapper__.hft_get_orddtl(self.__id__, stdCode, count)
         if cnt == 0:
             return None
         
-        hftData = self.__orddtl_cache__[stdCode]
-        return hftData
+        return self.__orddtl_cache__[stdCode]
 
-    def stra_get_transaction(self, stdCode:str, count:int) -> WtTransRecords:
+    def stra_get_transaction(self, stdCode:str, count:int) -> WtNpTransactions:
         '''
         获取逐笔成交数据
         @stdCode   合约代码
         @count  要拉取的tick数量
         '''
-        if stdCode in self.__trans_cache__:
-            #这里做一个数据长度处理
-            return self.__trans_cache__[stdCode]
-
-        self.__trans_cache__[stdCode] = WtTransRecords(size=count)
         cnt = self.__wrapper__.hft_get_trans(self.__id__, stdCode, count)
         if cnt == 0:
             return None
         
-        hftData = self.__trans_cache__[stdCode]
-        return hftData
+        return self.__trans_cache__[stdCode]
 
     def stra_get_position(self, stdCode:str, bonlyvalid:bool = False):
         '''

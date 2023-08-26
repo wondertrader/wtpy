@@ -1,7 +1,6 @@
 from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_uint32, c_uint64
-
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, WTSOrdDtlStruct, WTSOrdQueStruct, WTSTransStruct
-from wtpy.WtDataDefs import WtOrdQueRecords,WtOrdDtlRecords,WtTransRecords,WtNpKline,WtNpTicks
+from wtpy.WtDataDefs import WtTickCache, WtNpOrdDetails, WtNpOrdQueues, WtNpTransactions, WtNpKline, WtNpTicks, WtBarCache
 from wtpy.SessionMgr import SessionInfo
 from wtpy.wrapper.PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
@@ -149,19 +148,8 @@ class WtDataHelper:
         读取.dsb格式的K线数据
         @tickFile   .dsb的K线数据文件
         @return     WtNpKline,可以通过WtNpKline.ndarray获取numpy的ndarray对象
-        '''
-        class BarCache:
-            def __init__(self):
-                self.records:WtNpKline = None
-
-            def on_read_bar(self, firstBar:POINTER(WTSBarStruct), count:int, isLast:bool):
-                self.records = WtNpKline(isDay=False, forceCopy=True)
-                self.records.set_data(firstBar, count)
-
-            def on_data_count(self, count:int):
-                pass
-        
-        bar_cache = BarCache()
+        '''        
+        bar_cache = WtBarCache(forceCopy=True)
         if 0 == self.api.read_dsb_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), CB_DTHELPER_COUNT(bar_cache.on_data_count), self.cb_dthelper_log):
             return None
         else:
@@ -172,19 +160,8 @@ class WtDataHelper:
         读取.dmb格式的tick数据
         @tickFile   .dmb的tick数据文件
         @return     WtNpTicks
-        '''
-        class TickCache:
-            def __init__(self):
-                self.records:WtNpTicks = None
-
-            def on_read_tick(self, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
-                self.records = WtNpTicks(forceCopy=True)
-                self.records.set_data(curTick, count)
-
-            def on_data_count(self, count:int):
-                pass
-        
-        tick_cache = TickCache()
+        '''        
+        tick_cache = WtTickCache(forceCopy=True)
         if 0 == self.api.read_dmb_ticks(bytes(tickFile, encoding="utf8"), CB_DTHELPER_TICK(tick_cache.on_read_tick), CB_DTHELPER_COUNT(tick_cache.on_data_count), self.cb_dthelper_log):
             return None
         else:
@@ -195,19 +172,8 @@ class WtDataHelper:
         读取.dmb格式的K线数据
         @tickFile   .dmb的K线数据文件
         @return     WtNpKline
-        '''
-        class BarCache:
-            def __init__(self):
-                self.records:WtNpKline = None
-
-            def on_read_bar(self, firstBar:POINTER(WTSBarStruct), count:int, isLast:bool):
-                self.records = WtNpKline(isDay=False, forceCopy=True)
-                self.records.set_data(firstBar, count)
-
-            def on_data_count(self, count:int):
-                pass
-        
-        bar_cache = BarCache()
+        '''        
+        bar_cache = WtBarCache(forceCopy=True)
         if 0 == self.api.read_dmb_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), CB_DTHELPER_COUNT(bar_cache.on_data_count), self.cb_dthelper_log):
             return None
         else:
@@ -218,48 +184,29 @@ class WtDataHelper:
         读取.dsb格式的tick数据
         @tickFile   .dsb的tick数据文件
         @return     WtNpTicks,可以通过WtNpTicks.ndarray获取numpy的ndarray对象
-        ''' 
-        class TickCache:
-            def __init__(self):
-                self.records:WtNpTicks = None
-
-            def on_read_tick(self, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
-                self.records = WtNpTicks(forceCopy=True)
-                self.records.set_data(curTick, count)
-
-            def on_data_count(self, count:int):
-                pass
-        
-        tick_cache = TickCache()
+        '''         
+        tick_cache = WtTickCache(forceCopy=True)
         if 0 == self.api.read_dsb_ticks(bytes(tickFile, encoding="utf8"), CB_DTHELPER_TICK(tick_cache.on_read_tick), CB_DTHELPER_COUNT(tick_cache.on_data_count), self.cb_dthelper_log):
             return None
         else:
             return tick_cache.records
 
-    def read_dsb_order_details(self, dataFile: str) -> WtOrdDtlRecords:
+    def read_dsb_order_details(self, dataFile: str) -> WtNpOrdDetails:
         '''
         读取.dsb格式的委托明细数据
         @dataFile   .dsb的数据文件
-        @return     WtOrdDtlRecords
+        @return     WtNpOrdDetails
         '''
         class DataCache:
             def __init__(self):
-                self.records = None
+                self.records:WtNpOrdDetails = None
 
-            def on_read_data(self, curTick:POINTER(WTSOrdDtlStruct), count:int, isLast:bool):
-                if self.records is None:
-                    self.records = WtOrdDtlRecords(count)
-
-                from ctypes import sizeof, addressof
-                tsSize = sizeof(WTSOrdDtlStruct)
-                addr = addressof(curTick.contents)
-                for i in range(count):
-                    thisTick = WTSOrdDtlStruct.from_address(addr)
-                    self.records.append(thisTick.to_tuple())
-                    addr += tsSize
+            def on_read_data(self, firstItem:POINTER(WTSOrdDtlStruct), count:int, isLast:bool):
+                self.records = WtNpOrdDetails(forceCopy=True)
+                self.records.set_data(firstItem, count)
 
             def on_data_count(self, count:int):
-                self.records = WtOrdDtlRecords(count)
+                pass
         
         data_cache = DataCache()
         if 0 == self.api.read_dsb_order_details(bytes(dataFile, encoding="utf8"), CB_DTHELPER_ORDDTL(data_cache.on_read_data), CB_DTHELPER_COUNT(data_cache.on_data_count), self.cb_dthelper_log):
@@ -267,30 +214,22 @@ class WtDataHelper:
         else:
             return data_cache.records
         
-    def read_dsb_order_queues(self, dataFile: str) -> WtOrdQueRecords:
+    def read_dsb_order_queues(self, dataFile: str) -> WtNpOrdQueues:
         '''
         读取.dsb格式的委托队列数据
         @dataFile   .dsb的数据文件
-        @return     WtOrdQueRecords
+        @return     WtNpOrdQueues
         '''
         class DataCache:
             def __init__(self):
-                self.records = None
+                self.records:WtNpOrdQueues = None
 
-            def on_read_data(self, curTick:POINTER(WTSOrdQueStruct), count:int, isLast:bool):
-                if self.records is None:
-                    self.records = WtOrdQueRecords(count)
-
-                from ctypes import sizeof, addressof
-                tsSize = sizeof(WTSOrdQueStruct)
-                addr = addressof(curTick.contents)
-                for i in range(count):
-                    thisTick = WTSOrdQueStruct.from_address(addr)
-                    self.records.append(thisTick.to_tuple())
-                    addr += tsSize
+            def on_read_data(self, firstItem:POINTER(WTSOrdQueStruct), count:int, isLast:bool):
+                self.records = WtNpOrdQueues(forceCopy=True)
+                self.records.set_data(firstItem, count)
 
             def on_data_count(self, count:int):
-                self.records = WtOrdQueRecords(count)
+                pass
         
         data_cache = DataCache()
         if 0 == self.api.read_dsb_order_queues(bytes(dataFile, encoding="utf8"), CB_DTHELPER_ORDQUE(data_cache.on_read_data), CB_DTHELPER_COUNT(data_cache.on_data_count), self.cb_dthelper_log):
@@ -298,30 +237,22 @@ class WtDataHelper:
         else:
             return data_cache.records
         
-    def read_dsb_transactions(self, dataFile: str) -> WtTransRecords:
+    def read_dsb_transactions(self, dataFile: str) -> WtNpTransactions:
         '''
         读取.dsb格式的逐笔成交数据
         @dataFile   .dsb的数据文件
-        @return     WtTransRecords
+        @return     WtNpTransactions
         '''
         class DataCache:
             def __init__(self):
-                self.records = None
+                self.records:WtNpTransactions = None
 
-            def on_read_data(self, curTick:POINTER(WTSTransStruct), count:int, isLast:bool):
-                if self.records is None:
-                    self.records = WtTransRecords(count)
-
-                from ctypes import sizeof, addressof
-                tsSize = sizeof(WTSTransStruct)
-                addr = addressof(curTick.contents)
-                for i in range(count):
-                    thisTick = WTSTransStruct.from_address(addr)
-                    self.records.append(thisTick.to_tuple())
-                    addr += tsSize
+            def on_read_data(self, firstItem:POINTER(WTSTransStruct), count:int, isLast:bool):
+                self.records = WtNpTransactions(forceCopy=True)
+                self.records.set_data(firstItem, count)
 
             def on_data_count(self, count:int):
-                self.records = WtTransRecords(count)
+                pass
         
         data_cache = DataCache()
         if 0 == self.api.read_dsb_transactions(bytes(dataFile, encoding="utf8"), CB_DTHELPER_TRANS(data_cache.on_read_data), CB_DTHELPER_COUNT(data_cache.on_data_count), self.cb_dthelper_log):
@@ -338,21 +269,8 @@ class WtDataHelper:
         @fromTime   开始时间，日线数据格式yyyymmdd，分钟线数据为格式为yyyymmddHHMMSS
         @endTime    结束时间，日线数据格式yyyymmdd，分钟线数据为格式为yyyymmddHHMMSS
         @sessInfo   交易时间模板
-        '''
-        class BarCache:
-            def __init__(self):
-                self.records:WtNpKline = None
-
-            def on_read_bar(self, firstBar:POINTER(WTSBarStruct), count:int, isLast:bool):
-                if self.records is None:
-                    self.records = WtNpKline(isDay=True, forceCopy=True)
-
-                self.records.set_data(firstBar, count)
-
-            def on_data_count(self, count:int):
-                pass
-        
-        bar_cache = BarCache()
+        '''        
+        bar_cache = WtBarCache(forceCopy=True)
         if 0 == self.api.resample_bars(bytes(barFile, encoding="utf8"), CB_DTHELPER_BAR(bar_cache.on_read_bar), CB_DTHELPER_COUNT(bar_cache.on_data_count), 
                 fromTime, endTime, bytes(period,'utf8'), times, bytes(sessInfo.toString(),'utf8'), self.cb_dthelper_log, alignSection):
             return None
