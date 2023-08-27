@@ -52,6 +52,18 @@ class WtNpKline:
         self.__bartimes__:np.ndarray = None
         self.__df__:pd.DataFrame = None
 
+    def __len__(self):
+        if self.__data__ is None:
+            return 0
+        
+        return len(self.__data__)
+    
+    def __getitem__(self, index:int):
+        if self.__data__ is None:
+            raise IndexError("No data in WtNpKline")
+        
+        return self.__data__[index]
+
     def set_day_flag(self, isDay:bool):
         if self.__isDay__ != isDay:
             self.__isDay__ = isDay
@@ -141,6 +153,18 @@ class WtNpTicks:
         self.__force_copy__:bool = forceCopy
         self.__df__:pd.DataFrame = None
 
+    def __len__(self):
+        if self.__data__ is None:
+            return 0
+        
+        return len(self.__data__)
+    
+    def __getitem__(self, index:int):
+        if self.__data__ is None:
+            raise IndexError("No data in WtNpTicks")
+        
+        return self.__data__[index]
+
     def set_data(self, firstTick, count:int):
         BarList = WTSTickStruct*count
         if self.__force_copy__:
@@ -194,6 +218,18 @@ class WtNpTransactions:
         self.__data__:np.ndarray = None
         self.__force_copy__:bool = forceCopy
 
+    def __len__(self):
+        if self.__data__ is None:
+            return 0
+        
+        return len(self.__data__)
+    
+    def __getitem__(self, index:int):
+        if self.__data__ is None:
+            raise IndexError("No data in WtNpTransactions")
+        
+        return self.__data__[index]
+
     def set_data(self, firstItem, count:int):
         DataList = WTSTransStruct*count
         if self.__force_copy__:
@@ -230,6 +266,18 @@ class WtNpOrdDetails:
         self.__data__:np.ndarray = None
         self.__force_copy__:bool = forceCopy
 
+    def __len__(self):
+        if self.__data__ is None:
+            return 0
+        
+        return len(self.__data__)
+    
+    def __getitem__(self, index:int):
+        if self.__data__ is None:
+            raise IndexError("No data in WtNpOrdDetails")
+        
+        return self.__data__[index]
+
     def set_data(self, firstItem, count:int):
         DataList = WTSOrdDtlStruct*count
         if self.__force_copy__:
@@ -265,6 +313,18 @@ class WtNpOrdQueues:
         '''
         self.__data__:np.ndarray = None
         self.__force_copy__:bool = forceCopy
+
+    def __len__(self):
+        if self.__data__ is None:
+            return 0
+        
+        return len(self.__data__)
+    
+    def __getitem__(self, index:int):
+        if self.__data__ is None:
+            raise IndexError("No data in WtNpOrdQueues")
+        
+        return self.__data__[index]
 
     def set_data(self, firstItem, count:int):
         DataList = WTSOrdQueStruct*count
