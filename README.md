@@ -1,6 +1,6 @@
-![WonderTrader2.png](http://wt.f-sailors.cn/wt/logo_qcode_noad.jpg)
+![WonderTrader2.png](./logo_qcode_noad.jpg)
 <p align="center">
-    <img src ="https://img.shields.io/badge/version-0.9.7-blueviolet.svg"/>
+    <img src ="https://img.shields.io/badge/version-0.9.9-blueviolet.svg"/>
     <img src ="https://img.shields.io/badge/platform-windows|linux-yellow.svg"/>
     <img src ="https://img.shields.io/badge/build-passing-brightgreen"/>
     <img src ="https://img.shields.io/badge/license-MIT-orange"/>
@@ -81,6 +81,16 @@
 
 
 # 更新日志
+### 0.9.8
+* `C++`底层更新到`2023/08/18`发布的`v0.9.8`版本
+* WtMonSvr增加移动版入口
+* 控制台webui全新改版
+* 内置的数据下载模块wtpy.apps.datahelper新增对天勤数据tqsdk的支持
+* 优化了python部分调用底层日志接口时的编码处理机制，适配不同操作系统
+* WtMonSvr增加了一个token访问模式，主要用于一些跨域访问的场景
+* 完善了PushSvr中处理认证信息的细节
+* 其他配合底层的优化和调整
+
 ### 0.9.7
 * `C++`底层更新到`2023/03/21`发布的`v0.9.7`版本
 * 监控服务的DataMgr获取资金的接口增加了对一次性读取全部策略资金数据的机制

@@ -82,4 +82,25 @@ def test_resample():
     ret = dtHelper.resample_bars("IC2212_m5.dsb",'m5',5,202201010931,202212311500,sInfo, True).to_df().to_csv("IC2212_m5.csv")
     print(ret)
 
-test_resample()
+import datetime
+def compare_read_dsb_bars(times:int = 100):
+    t2 = datetime.datetime.now()
+    num_bars = 0
+    for i in range(times):
+        ret = dtHelper.read_dsb_bars("CFFEX.IF_HOT.dsb")
+        num_bars = len(ret)
+    t3 = datetime.datetime.now()
+    elapse = (t3-t2).total_seconds()*1000.0
+    print(f"read_dsb_bars {num_bars} bars for {times} times: {elapse:.2f}ms totally, {elapse/times:.2f}ms per reading")
+
+def compare_read_dsb_ticks(times:int = 100):
+    t2 = datetime.datetime.now()
+    for i in range(times):
+        ret = dtHelper.read_dsb_ticks("../storage/bin/ticks/CFFEX.IF.HOT_tick_20210104.dsb")
+        num_ticks = len(ret)
+    t3 = datetime.datetime.now()
+    elapse = (t3-t2).total_seconds()*1000.0
+    print(f"read_dsb_ticks {num_ticks} ticks for {times} times: {elapse:.2f}ms totally, {elapse/times:.2f}ms per reading")
+
+compare_read_dsb_bars()
+compare_read_dsb_ticks()

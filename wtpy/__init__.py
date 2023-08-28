@@ -6,7 +6,6 @@ from .WtEngine import WtEngine
 from .WtBtEngine import WtBtEngine
 from .WtDtEngine import WtDtEngine
 from .WtCoreDefs import WTSTickStruct,WTSBarStruct,EngineType
-from .WtDataDefs import WtBarRecords,WtTickRecords
 from .ExtToolDefs import BaseDataReporter, BaseIndexWriter
 from .ExtModuleDefs import BaseExtExecuter, BaseExtParser
 from .WtMsgQue import WtMsgQue, WtMQClient, WtMQServer
@@ -23,7 +22,6 @@ __all__ = ["BaseCtaStrategy", "BaseSelStrategy", "BaseHftStrategy",
             "WTSTickStruct","WTSBarStruct",
             "BaseIndexWriter", "BaseDataReporter", 
             "ContractLoader", "LoaderType",
-            "WtBarRecords", "WtTickRecords",
             "BaseExtParser", "BaseExtExecuter",
             "WtMsgQue", "WtMQClient", "WtMQServer", 
             "TraderDumper", "DumperSink"]

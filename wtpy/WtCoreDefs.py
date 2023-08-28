@@ -230,6 +230,7 @@ class WTSBarStruct(WTSStruct):
     '''
     C接口传递的bar数据结构
     '''
+    # @2IQ9d
     _fields_ = [("date", c_uint32),
                 ("reserve", c_uint32),
                 ("time", c_uint64),

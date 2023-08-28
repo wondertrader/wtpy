@@ -1,10 +1,10 @@
 import re
 
 class CodeHelper:
-
+    
     @staticmethod
-    def isStdStkCode(stdCode:str) -> bool:
-        pattern = re.compile("^[A-Z]+.([A-Z]+.)?\\d{6}Q?$")
+    def isStdChnFutOptCode(stdCode:str) -> bool:
+        pattern = re.compile("^[A-Z]+.[A-z]+\\d{4}.(C|P).\\d+$")
         if re.match(pattern, stdCode) is not None:
             return True
 
@@ -12,17 +12,16 @@ class CodeHelper:
 
     @staticmethod
     def stdCodeToStdCommID(stdCode:str) -> str:
-        if CodeHelper.isStdStkCode(stdCode):
-            return CodeHelper.stdStkCodeToStdCommID(stdCode)
+        ay = stdCode.split(".")
+        if not CodeHelper.isStdChnFutOptCode(stdCode):
+            return ay[0] + "." + ay[1]
         else:
-            return CodeHelper.stdFutCodeToStdCommID(stdCode)
-
-    @staticmethod
-    def stdStkCodeToStdCommID(stdCode:str) -> str:
-        ay = stdCode.split(".")
-        return ay[0] + "." + "STK"
-
-    @staticmethod
-    def stdFutCodeToStdCommID(stdCode:str) -> str:
-        ay = stdCode.split(".")
-        return ay[0] + "." + ay[1]
+            exchg = ay[0]
+            pid = ay[1][:-4]
+            flag = ay[2]
+            if exchg == 'CZCE':
+                return exchg + "." + pid + flag
+            elif exchg == 'CFFEX':
+                return exchg + "." + pid
+            else:
+                return exchg + "." + pid + '_o'

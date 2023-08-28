@@ -8,16 +8,9 @@ from wtpy.WtCoreDefs import EVENT_ENGINE_INIT, EVENT_SESSION_BEGIN, EVENT_SESSIO
 from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, WTSOrdQueStruct, WTSOrdDtlStruct, WTSTransStruct
 from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
+from wtpy.WtDataDefs import WtNpKline, WtNpOrdDetails, WtNpOrdQueues, WtNpTicks, WtNpTransactions
 import os
-
-def auto_encode(s:str) -> bytes:
-    '''
-    自动编码
-    '''
-    if ph.isWindows():
-        return bytes(s, encoding = "utf-8").decode("utf-8").encode("gbk")
-    else:
-        return bytes(s, encoding = "utf-8")
+import numpy as np
 
 # Python对接C接口的库
 @singleton
@@ -143,46 +136,6 @@ class WtBtWrapper:
                 ctx.on_session_end(udate)
         return
 
-    def on_stra_tick(self, id:int, stdCode:str, newTick:POINTER(WTSTickStruct)):
-        engine = self._engine
-        ctx = engine.get_context(id)
-
-        realTick = newTick.contents
-        # tick = dict()
-        # tick["time"] = realTick.action_date * 1000000000 + realTick.action_time
-        # tick["open"] = realTick.open
-        # tick["high"] = realTick.high
-        # tick["low"] = realTick.low
-        # tick["price"] = realTick.price
-        
-        # tick["bidprice"] = list()
-        # tick["bidqty"] = list()
-        # tick["askprice"] = list()
-        # tick["askqty"] = list()
-
-        # tick["upper_limit"] = realTick.total_volume
-        # tick["lower_limit"] = realTick.lower_limit
-        
-        # tick["total_volume"] = realTick.total_volume
-        # tick["volume"] = realTick.volume
-        # tick["total_turnover"] = realTick.total_turnover
-        # tick["turn_over"] = realTick.turn_over
-        # tick["open_interest"] = realTick.open_interest
-        # tick["diff_interest"] = realTick.diff_interest
-
-        # for i in range(10):
-        #     if realTick.bid_qty[i] != 0:
-        #         tick["bidprice"].append(realTick.bid_prices[i])
-        #         tick["bidqty"].append(realTick.bid_qty[i])
-
-        #     if realTick.ask_qty[i] != 0:
-        #         tick["askprice"].append(realTick.ask_prices[i])
-        #         tick["askqty"].append(realTick.ask_qty[i])
-
-        if ctx is not None:
-            ctx.on_tick(bytes.decode(stdCode), realTick.to_tuple())
-        return
-
     def on_stra_calc(self, id:int, curDate:int, curTime:int):
         engine = self._engine
         ctx = engine.get_context(id)
@@ -197,26 +150,20 @@ class WtBtWrapper:
             ctx.on_calculate_done()
         return
 
-    def on_stra_bar(self, id:int, stdCode:str, period:str, newBar:POINTER(WTSBarStruct)):
-        period = bytes.decode(period)
+    def on_stra_tick(self, id:int, stdCode:str, newTick:POINTER(WTSTickStruct)):
         engine = self._engine
         ctx = engine.get_context(id)
-        newBar:WTSBarStruct = newBar.contents
-        # curBar = dict()
-        # if period[0] == 'd':
-        #     curBar["time"] = newBar.date
-        # else:
-        #     curBar["time"] = 1990*100000000 + newBar.time
-        # curBar["bartime"] = curBar["time"]
-        # curBar["open"] = newBar.open
-        # curBar["high"] = newBar.high
-        # curBar["low"] = newBar.low
-        # curBar["close"] = newBar.close
-        # curBar["volume"] = newBar.vol
-        if ctx is not None:
-            ctx.on_bar(bytes.decode(stdCode), period, newBar.to_tuple(period[0]=='d'))
-        return
 
+        if ctx is not None:
+            ctx.on_tick(bytes.decode(stdCode), newTick)
+        return
+    
+    def on_stra_bar(self, id:int, stdCode:str, period:str, newBar:POINTER(WTSBarStruct)):
+        engine = self._engine
+        ctx = engine.get_context(id)
+        if ctx is not None:
+            ctx.on_bar(bytes.decode(stdCode), bytes.decode(period), newBar)
+        return
 
     def on_stra_get_bar(self, id:int, stdCode:str, period:str, curBar:POINTER(WTSBarStruct), count:int, isLast:bool):
         '''
@@ -230,19 +177,13 @@ class WtBtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         period = bytes.decode(period)
-
-        bsSize = sizeof(WTSBarStruct)
-        addr = addressof(curBar.contents) # 获取内存地址
         isDay = period[0]=='d'
 
-        bars = [None]*count # 预先分配list的长度
-        for i in range(count):
-            realBar = WTSBarStruct.from_address(addr)   # 从内存中直接解析成WTSBarStruct
-            bars[i] = realBar.to_tuple(1 if isDay else 0)
-            addr += bsSize
+        npBars = WtNpKline(isDay)
+        npBars.set_data(curBar, count)
 
         if ctx is not None:
-            ctx.on_getbars(bytes.decode(stdCode), period, bars)
+            ctx.on_getbars(bytes.decode(stdCode), period, npBars)
 
     def on_stra_get_tick(self, id:int, stdCode:str, curTick:POINTER(WTSTickStruct), count:int, isLast:bool):
         '''
@@ -252,20 +193,15 @@ class WtBtWrapper:
         @curTick    最新一笔Tick
         @isLast     是否是最后一条
         '''
-
         engine = self._engine
         ctx = engine.get_context(id)
 
-        tsSize = sizeof(WTSTickStruct)
-        addr = addressof(curTick.contents) # 获取内存地址
-        ticks = [None]*count # 预先分配list的长度
-        for idx in range(count):
-            realTick = WTSTickStruct.from_address(addr)   # 从内存中直接解析成WTSTickStruct
-            ticks[idx] = realTick.to_tuple()
-            addr += tsSize
+        npTicks = WtNpTicks(forceCopy=False)
+        npTicks.set_data(curTick, count)
 
         if ctx is not None:
-            ctx.on_getticks(bytes.decode(stdCode), ticks)
+            ctx.on_getticks(bytes.decode(stdCode), npTicks)
+        return
 
     def on_stra_get_position(self, id:int, stdCode:str, qty:float, isLast:bool):
         engine = self._engine
@@ -318,6 +254,7 @@ class WtBtWrapper:
         stdCode = bytes.decode(stdCode)
         engine = self._engine
         ctx = engine.get_context(id)
+
         newOrdQue = newOrdQue.contents        
         if ctx is not None:
             ctx.on_order_queue(stdCode, newOrdQue.to_tuple())
@@ -325,20 +262,18 @@ class WtBtWrapper:
     def on_hftstra_get_order_queue(self, id:int, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct), count:int, isLast:bool):
         engine = self._engine
         ctx = engine.get_context(id)
-        szItem = sizeof(WTSOrdQueStruct)
-        addr = addressof(newOrdQue)
-        item_list = [None]*count
-        for i in range(count):
-            realOrdQue = WTSOrdQueStruct.from_address(addr)
-            item_list[i] = realOrdQue.to_tuple()
-            addr += szItem
-            
+        
+        npHftData = WtNpOrdQueues(forceCopy=False)
+        npHftData.set_data(newOrdQue, count)
+
         if ctx is not None:
-            ctx.on_get_order_queue(bytes.decode(stdCode), item_list)
+            ctx.on_get_order_queue(bytes.decode(stdCode), npHftData)
 
     def on_hftstra_order_detail(self, id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct)):
+        stdCode = bytes.decode(stdCode)
         engine = self._engine
         ctx = engine.get_context(id)
+
         newOrdDtl = newOrdDtl.contents
         
         if ctx is not None:
@@ -347,19 +282,15 @@ class WtBtWrapper:
     def on_hftstra_get_order_detail(self, id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct), count:int, isLast:bool):
         engine = self._engine
         ctx = engine.get_context(id)
-        szItem = sizeof(WTSOrdDtlStruct)
-        addr = addressof(newOrdDtl)
-        item_list = [None]*count
-        for i in range(count):
-            realOrdDtl = WTSOrdDtlStruct.from_address(addr)
-
-            item_list[i] = realOrdDtl.to_tuple()
-            addr += szItem
+        
+        npHftData = WtNpOrdDetails(forceCopy=False)
+        npHftData.set_data(newOrdDtl, count)
             
         if ctx is not None:
-            ctx.on_get_order_detail(bytes.decode(stdCode), item_list, isLast)
+            ctx.on_get_order_detail(bytes.decode(stdCode), npHftData)
 
     def on_hftstra_transaction(self, id:int, stdCode:str, newTrans:POINTER(WTSTransStruct)):
+        stdCode = bytes.decode(stdCode)
         engine = self._engine
         ctx = engine.get_context(id)
         newTrans = newTrans.contents
@@ -370,16 +301,12 @@ class WtBtWrapper:
     def on_hftstra_get_transaction(self, id:int, stdCode:str, newTrans:POINTER(WTSTransStruct), count:int, isLast:bool):
         engine = self._engine
         ctx = engine.get_context(id)
-        szTrans = sizeof(WTSTransStruct)
-        addr = addressof(newTrans)
-        trans_list = [None]*count
-        for i in range(count):
-            realTrans = WTSTransStruct.from_address(addr)
-            trans_list[i] = realTrans.to_tuple()
-            addr += szTrans
+
+        npHftData = WtNpTransactions(forceCopy=False)
+        npHftData.set_data(newTrans, count)
             
         if ctx is not None:
-            ctx.on_get_transaction(bytes.decode(stdCode), trans_list, isLast)
+            ctx.on_get_transaction(bytes.decode(stdCode), npHftData)
 
     def on_load_fnl_his_bars(self, stdCode:str, period:str) -> bool:
         engine = self._engine
@@ -424,7 +351,7 @@ class WtBtWrapper:
         return loader.load_his_ticks(bytes.decode(stdCode), uDate, self.api.feed_raw_ticks)
 
     def write_log(self, level, message:str, catName:str = ""):
-        self.api.write_log(level, auto_encode(message), bytes(catName, encoding = "utf8"))
+        self.api.write_log(level, ph.auto_encode(message), bytes(catName, encoding = "utf8"))
 
     def set_time_range(self, beginTime:int, endTime:int):
         '''
@@ -584,7 +511,7 @@ class WtBtWrapper:
         @qty        手数, 大于等于0
         '''
         self.api.cta_exit_short(id, bytes(stdCode, encoding = "utf8"), qty, bytes(usertag, encoding = "utf8"), limitprice, stopprice)
-
+    
     def cta_get_bars(self, id:int, stdCode:str, period:str, count:int, isMain:bool):
         '''
         读取K线
@@ -595,7 +522,7 @@ class WtBtWrapper:
         @isMain     是否主K线
         '''
         return self.api.cta_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, isMain, CB_STRATEGY_GET_BAR(self.on_stra_get_bar))
-
+    
     def cta_get_ticks(self, id:int, stdCode:str, count:int):
         '''
         读取Tick
@@ -734,7 +661,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.cta_log_text(id, level, auto_encode(message))
+        self.api.cta_log_text(id, level, ph.auto_encode(message))
 
     def cta_get_detail_entertime(self, id:int, stdCode:str, usertag:str) -> int:
         '''
@@ -854,7 +781,7 @@ class WtBtWrapper:
 
     
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    '''SEL接口'''
+    '''SEL接口'''    
     def sel_get_bars(self, id:int, stdCode:str, period:str, count:int):
         '''
         读取K线
@@ -864,7 +791,7 @@ class WtBtWrapper:
         @count  条数
         '''
         return self.api.sel_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, CB_STRATEGY_GET_BAR(self.on_stra_get_bar))
-
+    
     def sel_get_ticks(self, id:int, stdCode:str, count:int):
         '''
         读取Tick
@@ -954,7 +881,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.sel_log_text(id, level, auto_encode(message))
+        self.api.sel_log_text(id, level, ph.auto_encode(message))
 
     def sel_sub_ticks(self, id:int, stdCode:str):
         '''
@@ -1065,7 +992,7 @@ class WtBtWrapper:
 
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    '''HFT接口'''
+    '''HFT接口'''    
     def hft_get_bars(self, id:int, stdCode:str, period:str, count:int):
         '''
         读取K线
@@ -1075,7 +1002,7 @@ class WtBtWrapper:
         @count  条数
         '''
         return self.api.hft_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, CB_STRATEGY_GET_BAR(self.on_stra_get_bar))
-
+    
     def hft_get_ticks(self, id:int, stdCode:str, count:int):
         '''
         读取Tick
@@ -1202,7 +1129,7 @@ class WtBtWrapper:
         @level      日志级别
         @message    日志内容
         '''
-        self.api.hft_log_text(id, level, auto_encode(message))
+        self.api.hft_log_text(id, level, ph.auto_encode(message))
 
     def hft_sub_ticks(self, id:int, stdCode:str):
         '''

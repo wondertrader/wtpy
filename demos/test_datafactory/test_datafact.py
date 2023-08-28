@@ -1,11 +1,6 @@
-'''
-Descripttion: Automatically generated file comment
-version: 
-Author: Wesley
-Date: 2021-02-22 16:25:48
-LastEditors: Wesley
-LastEditTime: 2021-08-25 14:20:57
-'''
+from ctypes import POINTER
+import os
+from wtpy.WtCoreDefs import WTSBarStruct
 from wtpy.apps.datahelper import DHFactory as DHF
 
 hlper = DHF.createHelper("baostock")
