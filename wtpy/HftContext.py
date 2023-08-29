@@ -1,7 +1,6 @@
 from ctypes import POINTER
 from wtpy.SessionMgr import SessionInfo
 from wtpy.WtCoreDefs import WTSBarStruct, WTSOrdDtlStruct, WTSOrdQueStruct, WTSTickStruct, WTSTransStruct
-from wtpy.wrapper import WtWrapper
 from wtpy.WtDataDefs import WtNpKline, WtNpOrdDetails, WtNpOrdQueues, WtNpTicks, WtNpTransactions
 
 class HftContext:
@@ -14,7 +13,7 @@ class HftContext:
     3、下单接口（设置目标仓位、直接下单等）,接口格式如：stra_xxx
     '''
 
-    def __init__(self, id:int, stra, wrapper: WtWrapper, engine):
+    def __init__(self, id:int, stra, wrapper, engine):
         self.__stra_info__ = stra       #策略对象,对象基类BaseStrategy.py
         self.__wrapper__ = wrapper      #底层接口转换器
         self.__id__ = id                #策略ID

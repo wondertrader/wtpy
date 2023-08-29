@@ -1,12 +1,4 @@
-'''
-Descripttion: Automatically generated file comment
-version: 
-Author: Wesley
-Date: 2021-07-27 09:53:43
-LastEditors: Wesley
-LastEditTime: 2021-08-13 15:35:07
-'''
-from ctypes import c_char, cdll, CFUNCTYPE, c_uint32, c_bool, c_void_p, c_char_p, c_ulong
+from ctypes import cdll, CFUNCTYPE, c_uint32, c_bool, c_void_p, c_char_p, c_ulong
 from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
 import os

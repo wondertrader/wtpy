@@ -1,11 +1,3 @@
-'''
-Descripttion: Automatically generated file comment
-version: 
-Author: Wesley
-Date: 2021-02-26 16:28:57
-LastEditors: Wesley
-LastEditTime: 2021-08-13 15:32:23
-'''
 import platform
 
 class PlatformHelper:

@@ -1,11 +1,3 @@
-'''
-Descripttion: 回测管理模块
-version: 
-Author: Wesley
-Date: 2021-08-11 14:03:33
-LastEditors: Wesley
-LastEditTime: 2021-09-02 14:18:50
-'''
 import os
 import json
 import subprocess

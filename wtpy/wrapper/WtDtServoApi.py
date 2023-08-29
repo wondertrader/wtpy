@@ -1,17 +1,8 @@
-'''
-Descripttion: Automatically generated file comment
-version: 
-Author: Wesley
-Date: 2021-07-27 09:53:43
-LastEditors: Wesley
-LastEditTime: 2021-08-13 15:34:36
-'''
 from ctypes import cdll, CFUNCTYPE, c_char_p, c_void_p, c_bool, POINTER, c_uint64, c_uint32
 from wtpy.WtCoreDefs import WTSBarStruct, WTSTickStruct
 from wtpy.WtDataDefs import WtNpKline, WtNpTicks, WtBarCache, WtTickCache
 from wtpy.wrapper.PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
-
 import os
 
 CB_GET_BAR = CFUNCTYPE(c_void_p,  POINTER(WTSBarStruct), c_uint32, c_bool)
