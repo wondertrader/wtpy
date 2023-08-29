@@ -87,7 +87,7 @@ def compare_read_dsb_bars(times:int = 100):
     t2 = datetime.datetime.now()
     num_bars = 0
     for i in range(times):
-        ret = dtHelper.read_dsb_bars("CFFEX.IF_HOT.dsb")
+        ret = dtHelper.read_dsb_bars("../storage/his/min5/CFFEX/CFFEX.IF_HOT.dsb")
         num_bars = len(ret)
     t3 = datetime.datetime.now()
     elapse = (t3-t2).total_seconds()*1000.0

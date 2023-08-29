@@ -1,11 +1,3 @@
-'''
-Descripttion: Automatically generated file comment
-version: 
-Author: Wesley
-Date: 2021-08-23 09:38:05
-LastEditors: Wesley
-LastEditTime: 2021-08-23 15:06:29
-'''
 from wtpy.apps import WtHotPicker, WtCacheMonExchg, WtCacheMonSS, WtMailNotifier
 import datetime
 import logging
