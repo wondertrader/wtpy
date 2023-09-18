@@ -13,9 +13,6 @@ from .WtLogger import WtLogger
 
 from enum import Enum
 
-import signal
-signal.signal(signal.SIGCHLD, signal.SIG_IGN)
-
 def isWindows():
     if "windows" in platform.system().lower():
         return True
