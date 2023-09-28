@@ -128,9 +128,7 @@ class CtaContext:
         '''
         tick回调事件响应
         '''
-        if stdCode in self.__tick_cache__:
-            self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_dict)
-            return
+        self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_dict)
 
     def on_bar(self, stdCode:str, period:str, newBar:POINTER(WTSBarStruct)):
         '''
