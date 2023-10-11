@@ -25,13 +25,15 @@ class CtaContext:
         self.__engine__ = engine          #交易环境
         self.__pos_cache__ = None
 
-        self.is_backtest = self.__engine__.is_backtest
-
         self.__alias__()
 
     @property
     def id(self):
         return self.__id__
+    
+    @property
+    def is_backtest(self):
+        return self.__engine__.is_backtest
     
     def __alias__(self):
         '''
