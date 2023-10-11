@@ -27,11 +27,14 @@ class StraDualThrust(BaseCtaStrategy):
         #print(pInfo)
 
         context.stra_prepare_bars(code, self.__period__, self.__bar_cnt__, isMain = True)
+        context.stra_sub_ticks(code)
         context.stra_log_text("DualThrust inited")
 
         #读取存储的数据
         self.xxx = context.user_load_data('xxx',1)
 
+    def on_tick(self, context: CtaContext, stdCode: str, newTick: dict):
+        print(newTick)
     
     def on_calculate(self, context:CtaContext):
         code = self.__code__    #品种代码
