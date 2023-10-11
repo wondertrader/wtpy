@@ -1018,16 +1018,15 @@ class WtWrapper:
 
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''HFT接口'''    
-    def hft_get_bars(self, id:int, stdCode:str, period:str, count:int, isMain:bool):
+    def hft_get_bars(self, id:int, stdCode:str, period:str, count:int):
         '''
         读取K线
         @id         策略id
         @stdCode    合约代码
         @period     周期, 如m1/m3/d1等
         @count      条数
-        @isMain     是否主K线
         '''
-        return self.api.hft_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, isMain, CB_STRATEGY_GET_BAR(self.on_stra_get_bar))
+        return self.api.hft_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, CB_STRATEGY_GET_BAR(self.on_stra_get_bar))
     
     def hft_get_ticks(self, id:int, stdCode:str, count:int):
         '''
