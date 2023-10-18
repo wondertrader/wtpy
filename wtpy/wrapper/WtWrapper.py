@@ -754,6 +754,15 @@ class WtWrapper:
         '''
         self.api.cta_sub_ticks(id, bytes(stdCode, encoding = "utf8"))
 
+    def cta_sub_bar_events(self, id:int, stdCode:str, period:str):
+        '''
+        订阅K线事件
+        @id         策略id
+        @stdCode    品种代码
+        @period     周期
+        '''
+        self.api.cta_sub_bar_events(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"))
+
     def cta_set_chart_kline(self, id:int, stdCode:str, period:str):
         '''
         设置图表K线
