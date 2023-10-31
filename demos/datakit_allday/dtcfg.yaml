@@ -8,19 +8,9 @@ broadcaster:
     -   host: 255.255.255.255
         port: 9001
         type: 2
-    multicast_:
-    -   host: 224.169.169.169
-        port: 9002
-        sendport: 8997
-        type: 0
-    -   host: 224.169.169.169
-        port: 9003
-        sendport: 8998
-        type: 1
-    -   host: 224.169.169.169
-        port: 9004
-        sendport: 8999
-        type: 2
+shmcaster:                      # 共享内存转发，适合本机转发
+    active: true
+    path: ./exchange.membin     # memmap文件路径
 allday: true
 writer:
     async: false

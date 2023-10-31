@@ -4,13 +4,16 @@ basefiles:
     holiday: ../common/holidays.json
     session: ../common/sessions.json
     utf-8: true
-broadcaster:                    # UDP广播器配置项
-    active: true
+broadcaster:                    # UDP广播器配置项，如果要在局域网转发行情，可以使用该模块
+    active: false
     bport: 3997                 # UDP查询端口，主要是用于查询最新的快照
     broadcast:                  # 广播配置
     -   host: 255.255.255.255   # 广播地址，255.255.255.255会向整个局域网广播，但是受限于路由器
         port: 9001              # 广播端口，接收端口要和广播端口一致
         type: 2                 # 数据类型，固定为2
+shmcaster:                      # 共享内存转发，适合本机转发
+    active: true
+    path: ./exchange.membin     # memmap文件路径
 parsers: mdparsers.yaml
 statemonitor: statemonitor.yaml
 writer:
