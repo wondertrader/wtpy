@@ -2,13 +2,13 @@ parsers:
 -   active: true
     id: parser
     module: ParserXTP
-    host: 120.27.164.138
-    port: '6002'
-    protocol: 1
-    buffsize: 128
-    clientid: 1    
-    hbinterval: 15    
-    local_ip: 0.0.0.0
+    host: 119.3.103.38
+    port: 6002
+    protocol: 1       # Level1服务器通常使用TCP(1)，具体以运营通知为准，Level2服务器请用UDP(2)，公网测试环境均为TCP，以实际服务器支持的类型为准
+    buffsize: 128     # 设定UDP本地缓存buffer大小，单位为MB，建议不超过512，最大仅支持1024
+    clientid: 1       # 一个进程一个client id，可在[1, 99]区间内任选，并固定下来
+    hbinterval: 15    # 设定行情服务器超时时间，单位为秒，默认是15s，调试时可以设定大点
+    local_ip: 0.0.0.0 # 本地网卡对应的ip
     user: 你的XTP仿真账号
     pass: 你的XTP仿真密码
     code: SSE.000001,SSE.600009,SSE.600036,SSE.600276,SZSE.000001

@@ -34,7 +34,8 @@ class StraDualThrust(BaseCtaStrategy):
         self.xxx = context.user_load_data('xxx',1)
 
     def on_tick(self, context: CtaContext, stdCode: str, newTick: dict):
-        print(newTick)
+        # print(newTick)
+        pass
     
     def on_calculate(self, context:CtaContext):
         code = self.__code__    #品种代码

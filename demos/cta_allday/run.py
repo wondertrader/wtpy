@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     # 注册外部执行器
     myExecuter = MyExecuter('exec', 1)
-    engine.add_exetended_executer(myExecuter)
+    env.add_exetended_executer(myExecuter)
 
     env.run()
 
