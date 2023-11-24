@@ -89,7 +89,7 @@
             "pricemode": 0,
             "category": 1,
             "precision": 3,
-            "pricetick": 0.005,
+            "pricetick": 0.002,
             "volscale": 20000,
             "name": "2ÄêÕ®",
             "exchg": "CFFEX",
@@ -242,6 +242,18 @@
             "session": "FD0900",
             "holiday": "CHINA"
         },
+        "PX": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 1,
+            "precision": 0,
+            "pricetick": 2.0,
+            "volscale": 5,
+            "name": "¶Ô¶þ¼×±½",
+            "exchg": "CZCE",
+            "session": "",
+            "holiday": "CHINA"
+        },
         "RI": {
             "covermode": 0,
             "pricemode": 0,
@@ -300,6 +312,18 @@
             "name": "¹èÌú",
             "exchg": "CZCE",
             "session": "FD0900",
+            "holiday": "CHINA"
+        },
+        "SH": {
+            "covermode": 0,
+            "pricemode": 0,
+            "category": 1,
+            "precision": 0,
+            "pricetick": 1.0,
+            "volscale": 30,
+            "name": "ÉÕ¼î",
+            "exchg": "CZCE",
+            "session": "",
             "holiday": "CHINA"
         },
         "SM": {

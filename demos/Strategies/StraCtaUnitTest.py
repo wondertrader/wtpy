@@ -80,8 +80,7 @@ class StraCtaUnitTest(BaseCtaStrategy):
         curPos = context.stra_get_position(code)/trdUnit
 
         # 向外输出指标
-        lastBar = df_bars.get_bar(-1)
-        timePx = lastBar["bartime"]
+        timePx = df_bars.bartimes[-1]
         now = context.stra_get_date()*10000 + timePx%10000
         context.write_indicator(tag=self.__period__, time=int(now), data={
             "highpx": highpx,

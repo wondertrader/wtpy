@@ -1,4 +1,5 @@
 import math
+import time
 from wtpy import BaseExtParser
 from wtpy import WTSTickStruct
 from ctypes import byref
@@ -256,4 +257,9 @@ if __name__ == "__main__":
 
     engine.run(True)
 
-    kw = input('press any key to exit\n')
+    print('press ctrl-c to exit')
+    try:
+    	while True:
+            time.sleep(1)
+    except KeyboardInterrupt as e:
+    	exit(0)

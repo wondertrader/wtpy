@@ -1,4 +1,5 @@
 from ctypes import POINTER
+import datetime
 import os
 from wtpy.WtCoreDefs import WTSBarStruct
 from wtpy.apps.datahelper import DHFactory as DHF
@@ -59,4 +60,4 @@ def on_bars_block(exchg:str, stdCode:str, firstBar:POINTER(WTSBarStruct), count:
     dtHelper.store_bars(filename, firstBar, count, period)
     pass
 
-hlper.dmpBars(codes=["CFFEX.IF.2103"], cb=on_bars_block, start_date=20201201, end_date=20210316, period="min5")
+# hlper.dmpBars(codes=["CFFEX.IF.2103"], cb=on_bars_block, start_date=datetime.datetime(2020,12,1), end_date=datetime.datetime(2021,3,16), period="min5")

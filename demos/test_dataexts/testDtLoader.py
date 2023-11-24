@@ -1,3 +1,4 @@
+import time
 from wtpy.ExtModuleDefs import BaseExtDataLoader
 from ctypes import POINTER
 from wtpy.WtCoreDefs import WTSBarStruct, WTSTickStruct
@@ -133,6 +134,11 @@ def test_in_rt():
 
     engine.run()
 
-    kw = input('press any key to exit\n')
+    print('press ctrl-c to exit')
+    try:
+    	while True:
+            time.sleep(1)
+    except KeyboardInterrupt as e:
+    	exit(0)
 
 test_in_bt()

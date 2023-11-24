@@ -1,3 +1,4 @@
+import sys
 from wtpy import BaseExtParser, BaseExtExecuter
 from wtpy import WTSTickStruct
 from ctypes import byref
@@ -5,7 +6,9 @@ import threading
 import time
 
 from wtpy import WtEngine,EngineType
-from Strategies.DualThrust import StraDualThrust
+sys.path.append('../Strategies')
+from DualThrust import StraDualThrust
+
 
 class MyExecuter(BaseExtExecuter):
     def __init__(self, id: str, scale: float):
@@ -95,4 +98,9 @@ if __name__ == "__main__":
 
     engine.run()
 
-    kw = input('press any key to exit\n')
+    print('press ctrl-c to exit')
+    try:
+    	while True:
+            time.sleep(1)
+    except KeyboardInterrupt as e:
+    	exit(0)
