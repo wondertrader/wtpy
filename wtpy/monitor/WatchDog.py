@@ -128,9 +128,9 @@ class AppInfo(EventSink):
 
     @property
     def cmd_line(self) -> str:
-        fullPath = os.path.join(self.__info__["folder"], self.__info__["param"])
+        fullPath = self.__info__["param"]
         if self._cmd_line is None:
-            self._cmd_line = self.__info__["path"] + " " + fullPath
+            self._cmd_line = (self.__info__["path"] + " " + fullPath) if fullPath != "" else self.__info__["path"]
         return self._cmd_line
 
     def is_running(self, pids) -> bool:
@@ -188,15 +188,18 @@ class AppInfo(EventSink):
             self.__logger__.info("应用%s开始接收%s的通知信息" % (self._id, self._mq_url))
 
         try:
-            fullPath = os.path.join(self.__info__["folder"], self.__info__["param"])
+            args = self.__info__["param"].split(" ") if self.__info__["param"] != "" else []            
+            args.insert(0, self.__info__["path"])
+
             if isWindows():
-                self._procid = subprocess.Popen([self.__info__["path"], fullPath],  # 需要执行的文件路径
+                self._procid = subprocess.Popen(args,
                                 cwd=self.__info__["folder"], creationflags=subprocess.CREATE_NEW_CONSOLE).pid
             else:
-                self._procid = subprocess.Popen([self.__info__["path"], fullPath],  # 需要执行的文件路径
+                self._procid = subprocess.Popen(args, 
                                 cwd=self.__info__["folder"]).pid
-
-            self._cmd_line = self.__info__["path"] + " " + fullPath
+            
+            self._cmd_line = (self.__info__["path"] + " " + self.__info__["param"]) if self.__info__["param"] != "" else self.__info__["path"]
+            self.__logger__.info(f"cmdline: {self._cmd_line}, cwd:{self.__info__['folder']}")
         except:
             self.__logger__.info("应用%s启动异常" % (self._id))
 
