@@ -2,7 +2,7 @@ from wtpy import WtDtServo
 
 dtServo = WtDtServo()
 dtServo.setBasefiles(folder="../common/")
-dtServo.setStorage(path='E:/storage/')
+dtServo.setStorage(path='../storage/')
 
 # 读取IF主力合约的前复权数据
 bars = dtServo.get_bars("CFFEX.IF.HOT-", "m5", fromTime=202205010930, endTime=202205281500).to_df()

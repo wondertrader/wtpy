@@ -6,6 +6,7 @@ parsers:
     id: parser2
     module: ParserUDP
     sport: 3997
+
 -   active: true
     broker: '9999'
     front: tcp://180.168.146.187:10211
@@ -13,3 +14,10 @@ parsers:
     module: ParserCTP
     pass: 你的SIMNOW密码
     user: 你的SIMNOW账号
+
+-   active: false    
+    id: parser1
+    module: ParserShm                     # 基于Sharememory的行情解析模块
+    path: ../datakit_stk/exchange.membin  # memmap文件路径，需要和datakit匹配
+    gpsize: 1000                          # 分组大小，主要用于控制日志的显示频率
+    check_span: 2                         # 检查时间间隔，单位微秒，如果没有新的数据，则休眠若干时间

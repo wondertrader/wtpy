@@ -1,3 +1,4 @@
+import time
 from wtpy import WtDtEngine
 
 from wtpy.ExtModuleDefs import BaseExtDataDumper
@@ -34,6 +35,13 @@ def test_ext_dumper():
     engine.add_extended_data_dumper(MyDataDumper("dumper"))
     engine.initialize("dtcfg.yaml", "logcfgdt.yaml")
     
-    engine.run()
+    engine.run(True)
 
-    kw = input('press any key to exit\n')
+    print('press ctrl-c to exit')
+    try:
+    	while True:
+            time.sleep(1)
+    except KeyboardInterrupt as e:
+    	exit(0)
+
+test_ext_dumper()

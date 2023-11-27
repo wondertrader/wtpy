@@ -52,6 +52,8 @@ class WtEngine:
         self.__dump_config__ = bDumpCfg #是否保存最终配置
         self.__is_cfg_yaml__ = True
 
+        self.trading_day = 0    #当前交易日
+
         self.__engine_type:EngineType = eType
         if eType == EngineType.ET_CTA:
             self.__wrapper__.initialize_cta(logCfg=logCfg, isFile=True, genDir=genDir)
@@ -355,27 +357,27 @@ class WtEngine:
         获取品种信息
         @stdCode   合约代码，格式如SHFE.rb.HOT
         '''
-        return self.contractMgr.getContractInfo(stdCode)
+        return self.contractMgr.getContractInfo(stdCode, self.trading_day)
 
     def getAllCodes(self) -> list:
         '''
         获取全部合约代码
         '''
-        return self.contractMgr.getTotalCodes()
+        return self.contractMgr.getTotalCodes(self.trading_day)
     
     def getCodesByProduct(self, stdPID:str) -> list:
         '''
         根据品种id获取对应合约代码
         @stdPID 品种代码, 格式如SHFE.rb
         '''
-        return self.contractMgr.getCodesByProduct(stdPID)
+        return self.contractMgr.getCodesByProduct(stdPID, self.trading_day)
     
     def getCodesByUnderlying(self, underlying:str) -> list:
         '''
         根据underlying获取对应合约代码
         @underlying 品种代码, 格式如SHFE.rb2305
         '''
-        return self.contractMgr.getCodesByUnderlying(underlying)
+        return self.contractMgr.getCodesByUnderlying(underlying, self.trading_day)
 
     def getRawStdCode(self, stdCode:str):
         '''
@@ -459,6 +461,7 @@ class WtEngine:
 
     def on_session_begin(self, date:int):
         # print("session begin")
+        self.trading_day = date
         return
 
     def on_session_end(self, date:int):

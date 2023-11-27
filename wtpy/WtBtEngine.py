@@ -26,8 +26,8 @@ class WtBtEngine:
         '''
         构造函数
         @eType  引擎类型
-        @logCfg 日志模块配置文件，也可以直接是配置内容字符串
-        @isFile 是否文件，如果是文件，则将logCfg当做文件路径处理，如果不是文件，则直接当成json格式的字符串进行解析
+        @logCfg 日志模块配置文件,也可以直接是配置内容字符串
+        @isFile 是否文件,如果是文件,则将logCfg当做文件路径处理,如果不是文件,则直接当成json格式的字符串进行解析
         @bDumpCfg   回测的实际配置文件是否落地
         @outDir 回测数据输出目录
         '''
@@ -42,6 +42,8 @@ class WtBtEngine:
 
         self.__dump_config__ = bDumpCfg #是否保存最终配置
         self.__is_cfg_yaml__ = False
+        
+        self.trading_day = 0    #当前交易日
 
         self.__ext_data_loader__:BaseExtDataLoader = None   #扩展历史数据加载器
 
@@ -89,8 +91,8 @@ class WtBtEngine:
         '''
         写入指标数据
         @id     指标id
-        @tag    标签，主要用于区分指标对应的周期，如m5/d
-        @time   时间，如yyyymmddHHMM
+        @tag    标签,主要用于区分指标对应的周期,如m5/d
+        @time   时间,如yyyymmddHHMM
         @data   指标值
         '''
         if self.__idx_writer__ is not None:
@@ -154,10 +156,10 @@ class WtBtEngine:
         secondfile:str = None):
         '''
         初始化
-        @folder     基础数据文件目录，\\结尾
-        @cfgfile    配置文件，json/yaml格式
-        @commfile   品种定义文件，json/yaml格式
-        @contractfile   合约定义文件，json/yaml格式
+        @folder     基础数据文件目录,\\结尾
+        @cfgfile    配置文件,json/yaml格式
+        @commfile   品种定义文件,json/yaml格式
+        @contractfile   合约定义文件,json/yaml格式
         '''
         f = open(cfgfile, "rb")
         content = f.read()
@@ -190,7 +192,7 @@ class WtBtEngine:
     def configBTStorage(self, mode:str, path:str = None, storage:dict = None):
         '''
         配置数据存储
-        @mode   存储模式，csv-表示从csv直接读取，一般回测使用，wtp-表示使用wt框架自带数据存储
+        @mode   存储模式,csv-表示从csv直接读取,一般回测使用,wtp-表示使用wt框架自带数据存储
         '''
         self.__config__["replayer"]["mode"] = mode
         if path is not None:
@@ -210,8 +212,8 @@ class WtBtEngine:
     def registerCustomRule(self, ruleTag:str, filename:str):
         '''
         注册自定义连续合约规则
-        @ruleTag    规则标签，如ruleTag为THIS，对应的连续合约代码为CFFEX.IF.THIS
-        @filename   规则定义文件名，和hots.json格式一样
+        @ruleTag    规则标签,如ruleTag为THIS,对应的连续合约代码为CFFEX.IF.THIS
+        @filename   规则定义文件名,和hots.json格式一样
         '''
         if "rules" not in self.__config__["replayer"]["basefiles"]:
             self.__config__["replayer"]["basefiles"]["rules"] = dict()
@@ -222,7 +224,7 @@ class WtBtEngine:
         '''
         添加C++的CTA策略
         @id 策略ID
-        @module     策略模块文件名，包含后缀，如：WzCtaFact.dll
+        @module     策略模块文件名,包含后缀,如：WzCtaFact.dll
         @typeName   模块内的策略类名
         @params     策略参数
         '''
@@ -243,7 +245,7 @@ class WtBtEngine:
         '''
         添加C++的HFT策略
         @id 策略ID
-        @module     策略模块文件名，包含后缀，如：WzHftFact.dll
+        @module     策略模块文件名,包含后缀,如：WzHftFact.dll
         @typeName   模块内的策略类名
         @params     策略参数
         '''
@@ -263,7 +265,7 @@ class WtBtEngine:
         '''
         设置扩展数据加载器
         @loader     数据加载器模块
-        @bAutoTrans 是否自动转储，如果是的话底层就转成dsb文件
+        @bAutoTrans 是否自动转储,如果是的话底层就转成dsb文件
         '''
         self.__ext_data_loader__ = loader
         self.__wrapper__.register_extended_data_loader(bAutoTrans)
@@ -277,8 +279,8 @@ class WtBtEngine:
     def commitBTConfig(self):
         '''
         提交配置
-        只有第一次调用会生效，不可重复调用
-        如果执行run之前没有调用，run会自动调用该方法
+        只有第一次调用会生效,不可重复调用
+        如果执行run之前没有调用,run会自动调用该方法
         '''
         if self.__cfg_commited__:
             return
@@ -300,7 +302,7 @@ class WtBtEngine:
     def getSessionByCode(self, code:str) -> SessionInfo:
         '''
         通过合约代码获取交易时间模板
-        @code   合约代码，格式如SHFE.rb.HOT
+        @code   合约代码,格式如SHFE.rb.HOT
         '''
         pid = CodeHelper.stdCodeToStdCommID(code)
 
@@ -320,22 +322,22 @@ class WtBtEngine:
     def getProductInfo(self, code:str) -> ProductInfo:
         '''
         获取品种信息
-        @code   合约代码，格式如SHFE.rb.HOT
+        @code   合约代码,格式如SHFE.rb.HOT
         '''
         return self.productMgr.getProductInfo(code)
 
     def getContractInfo(self, code:str) -> ContractInfo:
         '''
         获取品种信息
-        @code   合约代码，格式如SHFE.rb.HOT
+        @code   合约代码,格式如SHFE.rb.HOT
         '''
-        return self.contractMgr.getContractInfo(code)
+        return self.contractMgr.getContractInfo(code, self.trading_day)
 
     def getAllCodes(self) -> list:
         '''
         获取全部合约代码
         '''
-        return self.contractMgr.getTotalCodes()
+        return self.contractMgr.getTotalCodes(self.trading_day)
 
     def getRawStdCode(self, stdCode:str):
         '''
@@ -348,21 +350,21 @@ class WtBtEngine:
         根据品种id获取对应合约代码
         @stdPID 品种代码, 格式如SHFE.rb
         '''
-        return self.contractMgr.getCodesByProduct(stdPID)
+        return self.contractMgr.getCodesByProduct(stdPID, self.trading_day)
     
     def getCodesByUnderlying(self, underlying:str) -> list:
         '''
         根据underlying获取对应合约代码
         @underlying 品种代码, 格式如SHFE.rb2305
         '''
-        return self.contractMgr.getCodesByUnderlying(underlying)
+        return self.contractMgr.getCodesByUnderlying(underlying, self.trading_day)
 
     def set_time_range(self, beginTime:int, endTime:int):
         '''
         设置回测时间
         一般用于一个进程中多次回测的时候启动下一轮回测之前重设之间范围
-        @beginTime  开始时间，格式如yyyymmddHHMM
-        @endTime    结束时间，格式如yyyymmddHHMM
+        @beginTime  开始时间,格式如yyyymmddHHMM
+        @endTime    结束时间,格式如yyyymmddHHMM
         '''
         self.__wrapper__.set_time_range(beginTime, endTime)
 
@@ -371,7 +373,7 @@ class WtBtEngine:
         添加CTA策略
         @strategy   策略对象
         @slippage   滑点大小
-        @hook       是否安装钩子，主要用于单步控制重算
+        @hook       是否安装钩子,主要用于单步控制重算
         @persistData    回测生成的数据是否落地, 默认为True
         @incremental    是否增量回测, 默认为False, 如果为True, 则会自动根据策略ID到output_bt目录下加载对应的数据
         @isRatioSlp     滑点是否是比例, 默认为False, 如果为True, 则slippage为万分比
@@ -383,7 +385,7 @@ class WtBtEngine:
         '''
         添加HFT策略
         @strategy   策略对象
-        @hook       是否安装钩子，主要用于单步控制重算
+        @hook       是否安装钩子,主要用于单步控制重算
         '''
         ctxid = self.__wrapper__.init_hft_mocker(strategy.name(), hook)
         self.__context__ = HftContext(ctxid, strategy, self.__wrapper__, self)
@@ -410,9 +412,9 @@ class WtBtEngine:
         '''
         运行框架
 
-        @bAsync 是否异步运行，默认为false。如果不启动异步模式，则强化学习的训练环境也不能生效，即使策略下了钩子
+        @bAsync 是否异步运行,默认为false。如果不启动异步模式,则强化学习的训练环境也不能生效,即使策略下了钩子
         '''
-        if not self.__cfg_commited__:   #如果配置没有提交，则自动提交一下
+        if not self.__cfg_commited__:   #如果配置没有提交,则自动提交一下
             self.commitBTConfig()
 
         self.__wrapper__.run_backtest(bNeedDump = bNeedDump, bAsync = bAsync)
@@ -421,7 +423,7 @@ class WtBtEngine:
         '''
         CTA策略单步执行
 
-        @remark 单步备注信息，没有实际作用，主要用于外部调用区分步骤
+        @remark 单步备注信息,没有实际作用,主要用于外部调用区分步骤
         '''
         return self.__wrapper__.cta_step(self.__context__.id)
 
@@ -450,6 +452,7 @@ class WtBtEngine:
         return
 
     def on_session_begin(self, date:int):
+        self.trading_day = date
         return
 
     def on_session_end(self, date:int):
@@ -463,6 +466,6 @@ class WtBtEngine:
 
     def clear_cache(self):
         '''
-        清除缓存的数据，即加已经加载到内存中的数据全部清除
+        清除缓存的数据,即加已经加载到内存中的数据全部清除
         '''
         self.__wrapper__.clear_cache()

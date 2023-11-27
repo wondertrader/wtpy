@@ -25,13 +25,15 @@ class CtaContext:
         self.__engine__ = engine          #交易环境
         self.__pos_cache__ = None
 
-        self.is_backtest = self.__engine__.is_backtest
-
         self.__alias__()
 
     @property
     def id(self):
         return self.__id__
+    
+    @property
+    def is_backtest(self):
+        return self.__engine__.is_backtest
     
     def __alias__(self):
         '''
@@ -67,6 +69,7 @@ class CtaContext:
         self.prepare_bars = self.stra_prepare_bars
         self.set_position = self.stra_set_position
         self.sub_ticks = self.stra_sub_ticks
+        self.sub_bar_events = self.stra_sub_bar_events
         pass
 
     def write_indicator(self, tag:str, time:int, data:dict):
@@ -128,9 +131,7 @@ class CtaContext:
         '''
         tick回调事件响应
         '''
-        if stdCode in self.__tick_cache__:
-            self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_dict)
-            return
+        self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_dict)
 
     def on_bar(self, stdCode:str, period:str, newBar:POINTER(WTSBarStruct)):
         '''
@@ -296,6 +297,14 @@ class CtaContext:
         @stdCode   合约代码
         '''
         self.__wrapper__.cta_sub_ticks(self.__id__, stdCode)
+
+    def stra_sub_bar_events(self, stdCode:str, perriod:str):
+        '''
+        订阅K线事件, 订阅以后on_bar会触发, 一般在on_init调用
+        @stdCode    合约代码
+        @period     K线周期, 如m3/d7
+        '''
+        self.__wrapper__.cta_sub_bar_events(self.__id__, stdCode, perriod)
 
     def stra_get_position(self, stdCode:str, bonlyvalid:bool = False, usertag:str = "") -> float:
         '''

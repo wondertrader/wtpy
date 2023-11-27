@@ -1,6 +1,9 @@
 from wtpy import WtEngine,EngineType
+from wtpy import BaseExtExecuter
 
 import sys
+import time
+
 sys.path.append('../Strategies')
 from DualThrust import StraDualThrust
 
@@ -28,8 +31,13 @@ if __name__ == "__main__":
 
     # 注册外部执行器
     myExecuter = MyExecuter('exec', 1)
-    engine.add_exetended_executer(myExecuter)
+    env.add_exetended_executer(myExecuter)
 
     env.run()
 
-    kw = input('press any key to exit\n')
+    print('press ctrl-c to exit')
+    try:
+    	while True:
+            time.sleep(1)
+    except KeyboardInterrupt as e:
+    	exit(0)
