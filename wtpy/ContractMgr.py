@@ -17,6 +17,7 @@ class ContractInfo:
         self.underlying:str = ''        # underlying
         self.strikePrice:float = 0      # 行权价
         self.underlyingScale:float = 0  # 放大倍数
+        self.isCall:bool = True         # 是否看涨期权
 
         self.openDate:int = 19000101    # 上市日期
         self.expireDate:int = 20991231  # 到期日
@@ -73,9 +74,12 @@ class ContractMgr:
                     cInfo.product = cObj["product"]                    
                     #股票标准代码为SSE.000001，期货标准代码为SHFE.rb.2010
                     if cInfo.code[:len(cInfo.product)] == cInfo.product:
-                        cInfo.stdCode = exchg + "." + cInfo.product + "." + cInfo.code[len(cInfo.product):]
+                        month = cInfo.code[len(cInfo.product):]
+                        if len(month) < 4:
+                            month = "2" + month
+                        cInfo.stdCode = exchg + "." + cInfo.product + "." + month
                     else:
-                        cInfo.stdCode = exchg + "." + cInfo.code
+                        cInfo.stdCode = exchg + "." + cInfo.product + "." + cInfo.code
 
                     stdPID = exchg + "." + cInfo.product
                     if stdPID not in self.__products__:
@@ -103,13 +107,12 @@ class ContractMgr:
                 if "option" in cObj:
                     oObj = cObj["option"]
                     cInfo.isOption = True
+                    cInfo.isCall = (int(oObj["optiontype"])==49)
                     cInfo.underlying = oObj["underlying"]
                     cInfo.strikePrice = float(oObj["strikeprice"])
                     cInfo.underlyingScale = float(oObj["underlyingscale"])
 
-
-                key = "%s.%s" % (exchg, code)
-                self.__contracts__[key] = cInfo
+                self.__contracts__[cInfo.stdCode] = cInfo
                 if cInfo.isOption:
                     stdUnderlying = f"{exchg}.{cInfo.underlying}"
                     if stdUnderlying not in self.__underlyings__:
@@ -122,12 +125,6 @@ class ContractMgr:
         获取合约信息
         @stdCode    合约代码，格式如SHFE.rb.2305
         '''
-        if stdCode[-1] == '+' or stdCode[-1] == '-':
-            stdCode = stdCode[:-1]
-        else:
-            items = stdCode.split(".")
-            if len(items) == 3:
-                stdCode = items[0] + "." + items[1] + items[2]
         if stdCode not in self.__contracts__:
             return None
             
