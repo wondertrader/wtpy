@@ -15,12 +15,6 @@ CB_DTHELPER_BAR = CFUNCTYPE(c_void_p,  POINTER(WTSBarStruct), c_uint32, c_bool)
 
 CB_DTHELPER_COUNT = CFUNCTYPE(c_void_p,  c_uint32)
 
-def on_log_output(message:str):
-    message = bytes.decode(message, 'gbk')
-    logging.info(message)
-
-cb_dthelper_log = CB_DTHELPER_LOG(on_log_output)
-
 @singleton
 class WtDataHelper:
     '''
@@ -39,12 +33,12 @@ class WtDataHelper:
         _path = os.path.join(*a)
         self.api = cdll.LoadLibrary(_path)
         
-        self.cb_dthelper_log = CB_DTHELPER_LOG(on_log_output)
+        self.cb_dthelper_log = CB_DTHELPER_LOG(self.on_log_output)
         self.api.resample_bars.argtypes = [c_char_p, CB_DTHELPER_BAR, CB_DTHELPER_COUNT, c_uint64, c_uint64, c_char_p, c_uint32, c_char_p, CB_DTHELPER_LOG]
 
-    def on_log_output(message:str):
-        message = bytes.decode(message, 'gbk')
-        print(message)
+    def on_log_output(self, message:str):
+        message = bytes.decode(message, 'utf-8')
+        logging.info(message)
 
     def dump_bars(self, binFolder:str, csvFolder:str, strFilter:str=""):
         '''
