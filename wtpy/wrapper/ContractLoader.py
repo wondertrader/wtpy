@@ -9,14 +9,11 @@ class LoaderType(Enum):
     枚举变量
     '''
     LT_CTP      = 1
-    LT_CTPMini  = 2
-    LT_CTPOpt   = 3
+    LT_CTPOpt   = 2
 
 def getModuleName(lType:LoaderType)->str:
     if lType == LoaderType.LT_CTP:
         filename = "CTPLoader"
-    elif lType == LoaderType.LT_CTPMini:
-        filename = "MiniLoader"
     elif lType == LoaderType.LT_CTPOpt:
         filename = "CTPOptLoader"
     else:
