@@ -350,6 +350,30 @@ class HftContext:
         '''
         self.__wrapper__.hft_sub_ticks(self.__id__, stdCode)
 
+    def stra_sub_order_queue(self, stdCode:str):
+        '''
+        订阅实时委托队列数据
+        @id         策略ID
+        @stdCode    品种代码
+        '''
+        self.__wrapper__.hft_sub_order_queue(self.__id__, stdCode)
+        
+    def stra_sub_order_detail(self, stdCode:str):
+        '''
+        订阅逐笔委托数据
+        @id         策略ID
+        @stdCode    品种代码
+        '''
+        self.__wrapper__.hft_sub_order_detail(self.__id__, stdCode)
+        
+    def stra_sub_transaction(self, stdCode:str):
+        '''
+        订阅逐笔成交数据
+        @id         策略ID
+        @stdCode    品种代码
+        '''
+        self.__wrapper__.hft_sub_transaction(self.__id__, stdCode)
+
     def stra_cancel(self, localid:int):
         '''
         撤销指定订单
