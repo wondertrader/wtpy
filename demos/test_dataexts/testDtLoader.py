@@ -44,8 +44,8 @@ class MyDataLoader(BaseExtDataLoader):
 
         df.apply(assign, buffer=buffer)
         print(df)
-        print(buffer[0].to_dict)
-        print(buffer[-1].to_dict)
+        print(buffer[0].to_dict())
+        print(buffer[-1].to_dict())
 
         feeder(buffer, len(df))
         return True

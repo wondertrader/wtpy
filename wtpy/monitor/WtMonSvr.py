@@ -431,7 +431,7 @@ class WtMonSvr(WatcherSink):
                     "message": "Data not found"
                 }
             else:
-                bar_list = [curBar.to_dict for curBar in bars]
+                bar_list = [curBar.to_dict() for curBar in bars]
 
                 ret = {
                     "result": 0,

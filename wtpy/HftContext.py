@@ -70,24 +70,42 @@ class HftContext:
         '''
         tick回调事件响应
         '''
-        self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_dict)
+        self.__stra_info__.on_tick(self, stdCode, newTick.contents.to_dict())
 
     def on_order_queue(self, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct)):
-        self.__stra_info__.on_order_queue(self, stdCode, newOrdQue.contents.to_tuple())
+        '''
+        委托队列回调事件响应
+        '''
+        self.__stra_info__.on_order_queue(self, stdCode, newOrdQue.contents.to_dict())
 
     def on_get_order_queue(self, stdCode:str, newOdrQues:WtNpOrdQueues):
+        '''
+        委托队列数据获取事件响应
+        '''
         self.__ordque_cache__[stdCode] = newOdrQues
 
     def on_order_detail(self, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct)):
-        self.__stra_info__.on_order_detail(self, stdCode, newOrdDtl.contents.to_tuple())
+        '''
+        逐笔委托回调事件响应
+        '''
+        self.__stra_info__.on_order_detail(self, stdCode, newOrdDtl.contents.to_dict())
 
     def on_get_order_detail(self, stdCode:str, newOrdDtls:WtNpOrdDetails):
+        '''
+        逐笔委托数据获取事件响应
+        '''
         self.__orddtl_cache__[stdCode] = newOrdDtls
 
     def on_transaction(self, stdCode:str, newTrans:POINTER(WTSTransStruct)):
-        self.__stra_info__.on_transaction(self, stdCode, newTrans.contents.to_tuple())
+        '''
+        逐笔成交回调事件响应
+        '''
+        self.__stra_info__.on_transaction(self, stdCode, newTrans.contents.to_dict())
 
     def on_get_transaction(self, stdCode:str, newTranses:WtNpTransactions):
+        '''
+        逐笔成交数据获取事件响应
+        '''
         key = stdCode
         self.__trans_cache__[key] = newTranses
 
@@ -123,7 +141,7 @@ class HftContext:
             return
         
         try:
-            self.__stra_info__.on_bar(self, stdCode, period, newBar.contents.to_dict)
+            self.__stra_info__.on_bar(self, stdCode, period, newBar.contents.to_dict())
         except ValueError as ve:
             print(ve)
         else:
