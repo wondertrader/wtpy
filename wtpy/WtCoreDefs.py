@@ -337,7 +337,7 @@ class WTSOrdQueStruct(WTSStruct):
                 self.price,
                 self.order_items,
                 self.qsize
-            ) + tuple(self.bidorder)
+            ) + tuple(self.volumes)
 
 class WTSOrdDtlStruct(WTSStruct):
     '''
