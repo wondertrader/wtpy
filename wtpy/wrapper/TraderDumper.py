@@ -92,13 +92,13 @@ class TraderDumper:
         self.__check_config__()
 
         if contractfile is not None:
-            self.__config__["replayer"]["basefiles"]["contract"] = folder + contractfile
+            self.__config__["basefiles"]["contract"] = folder + contractfile
         
         if sessionfile is not None:
-            self.__config__["replayer"]["basefiles"]["session"] = folder + sessionfile
+            self.__config__["basefiles"]["session"] = folder + sessionfile
 
         if commfile is not None:
-            self.__config__["replayer"]["basefiles"]["commodity"] = folder + commfile
+            self.__config__["basefiles"]["commodity"] = folder + commfile
 
     def __commit__(self):
         content = json.dumps(self.__config__, indent=4)
