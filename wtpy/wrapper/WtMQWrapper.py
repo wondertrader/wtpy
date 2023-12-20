@@ -18,12 +18,18 @@ class WtMQWrapper:
     ver = "Unknown"
     
     # 构造函数，传入动态库名
-    def __init__(self, mgr):
-        self._mgr = mgr
-        paths = os.path.split(__file__)
+    def __init__(self, logger = None):
+        self._logger = logger
         dllname = ph.getModule("WtMsgQue")
-        a = (paths[:-1] + (dllname,))
-        _path = os.path.join(*a)
+
+        # 如果工作目录下有，则优先使用工作目录下的
+        cwd = os.getcwd()
+        _path = os.path.join(cwd, dllname)
+
+        if not os.path.exists(_path):
+            paths = os.path.split(__file__)
+            a = (paths[:-1] + (dllname,))
+            _path = os.path.join(*a)
         self.api = cdll.LoadLibrary(_path)
 
         self._cb_log = CB_ON_LOG(self.on_mq_log)
@@ -33,10 +39,14 @@ class WtMQWrapper:
         self.api.create_server.restype = c_ulong
 
     def on_mq_log(self, id:int, message:str, bServer:bool):
-        print(message.decode())
+        message = bytes.decode(message)
+        if self._logger is not None:
+            self._logger.info(message)
+        else:
+            print(message)
 
     def create_server(self, url:str):
-        return self.api.create_server(bytes(url, 'utf-8'))
+        return self.api.create_server(bytes(url, 'utf-8'), False)
 
     def destroy_server(self, id:int):
         self.api.destroy_server(id)

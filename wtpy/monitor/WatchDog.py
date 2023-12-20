@@ -10,6 +10,7 @@ import psutil
 
 from .EventReceiver import EventReceiver, EventSink
 from .WtLogger import WtLogger
+from wtpy import WtMsgQue
 
 from enum import Enum
 
@@ -360,6 +361,8 @@ class WatchDog:
         self.__worker__ = None
         self.__sinks__ = sink
         self.__logger__ = logger
+
+        mq = WtMsgQue(logger)
 
         #加载调度列表
         cur = self.__db_conn__.cursor()

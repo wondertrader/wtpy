@@ -3,8 +3,6 @@ import chardet
 
 from wtpy import WtMsgQue, WtMQClient
 
-mq = WtMsgQue()
-
 TOPIC_RT_TRADE = "TRD_TRADE"    # 生产环境下的成交通知
 TOPIC_RT_ORDER = "TRD_ORDER"    # 生产环境下的订单通知
 TOPIC_RT_NOTIFY = "TRD_NOTIFY"  # 生产环境下的普通通知
@@ -46,6 +44,7 @@ class EventReceiver(WtMQClient):
     def __init__(self, url:str, topics:list = [], sink:EventSink = None, logger = None):
         self.url = url
         self.logger = logger
+        mq = WtMsgQue(logger)
         mq.add_mq_client(url, self)
         for topic in topics:
             self.subscribe(topic)

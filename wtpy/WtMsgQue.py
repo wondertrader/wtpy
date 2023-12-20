@@ -42,10 +42,11 @@ class WtMQClient:
 @singleton
 class WtMsgQue:
 
-    def __init__(self) -> None:
+    def __init__(self, logger = None) -> None:
         self._servers = dict()
         self._clients = dict()
-        self._wrapper = WtMQWrapper(self)
+        self._logger = logger
+        self._wrapper = WtMQWrapper(logger)
 
         self._cb_msg = CB_ON_MSG(self.on_mq_message)
 
@@ -58,6 +59,7 @@ class WtMsgQue:
     def on_mq_message(self, client_id:int, topic:str, message:str, dataLen:int):
         client = self.get_client(client_id)
         if client is None:
+            print(f"WtMsgQue: client {client_id} not found")
             return
 
         client.on_mq_message(topic, message, dataLen)
