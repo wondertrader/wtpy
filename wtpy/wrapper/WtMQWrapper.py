@@ -21,15 +21,9 @@ class WtMQWrapper:
     def __init__(self, logger = None):
         self._logger = logger
         dllname = ph.getModule("WtMsgQue")
-
-        # 如果工作目录下有，则优先使用工作目录下的
-        cwd = os.getcwd()
-        _path = os.path.join(cwd, dllname)
-
-        if not os.path.exists(_path):
-            paths = os.path.split(__file__)
-            a = (paths[:-1] + (dllname,))
-            _path = os.path.join(*a)
+        paths = os.path.split(__file__)
+        a = (paths[:-1] + (dllname,))
+        _path = os.path.join(*a)
         self.api = cdll.LoadLibrary(_path)
 
         self._cb_log = CB_ON_LOG(self.on_mq_log)
