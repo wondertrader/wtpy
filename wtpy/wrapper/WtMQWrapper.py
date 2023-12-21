@@ -35,7 +35,7 @@ class WtMQWrapper:
         self._cb_log = CB_ON_LOG(self.on_mq_log)
         self.api.regiter_callbacks(self._cb_log)
 
-        self.api.create_server.argtypes = [c_char_p]
+        self.api.create_server.argtypes = [c_char_p, c_bool]
         self.api.create_server.restype = c_ulong
 
     def on_mq_log(self, id:int, message:str, bServer:bool):
@@ -46,7 +46,7 @@ class WtMQWrapper:
             print(message)
 
     def create_server(self, url:str):
-        return self.api.create_server(bytes(url, 'utf-8'), False)
+        return self.api.create_server(bytes(url, 'utf-8'), True)
 
     def destroy_server(self, id:int):
         self.api.destroy_server(id)
