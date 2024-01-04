@@ -52,9 +52,9 @@ class Ifeed(object):
             curBar.high = float(row["high"])
             curBar.low = float(row["low"])
             curBar.close = float(row["close"])
-            curBar.vol = float(row["vol"])
-            curBar.money = float(row["money"])
-            curBar.hold = float(row["hold"])
+            curBar.volume = float(row["volume"])
+            curBar.turnover = float(row["turnover"])
+            curBar.open_interest = float(row["open_interest"])
         return buffer
     
     def cover_m_bar(self,df):
@@ -68,9 +68,9 @@ class Ifeed(object):
             curBar.high = float(row["high"])
             curBar.low = float(row["low"])
             curBar.close = float(row["close"])
-            curBar.vol = float(row["vol"])
-            curBar.money = float(row["money"])
-            curBar.hold = float(row["hold"])
+            curBar.volume = float(row["volume"])
+            curBar.turnover = float(row["turnover"])
+            curBar.open_interest = float(row["open_interest"])
         return buffer
         
     def cover_tick(self,df):
@@ -193,9 +193,9 @@ class RqFeed(Ifeed):
             "high":"high",
             "low":"low",
             "close":"close",
-            "total_turnover":"money",
-            "volume":"vol",
-            "open_interest":"hold",
+            "total_turnover":"turnover",
+            "volume":"volume",
+            "open_interest":"open_interest",
         }
         self.tick_col_map = {
             "code":"code",

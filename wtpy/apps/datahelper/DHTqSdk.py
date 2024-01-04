@@ -264,10 +264,10 @@ class DHTqSdk(BaseDataHelper):
                 curBar.high = row["high"]
                 curBar.low = row["low"]
                 curBar.close = row["close"]
-                curBar.vol = row["volume"]
-                # curBar.money = None
+                curBar.volume = row["volume"]
+                # curBar.turnover = None
                 # if "open_interest" in row:
-                #     curBar.hold = row["open_interest"]
+                #     curBar.open_interest = row["open_interest"]
                 cur_num += 1
                 if cur_num % 500 == 0:
                     logging.info("Processing bars %d/%d..." % (cur_num, total_nums))

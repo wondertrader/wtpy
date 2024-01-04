@@ -239,9 +239,9 @@ class WTSBarStruct(WTSStruct):
                 ("low", c_double),
                 ("close", c_double),
                 ("settle", c_double),
-                ("money", c_double),
-                ("vol", c_double),
-                ("hold", c_double),
+                ("turnover", c_double),
+                ("volume", c_double),
+                ("open_interest", c_double),
                 ("diff", c_double)]
     _pack_ = 8
 
@@ -265,9 +265,9 @@ class WTSBarStruct(WTSStruct):
                 self.low,
                 self.close,
                 self.settle,
-                self.money,
-                self.vol,
-                self.hold,
+                self.turnover,
+                self.volume,
+                self.open_interest,
                 self.diff)
 
 class WTSTransStruct(WTSStruct):

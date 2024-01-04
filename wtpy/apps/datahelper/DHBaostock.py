@@ -367,16 +367,16 @@ class DHBaostock(BaseDataHelper):
                     curBar.high = to_float(items[2])
                     curBar.low = to_float(items[3])
                     curBar.close = to_float(items[4])
-                    curBar.vol = to_float(items[5].strip())
-                    curBar.money = to_float(items[6])
+                    curBar.volume = to_float(items[5].strip())
+                    curBar.turnover = to_float(items[6])
                 else:
                     curBar.time = int(items[1][-9:-5]) + (curBar.date-19900000)*10000
                     curBar.open = to_float(items[2])
                     curBar.high = to_float(items[3])
                     curBar.low = to_float(items[4])
                     curBar.close = to_float(items[5])
-                    curBar.vol = to_float(items[6])
-                    curBar.money = to_float(items[7])
+                    curBar.volume = to_float(items[6])
+                    curBar.turnover = to_float(items[7])
                 bastList.append(curBar)
             
             from ctypes import addressof
@@ -391,7 +391,7 @@ class DHBaostock(BaseDataHelper):
                 curBar.high = srcBar.high
                 curBar.low = srcBar.low
                 curBar.close = srcBar.close
-                curBar.vol = srcBar.vol
-                curBar.money = srcBar.money
+                curBar.volume = srcBar.volume
+                curBar.turnover = srcBar.turnover
             cb(exchg, code[3:], buffer, len(bastList), period)
                 

@@ -670,7 +670,7 @@ class WtBtMon(BtTaskSink):
                     bar["high"] = realBar.high
                     bar["low"] = realBar.low
                     bar["close"] = realBar.close
-                    bar["volume"] = realBar.vol
+                    bar["volume"] = realBar.volume
                 bars.append(bar)
             thisBts[btid]["kline"] = bars
 
