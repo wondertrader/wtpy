@@ -247,10 +247,9 @@ class WtWrapper:
         stdCode = bytes.decode(stdCode)
         engine = self._engine
         ctx = engine.get_context(id)
-        newOrdQue = newOrdQue.contents
 
         if ctx is not None:
-            ctx.on_order_queue(stdCode, newOrdQue.to_tuple())
+            ctx.on_order_queue(stdCode, newOrdQue)
 
     def on_hftstra_get_order_queue(self, id:int, stdCode:str, newOrdQue:POINTER(WTSOrdQueStruct), count:int, isLast:bool):
         engine = self._engine
@@ -264,10 +263,9 @@ class WtWrapper:
     def on_hftstra_order_detail(self, id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct)):
         engine = self._engine
         ctx = engine.get_context(id)
-        newOrdDtl = newOrdDtl.contents
         
         if ctx is not None:
-            ctx.on_order_detail(stdCode, newOrdDtl.to_tuple())
+            ctx.on_order_detail(stdCode, newOrdDtl)
 
     def on_hftstra_get_order_detail(self, id:int, stdCode:str, newOrdDtl:POINTER(WTSOrdDtlStruct), count:int, isLast:bool):
         engine = self._engine
@@ -282,10 +280,9 @@ class WtWrapper:
     def on_hftstra_transaction(self, id:int, stdCode:str, newTrans:POINTER(WTSTransStruct)):
         engine = self._engine
         ctx = engine.get_context(id)
-        newTrans = newTrans.contents
         
         if ctx is not None:
-            ctx.on_transaction(stdCode, newTrans.to_tuple())
+            ctx.on_transaction(stdCode, newTrans)
         
     def on_hftstra_get_transaction(self, d:int, stdCode:str, newTrans:POINTER(WTSTransStruct), count:int, isLast:bool):
         engine = self._engine

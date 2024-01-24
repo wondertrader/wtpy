@@ -253,8 +253,7 @@ class WtBtWrapper:
         stdCode = bytes.decode(stdCode)
         engine = self._engine
         ctx = engine.get_context(id)
-
-        newOrdQue = newOrdQue.contents        
+      
         if ctx is not None:
             ctx.on_order_queue(stdCode, newOrdQue.to_tuple())
 
@@ -272,8 +271,6 @@ class WtBtWrapper:
         stdCode = bytes.decode(stdCode)
         engine = self._engine
         ctx = engine.get_context(id)
-
-        newOrdDtl = newOrdDtl.contents
         
         if ctx is not None:
             ctx.on_order_detail(stdCode, newOrdDtl.to_tuple())
@@ -292,7 +289,6 @@ class WtBtWrapper:
         stdCode = bytes.decode(stdCode)
         engine = self._engine
         ctx = engine.get_context(id)
-        newTrans = newTrans.contents
         
         if ctx is not None:
             ctx.on_transaction(stdCode, newTrans.to_tuple())

@@ -29,8 +29,8 @@ def test_store_bars():
 
     df.apply(assign, buffer=buffer)
     print(df)
-    print(buffer[0].to_dict)
-    print(buffer[-1].to_dict)
+    print(buffer[0].to_dict())
+    print(buffer[-1].to_dict())
 
     dtHelper.store_bars(barFile="./CFFEX.IF.HOT_m5.bin", firstBar=buffer, count=len(df), period="m5")
     
