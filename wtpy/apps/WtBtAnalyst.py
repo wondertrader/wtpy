@@ -1181,8 +1181,7 @@ def output_closes(workbook:Workbook, df_closes:df, capital = 500000):
     df_closes["total_profit_ratio"] = df_closes["totalprofit"]*100/capital
     df_closes["max_profit_ratio"] = df_closes["maxprofit"]*100/capital
     df_closes["max_loss_ratio"] = df_closes["maxloss"]*100/capital
-    df_closes['direct'].replace('SHORT', '空', inplace=True)
-    df_closes['direct'].replace('LONG', '多', inplace=True)
+    df_closes['direct'] = df_closes['direct'].apply(lambda x : '多' if x=='LONG' else '空' if x=='SHORT' else x)
 
     worksheet.write_column('A4', df_closes.index+1, value_format)
     worksheet.write_column('B4', df_closes['code'], value_format)
