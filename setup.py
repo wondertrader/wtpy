@@ -1,68 +1,41 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Note: To use the 'upload' functionality of this file, you must:
-#   $ pipenv install twine --dev
-
 import io
 import os
 import sys
 from shutil import rmtree
 
-from setuptools import find_packages, setup, Command, Distribution
+from setuptools import setup, Command, Distribution
 
-# Package meta-data.
 NAME = 'wtpy'
 DESCRIPTION = 'Python Sub Framework Of WonderTrader'
 URL = 'https://github.com/wondertrader/wtpy'
 EMAIL = 'silencesword@foxmail.com'
 AUTHOR = 'Wesley Liu'
-REQUIRES_PYTHON = '>=3.8.0'
+REQUIRES_PYTHON = '>=3.6.0'
 VERSION = '0.9.9.2'
 
-# What packages are required for this module to be executed?
 REQUIRED = [
     'numpy', 
-    'pandas==1.3.5',     
+    'pandas',
     'chardet',
     'pyyaml',
-    'xlsxwriter', 
-    'pyquery', 
-    'psutil', 
-    'fastapi',
-    'uvicorn',
-    'deap',
-    'websockets>=10.4'
+    'deap'
 ]
 
-# What packages are optional?
-EXTRAS = {
-    # 'fancy feature': ['django'],
-}
-
-# The rest you shouldn't have to touch too much :)
-# ------------------------------------------------
-# Except, perhaps the License and Trove Classifiers!
-# If you do change the License, remember to change the Trove Classifier for that!
+EXTRAS = {}
 
 here = os.path.abspath(os.path.dirname(__file__))
 
-# Import the README and use it as the long-description.
-# Note: this will only work if 'README.md' is present in your MANIFEST.in file!
 try:
     with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
         long_description = '\n' + f.read()
 except FileNotFoundError:
     long_description = DESCRIPTION
 
-# Load the package's __version__.py module as a dictionary.
 about = {}
-if not VERSION:
-    project_slug = NAME.lower().replace("-", "_").replace(" ", "_")
-    with open(os.path.join(here, project_slug, '__version__.py')) as f:
-        exec(f.read(), about)
-else:
-    about['__version__'] = VERSION
+about['__version__'] = VERSION
     
 class BinaryDistribution(Distribution):
     """Distribution which always forces a binary package with platform name"""
@@ -117,13 +90,7 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=find_packages(),
-    # If your package is a single module, use this instead of 'packages':
-    #py_modules=['wtpy'],
-
-    # entry_points={
-    #     'console_scripts': ['mycli=mymodule:cli'],
-    # },
+    packages=['wtpy'],
     install_requires=REQUIRED,
     package_data={"": [
         "*"
@@ -132,16 +99,13 @@ setup(
     include_package_data=True,
     license='MIT',
     classifiers=[
-        # Trove classifiers
-        # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
-    # $ setup.py publish support.
     cmdclass={
-        'upload': UploadCommand,
-    },
+        'upload': UploadCommand
+    }
 )
