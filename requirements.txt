@@ -2,4 +2,11 @@ numpy
 pandas
 chardet
 pyyaml
+pyquery
+xlsxwriter
 deap
+psutil
+fastapi
+uvicorn
+itsdangerous
+websockets>=9.1

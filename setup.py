@@ -13,7 +13,7 @@ DESCRIPTION = 'Python Sub Framework Of WonderTrader'
 URL = 'https://github.com/wondertrader/wtpy'
 EMAIL = 'silencesword@foxmail.com'
 AUTHOR = 'Wesley Liu'
-REQUIRES_PYTHON = '>=3.6.0'
+REQUIRES_PYTHON = '>=3.7.0'
 VERSION = '0.9.9.2'
 
 REQUIRED = [
@@ -21,7 +21,14 @@ REQUIRED = [
     'pandas',
     'chardet',
     'pyyaml',
-    'deap'
+    'pyquery',      # WtHotPicker引用的模块
+    'xlsxwriter',   # WtBtAnalyst引用的模块
+    'deap',         # WtCtaGAOptimizer引用的模块
+    'psutil',       # WatchDog引用的模块
+    'fastapi',      # WtMonSvr引用的模块
+    'uvicorn',      # WtMonSvr引用的模块
+    'itsdangerous', # WtMonSvr引用的模块
+    'websockets>=9.1'    # WtMonSvr引用的模块
 ]
 
 EXTRAS = {}
