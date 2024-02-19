@@ -63,7 +63,7 @@ def check_table(pool:ddb.DBConnectionPool):
         ft = table(1:0, sch.name, sch.type)
         db.createPartitionedTable(table=ft, tableName=tbName, partitionColumns=
             ["trading_date", "code"], sortColumns=
-            ["exchange","code", "period","bartime"], keepDuplicates=ALL)
+            ["exchange","code", "period","bartime"], keepDuplicates=LAST)
     }
     '''
     pool.runTaskAsync(script=script_kline)
@@ -130,7 +130,7 @@ def check_table(pool:ddb.DBConnectionPool):
 
         db.createPartitionedTable(table=ft, tableName=tbName, partitionColumns=
         ["trading_date", "code"], sortColumns=
-        ["exchange","code","action_time"], keepDuplicates=ALL)
+        ["exchange","code","action_time"], keepDuplicates=LAST)
     }
     '''
     pool.runTaskAsync(script_tick)

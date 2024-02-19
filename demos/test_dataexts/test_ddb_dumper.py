@@ -56,7 +56,7 @@ class DDBDumper(BaseExtDataDumper):
             ft = table(1:0, sch.name, sch.type)
             db.createPartitionedTable(table=ft, tableName=tbName, partitionColumns=
                 ["trading_date", "code"], sortColumns=
-                ["exchange","code", "period","bartime"], keepDuplicates=ALL)
+                ["exchange","code", "period","bartime"], keepDuplicates=LAST)
         }
         '''
         self.pool.runTaskAsync(script=script_kline)
@@ -123,7 +123,7 @@ class DDBDumper(BaseExtDataDumper):
 
             db.createPartitionedTable(table=ft, tableName=tbName, partitionColumns=
             ["trading_date", "code"], sortColumns=
-            ["exchange","code","action_time"], keepDuplicates=ALL)
+            ["exchange","code","action_time"], keepDuplicates=LAST)
         }
         '''
         self.pool.runTaskAsync(script_tick)

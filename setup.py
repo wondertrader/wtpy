@@ -14,7 +14,7 @@ URL = 'https://github.com/wondertrader/wtpy'
 EMAIL = 'silencesword@foxmail.com'
 AUTHOR = 'Wesley Liu'
 REQUIRES_PYTHON = '>=3.7.0'
-VERSION = '0.9.9.2'
+VERSION = '0.9.10'
 
 REQUIRED = [
     'numpy', 
