@@ -18,6 +18,9 @@ class WTSStruct(Structure):
         return tuple(getattr(self, i[0]) for i in self._fields_)
     
     @property
+    def dict(self) -> dict:
+        return {i[0]:getattr(self, i[0]) for i in self._fields_}
+    
     def to_dict(self) -> dict:
         return {i[0]:getattr(self, i[0]) for i in self._fields_}
 
