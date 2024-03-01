@@ -1,5 +1,5 @@
 traders:
--   active: true
+-   active: false
     id: simnow          # id
     module: TraderCTP   # 模块文件名，win下会自动转成xxx.dll，linux会自动转成libxxx.so
     savedata: true      # 是否保存数据，如果为true，会将接口拉取到的成交、订单、资金和持仓都写到本地文件中

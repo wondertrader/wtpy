@@ -4,7 +4,7 @@ import numpy as np
 
 class StraDualThrust(BaseCtaStrategy):
     
-    def __init__(self, name:str, code:str, barCnt:int, period:str, days:int, k1:float, k2:float, isForStk:bool = False):
+    def __init__(self, name:str, code:str, barCnt:int, period:str, days:int, k1:float, k2:float, isForStk:bool = False, useAdj:bool = False):
         BaseCtaStrategy.__init__(self, name)
 
         self.__days__ = days
@@ -17,16 +17,16 @@ class StraDualThrust(BaseCtaStrategy):
 
         self.__is_stk__ = isForStk
 
+        self.__use_adj__ = useAdj
+
     def on_init(self, context:CtaContext):
         code = self.__code__    #品种代码
-        if self.__is_stk__:
-            code = code + "-"   # 如果是股票代码，后面加上一个+/-，+表示后复权，-表示前复权
 
         #这里演示了品种信息获取的接口
         #pInfo = context.stra_get_comminfo(code)
         #print(pInfo)
 
-        context.stra_prepare_bars(code, self.__period__, self.__bar_cnt__, isMain = True)
+        context.stra_prepare_bars(code + ('+' if self.__use_adj__ else ''), self.__period__, self.__bar_cnt__, isMain = True)
         context.stra_sub_ticks(code)
         context.stra_log_text("DualThrust inited")
 
@@ -45,10 +45,11 @@ class StraDualThrust(BaseCtaStrategy):
             trdUnit = 100
 
         #读取最近50条1分钟线(dataframe对象)
-        theCode = code
-        if self.__is_stk__:
-            theCode = theCode + "-" # 如果是股票代码，后面加上一个+/-，+表示后复权，-表示前复权
-        np_bars = context.stra_get_bars(theCode, self.__period__, self.__bar_cnt__, isMain = True)
+        theCode = code + ('+' if self.__use_adj__ else '')
+        np_bars = context.stra_get_bars(theCode , self.__period__, self.__bar_cnt__, isMain = True)
+
+        if np_bars is None:
+            context.stra_log_text(f"Bars of {theCode} is None")
 
         #把策略参数读进来，作为临时变量，方便引用
         days = self.__days__
@@ -89,7 +90,7 @@ class StraDualThrust(BaseCtaStrategy):
         if curPos == 0:
             if highpx >= upper_bound:
                 context.stra_enter_long(code, 1*trdUnit, 'enterlong')
-                # context.stra_log_text(f"向上突破{highpx:.2f}>={upper_bound:.2f}，多仓进场")
+                context.stra_log_text(f"向上突破{highpx:.2f}>={upper_bound:.2f}，多仓进场")
                 #修改并保存
                 self.xxx = 1
                 context.user_save_data('xxx', self.xxx)
@@ -97,16 +98,16 @@ class StraDualThrust(BaseCtaStrategy):
 
             if lowpx <= lower_bound and not self.__is_stk__:
                 context.stra_enter_short(code, 1*trdUnit, 'entershort')
-                # context.stra_log_text(f"向下突破{lowpx:.2f}<={lower_bound:.2f}，空仓进场")
+                context.stra_log_text(f"向下突破{lowpx:.2f}<={lower_bound:.2f}，空仓进场")
                 return
         elif curPos > 0:
             if lowpx <= lower_bound:
                 context.stra_exit_long(code, 1*trdUnit, 'exitlong')
-                # context.stra_log_text(f"向下突破{lowpx:.2f}<={lower_bound:.2f}，多仓出场")
+                context.stra_log_text(f"向下突破{lowpx:.2f}<={lower_bound:.2f}，多仓出场")
                 #raise Exception("except on purpose")
                 return
         else:
             if highpx >= upper_bound and not self.__is_stk__:
                 context.stra_exit_short(code, 1*trdUnit, 'exitshort')
-                # context.stra_log_text(f"向上突破{highpx:.2f}>={upper_bound:.2f}，空仓出场")
+                context.stra_log_text(f"向上突破{highpx:.2f}>={upper_bound:.2f}，空仓出场")
                 return
