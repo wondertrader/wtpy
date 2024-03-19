@@ -25,13 +25,14 @@ NpTypeTick = np.dtype([('exchg','S16'),('code','S32'),('price','d'),('open','d')
                 ('ask_qty_5','d'),('ask_qty_6','d'),('ask_qty_7','d'),('ask_qty_8','d'),('ask_qty_9','d')])
 
 NpTypeTrans = np.dtype([('exchg','S16'),('code','S32'),('trading_date','u4'),('action_date','u4'),('action_time','u4'),\
-                ('index','i8'),('ttype','i4'),('side','i4'),('price','d'),('volume','u4'),('askorder', np.int64),('bidorder', np.int64)])
+                ('reserve1','u4'),('index','u8'),('ttype','i4'),('side','i4'),('price','d'),('volume','u4'),('reserve2','u4'),\
+                ('askorder', 'i8'),('bidorder', 'i8')])
 
 NpTypeOrdQue = np.dtype([('exchg','S16'),('code','S32'),('trading_date','u4'),('action_date','u4'),('action_time','u4'),\
-                ('side','u4'),('price','d'),('order_items','u4'),('qsize', np.int64),('volumes', np.uint32, 50)])
+                ('side','u4'),('price','d'),('order_items','u4'),('qsize', 'i8'),('volumes','u4', 50)])
 
 NpTypeOrdDtl = np.dtype([('exchg','S16'),('code','S32'),('trading_date','u4'),('action_date','u4'),('action_time','u4'),\
-                ('index','i8'),('price','d'),('volume','u4'),('side','u4'),('otype','u4')])
+                ('reserve1','u4'),('index','u8'),('price','d'),('volume','u4'),('side','u4'),('otype','u4'),('reserve2','u4')])
 
 class WtNpKline:
     '''
