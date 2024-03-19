@@ -6,7 +6,7 @@ import os
 import sys
 from shutil import rmtree
 
-from setuptools import setup, Command, Distribution
+from setuptools import setup, find_packages, Command, Distribution
 
 NAME = 'wtpy'
 DESCRIPTION = 'Python Sub Framework Of WonderTrader'
@@ -97,7 +97,7 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=['wtpy'],
+    packages=find_packages(),
     install_requires=REQUIRED,
     package_data={"": [
         "*"
