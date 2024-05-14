@@ -1,9 +1,10 @@
 import re
 
+
 class CodeHelper:
-    
+
     @staticmethod
-    def isStdChnFutOptCode(stdCode:str) -> bool:
+    def isStdChnFutOptCode(stdCode: str) -> bool:
         pattern = re.compile("^[A-Z]+.[A-z]+\\d{4}.(C|P).\\d+$")
         if re.match(pattern, stdCode) is not None:
             return True
@@ -11,7 +12,7 @@ class CodeHelper:
         return False
 
     @staticmethod
-    def stdCodeToStdCommID(stdCode:str) -> str:
+    def stdCodeToStdCommID(stdCode: str) -> str:
         ay = stdCode.split(".")
         if not CodeHelper.isStdChnFutOptCode(stdCode):
             return ay[0] + "." + ay[1]

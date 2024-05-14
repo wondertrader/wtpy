@@ -3,11 +3,13 @@ import json
 import yaml
 import chardet
 
+
 class SectionInfo:
 
     def __init__(self):
         self.stime = 0
         self.etime = 0
+
 
 class SessionInfo:
 
@@ -20,9 +22,9 @@ class SessionInfo:
         self.totalMins = 0
 
     def toString(self):
-        '''
+        """
         将SessionInfo转换成json字符串
-        '''
+        """
         obj = dict()
         obj["name"] = self.name
         obj["offset"] = self.offset
@@ -40,28 +42,27 @@ class SessionInfo:
 
         return json.dumps(obj, ensure_ascii=True)
 
-
-    def offsetTime(self, rawTime:int):
-        curMinute = math.floor(rawTime/100)*60 + rawTime%100
+    def offsetTime(self, rawTime: int):
+        curMinute = math.floor(rawTime / 100) * 60 + rawTime % 100
         curMinute += self.offset
         if curMinute >= 1440:
             curMinute -= 1440
         elif curMinute < 0:
             curMinute += 1440
-        
-        return math.floor(curMinute/60)*100 + curMinute%60
 
-    def originalTime(self, offTime:int):
-        curMinute = math.floor(offTime/100)*60 + offTime%100
+        return math.floor(curMinute / 60) * 100 + curMinute % 60
+
+    def originalTime(self, offTime: int):
+        curMinute = math.floor(offTime / 100) * 60 + offTime % 100
         curMinute -= self.offset
         if curMinute >= 1440:
             curMinute -= 1440
         elif curMinute < 0:
             curMinute += 1440
-        
-        return math.floor(curMinute/60)*100 + curMinute%60
 
-    def getOpenTime(self, bOffset:bool = False):
+        return math.floor(curMinute / 60) * 100 + curMinute % 60
+
+    def getOpenTime(self, bOffset: bool = False):
         if len(self.sections) == 0:
             return 0
 
@@ -71,7 +72,7 @@ class SessionInfo:
         else:
             return opentm
 
-    def getCloseTime(self, bOffset:bool = False):
+    def getCloseTime(self, bOffset: bool = False):
         if len(self.sections) == 0:
             return 0
 
@@ -84,58 +85,58 @@ class SessionInfo:
     def getTradingMins(self):
         if len(self.sections) == 0:
             return 0
-        
+
         if self.totalMins == 0:
             for sec in self.sections:
                 s = sec.stime
                 e = sec.etime
                 h = math.floor(e / 100) - math.floor(s / 100)
-                m = (e%100) - (s%100)
-                self.totalMins += (h*60 + m)
+                m = (e % 100) - (s % 100)
+                self.totalMins += (h * 60 + m)
         return self.totalMins
 
     def getTradingSecs(self):
-        return self.getTradingMins()*60
+        return self.getTradingMins() * 60
 
-    def getSectionIndex(self, rawTime:int) -> int:
+    def getSectionIndex(self, rawTime: int) -> int:
         offTime = self.offsetTime(rawTime)
 
         for idx in range(len(self.sections)):
             sec = self.sections[idx]
-            if sec.stime <= offTime and offTime <= sec.etime:
+            if sec.stime <= offTime <= sec.etime:
                 return idx
-        
+
         return -1
 
-    def isLastOfSection(self, rawTime:int):
+    def isLastOfSection(self, rawTime: int):
         offTime = self.offsetTime(rawTime)
 
         for sec in self.sections:
             if sec.etime == offTime:
                 return True
-        
+
         return False
 
-    def	isInTradingTime(self, rawTime:int, bStrict:bool = False):
+    def isInTradingTime(self, rawTime: int, bStrict: bool = False):
         mins = self.timeToMinutes(rawTime)
         if mins == -1:
             return False
 
         if bStrict and self.isLastOfSection(rawTime):
             return False
-            
+
         return True
 
-    def isFirstOfSection(self, rawTime:int):
+    def isFirstOfSection(self, rawTime: int):
         offTime = self.offsetTime(rawTime)
 
         for sec in self.sections:
             if sec.stime == offTime:
                 return True
-        
+
         return False
 
-    def timeToMinutes(self, rawTime:int):
+    def timeToMinutes(self, rawTime: int):
         if len(self.sections) == 0:
             return -1
 
@@ -144,30 +145,30 @@ class SessionInfo:
         bFound = False
         offset = 0
         for sec in self.sections:
-            if sec.stime <= offTime and offTime <= sec.etime:
+            if sec.stime <= offTime <= sec.etime:
                 hour = math.floor(offTime / 100) - math.floor(sec.stime / 100)
                 minute = offTime % 100 - sec.stime % 100
-                offset += hour*60 + minute
+                offset += hour * 60 + minute
                 bFound = True
                 break
             else:
                 hour = math.floor(sec.etime / 100) - math.floor(sec.stime / 100)
                 minute = sec.etime % 100 - sec.stime % 100
-                offset += hour*60 + minute
+                offset += hour * 60 + minute
 
         if not bFound:
             return -1
 
         return offset
 
-    def minutesToTime(self, minutes:int, bHeadFirst:bool = False):
+    def minutesToTime(self, minutes: int, bHeadFirst: bool = False):
         if len(self.sections) == 0:
             return -1
 
         offset = minutes
         for sec in self.sections:
-            startMin = math.floor(sec.stime / 100)*60 + sec.stime % 100
-            stopMin = math.floor(sec.etime / 100)*60 + sec.etime % 100
+            startMin = math.floor(sec.stime / 100) * 60 + sec.stime % 100
+            stopMin = math.floor(sec.etime / 100) * 60 + sec.etime % 100
 
             if not bHeadFirst:
                 if startMin + offset >= stopMin:
@@ -192,14 +193,14 @@ class SessionInfo:
 
         return self.getCloseTime()
 
+
 class SessionMgr:
 
     def __init__(self):
         self.__sessions__ = dict()
         return
 
-
-    def load(self, fname:str):
+    def load(self, fname: str):
         f = open(fname, 'rb')
         content = f.read()
         f.close()
@@ -210,7 +211,7 @@ class SessionMgr:
             sessions_dict = yaml.full_load(content)
         else:
             sessions_dict = json.loads(content)
-        for sid in sessions_dict:            
+        for sid in sessions_dict:
             if sid in self.__sessions__:
                 continue
 
@@ -232,8 +233,7 @@ class SessionMgr:
 
             self.__sessions__[sid] = sInfo
 
-
-    def getSession(self, sid:str) -> SessionInfo:
+    def getSession(self, sid: str) -> SessionInfo:
         if sid not in self.__sessions__:
             return None
 

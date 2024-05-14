@@ -1,21 +1,23 @@
 from ctypes import cdll, c_char_p, c_bool, POINTER
 from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
-from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, CB_PARSER_EVENT, CB_PARSER_SUBCMD, FUNC_DUMP_HISBARS, FUNC_DUMP_HISTICKS
+from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, CB_PARSER_EVENT, CB_PARSER_SUBCMD, FUNC_DUMP_HISBARS, \
+    FUNC_DUMP_HISTICKS
 from wtpy.WtCoreDefs import EVENT_PARSER_CONNECT, EVENT_PARSER_DISCONNECT, EVENT_PARSER_INIT, EVENT_PARSER_RELEASE
 import os
+
 
 # Python对接C接口的库
 @singleton
 class WtDtWrapper:
-    '''
+    """
     Wt平台数据组件C接口底层对接模块
-    '''
+    """
 
     # api可以作为公共变量
     api = None
     ver = "Unknown"
-    
+
     # 构造函数，传入动态库名
     def __init__(self, engine):
         self._engine = engine
@@ -33,44 +35,47 @@ class WtDtWrapper:
         self.api.create_ext_dumper.restype = c_bool
         self.api.create_ext_dumper.argtypes = [c_char_p]
 
-    def run_datakit(self, bAsync:bool = False):
-        '''
+    def run_datakit(self, bAsync: bool = False):
+        """
         启动数据组件
-        '''
+        """
         self.api.start(bAsync)
 
-    def write_log(self, level, message:str, catName:str = ""):
-        '''
+    def write_log(self, level, message: str, catName: str = ""):
+        """
         向组件输出日志
-        '''
-        self.api.write_log(level, bytes(message, encoding = "utf8").decode('utf-8').encode('gbk'), bytes(catName, encoding = "utf8"))
+        """
+        self.api.write_log(level, bytes(message, encoding="utf8").decode('utf-8').encode('gbk'),
+                           bytes(catName, encoding="utf8"))
 
-    def initialize(self, cfgfile:str = "dtcfg.yaml", logprofile:str = "logcfgdt.jsyamlon", bCfgFile:bool = True, bLogCfgFile:bool = True):
-        '''
+    def initialize(self, cfgfile: str = "dtcfg.yaml", logprofile: str = "logcfgdt.jsyamlon", bCfgFile: bool = True,
+                   bLogCfgFile: bool = True):
+        """
         C接口初始化
-        '''
+        """
         try:
-            self.api.initialize(bytes(cfgfile, encoding = "utf8"), bytes(logprofile, encoding = "utf8"), bCfgFile, bLogCfgFile)
+            self.api.initialize(bytes(cfgfile, encoding="utf8"), bytes(logprofile, encoding="utf8"), bCfgFile,
+                                bLogCfgFile)
             self.register_extended_module_callbacks()
         except OSError as oe:
             print(oe)
 
-        self.write_log(102, "WonderTrader datakit initialzied，version: %s" % (self.ver))
+        self.write_log(102, "WonderTrader datakit initialzied，version: %s" % self.ver)
 
-    def create_extended_parser(self, id:str) -> bool:
-        return self.api.create_ext_parser(bytes(id, encoding = "utf8"))
+    def create_extended_parser(self, id: str) -> bool:
+        return self.api.create_ext_parser(bytes(id, encoding="utf8"))
 
-    def push_quote_from_exetended_parser(self, id:str, newTick:POINTER(WTSTickStruct), uProcFlag:int = 1):
-        return self.api.parser_push_quote(bytes(id, encoding = "utf8"), newTick, uProcFlag)
+    def push_quote_from_exetended_parser(self, id: str, newTick: POINTER(WTSTickStruct), uProcFlag: int = 1):
+        return self.api.parser_push_quote(bytes(id, encoding="utf8"), newTick, uProcFlag)
 
-    def register_extended_module_callbacks(self,):
+    def register_extended_module_callbacks(self, ):
         self.cb_parser_event = CB_PARSER_EVENT(self.on_parser_event)
         self.cb_parser_subcmd = CB_PARSER_SUBCMD(self.on_parser_sub)
 
         self.api.register_parser_callbacks(self.cb_parser_event, self.cb_parser_subcmd)
 
-    def create_extended_dumper(self, id:str) -> bool:
-        return self.api.create_ext_dumper(bytes(id, encoding = "utf8"))
+    def create_extended_dumper(self, id: str) -> bool:
+        return self.api.create_ext_dumper(bytes(id, encoding="utf8"))
 
     def register_extended_data_dumper(self):
         self.cb_bars_dumper = FUNC_DUMP_HISBARS(self.dump_his_bars)
@@ -78,13 +83,13 @@ class WtDtWrapper:
 
         self.api.register_extended_dumper(self.cb_bars_dumper, self.cb_ticks_dumper)
 
-    def on_parser_event(self, evtId:int, id:str):
+    def on_parser_event(self, evtId: int, id: str):
         id = bytes.decode(id)
         engine = self._engine
         parser = engine.get_extended_parser(id)
         if parser is None:
             return
-        
+
         if evtId == EVENT_PARSER_INIT:
             parser.init(engine)
         elif evtId == EVENT_PARSER_CONNECT:
@@ -94,7 +99,7 @@ class WtDtWrapper:
         elif evtId == EVENT_PARSER_RELEASE:
             parser.release()
 
-    def on_parser_sub(self, id:str, fullCode:str, isForSub:bool):
+    def on_parser_sub(self, id: str, fullCode: str, isForSub: bool):
         id = bytes.decode(id)
         engine = self._engine
         parser = engine.get_extended_parser(id)
@@ -106,7 +111,7 @@ class WtDtWrapper:
         else:
             parser.unsubscribe(fullCode)
 
-    def dump_his_bars(self, id:str, fullCode:str, period:str, bars:POINTER(WTSBarStruct), count:int) -> bool:
+    def dump_his_bars(self, id: str, fullCode: str, period: str, bars: POINTER(WTSBarStruct), count: int) -> bool:
         id = bytes.decode(id)
         engine = self._engine
         dumper = engine.get_extended_data_dumper(id)
@@ -118,7 +123,7 @@ class WtDtWrapper:
 
         return dumper.dump_his_bars(fullCode, period, bars, count)
 
-    def dump_his_ticks(self, id:str, fullCode:str, uDate:int, ticks:POINTER(WTSTickStruct), count:int) -> bool:
+    def dump_his_ticks(self, id: str, fullCode: str, uDate: int, ticks: POINTER(WTSTickStruct), count: int) -> bool:
         id = bytes.decode(id)
         engine = self._engine
         dumper = engine.get_extended_data_dumper(id)

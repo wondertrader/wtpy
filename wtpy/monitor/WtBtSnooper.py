@@ -44,17 +44,18 @@ def do_trading_analyze(df_closes, df_funds):
     # 单笔最大亏损交易
     largest_loss = float(df_loses['profit'].min())
     # 交易的平均持仓K线根数
-    avgtrd_hold_bar = 0 if totaltimes==0 else ((df_closes['closebarno'] - df_closes['openbarno']).sum()) / totaltimes
+    avgtrd_hold_bar = 0 if totaltimes == 0 else ((df_closes['closebarno'] - df_closes['openbarno']).sum()) / totaltimes
     # 平均空仓K线根数
     avb = (df_closes['openbarno'] - df_closes['closebarno'].shift(1).fillna(value=0))
-    avgemphold_bar = 0 if len(df_closes)==0 else avb.sum() / len(df_closes)
+    avgemphold_bar = 0 if len(df_closes) == 0 else avb.sum() / len(df_closes)
 
     # 两笔盈利交易之间的平均空仓K线根数
     win_holdbar_situ = (df_wins['openbarno'].shift(-1) - df_wins['closebarno']).dropna()
-    winempty_avgholdbar = 0 if len(df_wins)== 0 or len(df_wins) == 1 else win_holdbar_situ.sum() / (len(df_wins)-1)
+    winempty_avgholdbar = 0 if len(df_wins) == 0 or len(df_wins) == 1 else win_holdbar_situ.sum() / (len(df_wins) - 1)
     # 两笔亏损交易之间的平均空仓K线根数
     loss_holdbar_situ = (df_loses['openbarno'].shift(-1) - df_loses['closebarno']).dropna()
-    lossempty_avgholdbar = 0 if len(df_loses)== 0 or len(df_loses) == 1 else loss_holdbar_situ.sum() / (len(df_loses)-1)
+    lossempty_avgholdbar = 0 if len(df_loses) == 0 or len(df_loses) == 1 else loss_holdbar_situ.sum() / (
+            len(df_loses) - 1)
     max_consecutive_wins = 0  # 最大连续盈利次数
     max_consecutive_loses = 0  # 最大连续亏损次数
 
@@ -100,15 +101,15 @@ def do_trading_analyze(df_closes, df_funds):
     summary["max_consecutive_wins"] = max_consecutive_wins
     summary["max_consecutive_loses"] = max_consecutive_loses
 
-
     return summary
 
 
 class WtBtSnooper:
-    '''
+    """
     回测管理器
-    '''
-    def __init__(self, dtServo:WtDtServo = None):
+    """
+
+    def __init__(self, dtServo: WtDtServo = None):
         self.path = ""
         self.dt_servo = dtServo
         self.workspaces = list()
@@ -128,46 +129,47 @@ class WtBtSnooper:
         if len(content) == 0:
             return
 
-        obj =  json.loads(content)
+        obj = json.loads(content)
         if "workspace" in obj:
             self.workspaces = obj["workspace"]
 
     def save_data(self):
-        obj =  {
+        obj = {
             "workspace": self.workspaces
         }
         content = json.dumps(obj, ensure_ascii=False, indent=4)
         f = open("data.json", "w")
         f.write(content)
-        f.close() 
+        f.close()
 
-    def add_static_folder(self, folder:str, path:str = "/static", name:str = "static"):
+    def add_static_folder(self, folder: str, path: str = "/static", name: str = "static"):
         self.static_folders.append({
             "path": path,
             "folder": folder,
             "name": name
         })
 
-    def __server_impl__(self, port:int, host:str):
-        uvicorn.run(self.server_inst, port = port, host = host)
+    def __server_impl__(self, port: int, host: str):
+        uvicorn.run(self.server_inst, port=port, host=host)
 
-    def run_as_server(self, port:int = 8081, host="127.0.0.1", bSync:bool = True):
+    def run_as_server(self, port: int = 8081, host="127.0.0.1", bSync: bool = True):
         tags_info = [
-            {"name":"Backtest APIs","description":"回测查探器接口"}
+            {"name": "Backtest APIs", "description": "回测查探器接口"}
         ]
 
-        app = FastAPI(title="WtBtSnooper", description="A simple http api of WtBtSnooper", openapi_tags=tags_info, redoc_url=None, version="1.0.0")
+        app = FastAPI(title="WtBtSnooper", description="A simple http api of WtBtSnooper", openapi_tags=tags_info,
+                      redoc_url=None, version="1.0.0")
         app.add_middleware(GZipMiddleware, minimum_size=1000)
         app.add_middleware(SessionMiddleware, secret_key='!@#$%^&*()', max_age=25200, session_cookie='WtBtSnooper_sid')
 
         if len(self.static_folders) > 0:
             for static_item in self.static_folders:
-                app.mount(static_item["path"], StaticFiles(directory = static_item["folder"]), name=static_item["name"])
+                app.mount(static_item["path"], StaticFiles(directory=static_item["folder"]), name=static_item["name"])
         else:
             paths = os.path.split(__file__)
             a = (paths[:-1] + ("static/console",))
             path = os.path.join(*a)
-            app.mount("/backtest", StaticFiles(directory = path), name="static")
+            app.mount("/backtest", StaticFiles(directory=path), name="static")
 
         self.server_inst = app
 
@@ -177,18 +179,18 @@ class WtBtSnooper:
             self.__server_impl__(port, host)
         else:
             import threading
-            self.worker = threading.Thread(target=self.__server_impl__, args=(port,host,))
+            self.worker = threading.Thread(target=self.__server_impl__, args=(port, host,))
             self.worker.setDaemon(True)
             self.worker.start()
 
-    def get_workspace_path(self, id:str) ->str:
+    def get_workspace_path(self, id: str) -> str:
         for wInfo in self.workspaces:
             if wInfo["id"] == id:
                 return wInfo["path"]
-                
+
         return ""
 
-    def init_bt_apis(self, app:FastAPI):
+    def init_bt_apis(self, app: FastAPI):
         @app.get("/")
         async def console_entry():
             return RedirectResponse("/backtest/backtest.html")
@@ -196,17 +198,17 @@ class WtBtSnooper:
         @app.post("/bt/qryws", tags=["Backtest APIs"], description="获取工作空间")
         async def qry_workspaces():
             ret = {
-                "result":0,
-                "message":"Ok",
+                "result": 0,
+                "message": "Ok",
                 "workspaces": self.workspaces
-            }                
+            }
 
             return ret
 
         @app.post("/bt/addws", tags=["Backtest APIs"], description="添加工作空间")
         async def add_workspace(
-            path:str = Body(..., title="工作空间路径", embed=True),
-            name:str = Body(..., title="工作空间名称", embed=True)
+                path: str = Body(..., title="工作空间路径", embed=True),
+                name: str = Body(..., title="工作空间名称", embed=True)
         ):
             md5 = hashlib.md5()
             now = datetime.datetime.now().replace(tzinfo=pytz.timezone('UTC')).strftime("%Y.%m.%d %H:%M:%S")
@@ -223,13 +225,13 @@ class WtBtSnooper:
             self.save_data()
 
             return {
-                "result":0,
-                "message":"Ok"
+                "result": 0,
+                "message": "Ok"
             }
 
         @app.post("/bt/delws", tags=["Backtest APIs"], description="删除工作空间")
         async def del_workspace(
-            wsid:str = Body(..., title="工作空间ID", embed=True)
+                wsid: str = Body(..., title="工作空间ID", embed=True)
         ):
             for wInfo in self.workspaces:
                 if wInfo["id"] == wsid:
@@ -238,25 +240,25 @@ class WtBtSnooper:
                     break
 
             return {
-                "result":0,
-                "message":"Ok"
+                "result": 0,
+                "message": "Ok"
             }
 
         # 获取策略回测回合
         @app.post("/bt/qrybtstras", tags=["Backtest APIs"], description="读取全部回测策略")
         def qry_stra_bt_strategies(
-            wsid:str = Body(..., title="工作空间ID", embed=True)
+                wsid: str = Body(..., title="工作空间ID", embed=True)
         ):
             path = self.get_workspace_path(wsid)
             if len(path) == 0:
                 ret = {
-                    "result":-1,
-                    "message":"Invalid workspace"
+                    "result": -1,
+                    "message": "Invalid workspace"
                 }
 
             ret = {
-                "result":0,
-                "message":"OK",
+                "result": 0,
+                "message": "OK",
                 "strategies": self.get_all_strategy(path)
             }
             return ret
@@ -264,27 +266,27 @@ class WtBtSnooper:
         # 拉取K线数据
         @app.post("/bt/qrybars", tags=["Backtest APIs"], description="获取K线")
         async def qry_bt_bars(
-            wsid:str = Body(..., title="工作空间ID", embed=True),
-            straid:str = Body(..., title="策略ID", embed=True)
+                wsid: str = Body(..., title="工作空间ID", embed=True),
+                straid: str = Body(..., title="策略ID", embed=True)
         ):
             path = self.get_workspace_path(wsid)
             if len(path) == 0:
                 ret = {
-                    "result":-1,
-                    "message":"Invalid workspace"
+                    "result": -1,
+                    "message": "Invalid workspace"
                 }
 
             code, bars, index, marks = self.get_bt_kline(path, straid)
             if bars is None:
                 ret = {
-                    "result":-2,
-                    "message":"Data not found"
+                    "result": -2,
+                    "message": "Data not found"
                 }
             else:
-                
+
                 ret = {
-                    "result":0,
-                    "message":"Ok",
+                    "result": 0,
+                    "message": "Ok",
                     "bars": bars,
                     "code": code
                 }
@@ -297,128 +299,127 @@ class WtBtSnooper:
 
             return ret
 
-    
         # 获取策略回测信号
         @app.post("/bt/qrybtsigs", tags=["Backtest APIs"], description="读取信号明细")
         def qry_stra_bt_signals(
-            wsid:str = Body(..., title="工作空间ID", embed=True),
-            straid:str = Body(..., title="策略ID", embed=True)
+                wsid: str = Body(..., title="工作空间ID", embed=True),
+                straid: str = Body(..., title="策略ID", embed=True)
         ):
             path = self.get_workspace_path(wsid)
             if len(path) == 0:
                 ret = {
-                    "result":-1,
-                    "message":"Invalid workspace"
+                    "result": -1,
+                    "message": "Invalid workspace"
                 }
 
             ret = {
-                "result":0,
-                "message":"OK",
-                "signals":self.get_bt_signals(path, straid)
+                "result": 0,
+                "message": "OK",
+                "signals": self.get_bt_signals(path, straid)
             }
-                    
+
             return ret
 
         # 获取策略回测成交
         @app.post("/bt/qrybttrds", tags=["Backtest APIs"], description="读取成交明细")
         def qry_stra_bt_trades(
-            wsid:str = Body(..., title="工作空间ID", embed=True),
-            straid:str = Body(..., title="策略ID", embed=True)
+                wsid: str = Body(..., title="工作空间ID", embed=True),
+                straid: str = Body(..., title="策略ID", embed=True)
         ):
             path = self.get_workspace_path(wsid)
             if len(path) == 0:
                 ret = {
-                    "result":-1,
-                    "message":"Invalid workspace"
+                    "result": -1,
+                    "message": "Invalid workspace"
                 }
 
             ret = {
-                "result":0,
-                "message":"OK",
-                "trades":self.get_bt_trades(path, straid)
+                "result": 0,
+                "message": "OK",
+                "trades": self.get_bt_trades(path, straid)
             }
-                    
+
             return ret
 
         # 获取策略回测资金
         @app.post("/bt/qrybtfunds", tags=["Backtest APIs"], description="读取资金明细")
         def qry_stra_bt_funds(
-            wsid:str = Body(..., title="工作空间ID", embed=True),
-            straid:str = Body(..., title="策略ID", embed=True)
+                wsid: str = Body(..., title="工作空间ID", embed=True),
+                straid: str = Body(..., title="策略ID", embed=True)
         ):
             path = self.get_workspace_path(wsid)
             if len(path) == 0:
                 ret = {
-                    "result":-1,
-                    "message":"Invalid workspace"
+                    "result": -1,
+                    "message": "Invalid workspace"
                 }
 
             ret = {
-                "result":0,
-                "message":"OK",
-                "funds":self.get_bt_funds(path, straid)
+                "result": 0,
+                "message": "OK",
+                "funds": self.get_bt_funds(path, straid)
             }
-                    
+
             return ret
 
         # 获取策略回测回合
         @app.post("/bt/qrybtrnds", tags=["Backtest APIs"], description="读取回合明细")
         def qry_stra_bt_rounds(
-            wsid:str = Body(..., title="工作空间ID", embed=True),
-            straid:str = Body(..., title="策略ID", embed=True)
+                wsid: str = Body(..., title="工作空间ID", embed=True),
+                straid: str = Body(..., title="策略ID", embed=True)
         ):
             path = self.get_workspace_path(wsid)
             if len(path) == 0:
                 ret = {
-                    "result":-1,
-                    "message":"Invalid workspace"
+                    "result": -1,
+                    "message": "Invalid workspace"
                 }
 
             ret = {
-                "result":0,
-                "message":"OK",
-                "rounds":self.get_bt_rounds(path, straid)
+                "result": 0,
+                "message": "OK",
+                "rounds": self.get_bt_rounds(path, straid)
             }
             return ret
 
         # 获取策略回测回合
         @app.post("/bt/qrybtinfo", tags=["Backtest APIs"], description="读取回合明细")
         def qry_stra_bt_rounds(
-            wsid:str = Body(..., title="工作空间ID", embed=True),
-            straid:str = Body(..., title="策略ID", embed=True)
+                wsid: str = Body(..., title="工作空间ID", embed=True),
+                straid: str = Body(..., title="策略ID", embed=True)
         ):
             path = self.get_workspace_path(wsid)
             if len(path) == 0:
                 ret = {
-                    "result":-1,
-                    "message":"Invalid workspace"
+                    "result": -1,
+                    "message": "Invalid workspace"
                 }
 
             ret = {
-                "result":0,
-                "message":"OK",
-                "info":self.get_bt_info(path, straid)
+                "result": 0,
+                "message": "OK",
+                "info": self.get_bt_info(path, straid)
             }
             return ret
 
         @app.post("/bt/qrybtcloses", tags=["Backtest APIs"], description="读取成交数据")
         def qry_stra_bt_closes(
-            wsid:str = Body(..., title="工作空间ID", embed=True),
-            straid:str = Body(..., title="策略ID", embed=True)
+                wsid: str = Body(..., title="工作空间ID", embed=True),
+                straid: str = Body(..., title="策略ID", embed=True)
         ):
             path = self.get_workspace_path(wsid)
             if len(path) == 0:
                 ret = {
-                    "result":-1,
-                    "message":"Invalid workspace"
+                    "result": -1,
+                    "message": "Invalid workspace"
                 }
 
             ret = {
-                "result":0,
-                "message":"OK",
-                "closes_long":self.get_bt_closes(path, straid)[0],
-                "closes_short":self.get_bt_closes(path, straid)[1],
-                "closes_all":self.get_bt_closes(path, straid)[2],
+                "result": 0,
+                "message": "OK",
+                "closes_long": self.get_bt_closes(path, straid)[0],
+                "closes_short": self.get_bt_closes(path, straid)[1],
+                "closes_all": self.get_bt_closes(path, straid)[2],
                 "closes_month": self.get_bt_closes(path, straid)[3],
                 "closes_year": self.get_bt_closes(path, straid)[4]
             }
@@ -426,20 +427,20 @@ class WtBtSnooper:
 
         @app.post("/bt/qrybtanalysis", tags=["Backtest APIs"], description="读取策略分析")
         def qry_stra_bt_analysis(
-            wsid:str = Body(..., title="工作空间ID", embed=True),
-            straid:str = Body(..., title="策略ID", embed=True)
+                wsid: str = Body(..., title="工作空间ID", embed=True),
+                straid: str = Body(..., title="策略ID", embed=True)
         ):
             path = self.get_workspace_path(wsid)
             if len(path) == 0:
                 ret = {
-                    "result":-1,
-                    "message":"Invalid workspace"
+                    "result": -1,
+                    "message": "Invalid workspace"
                 }
 
             ret = {
-                "result":0,
-                "message":"OK",
-                "analysis":self.get_bt_analysis(path, straid)
+                "result": 0,
+                "message": "OK",
+                "analysis": self.get_bt_analysis(path, straid)
             }
             return ret
 
@@ -452,7 +453,7 @@ class WtBtSnooper:
                 ret.append(filename)
         return ret
 
-    def get_bt_info(self, path:str, straid:str) -> dict:
+    def get_bt_info(self, path: str, straid: str) -> dict:
         filename = f"{straid}/summary.json"
         filename = os.path.join(path, filename)
         if not os.path.exists(filename):
@@ -480,9 +481,9 @@ class WtBtSnooper:
 
     def get_bt_analysis(self, path: str, straid: str) -> dict:
         funds_filename = f"{straid}/funds.csv"
-        funds_filename = os.path.join(path,funds_filename)
+        funds_filename = os.path.join(path, funds_filename)
         closes_filename = f"{straid}/closes.csv"
-        closes_filename = os.path.join(path,closes_filename)
+        closes_filename = os.path.join(path, closes_filename)
 
         if not (os.path.exists(funds_filename) or os.path.exists(closes_filename)):
             return None
@@ -504,7 +505,7 @@ class WtBtSnooper:
             'summary_long': summary_long
         }
 
-    def get_bt_funds(self, path:str, straid:str) -> list:
+    def get_bt_funds(self, path: str, straid: str) -> list:
         filename = f"{straid}/funds.csv"
         filename = os.path.join(path, filename)
         if not os.path.exists(filename):
@@ -533,10 +534,10 @@ class WtBtSnooper:
                 tItem["fee"] = float(cells[4])
 
             funds.append(tItem)
-        
+
         return funds
 
-    def get_bt_closes(self, path:str, straid:str):
+    def get_bt_closes(self, path: str, straid: str):
         summary_file = f"{straid}/summary.json"
         summary_file = os.path.join(path, summary_file)
         closes_file = f"{straid}/closes.csv"
@@ -566,29 +567,28 @@ class WtBtSnooper:
         closes_all = list()
         for item in np_trade:
             litem = {
-                "opentime":int(item[2]),
-                "closetime":int(item[4]),
-                "profit":float(item[7]),
-                "direct":str(item[1]),
-                "openprice":float(item[3]),
-                "closeprice":float(item[5]),
-                "maxprofit":float(item[8]),
-                "maxloss":float(item[9]),
-                "qty":int(item[6]),
+                "opentime": int(item[2]),
+                "closetime": int(item[4]),
+                "profit": float(item[7]),
+                "direct": str(item[1]),
+                "openprice": float(item[3]),
+                "closeprice": float(item[5]),
+                "maxprofit": float(item[8]),
+                "maxloss": float(item[9]),
+                "qty": int(item[6]),
                 "capital": capital,
-                'profit_sum':float(item[16]),
-                'Withdrawal':float(item[17]),
-                'profit_ratio':float(item[18]),
-                'Withdrawal_ratio':float(item[19])
+                'profit_sum': float(item[16]),
+                'Withdrawal': float(item[17]),
+                'profit_ratio': float(item[18]),
+                'Withdrawal_ratio': float(item[19])
             }
             closes_all.append(litem)
         df_closes['time'] = df_closes['closetime'].apply(lambda x: datetime.datetime.strptime(str(x), '%Y%m%d%H%M'))
         df_c_m = df_closes.resample(rule='M', on='time', label='right',
-                                                                 closed='right').agg({
-            'profit': 'sum',
-            'maxprofit': 'sum',
-            'maxloss': 'sum',
-        })
+                                    closed='right').agg({'profit': 'sum',
+                                                         'maxprofit': 'sum',
+                                                         'maxloss': 'sum',
+                                                         })
         df_c_m = df_c_m.reset_index()
         df_c_m['equity'] = df_c_m['profit'].expanding(1).sum() + capital
         df_c_m['monthly_profit'] = 100 * (df_c_m['equity'] / df_c_m['equity'].shift(1).fillna(value=capital) - 1)
@@ -596,21 +596,20 @@ class WtBtSnooper:
         np_m = np.array(df_c_m).tolist()
         for item in np_m:
             litem = {
-                "time":int(item[0].strftime('%Y%m')),
-                "profit":float(item[1]),
-                'maxprofit':float(item[2]),
-                'maxloss':float(item[3]),
-                'equity':float(item[4]),
-                'monthly_profit':float(item[5])
+                "time": int(item[0].strftime('%Y%m')),
+                "profit": float(item[1]),
+                'maxprofit': float(item[2]),
+                'maxloss': float(item[3]),
+                'equity': float(item[4]),
+                'monthly_profit': float(item[5])
             }
             closes_month.append(litem)
 
         df_c_y = df_closes.resample(rule='Y', on='time', label='right',
-                                    closed='right').agg({
-            'profit': 'sum',
-            'maxprofit': 'sum',
-            'maxloss': 'sum',
-        })
+                                    closed='right').agg({'profit': 'sum',
+                                                         'maxprofit': 'sum',
+                                                         'maxloss': 'sum',
+                                                         })
         df_c_y = df_c_y.reset_index()
         df_c_y['equity'] = df_c_y['profit'].expanding(1).sum() + capital
         df_c_y['monthly_profit'] = 100 * (df_c_y['equity'] / df_c_y['equity'].shift(1).fillna(value=capital) - 1)
@@ -618,12 +617,12 @@ class WtBtSnooper:
         np_y = np.array(df_c_y).tolist()
         for item in np_y:
             litem = {
-                "time":int(item[0].strftime('%Y%m')),
-                "profit":float(item[1]),
-                'maxprofit':float(item[2]),
-                'maxloss':float(item[3]),
-                'equity':float(item[4]),
-                'annual_profit':float(item[5])
+                "time": int(item[0].strftime('%Y%m')),
+                "profit": float(item[1]),
+                'maxprofit': float(item[2]),
+                'maxloss': float(item[3]),
+                'equity': float(item[4]),
+                'annual_profit': float(item[5])
             }
             closes_year.append(litem)
 
@@ -631,30 +630,30 @@ class WtBtSnooper:
         df_short = df_closes[df_closes['direct'].apply(lambda x: 'SHORT' in x)]
         df_long = df_long.copy()
         df_short = df_short.copy()
-        df_long["long_profit"] = df_long["profit"].expanding(1).sum()-df_long["fee"].expanding(1).sum()
+        df_long["long_profit"] = df_long["profit"].expanding(1).sum() - df_long["fee"].expanding(1).sum()
         closes_long = list()
         closes_short = list()
         np_long = np.array(df_long).tolist()
         for item in np_long:
             litem = {
-                "date":int(item[4]),
-                "long_profit":float(item[-1]),
-                "capital":capital
+                "date": int(item[4]),
+                "long_profit": float(item[-1]),
+                "capital": capital
             }
             closes_long.append(litem)
-        df_short["short_profit"] = df_short["profit"].expanding(1).sum()-df_short["fee"].expanding(1).sum()
+        df_short["short_profit"] = df_short["profit"].expanding(1).sum() - df_short["fee"].expanding(1).sum()
         np_short = np.array(df_short).tolist()
         for item in np_short:
             litem = {
-                "date":int(item[4]),
-                "short_profit":float(item[-1]),
-                "capital":capital
+                "date": int(item[4]),
+                "short_profit": float(item[-1]),
+                "capital": capital
             }
             closes_short.append(litem)
 
         return closes_long, closes_short, closes_all, closes_month, closes_year
 
-    def get_bt_trades(self, path:str, straid:str) -> list:
+    def get_bt_trades(self, path: str, straid: str) -> list:
         filename = f"{straid}/trades.csv"
         filename = os.path.join(path, filename)
         if not os.path.exists(filename):
@@ -689,10 +688,10 @@ class WtBtSnooper:
                 item["fee"] = float(cells[4])
 
             items.append(item)
-        
+
         return items
 
-    def get_bt_rounds(self, path:str, straid:str) -> list:
+    def get_bt_rounds(self, path: str, straid: str) -> list:
         filename = f"{straid}/closes.csv"
         filename = os.path.join(path, filename)
         if not os.path.exists(filename):
@@ -723,10 +722,10 @@ class WtBtSnooper:
             }
 
             items.append(item)
-        
+
         return items
 
-    def get_bt_signals(self, path:str, straid:str) -> list:
+    def get_bt_signals(self, path: str, straid: str) -> list:
         filename = f"{straid}/signals.csv"
         filename = os.path.join(path, filename)
         if not os.path.exists(filename):
@@ -752,10 +751,10 @@ class WtBtSnooper:
             }
 
             items.append(item)
-        
+
         return items
 
-    def get_bt_kline(self, path:str, straid:str) -> list:
+    def get_bt_kline(self, path: str, straid: str) -> list:
         if self.dt_servo is None:
             return None
 
@@ -778,7 +777,7 @@ class WtBtSnooper:
         index = None
         marks = None
 
-        #如果有btchart，就用btchart定义的K线
+        # 如果有btchart，就用btchart定义的K线
         filename = f"{straid}/btchart.json"
         filename = os.path.join(path, filename)
         if os.path.exists(filename):
@@ -841,18 +840,18 @@ class WtBtSnooper:
         if barList is None:
             return None
 
-        isDay = period[0]=='d'
+        isDay = period[0] == 'd'
 
         bars = list()
         for realBar in barList:
             bars.append(dict(
-                bartime = int(realBar['date'] if isDay else 199000000000 + realBar['time']),
-                open = realBar['open'],
-                high = realBar['high'],
-                low = realBar['low'],
-                close = realBar['close'],
-                volume = realBar['volume'],
-                turnover = realBar['turnover']
+                bartime=int(realBar['date'] if isDay else 199000000000 + realBar['time']),
+                open=realBar['open'],
+                high=realBar['high'],
+                low=realBar['low'],
+                close=realBar['close'],
+                volume=realBar['volume'],
+                turnover=realBar['turnover']
             ))
 
         return code, bars, index, marks

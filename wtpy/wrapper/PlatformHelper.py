@@ -1,11 +1,12 @@
 import platform
 
+
 class PlatformHelper:
 
     @staticmethod
     def isPythonX64() -> bool:
         ret = platform.architecture()
-        return (ret[0] == "64bit")
+        return ret[0] == "64bit"
 
     @staticmethod
     def isWindows() -> bool:
@@ -15,17 +16,17 @@ class PlatformHelper:
         return False
 
     @staticmethod
-    def getModule(moduleName:str, subdir:str="") -> str:
+    def getModule(moduleName: str, subdir: str = "") -> str:
         dllname = ""
         ext = ""
         prefix = ""
-        if PlatformHelper.isWindows(): #windows平台
+        if PlatformHelper.isWindows():  # windows平台
             ext = ".dll"
             if PlatformHelper.isPythonX64():
                 dllname = "x64/"
             else:
                 dllname = "x86/"
-        else:#Linux平台
+        else:  # Linux平台
             dllname = "linux/"
             prefix = "lib"
             ext = ".so"
@@ -35,11 +36,10 @@ class PlatformHelper:
 
         dllname += prefix + moduleName + ext
         return dllname
-    
+
     @staticmethod
-    def auto_encode(s:str) -> bytes:
+    def auto_encode(s: str) -> bytes:
         if PlatformHelper.isWindows():
-            return bytes(s, encoding = "utf-8").decode('utf-8').encode('gbk')
+            return bytes(s, encoding="utf-8").decode('utf-8').encode('gbk')
         else:
-            return bytes(s, encoding = "utf-8")
-            
+            return bytes(s, encoding="utf-8")

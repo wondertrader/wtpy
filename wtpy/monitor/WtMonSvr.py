@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Body, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import RedirectResponse, FileResponse
 import uvicorn
@@ -24,27 +25,32 @@ from wtpy import WtDtServo
 import signal
 import platform
 
+
 def isWindows():
     if "windows" in platform.system().lower():
         return True
 
     return False
 
+
 def get_session(request: Request, key: str):
     if key not in request["session"]:
         return None
     return request["session"][key]
 
+
 def set_session(request: Request, key: str, val):
     request["session"][key] = val
+
 
 def pop_session(request: Request, key: str):
     if key not in request["session"]:
         return
     request["session"].pop(key)
 
-def AES_Encrypt(key:str, data:str):
-    from Crypto.Cipher import AES # pip install pycryptodome
+
+def AES_Encrypt(key: str, data: str):
+    from Crypto.Cipher import AES  # pip install pycryptodome
     vi = '0102030405060708'
     pad = lambda s: s + (16 - len(s) % 16) * chr(16 - len(s) % 16)
     data = pad(data)
@@ -58,8 +64,9 @@ def AES_Encrypt(key:str, data:str):
     # 对byte字符串按utf-8进行解码
     return enctext
 
-def AES_Decrypt(key:str, data:str):
-    from Crypto.Cipher import AES # pip install pycryptodome
+
+def AES_Decrypt(key: str, data: str):
+    from Crypto.Cipher import AES  # pip install pycryptodome
     vi = '0102030405060708'
     data = data.encode('utf8')
     encodebytes = base64.decodebytes(data)
@@ -91,7 +98,7 @@ def get_tail(filename, N: int = 100, encoding="GBK"):
     return ''.join(last_line), len(last_line)
 
 
-def check_auth(request: Request, token:str = None, seckey:str = None):
+def check_auth(request: Request, token: str = None, seckey: str = None):
     if token is None:
         tokeninfo = get_session(request, "tokeninfo")
         # session里没有用户信息
@@ -130,6 +137,7 @@ def check_auth(request: Request, token:str = None, seckey:str = None):
             }
 
         return True, tokeninfo
+
 
 def get_cfg_tree(root: str, name: str):
     if not os.path.exists(root):
@@ -195,7 +203,7 @@ def get_cfg_tree(root: str, name: str):
 
     if "executers" in cfgObj:
         filename = cfgObj["executers"]
-        if type(filename) == str:
+        if isinstance(filename, str):
             filepath = os.path.join(root, filename)
             ret['children'].append({
                 "label": filename,
@@ -207,7 +215,7 @@ def get_cfg_tree(root: str, name: str):
 
     if "parsers" in cfgObj:
         filename = cfgObj["parsers"]
-        if type(filename) == str:
+        if isinstance(filename, str):
             filepath = os.path.join(root, filename)
             ret['children'].append({
                 "label": filename,
@@ -219,7 +227,7 @@ def get_cfg_tree(root: str, name: str):
 
     if "traders" in cfgObj:
         filename = cfgObj["traders"]
-        if type(filename) == str:
+        if isinstance(filename, str):
             filepath = os.path.join(root, filename)
             ret['children'].append({
                 "label": filename,
@@ -300,18 +308,18 @@ class WtMonSink:
     def notify(self, level: str, msg: str):
         return
 
-from fastapi.middleware.cors import CORSMiddleware
 
 class WtMonSvr(WatcherSink):
 
-    def __init__(self, static_folder: str = "static/", deploy_dir="C:/", sink: WtMonSink = None, notifyTimeout:bool = True):
-        '''
+    def __init__(self, static_folder: str = "static/", deploy_dir="C:/", sink: WtMonSink = None,
+                 notifyTimeout: bool = True):
+        """
         WtMonSvr构造函数
 
         @static_folder      静态文件根目录
         @static_url_path    静态文件访问路径
         @deploy_dir         实盘部署目录
-        '''
+        """
 
         self.logger = WtLogger(__name__, "WtMonSvr.log")
         self._sink_ = sink
@@ -341,10 +349,10 @@ class WtMonSvr(WatcherSink):
 
         script_dir = os.path.dirname(__file__)
         static_folder = os.path.join(script_dir, static_folder)
-        target_dir = os.path.join(static_folder,"console")
+        target_dir = os.path.join(static_folder, "console")
         app.mount("/console", StaticFiles(directory=target_dir), name="console")
 
-        target_dir = os.path.join(static_folder,"mobile")
+        target_dir = os.path.join(static_folder, "mobile")
         app.mount("/mobile", StaticFiles(directory=target_dir), name="mobile")
 
         self.app = app
@@ -360,29 +368,29 @@ class WtMonSvr(WatcherSink):
         self.init_comm_apis(app)
 
     def enable_token(self, seckey: str = "WtMonSvr@2021"):
-        '''
+        """
         启用访问令牌, 默认通过session方式验证
         注意: 这里如果启用令牌访问的话, 需要安装pycryptodome, 所以改成单独控制
-        '''
-        
+        """
+
         self.__sec_key__ = seckey
         self.__token_enabled__ = True
 
     def set_bt_mon(self, btMon: WtBtMon):
-        '''
+        """
         设置回测管理器
 
         @btMon      回测管理器WtBtMon实例
-        '''
+        """
         self.__bt_mon__ = btMon
         self.init_bt_apis(self.app)
 
     def set_dt_servo(self, dtServo: WtDtServo):
-        '''
+        """
         设置DtServo
 
         @dtServo    本地数据伺服WtDtServo实例
-        '''
+        """
         self.__dt_servo__ = dtServo
 
     def init_bt_apis(self, app: FastAPI):
@@ -390,13 +398,13 @@ class WtMonSvr(WatcherSink):
         # 拉取K线数据
         @app.post("/bt/qrybars", tags=["回测管理接口"])
         async def qry_bt_bars(
-            request: Request,
-            token: str = Body(None, title="访问令牌", embed=True),
-            code: str = Body(..., title="合约代码", embed=True),
-            period: str = Body(..., title="K线周期", embed=True),
-            stime: int = Body(None, title="开始时间", embed=True),
-            etime: int = Body(..., title="结束时间", embed=True),
-            count: int = Body(None, title="数据条数", embed=True)
+                request: Request,
+                token: str = Body(None, title="访问令牌", embed=True),
+                code: str = Body(..., title="合约代码", embed=True),
+                period: str = Body(..., title="K线周期", embed=True),
+                stime: int = Body(None, title="开始时间", embed=True),
+                etime: int = Body(..., title="结束时间", embed=True),
+                count: int = Body(None, title="数据条数", embed=True)
         ):
             bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
@@ -1010,13 +1018,13 @@ class WtMonSvr(WatcherSink):
 
     def init_mgr_apis(self, app: FastAPI):
 
-        '''下面是API接口的编写'''
+        """下面是API接口的编写"""
 
         @app.post("/mgr/login", tags=["用户接口"])
         async def cmd_login(
-            request: Request,
-            loginid: str = Body(..., title="用户名", embed=True),
-            passwd: str = Body(..., title="用户密码", embed=True)
+                request: Request,
+                loginid: str = Body(..., title="用户名", embed=True),
+                passwd: str = Body(..., title="用户密码", embed=True)
         ):
             if True:
                 user = loginid
@@ -1138,7 +1146,7 @@ class WtMonSvr(WatcherSink):
                 name: str = Body('', title="组合名称", embed=True),
                 path: str = Body('', title="组合路径", embed=True),
                 gtype: str = Body('', title="组合类型", embed=True),
-                info: str = Body('', title="组合信息",embed=True),
+                info: str = Body('', title="组合信息", embed=True),
                 env: str = Body('', title="组合环境，实盘/回测", embed=True),
                 datmod: str = Body('mannual', title="数据模式，mannal/auto", embed=True),
                 mqurl: str = Body('', title="消息队列地址", embed=True),
@@ -1198,7 +1206,8 @@ class WtMonSvr(WatcherSink):
                             "result": -2,
                             "message": "添加用户失败"
                         }
-                except:
+                except Exception as e:
+                    print(e)
                     ret = {
                         "result": -1,
                         "message": "请求解析失败"
@@ -1455,7 +1464,7 @@ class WtMonSvr(WatcherSink):
                 return tokenInfo
 
             products = tokenInfo["products"]
-            
+
             try:
                 groups = self.__data_mgr__.get_groups()
                 rets = list()
@@ -1469,7 +1478,8 @@ class WtMonSvr(WatcherSink):
                     "message": "Ok",
                     "groups": rets
                 }
-            except:
+            except Exception as e:
+                print(e)
                 ret = {
                     "result": -1,
                     "message": "请求解析失败"
@@ -1565,7 +1575,8 @@ class WtMonSvr(WatcherSink):
                             "result": 0,
                             "message": "Ok"
                         }
-                    except:
+                    except Exception as e:
+                        print(e)
                         ret = {
                             "result": -1,
                             "message": "文件保存失败"
@@ -1666,7 +1677,8 @@ class WtMonSvr(WatcherSink):
                         "content": content,
                         "lines": lines
                     }
-                except:
+                except Exception as e:
+                    print(e)
                     ret = {
                         "result": -1,
                         "message": "请求解析失败"
@@ -2410,19 +2422,20 @@ class WtMonSvr(WatcherSink):
                         "result": 0,
                         "message": "Ok"
                     }
-                except:
+                except Exception as e:
+                    print(e)
                     ret = {
                         "result": -1,
                         "message": "过滤器保存失败"
                     }
 
             return ret
-        
+
         @app.get("/mgr/auth", tags=["令牌认证"])
         @app.post("/mgr/auth")
         async def authority(
-            request: Request,
-            token: str = Body(None, title="访问令牌", embed=True)
+                request: Request,
+                token: str = Body(None, title="访问令牌", embed=True)
         ):
             bSucc, userInfo = check_auth(request, token, self.__sec_key__)
             if not bSucc:
@@ -2438,7 +2451,7 @@ class WtMonSvr(WatcherSink):
         @app.get("/console")
         async def console_entry():
             return RedirectResponse("/console/index.html")
-        
+
         @app.get("/mobile")
         async def mobile_entry():
             return RedirectResponse("/mobile/index.html")
@@ -2446,7 +2459,7 @@ class WtMonSvr(WatcherSink):
         @app.get("/favicon.ico")
         async def favicon_entry():
             return FileResponse(os.path.join(self.static_folder, "favicon.ico"))
-        
+
         @app.get("/hasbt")
         @app.post("/hasbt")
         async def check_btmon():
@@ -2510,7 +2523,7 @@ class WtMonSvr(WatcherSink):
     def on_timeout(self, grpid: str):
         if not self.notifyTimeout:
             return
-            
+
         if self._sink_:
             grpInfo = self.__data_mgr__.get_group(grpid)
             self._sink_.notify("fatal", f'检测到 {grpInfo["name"]}[{grpid}]的MQ消息超时，请及时检查并处理!!!')

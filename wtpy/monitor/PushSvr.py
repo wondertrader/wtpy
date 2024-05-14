@@ -6,9 +6,10 @@ import json
 import threading
 import time
 
+
 class PushServer:
 
-    def __init__(self, app:FastAPI, dataMgr, logger:WtLogger = None):
+    def __init__(self, app: FastAPI, dataMgr, logger: WtLogger = None):
         self.app = app
         self.dataMgr = dataMgr
         self.logger = logger
@@ -20,7 +21,7 @@ class PushServer:
 
         self.mutex = threading.Lock()
         self.messages = list()
-        self.worker:threading.Thread = None
+        self.worker: threading.Thread = None
         self.stopped = False
 
     async def connect(self, ws: WebSocket):
@@ -47,15 +48,16 @@ class PushServer:
         # 发送个人消息
         await ws.send_json(data)
 
-    def broadcast(self, data: dict, groupid:str=""):
+    def broadcast(self, data: dict, groupid: str = ""):
         self.lock.acquire()
 
         loop = None
         try:
             loop = asyncio.get_event_loop()
-        except:
+        except Exception as e:
+            print(e)
             loop = None
-        
+
         if loop is None or loop.is_closed():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -63,17 +65,17 @@ class PushServer:
         tasks = []
         # 广播消息
         for ws in self.active_connections:
-            if len(groupid)!=0 and "groupid" in ws.session and ws.session["groupid"]!=groupid:
+            if len(groupid) != 0 and "groupid" in ws.session and ws.session["groupid"] != groupid:
                 continue
             tasks.append(asyncio.ensure_future(ws.send_json(data)))
-        
-        if len(tasks) > 0:            
+
+        if len(tasks) > 0:
             loop.run_until_complete(asyncio.gather(*tasks))
 
         loop.close()
         self.lock.release()
 
-    def on_subscribe_group(self, ws:WebSocket, data:dict):
+    def on_subscribe_group(self, ws: WebSocket, data: dict):
         if ws not in self.active_connections:
             return
 
@@ -82,12 +84,14 @@ class PushServer:
 
         tokenInfo = ws.session["tokeninfo"]
         ws.session["groupid"] = data["groupid"]
-        self.logger.info("{}@{} subscribed group {}".format(tokenInfo["loginid"], tokenInfo["loginip"] , data["groupid"]))
+        self.logger.info(
+            "{}@{} subscribed group {}".format(tokenInfo["loginid"], tokenInfo["loginip"], data["groupid"]))
 
     def run(self):
         app = self.app
+
         @app.websocket("/")
-        async def ws_listen(ws:WebSocket):
+        async def ws_listen(ws: WebSocket):
             await self.connect(ws)
             try:
                 while True:
@@ -96,15 +100,17 @@ class PushServer:
                         req = json.loads(data)
                         tp = req["type"]
                         if tp == 'subscribe':
-                            self.on_subscribe_group(ws,req)
+                            self.on_subscribe_group(ws, req)
                             await self.send_personal_message(req, ws)
                         elif tp == 'heartbeat':
-                            await self.send_personal_message({"type":"heartbeat", "message":"pong"}, ws)
-                    except:
+                            await self.send_personal_message({"type": "heartbeat", "message": "pong"}, ws)
+                    except Exception as e:
+                        print(e)
                         continue
 
             except WebSocketDisconnect:
                 self.disconnect(ws)
+
         self.ready = True
 
         self.worker = threading.Thread(target=self.loop, daemon=True)
@@ -115,7 +121,7 @@ class PushServer:
             if len(self.messages) == 0:
                 time.sleep(1)
                 continue
-            
+
             self.mutex.acquire()
             messages = self.messages.copy()
             self.messages = []
@@ -127,12 +133,12 @@ class PushServer:
                 else:
                     self.broadcast(msg)
 
-    def notifyGrpLog(self, groupid, tag:str, time:int, message):
+    def notifyGrpLog(self, groupid, tag: str, time: int, message):
         if not self.ready:
             return
 
         self.mutex.acquire()
-        self.messages.append({"type":"gplog", "groupid":groupid, "tag":tag, "time":time, "message":message})
+        self.messages.append({"type": "gplog", "groupid": groupid, "tag": tag, "time": time, "message": message})
         self.mutex.release()
 
     def notifyGrpEvt(self, groupid, evttype):
@@ -140,7 +146,7 @@ class PushServer:
             return
 
         self.mutex.acquire()
-        self.messages.append({"type":"gpevt", "groupid":groupid, "evttype":evttype})
+        self.messages.append({"type": "gpevt", "groupid": groupid, "evttype": evttype})
         self.mutex.release()
 
     def notifyGrpChnlEvt(self, groupid, chnlid, evttype, data):
@@ -148,5 +154,6 @@ class PushServer:
             return
 
         self.mutex.acquire()
-        self.messages.append({"type":"chnlevt", "groupid":groupid, "channel":chnlid, "data":data, "evttype":evttype})
+        self.messages.append(
+            {"type": "chnlevt", "groupid": groupid, "channel": chnlid, "data": data, "evttype": evttype})
         self.mutex.release()

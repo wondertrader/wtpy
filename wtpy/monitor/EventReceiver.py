@@ -3,32 +3,34 @@ import chardet
 
 from wtpy import WtMsgQue, WtMQClient
 
-TOPIC_RT_TRADE = "TRD_TRADE"    # 生产环境下的成交通知
-TOPIC_RT_ORDER = "TRD_ORDER"    # 生产环境下的订单通知
+TOPIC_RT_TRADE = "TRD_TRADE"  # 生产环境下的成交通知
+TOPIC_RT_ORDER = "TRD_ORDER"  # 生产环境下的订单通知
 TOPIC_RT_NOTIFY = "TRD_NOTIFY"  # 生产环境下的普通通知
-TOPIC_RT_LOG = "LOG"            # 生产环境下的日志通知
-TOPIC_TIMEOUT = "TIMEOUT"       # 消息超时通知
+TOPIC_RT_LOG = "LOG"  # 生产环境下的日志通知
+TOPIC_TIMEOUT = "TIMEOUT"  # 消息超时通知
+
 
 class EventSink:
     def __init__(self):
         pass
 
-    def on_order(self, chnl:str, ordInfo:dict):
+    def on_order(self, chnl: str, ordInfo: dict):
         pass
 
-    def on_trade(self, chnl:str, trdInfo:dict):
-        pass
-    
-    def on_notify(self, chnl:str, message:str):
+    def on_trade(self, chnl: str, trdInfo: dict):
         pass
 
-    def on_log(self, tag:str, time:int, message:str):
+    def on_notify(self, chnl: str, message: str):
+        pass
+
+    def on_log(self, tag: str, time: int, message: str):
         pass
 
     def on_timeout(self):
         pass
 
-def decode_bytes(data:bytes):
+
+def decode_bytes(data: bytes):
     ret = chardet.detect(data)
     if ret is not None:
         encoding = ret["encoding"]
@@ -39,9 +41,10 @@ def decode_bytes(data:bytes):
     else:
         return data.decode()
 
+
 class EventReceiver(WtMQClient):
 
-    def __init__(self, url:str, topics:list = [], sink:EventSink = None, logger = None):
+    def __init__(self, url: str, topics: list = [], sink: EventSink = None, logger=None):
         self.url = url
         self.logger = logger
         mq = WtMsgQue(logger)
@@ -53,13 +56,13 @@ class EventReceiver(WtMQClient):
         self._worker = None
         self._sink = sink
 
-    def on_mq_message(self, topic:str, message:str, dataLen:int):
+    def on_mq_message(self, topic: str, message: str, dataLen: int):
         topic = decode_bytes(topic)
         if dataLen > 0:
             message = decode_bytes(message[:dataLen])
         else:
             message = None
-            
+
         if self._sink is not None:
             if topic == TOPIC_RT_TRADE:
                 msgObj = json.loads(message)
@@ -87,29 +90,32 @@ class EventReceiver(WtMQClient):
     def release(self):
         mq.destroy_mq_client(self)
 
-TOPIC_BT_EVENT  = "BT_EVENT"    # 回测环境下的事件，主要通知回测的启动和结束
-TOPIC_BT_STATE  = "BT_STATE"    # 回测的状态
-TOPIC_BT_FUND   = "BT_FUND"     # 每日资金变化
+
+TOPIC_BT_EVENT = "BT_EVENT"  # 回测环境下的事件，主要通知回测的启动和结束
+TOPIC_BT_STATE = "BT_STATE"  # 回测的状态
+TOPIC_BT_FUND = "BT_FUND"  # 每日资金变化
+
 
 class BtEventSink:
     def __init__(self):
         pass
-    
+
     def on_begin(self):
         pass
-    
+
     def on_finish(self):
         pass
 
-    def on_fund(self, fundInfo:dict):
+    def on_fund(self, fundInfo: dict):
         pass
 
-    def on_state(self, statInfo:float):
+    def on_state(self, statInfo: float):
         pass
+
 
 class BtEventReceiver(WtMQClient):
 
-    def __init__(self, url:str, topics:list = [], sink:BtEventSink = None, logger = None):
+    def __init__(self, url: str, topics: list = [], sink: BtEventSink = None, logger=None):
         self.url = url
         self.logger = logger
         mq.add_mq_client(url, self)
@@ -120,7 +126,7 @@ class BtEventReceiver(WtMQClient):
         self._worker = None
         self._sink = sink
 
-    def on_mq_message(self, topic:str, message:str, dataLen:int):
+    def on_mq_message(self, topic: str, message: str, dataLen: int):
         topic = decode_bytes(topic)
         message = decode_bytes(message[:dataLen])
         if self._sink is not None:

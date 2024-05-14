@@ -28,9 +28,9 @@ def fmtNAN(val, defVal=0):
 
 
 class ParamInfo:
-    '''
+    """
     参数信息类
-    '''
+    """
 
     def __init__(self, name: str, start_val=None, end_val=None, step_val=None, ndigits=1, val_list: list = None):
         self.name = name  # 参数名
@@ -63,14 +63,14 @@ creator.create("Individual", list, fitness=creator.FitnessMax)
 
 
 class WtCtaGAOptimizer:
-    '''
+    """
     参数优化器\n
     主要用于做策略参数优化的
-    '''
+    """
 
     def __init__(self, worker_num: int = 2, MU: int = 80, population_size: int = 100, ngen_size: int = 20,
                  cx_prb: float = 0.9, mut_prb: float = 0.1):
-        '''
+        """
         构造函数\n
 
         @worker_num 工作进程个数，默认为2，可以根据CPU核心数设置，由于计算回测值是从文件里读取，因此进程过多可能会出现冲突\n
@@ -79,7 +79,7 @@ class WtCtaGAOptimizer:
         @ngen_size 进化代数\n
         @cx_prb    交叉概率\n
         @mut_prb   变异概率
-        '''
+        """
         self.worker_num = worker_num
         self.running_worker = 0
         self.mutable_params = dict()
@@ -102,7 +102,7 @@ class WtCtaGAOptimizer:
         self.cache_dict = multiprocessing.Manager().dict()  # 缓存中间结果
 
     def add_mutable_param(self, name: str, start_val, end_val, step_val, ndigits=1):
-        '''
+        """
         添加可变参数\n
 
         @name       参数名\n
@@ -110,30 +110,30 @@ class WtCtaGAOptimizer:
         @end_val    结束值\n
         @step_val   步长\n
         @ndigits    小数位
-        '''
+        """
         self.mutable_params[name] = ParamInfo(name=name, start_val=start_val, end_val=end_val, step_val=step_val,
                                               ndigits=ndigits)
 
     def add_listed_param(self, name: str, val_list: list):
-        '''
+        """
         添加限定范围的可变参数\n
 
         @name       参数名\n
         @val_list   参数值列表
-        '''
+        """
         self.mutable_params[name] = ParamInfo(name=name, val_list=val_list)
 
     def add_fixed_param(self, name: str, val):
-        '''
+        """
         添加固定参数\n
 
         @name       参数名\n
         @val        值\n
-        '''
+        """
         self.fixed_params[name] = val
 
     def generate_settings(self):
-        ''' 生成优化参数组合 '''
+        """ 生成优化参数组合 """
         # 参数名列表
         name_list = self.mutable_params.keys()
 
@@ -152,11 +152,11 @@ class WtCtaGAOptimizer:
         return settings
 
     def set_optimizing_target(self, target: str):
-        ''' 设置优化目标名称，可从summary中已有数据中选取优化目标 '''
+        """ 设置优化目标名称，可从summary中已有数据中选取优化目标 """
         self.optimizing_target = target
 
     def set_optimizing_func(self, calculator, target_name: str = None):
-        ''' 根据summary数据自定义优化目标值 '''
+        """ 根据summary数据自定义优化目标值 """
         self.optimizing_target_func = calculator
 
         if target_name is None:
@@ -180,7 +180,7 @@ class WtCtaGAOptimizer:
                 individual[i] = settings[i]
         return individual,
 
-    def evaluate_func(self, start_time, end_time, cache_dict: dict, params, capital = 5000000, rf = 0, period = 240):
+    def evaluate_func(self, start_time, end_time, cache_dict: dict, params, capital=5000000, rf=0, period=240):
         """
         适应度函数
         :return:
@@ -265,24 +265,24 @@ class WtCtaGAOptimizer:
         return result
 
     def set_strategy(self, typeName: type, name_prefix: str):
-        '''
+        """
         设置策略\n
 
         @typeName       策略类名\n
         @name_prefix    命名前缀，用于自动命名用，一般为格式为"前缀_参数1名_参数1值_参数2名_参数2值"
-        '''
+        """
         self.strategy_type = typeName
         self.name_prefix = name_prefix
         return
 
     def set_cpp_strategy(self, module: str, type_name: type, name_prefix: str):
-        '''
+        """
         设置CPP策略\n
 
         @module         模块文件\n
         @typeName       策略类名\n
         @name_prefix    命名前缀，用于自动命名用，一般为格式为"前缀_参数1名_参数1值_参数2名_参数2值"
-        '''
+        """
         self.cpp_stra_module = module
         self.cpp_stra_type = type_name
         self.name_prefix = name_prefix
@@ -290,14 +290,14 @@ class WtCtaGAOptimizer:
 
     def config_backtest_env(self, deps_dir: str, cfgfile: str = "configbt.yaml", storage_type: str = "csv",
                             storage_path: str = None, storage: dict = None):
-        '''
+        """
         配置回测环境\n
 
         @deps_dir   依赖文件目录\n
         @cfgfile    配置文件名\n
         @storage_type   存储类型，csv/bin等\n
         @storage_path   存储路径
-        '''
+        """
         self.env_params["deps_dir"] = deps_dir
         self.env_params["cfgfile"] = cfgfile
         self.env_params["storage_type"] = storage_type
@@ -305,21 +305,21 @@ class WtCtaGAOptimizer:
         self.env_params["storage_path"] = storage_path
 
     def config_backtest_time(self, start_time: int, end_time: int):
-        '''
+        """
         配置回测时间，可多次调用配置多个回测时间区间\n
 
         @start_time 开始时间，精确到分钟，格式如201909100930\n
         @end_time   结束时间，精确到分钟，格式如201909100930
-        '''
+        """
         if "time_ranges" not in self.env_params:
             self.env_params["time_ranges"] = []
 
         self.env_params["time_ranges"].append([start_time, end_time])
 
     def gen_params(self, markerfile: str = "strategies.json"):
-        '''
+        """
         生成回测任务
-        '''
+        """
         # name_list = self.mutable_params.keys()
 
         param_list = self.generate_settings()
@@ -349,13 +349,14 @@ class WtCtaGAOptimizer:
         f.close()
         return param_group
 
-    def __ayalyze_result__(self, strName: str, time_range: tuple, params: dict, capital = 5000000, rf = 0, period = 240):
-        folder = "./outputs_bt/%s/" % (strName)
+    def __ayalyze_result__(self, strName: str, time_range: tuple, params: dict, capital=5000000, rf=0, period=240):
+        folder = "./outputs_bt/%s/" % strName
 
         try:
             df_closes = pd.read_csv(folder + "closes.csv", engine="python")
             df_funds = pd.read_csv(folder + "funds.csv", engine="python")
         except Exception as e:  # 如果读取csv文件出现异常，则按文本格式读取
+            print(e)
             df_closes = read_closes(folder + "closes.csv")
             df_funds = read_funds(folder + "funds.csv")
 
@@ -422,9 +423,9 @@ class WtCtaGAOptimizer:
         summary["毛盈利"] = float(winamout)
         summary["毛亏损"] = float(loseamount)
         summary["交易净盈亏"] = float(trdnetprofit)
-        summary["逐笔胜率%"] = winrate*100
+        summary["逐笔胜率%"] = winrate * 100
         summary["逐笔平均盈亏"] = avgprof
-        summary["逐笔平均净盈亏"] = accnetprofit/totaltimes
+        summary["逐笔平均净盈亏"] = accnetprofit / totaltimes
         summary["逐笔平均盈利"] = avgprof_win
         summary["逐笔逐笔亏损"] = avgprof_lose
         summary["逐笔盈亏比"] = winloseratio
@@ -439,7 +440,7 @@ class WtCtaGAOptimizer:
 
         return summary
 
-    def run_ga_optimizer(self, params: dict = None, capital = 5000000, rf = 0, period = 240):
+    def run_ga_optimizer(self, params: dict = None, capital=5000000, rf=0, period=240):
         """ 执行GA优化 """
         # 遗传算法参数空间
         buffer = self.generate_settings()
@@ -453,7 +454,8 @@ class WtCtaGAOptimizer:
         toolbox.register("individual", tools.initIterate, creator.Individual, generate_parameter)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-        toolbox.register("evaluate", self.evaluate_func, params["start_time"], params["end_time"], self.cache_dict, capital=capital, rf=rf, period=period)
+        toolbox.register("evaluate", self.evaluate_func, params["start_time"], params["end_time"], self.cache_dict,
+                         capital=capital, rf=rf, period=period)
         toolbox.register("mate", tools.cxTwoPoint)
         toolbox.register("mutate", self.mututate_individual, indpb=0.05)
         toolbox.register("select", tools.selNSGA2)
@@ -494,11 +496,11 @@ class WtCtaGAOptimizer:
         # return
 
     def go(self, out_marker_file: str = "strategies.json",
-           out_summary_file: str = "total_summary.csv", capital = 5000000, rf = 0, period = 240):
-        '''
+           out_summary_file: str = "total_summary.csv", capital=5000000, rf=0, period=240):
+        """
         启动优化器\n
         @markerfile 标记文件名，回测完成以后分析会用到
-        '''
+        """
         params = self.gen_params(out_marker_file)
         self.run_ga_optimizer(params, capital, rf, period)
 
@@ -517,7 +519,7 @@ class WtCtaGAOptimizer:
         obj_stras = json.loads(content)
         total_summary = list()
         for straName in obj_stras:
-            filename = "./outputs_bt/%s/summary.json" % (straName)
+            filename = "./outputs_bt/%s/summary.json" % straName
             if not os.path.exists(filename):
                 # print("%s不存在，请检查数据" % (filename))
                 continue
@@ -542,7 +544,8 @@ class WtCtaGAOptimizer:
         df_summary.to_csv(out_summary_file, encoding='utf-8-sig', index=False)
         print(f'优化目标: {self.optimizing_target}, 优化最大值：{df_summary[self.optimizing_target][0]}')
 
-    def analyze(self, out_marker_file: str = "strategies.json", out_summary_file: str = "total_summary.csv", capital = 5000000, rf = 0, period = 240):
+    def analyze(self, out_marker_file: str = "strategies.json", out_summary_file: str = "total_summary.csv",
+                capital=5000000, rf=0, period=240):
         # 获取所有的值
         results = list(self.cache_dict.values())
         header = list(results[0].keys())
@@ -559,7 +562,7 @@ class WtCtaGAOptimizer:
         obj_stras = json.loads(content)
         for straName in obj_stras:
             params = obj_stras[straName]
-            filename = "./outputs_bt/%s/summary.json" % (straName)
+            filename = "./outputs_bt/%s/summary.json" % straName
             if not os.path.exists(filename):
                 # print("%s不存在，请检查数据" % (filename))
                 continue
@@ -593,7 +596,8 @@ class WtCtaGAOptimizer:
                 analyst.add_strategy(straname, folder="./outputs_bt/%s/" % straname, init_capital=init_capital, rf=rf,
                                      annual_trading_days=annual_trading_days)
                 analyst.run()
-            except:
+            except Exception as e:
+                print(e)
                 pass
 
 

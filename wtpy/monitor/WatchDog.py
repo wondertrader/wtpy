@@ -14,61 +14,65 @@ from wtpy import WtMsgQue
 
 from enum import Enum
 
+
 def isWindows():
     if "windows" in platform.system().lower():
         return True
 
     return False
 
+
 class WatcherSink:
 
     def __init__(self):
         pass
 
-    def on_start(self, appid:str):
+    def on_start(self, appid: str):
         pass
 
-    def on_stop(self, appid:str, isErr:bool = False):
+    def on_stop(self, appid: str, isErr: bool = False):
         pass
 
-    def on_output(self, appid:str, tag:str, time:int, message:str):
+    def on_output(self, appid: str, tag: str, time: int, message: str):
         pass
 
-    def on_order(self, appid:str, chnl:str, ordInfo:dict):
+    def on_order(self, appid: str, chnl: str, ordInfo: dict):
         pass
 
-    def on_trade(self, appid:str, chnl:str, trdInfo:dict):
-        pass
-    
-    def on_notify(self, appid:str, chnl:str, message:str):
+    def on_trade(self, appid: str, chnl: str, trdInfo: dict):
         pass
 
-    def on_timeout(self, appid:str):
+    def on_notify(self, appid: str, chnl: str, message: str):
+        pass
+
+    def on_timeout(self, appid: str):
         pass
 
 
 class ActionType(Enum):
-    '''
+    """
     操作类型
     枚举变量
-    '''
-    AT_START    = 0
-    AT_STOP     = 1
-    AT_RESTART  = 2
+    """
+    AT_START = 0
+    AT_STOP = 1
+    AT_RESTART = 2
+
 
 class AppState(Enum):
-    '''
+    """
     app状态
     枚举变量
-    '''
-    AS_NotExist     = 901
-    AS_NotRunning   = 902
-    AS_Running      = 903
-    AS_Closed       = 904
-    AS_Closing      = 905
+    """
+    AS_NotExist = 901
+    AS_NotRunning = 902
+    AS_Running = 903
+    AS_Closed = 904
+    AS_Closing = 905
+
 
 class AppInfo(EventSink):
-    def __init__(self, appConf:dict, sink:WatcherSink = None, logger:WtLogger=None):
+    def __init__(self, appConf: dict, sink: WatcherSink = None, logger: WtLogger = None):
         self.__info__ = appConf
 
         self._cmd_line = None
@@ -98,7 +102,7 @@ class AppInfo(EventSink):
         if not os.path.exists(appConf["folder"]) or not os.path.exists(appConf["path"]):
             self._state == AppState.AS_NotExist
 
-    def applyConf(self, appConf:dict):
+    def applyConf(self, appConf: dict):
         self._lock.acquire()
         self.__info__ = appConf
         self._check_span = appConf["span"]
@@ -140,7 +144,7 @@ class AppInfo(EventSink):
 
         if self._state == AppState.AS_Closed:
             return False
-            
+
         bNeedCheck = (self._procid is None) or (not psutil.pid_exists(self._procid))
         if bNeedCheck:
             for pid in pids:
@@ -155,7 +159,7 @@ class AppInfo(EventSink):
                         self._procid = pid
                         self._mem = pInfo.memory_info().rss
                         self.__logger__.info("应用%s挂载成功，进程ID: %d" % (self._id, self._procid))
-     
+
                         if self._mq_url != '':
                             # 如果事件接收器为空或者url发生了改变，则需要重新创建
                             bNeedCreate = self._evt_receiver is None or self._evt_receiver.url != self._mq_url
@@ -166,7 +170,8 @@ class AppInfo(EventSink):
                                 self._evt_receiver.run()
                                 self.__logger__.info("应用%s开始接收%s的通知信息" % (self._id, self._mq_url))
                         return True
-                except:
+                except Exception as e:
+                    print(e)
                     pass
             return False
         else:
@@ -182,27 +187,30 @@ class AppInfo(EventSink):
         if self._mq_url != '':
             # 每次启动都重新创建接收器
             if self._evt_receiver is not None:
-                self.__logger__.info("应用%s正在释放原有事件接收器..." % (self._id))
+                self.__logger__.info("应用%s正在释放原有事件接收器..." % self._id)
                 self._evt_receiver.release()
             self._evt_receiver = EventReceiver(url=self._mq_url, logger=self.__logger__, sink=self)
             self._evt_receiver.run()
             self.__logger__.info("应用%s开始接收%s的通知信息" % (self._id, self._mq_url))
 
         try:
-            args = self.__info__["param"].split(" ") if self.__info__["param"] != "" else []            
+            args = self.__info__["param"].split(" ") if self.__info__["param"] != "" else []
             args.insert(0, self.__info__["path"])
 
             if isWindows():
                 self._procid = subprocess.Popen(args,
-                                cwd=self.__info__["folder"], creationflags=subprocess.CREATE_NEW_CONSOLE).pid
+                                                cwd=self.__info__["folder"],
+                                                creationflags=subprocess.CREATE_NEW_CONSOLE).pid
             else:
-                self._procid = subprocess.Popen(args, 
-                                cwd=self.__info__["folder"]).pid
-            
-            self._cmd_line = (self.__info__["path"] + " " + self.__info__["param"]) if self.__info__["param"] != "" else self.__info__["path"]
+                self._procid = subprocess.Popen(args,
+                                                cwd=self.__info__["folder"]).pid
+
+            self._cmd_line = (self.__info__["path"] + " " + self.__info__["param"]) if self.__info__["param"] != "" else \
+                self.__info__["path"]
             self.__logger__.info(f"cmdline: {self._cmd_line}, cwd:{self.__info__['folder']}")
-        except:
-            self.__logger__.info("应用%s启动异常" % (self._id))
+        except Exception as e:
+            print(e)
+            self.__logger__.info("应用%s启动异常" % self._id)
 
         self._state = AppState.AS_Running
 
@@ -221,7 +229,7 @@ class AppInfo(EventSink):
             else:
                 os.system("kill -9 " + str(self._procid))
         except SystemError as e:
-            self.__logger__.error("关闭异常: {}" % (e))
+            self.__logger__.error("关闭异常: {}" % e)
             pass
 
         self._state = AppState.AS_Closed
@@ -233,7 +241,7 @@ class AppInfo(EventSink):
     def restart(self):
         if self._procid is not None:
             self.stop()
-        
+
         self.run()
 
     def update_state(self, pids):
@@ -241,7 +249,7 @@ class AppInfo(EventSink):
             self._state = AppState.AS_Running
         elif self._state == AppState.AS_Running:
             self._state = AppState.AS_NotRunning
-            self.__logger__.info("应用%s的已停止" % (self._id))
+            self.__logger__.info("应用%s的已停止" % self._id)
             self._procid = None
             self._mem = 0
             if self._sink is not None:
@@ -253,7 +261,7 @@ class AppInfo(EventSink):
         if self._ticks == self._check_span:
             self.update_state(pids)
             if self._state == AppState.AS_NotRunning and self._guard:
-                self.__logger__.info("应用%s未启动，正在自动重启" % (self._id))
+                self.__logger__.info("应用%s未启动，正在自动重启" % self._id)
                 thrd = threading.Thread(target=self.run, daemon=True)
                 thrd.start()
                 # self.run()
@@ -261,7 +269,7 @@ class AppInfo(EventSink):
                 self.__schedule__()
 
             self._ticks = 0
-    
+
     def __schedule__(self):
         weekflag = self._weekflag
 
@@ -282,7 +290,7 @@ class AppInfo(EventSink):
         for tInfo in self.__info__["schedule"]["tasks"]:
             if not tInfo["active"]:
                 continue
-            
+
             if "lastDate" in tInfo:
                 lastDate = tInfo["lastDate"]
             else:
@@ -331,29 +339,30 @@ class AppInfo(EventSink):
             self._sink.on_timeout(self._id)
 
     # EventSink.on_order
-    def on_order(self, chnl:str, ordInfo:dict):
+    def on_order(self, chnl: str, ordInfo: dict):
         if self._sink is not None:
             self._sink.on_order(self._id, chnl, ordInfo)
 
     # EventSink.on_trade
-    def on_trade(self, chnl:str, trdInfo:dict):
+    def on_trade(self, chnl: str, trdInfo: dict):
         if self._sink is not None:
             self._sink.on_trade(self._id, chnl, trdInfo)
-    
+
     # EventSink.on_notify
-    def on_notify(self, chnl:str, message:str):
+    def on_notify(self, chnl: str, message: str):
         if self._sink is not None:
             self._sink.on_notify(self._id, chnl, message)
 
     # EventSink.on_log
-    def on_log(self, tag:str, time:int, message:str):
+    def on_log(self, tag: str, time: int, message: str):
         if self._sink is not None:
             self._sink.on_output(self._id, tag, time, message)
         pass
 
+
 class WatchDog:
 
-    def __init__(self, db, sink:WatcherSink = None, logger:WtLogger=None):
+    def __init__(self, db, sink: WatcherSink = None, logger: WtLogger = None):
         self.__db_conn__ = db
         self.__apps__ = dict()
         self.__app_conf__ = dict()
@@ -364,7 +373,7 @@ class WatchDog:
 
         mq = WtMsgQue(logger)
 
-        #加载调度列表
+        # 加载调度列表
         cur = self.__db_conn__.cursor()
         for row in cur.execute("SELECT * FROM schedules;"):
             appConf = dict()
@@ -374,11 +383,11 @@ class WatchDog:
             appConf["param"] = row[4]
             appConf["type"] = row[5]
             appConf["span"] = row[6]
-            appConf["guard"] = row[7]=='true'
-            appConf["redirect"] = row[8]=='true'
+            appConf["guard"] = row[7] == 'true'
+            appConf["redirect"] = row[8] == 'true'
             appConf["mqurl"] = row[11]
             appConf["schedule"] = dict()
-            appConf["schedule"]["active"] = row[9]=='true'
+            appConf["schedule"]["active"] = row[9] == 'true'
             appConf["schedule"]["weekflag"] = row[10]
             appConf["schedule"]["tasks"] = list()
             appConf["schedule"]["tasks"].append(json.loads(row[12]))
@@ -389,7 +398,6 @@ class WatchDog:
             appConf["schedule"]["tasks"].append(json.loads(row[17]))
             self.__app_conf__[appConf["id"]] = appConf
             self.__apps__[appConf["id"]] = AppInfo(appConf, sink, self.__logger__)
-
 
     def __watch_impl__(self):
         while not self.__stopped__:
@@ -416,7 +424,7 @@ class WatchDog:
             self.__worker__.start()
             self.__logger__.info("自动调度服务已启动")
 
-    def start(self, appid:str):
+    def start(self, appid: str):
         if appid not in self.__apps__:
             return
 
@@ -426,7 +434,7 @@ class WatchDog:
         # thrd.start()
         appInfo.run()
 
-    def stop(self, appid:str):
+    def stop(self, appid: str):
         if appid not in self.__apps__:
             return
 
@@ -436,10 +444,10 @@ class WatchDog:
         # thrd.start()
         appInfo.stop()
 
-    def has_app(self, appid:str):
+    def has_app(self, appid: str):
         return appid in self.__apps__
 
-    def restart(self, appid:str):
+    def restart(self, appid: str):
         if appid not in self.__apps__:
             return
 
@@ -447,22 +455,22 @@ class WatchDog:
         # thrd = threading.Thread(target=appInfo.restart, daemon=True)
         # thrd.start()
         appInfo.restart()
-    
-    def isRunning(self, appid:str):
+
+    def isRunning(self, appid: str):
         if appid not in self.__apps__:
             return False
 
         appInfo = self.__apps__[appid]
         return appInfo.isRunning()
 
-    def getAppConf(self, appid:str):
+    def getAppConf(self, appid: str):
         if appid not in self.__apps__:
             return None
-        
+
         appInfo = self.__apps__[appid]
         return appInfo.getConf()
 
-    def delApp(self, appid:str):
+    def delApp(self, appid: str):
         if appid not in self.__apps__:
             return
 
@@ -473,7 +481,7 @@ class WatchDog:
         self.__db_conn__.commit()
         self.__logger__.info("应用%s自动调度已删除" % (appid))
 
-    def updateMQURL(self, appid:str, mqurl:str):
+    def updateMQURL(self, appid: str, mqurl: str):
         if appid not in self.__apps__:
             return
 
@@ -481,14 +489,15 @@ class WatchDog:
         appConf = self.__app_conf__[appid]
         appInst = self.__apps__[appid]
         appInst.applyConf(appConf)
-        
+
         cur = self.__db_conn__.cursor()
-        sql = "UPDATE schedules SET mqurl='%s',modifytime=datetime('now','localtime') WHERE appid='%s';" % (mqurl, appid)
+        sql = "UPDATE schedules SET mqurl='%s',modifytime=datetime('now','localtime') WHERE appid='%s';" % (
+            mqurl, appid)
         print(sql)
         cur.execute(sql)
         self.__db_conn__.commit()
 
-    def applyAppConf(self, appConf:dict, isGroup:bool = False):
+    def applyAppConf(self, appConf: dict, isGroup: bool = False):
         appid = appConf["id"]
         self.__app_conf__[appid] = appConf
         isNewApp = False
@@ -514,16 +523,22 @@ class WatchDog:
         if isNewApp:
             sql = "INSERT INTO schedules(appid,path,folder,param,type,span,guard,redirect,schedule,weekflag,task1,task2,task3,task4,task5,task6,mqurl) \
                     VALUES('%s','%s','%s','%s',%d, %d,'%s','%s','%s','%s','%s','%s','%s','%s','%s','%s','%s');" % (
-                    appid, appConf["path"], appConf["folder"], appConf["param"], stype, appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
-                    json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
-                    json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]),
-                    mqurl)
+                appid, appConf["path"], appConf["folder"], appConf["param"], stype, appConf["span"], guard, redirect,
+                schedule, appConf["schedule"]["weekflag"],
+                json.dumps(appConf["schedule"]["tasks"][0]), json.dumps(appConf["schedule"]["tasks"][1]),
+                json.dumps(appConf["schedule"]["tasks"][2]),
+                json.dumps(appConf["schedule"]["tasks"][3]), json.dumps(appConf["schedule"]["tasks"][4]),
+                json.dumps(appConf["schedule"]["tasks"][5]),
+                mqurl)
         else:
             sql = "UPDATE schedules SET path='%s',folder='%s',param='%s',type=%d,span='%s',guard='%s',redirect='%s',schedule='%s',weekflag='%s',task1='%s',task2='%s',\
                     task3='%s',task4='%s',task5='%s',task6='%s',mqurl='%s',modifytime=datetime('now','localtime') WHERE appid='%s';" % (
-                    appConf["path"], appConf["folder"], appConf["param"], stype, appConf["span"], guard, redirect, schedule, appConf["schedule"]["weekflag"],
-                    json.dumps(appConf["schedule"]["tasks"][0]),json.dumps(appConf["schedule"]["tasks"][1]),json.dumps(appConf["schedule"]["tasks"][2]),
-                    json.dumps(appConf["schedule"]["tasks"][3]),json.dumps(appConf["schedule"]["tasks"][4]),json.dumps(appConf["schedule"]["tasks"][5]), 
-                    mqurl, appid)
+                appConf["path"], appConf["folder"], appConf["param"], stype, appConf["span"], guard, redirect, schedule,
+                appConf["schedule"]["weekflag"],
+                json.dumps(appConf["schedule"]["tasks"][0]), json.dumps(appConf["schedule"]["tasks"][1]),
+                json.dumps(appConf["schedule"]["tasks"][2]),
+                json.dumps(appConf["schedule"]["tasks"][3]), json.dumps(appConf["schedule"]["tasks"][4]),
+                json.dumps(appConf["schedule"]["tasks"][5]),
+                mqurl, appid)
         cur.execute(sql)
         self.__db_conn__.commit()
