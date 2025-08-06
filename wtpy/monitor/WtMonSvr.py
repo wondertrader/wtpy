@@ -2461,20 +2461,20 @@ class WtMonSvr(WatcherSink):
                     "message": "Ok"
                 }
 
-    def __run_impl__(self, port: int, host: str):
+    def __run_impl__(self, port: int, host: str, log_level: str = "info"):
         self._dog.run()
         self.push_svr.run()
-        uvicorn.run(self.app, port=port, host=host, log_level="error")
+        uvicorn.run(self.app, port=port, host=host, log_level=log_level)
 
-    def run(self, port: int = 8080, host="0.0.0.0", bSync: bool = True):
+    def run(self, port: int = 8080, host="0.0.0.0", bSync: bool = True, log_level: str = "info"):
         # 仅linux生效，在linux中，子进程会一直等待父进程处理其结束信号才能释放，如果不加这一句忽略子进程的结束信号，子进程就无法结束
         if not isWindows():
             signal.signal(signal.SIGCHLD, signal.SIG_IGN)
         if bSync:
-            self.__run_impl__(port, host)
+            self.__run_impl__(port, host, log_level)
         else:
             import threading
-            self.worker = threading.Thread(target=self.__run_impl__, args=(port, host,))
+            self.worker = threading.Thread(target=self.__run_impl__, args=(port, host, log_level,))
             self.worker.setDaemon(True)
             self.worker.start()
 

@@ -108,6 +108,10 @@ class WTSTickStruct(WTSStruct):
         return fields
 
     @property
+    def iopv(self) -> float:
+        return self.settle_price
+        
+    @property
     def bid_prices(self) -> tuple:
         return (self.bid_price_0, 
                 self.bid_price_1, 

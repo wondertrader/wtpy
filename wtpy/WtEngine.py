@@ -271,7 +271,7 @@ class WtEngine:
         if self.__dump_config__:
             if self.__is_cfg_yaml__:
                 f = open("config_run.yaml", 'w')
-                f.write(yaml.dump_all(self.__config__, indent=4, allow_unicode=True))
+                yaml.dump(self.__config__, f, indent=4, allow_unicode=True)
                 f.close()
             else:
                 f = open("config_run.json", 'w')

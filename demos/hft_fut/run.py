@@ -15,23 +15,21 @@ if __name__ == "__main__":
     #设置数据存储目录
     # engine.configStorage(module="", path="D:\\WTP_Data\\")
 
-    #注册CTA策略工厂，即C++的CTA策略工厂模块所在的目录
-    # engine.regCtaStraFactories(factFolder = ".\\cta\\")
-    
-    #添加外部CTA策略，即C++版本的CTA策略
-    '''
-    engine.addExternalHftStrategy(id = "cppxpa_rb", params = {
-        "name":"WtCtaStraFact.DualThrust",  #工厂名.策略名
-        "params":{  #这是策略所需要的参数
-            "code":"SHFE.rb.HOT",
-            "period":"m3",
-            "count": 50,
-            "days": 30,
-            "k1": 0.2,
-            "k2": 0.2
-        }
-    })
-    '''
+    # 调用C++开发的HFT策略
+    # engine.regHftStraFactories(factFolder = "../Strategies/")    
+    # params = {
+    #     "name":"WtHftStraFact.SimpleHft",
+    #     "active": True,
+    #     "params":{ 
+    #         "code": "CFFEX.IF.HOT",
+    #         "count": 50,
+    #         "offset": 1,
+    #         "second": 10,
+    #         "stock": False
+    #     },
+    #     "trader": "simnow"
+    # }
+    # engine.addExternalHftStrategy(id = "hft_demo", params = params)
 
     engine.commitConfig()
     

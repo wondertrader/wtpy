@@ -17,7 +17,7 @@ CB_POSITION = CFUNCTYPE(c_void_p, c_char_p, c_char_p, c_char_p, c_uint32, c_uint
 
 class DumperSink:
     def on_account(self, channelid, curTDate:int, currency, prebalance:float, balance:float, dynbalance:float, 
-	        closeprofit:float, dynprofit:float, fee:float, margin:float, deposit:float, withdraw:float, isLast:bool):
+	        closeprofit:float, dynprofit:float, fee:float, margin:float, deposit:float, withdraw:float, available:float, isLast:bool):
         pass
 
     def on_order(self, channelid, exchg, code, curTDate:int, orderid, direct:int, offset:int, 

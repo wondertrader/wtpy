@@ -104,7 +104,7 @@ class AppInfo(EventSink):
         self._check_span = appConf["span"]
         self._guard = appConf["guard"]
         old_mqurl = self._mq_url
-        self._mq_url = appConf["mqurl"]
+        self._mq_url = appConf["mqurl"] if "mqurl" in appConf else ""
         self._redirect = appConf["redirect"]
         self._schedule = appConf["schedule"]["active"]
         self._weekflag = appConf["schedule"]["weekflag"]
