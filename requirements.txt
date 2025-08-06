@@ -10,3 +10,4 @@ fastapi
 uvicorn
 itsdangerous
 websockets>=9.1
+xlrd

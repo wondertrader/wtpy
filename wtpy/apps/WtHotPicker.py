@@ -1,16 +1,18 @@
 
 import datetime
-import time
-import json
-import os
-import logging
-
-import urllib.request
-import io
 import gzip
-import xml.dom.minidom
-from pyquery import PyQuery as pq
+import io
+import json
+import logging
+import os
 import re
+import time
+import urllib.request
+import xml.dom.minidom
+
+import pandas as pd
+from pyquery import PyQuery as pq
+
 
 class DayData:
     '''
@@ -181,7 +183,7 @@ class WtCacheMonExchg(WtCacheMon):
         '''
 
         dtStr = curDT.strftime('%Y%m%d')
-        content = httpGet("http://www.shfe.com.cn/data/dailydata/kx/kx%s.dat" % (dtStr))
+        content = httpGet("http://tsite.shfe.com.cn/data/dailydata/kx/kx%s.dat" % (dtStr))
         if len(content) == 0:
             return None
         
@@ -218,63 +220,47 @@ class WtCacheMonExchg(WtCacheMon):
         @curDT  指定的日期
         '''
 
-        dtStr = curDT.strftime('%Y%m%d')
-        url = 'http://www.czce.com.cn/cn/DFSStaticFiles/Future/%s/%s/FutureDataDaily.htm' % (dtStr[0:4], dtStr)
-        try:
-            html = httpGet(url).strip()
-        except urllib.error.HTTPError as httperror:
-            print(httperror)
-            return None
+        def correct_code(query_date, contract_code):
+            from dateutil.relativedelta import relativedelta
 
-        if len(html) == 0:
-            return None
+            # 提取品种代码和月份代码
+            pid = re.findall('[A-Za-z]+', contract_code)[0]
+            month_code = contract_code[len(pid):]
+
+            # 在给定`query_date`的情况下, 合约的月份只能是当前到九年之后
+            for i in range(10):
+                year_full = (query_date + relativedelta(years=i)).year
+                if str(year_full)[-1] == month_code[0]:
+                    return f"{pid}{str(year_full)[-2:]}{month_code[-2:]}"
 
         dataitems = {}
-        doc = pq(html)
-        # print(doc(#senfe .table  table))
-        items = doc('#tab1')
-        # 去掉第一行标题
-        items.remove('tr.tr0')
-        # 获取tr   items.find('tr')
-        lis = items('tbody>tr')
-        # print(lis)
-        # tr行数
-        trcount = len(lis)
-        # 遍历行
-        for tr in range(0, trcount-1):
+        dtStr = curDT.strftime('%Y%m%d')
+        try:
+            url = 'http://www.czce.com.cn/cn/DFSStaticFiles/Future/%s/%s/FutureDataDaily.xls' % (dtStr[0:4], dtStr)
+            df = pd.read_excel(url, skiprows=1)
+        except Exception as e:
+            return None
+        df.dropna(subset=['今收盘', '成交量(手)', ], inplace=True)
+        for _, row in df.iterrows():
             item = DayData()
-            tdlis = doc(lis[tr])('td')
+            # 郑商所的xls表格, 列名不统一
+            if '合约代码' in df.columns:
+                item.code = row['合约代码']
+            elif '品种月份' in df.columns:
+                item.code = row['品种月份']
 
-            item.code = doc(tdlis[0]).text()
-            ay = re.compile('[A-Za-z]+').findall(item.code)
-            if len(ay) == 0:
-                continue
+            if '持仓量' in df.columns:
+                item.hold = int(row['持仓量'].replace(',', ''))
+            elif '空盘量' in df.columns:
+                item.hold = int(row['空盘量'].replace(',', ''))
 
-            item.pid = ay[0]    
-
-            close = doc(tdlis[5]).text()
-            if close != '':
-                item.close = float(close.replace(",",""))
-
-            volume = doc(tdlis[9]).text()
-            if volume != '':
-                item.volume = int(volume.replace(",",""))
-
-            hold = doc(tdlis[10]).text()
-            if hold != '':
-                item.hold = int(hold.replace(",",""))
-
-            item.month = item.code[len(item.pid):]
-            # 这个逻辑是有点问题的，但是没好的办法
-            # 因为郑商所只有3位数字，必须自动补全，不然后面处理会有问题
-            # By Wesley @ 2021.12.15
-            if int(item.month[0]) < 5:
-                item.month = "2" + item.month
-            else:
-                item.month = "1" + item.month
+            item.pid = re.findall('[A-Za-z]+', item.code)[0]
+            item.month = correct_code(curDT, item.code)[len(item.pid):]
+            item.close = float(row['今收盘'].replace(',', ''))
+            item.volume = int(row['成交量(手)'].replace(',', ''))
 
             dataitems[item.code] = item
-        # print(dataitems)
+
         return dataitems
 
     @staticmethod

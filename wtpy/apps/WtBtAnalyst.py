@@ -894,29 +894,13 @@ def strategy_analyze(workbook:Workbook, df_closes, df_trades,df_funds, capital, 
     策略分析
     '''
 
-    # 截取开仓明细
-    data1_open = df_trades[df_trades['action'].apply(lambda x: 'OPEN' in x)].reset_index()
-    data1_open = data1_open.drop(columns=['index'])
-    # 截取平仓明细
-    data1_close = df_trades[df_trades['action'].apply(lambda x: 'CLOSE' in x)].reset_index()
-    data1_close = data1_close.drop(columns=['index'])
-
-    # 将平仓明细字段重命名，并跟开仓明细合并成一个大表
-    data1_close = data1_close.rename(columns={'code': 'code_1', 'time': 'time_1', 'direct': 'direct_1',
-                                              'action': 'action_1', 'price': 'price_1', 'qty': 'qty_1', 'tag': 'tag_1',
-                                              'fee': 'fee_1'})
-
-    new_data = pd.concat([data1_open, data1_close], axis=1)
-    new_data = new_data.dropna()
-    new_data = new_data.drop(columns=['code_1', 'qty_1'])
-
-    # 计算开仓平仓手续费
-    new_data['transaction_fee'] = new_data['fee'] + new_data['fee_1']
-    clean_data = new_data[['time', 'transaction_fee']]
-    clean_data = clean_data.rename(columns={'time': 'opentime'})
-
-    # 合并数据
-    after_merge = pd.merge(df_closes, clean_data, how='inner', on='opentime')
+    # 合并开仓手续费
+    after_merge = pd.merge(df_closes, df_trades[df_trades['action'].apply(lambda x: 'OPEN' in x)][['code', 'time', 'fee', 'qty']], how='left', left_on=['code', 'opentime'], right_on=['code', 'time'], suffixes=('', '_open')).rename(columns={'fee': 'openfee'})
+    # 合并平仓手续费
+    after_merge = pd.merge(after_merge, df_trades[df_trades['action'].apply(lambda x: 'CLOSE' in x)][['code', 'time', 'fee', 'qty']], how='left', left_on=['code', 'closetime'], right_on=['code', 'time'], suffixes=('','_close')).rename(columns={'fee': 'closefee'})
+    # 去重
+    after_merge = after_merge.drop_duplicates(['code', 'opentime', 'closetime', 'qty'])
+    after_merge['transaction_fee'] = (after_merge['openfee']/after_merge['qty_open'] + after_merge['closefee']/after_merge['qty_close']) * after_merge['qty']
 
     data_long = df_closes[df_closes['direct'].apply(lambda x:'LONG' in x )].reset_index()
     after_merge_long = after_merge[after_merge['direct'].apply(lambda x: 'LONG' in x)].reset_index()
