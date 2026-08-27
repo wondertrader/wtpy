@@ -138,7 +138,7 @@ class WtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         if ctx is not None:
-            ctx.on_calculate()
+            ctx.on_calculate(curDate, curTime)
         return
     
     def on_stra_tick(self, id:int, stdCode:str, newTick:POINTER(WTSTickStruct)):
@@ -340,23 +340,25 @@ class WtWrapper:
 
         executer.set_position(bytes.decode(stdCode), targetPos)
 
-    def on_load_fnl_his_bars(self, stdCode:str, period:str):
+    def on_load_fnl_his_bars(self, stdCode:str, period:str) -> bool:
         engine = self._engine
         loader = engine.get_extended_data_loader()
         if loader is None:
             return False
 
         # feed_raw_bars(WTSBarStruct* bars, WtUInt32 count);
-        loader.load_final_his_bars(bytes.decode(stdCode), bytes.decode(period), self.api.feed_raw_bars)
+        # 必须显式return加载结果: 回调经FUNC_LOAD_HISBARS(CFUNCTYPE(c_bool))导出,
+        # 漏写return会折叠成False, C++侧误判final数据加载失败
+        return loader.load_final_his_bars(bytes.decode(stdCode), bytes.decode(period), self.api.feed_raw_bars)
 
-    def on_load_raw_his_bars(self, stdCode:str, period:str):
+    def on_load_raw_his_bars(self, stdCode:str, period:str) -> bool:
         engine = self._engine
         loader = engine.get_extended_data_loader()
         if loader is None:
             return False
 
         # feed_raw_bars(WTSBarStruct* bars, WtUInt32 count);
-        loader.load_raw_his_bars(bytes.decode(stdCode), bytes.decode(period), self.api.feed_raw_bars)
+        return loader.load_raw_his_bars(bytes.decode(stdCode), bytes.decode(period), self.api.feed_raw_bars)
 
     def feed_adj_factors(self, stdCode:str, dates:list, factors:list):
         stdCode = bytes(stdCode, encoding="utf8")
