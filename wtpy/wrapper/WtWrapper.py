@@ -138,7 +138,7 @@ class WtWrapper:
         engine = self._engine
         ctx = engine.get_context(id)
         if ctx is not None:
-            ctx.on_calculate()
+            ctx.on_calculate(curDate, curTime)
         return
     
     def on_stra_tick(self, id:int, stdCode:str, newTick:POINTER(WTSTickStruct)):

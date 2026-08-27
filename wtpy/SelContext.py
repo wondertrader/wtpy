@@ -137,7 +137,15 @@ class SelContext:
         else:
             return
 
-    def on_calculate(self):
+    def on_calculate(self, curDate:int = None, curTime:int = None):
+        '''
+        计算事件响应(调度触发)
+        @curDate    调度日期, 引擎派发时携带(格式如20210220), 可能为None(旧版wrapper未透传)
+        @curTime    调度时刻(HHMM), 引擎派发时携带; 与stra_get_time()的全局引擎时钟不同,
+                    此值为本次任务分派的触发时刻(fireTime), 不受引擎全局时间更新时序影响
+        '''
+        self.calc_date = curDate if curDate is not None else self.stra_get_date()
+        self.calc_time = curTime if curTime is not None else self.stra_get_time()
         self.__stra_info__.on_calculate(self)
 
     def on_calculate_done(self):
