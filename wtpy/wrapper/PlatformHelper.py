@@ -38,8 +38,7 @@ class PlatformHelper:
     
     @staticmethod
     def auto_encode(s:str) -> bytes:
-        if PlatformHelper.isWindows():
-            return bytes(s, encoding = "utf-8").decode('utf-8').encode('gbk')
-        else:
-            return bytes(s, encoding = "utf-8")
+        # 统一输出UTF-8字节流: 现代终端(Windows Terminal/VSCode/opencode等)默认按UTF-8解码,
+        # 原来的GBK转换在UTF-8终端下中文乱码; 日志文件本身也是UTF-8写入
+        return bytes(s, encoding = "utf-8")
             
