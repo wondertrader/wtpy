@@ -27,3 +27,5 @@ ParserCTPFlow
 *.con
 *.dmb
 *.dsb
+pdb*.rar
+*.dll

@@ -24,6 +24,14 @@ class SelContext:
 
         self.is_backtest = self.__engine__.is_backtest
 
+        # 生产版WtWrapper.sel_get_bars含isMain形参(porter导出函数则无), 回测版没有, 按签名自动适配
+        import inspect
+        try:
+            self._sel_bars_wants_ismain = len(
+                inspect.signature(self.__wrapper__.sel_get_bars).parameters) >= 5
+        except (TypeError, ValueError):
+            self._sel_bars_wants_ismain = False
+
         self.__alias__()
         
     @property
@@ -219,7 +227,7 @@ class SelContext:
         self.__wrapper__.sel_get_all_position(self.__id__)
         return self.__pos_cache__
     
-    def stra_prepare_bars(self, stdCode:str, period:str, count:int):
+    def stra_prepare_bars(self, stdCode:str, period:str, count:int, isMain:bool = False):
         '''
         准备历史K线
         一般在on_init调用
@@ -229,9 +237,12 @@ class SelContext:
         @isMain 是否是主K线
         '''
 
-        self.__wrapper__.sel_get_bars(self.__id__, stdCode, period, count)
+        if self._sel_bars_wants_ismain:
+            self.__wrapper__.sel_get_bars(self.__id__, stdCode, period, count, isMain)
+        else:
+            self.__wrapper__.sel_get_bars(self.__id__, stdCode, period, count)
 
-    def stra_get_bars(self, stdCode:str, period:str, count:int) -> WtNpKline:
+    def stra_get_bars(self, stdCode:str, period:str, count:int, isMain:bool = False) -> WtNpKline:
         '''
         获取历史K线
         @stdCode   合约代码
@@ -242,7 +253,10 @@ class SelContext:
         key = "%s#%s" % (stdCode, period)
 
         # 每次都重新构造，不然onbar处理会更麻烦
-        cnt =  self.__wrapper__.sel_get_bars(self.__id__, stdCode, period, count)
+        if self._sel_bars_wants_ismain:
+            cnt =  self.__wrapper__.sel_get_bars(self.__id__, stdCode, period, count, isMain)
+        else:
+            cnt =  self.__wrapper__.sel_get_bars(self.__id__, stdCode, period, count)
         if cnt == 0:
             return None
 
