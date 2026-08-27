@@ -91,8 +91,12 @@ class WtEngine:
     def add_exetended_parser(self, parser:BaseExtParser):
         id = parser.id()
         if id not in self.__ext_parsers__:
-            if self.__wrapper__.create_extended_parser(id):
-                self.__ext_parsers__[id] = parser
+            # 必须先入字典再向底层创建: create_extended_parser 会同步触发 EVENT_PARSER_INIT
+            # 回调, 回调内经 get_extended_parser 查字典并执行 parser.init(engine) 绑定引擎;
+            # 若后入字典, 回调扑空导致 __engine__ 永远为None(与WtDtEngine实现对齐)
+            self.__ext_parsers__[id] = parser
+            if not self.__wrapper__.create_extended_parser(id):
+                self.__ext_parsers__.pop(id)
 
     def add_exetended_executer(self, executer:BaseExtExecuter):
         id = executer.id()
