@@ -815,16 +815,17 @@ class WtWrapper:
   
     ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''SEL接口'''    
-    def sel_get_bars(self, id:int, stdCode:str, period:str, count:int, isMain:bool):
+    def sel_get_bars(self, id:int, stdCode:str, period:str, count:int, isMain:bool = False):
         '''
         读取K线
         @id         策略id
         @stdCode    合约代码
         @period     周期, 如m1/m3/d1等
         @count      条数
-        @isMain     是否主K线
+        @isMain     是否主K线(仅做签名兼容: porter层sel_get_bars无主K线概念, 不透传,
+                    原实现将其透传给5参C接口导致回调指针错位, 触发access violation)
         '''
-        return self.api.sel_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, isMain, CB_STRATEGY_GET_BAR(self.on_stra_get_bar))
+        return self.api.sel_get_bars(id, bytes(stdCode, encoding = "utf8"), bytes(period, encoding = "utf8"), count, CB_STRATEGY_GET_BAR(self.on_stra_get_bar))
     
     def sel_get_ticks(self, id:int, stdCode:str, count:int):
         '''
