@@ -544,7 +544,7 @@ class WtBtMon(BtTaskSink):
                 "target": float(cells[1]),
                 "sigprice": float(cells[2]),
                 "gentime": cells[3],
-                "tag": cells[4]
+                "tag": cells[4].strip()
             }
 
             items.append(item)
