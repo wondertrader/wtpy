@@ -253,6 +253,7 @@ class WtBtSnooper:
                     "result":-1,
                     "message":"Invalid workspace"
                 }
+                return ret
 
             ret = {
                 "result":0,
@@ -273,8 +274,17 @@ class WtBtSnooper:
                     "result":-1,
                     "message":"Invalid workspace"
                 }
+                return ret
 
-            code, bars, index, marks = self.get_bt_kline(path, straid)
+            kline_data = self.get_bt_kline(path, straid)
+            if kline_data is None:
+                ret = {
+                    "result":-2,
+                    "message":"Data not found"
+                }
+                return ret
+
+            code, bars, index, marks = kline_data
             if bars is None:
                 ret = {
                     "result":-2,
@@ -310,6 +320,7 @@ class WtBtSnooper:
                     "result":-1,
                     "message":"Invalid workspace"
                 }
+                return ret
 
             ret = {
                 "result":0,
@@ -331,6 +342,7 @@ class WtBtSnooper:
                     "result":-1,
                     "message":"Invalid workspace"
                 }
+                return ret
 
             ret = {
                 "result":0,
@@ -352,6 +364,7 @@ class WtBtSnooper:
                     "result":-1,
                     "message":"Invalid workspace"
                 }
+                return ret
 
             ret = {
                 "result":0,
@@ -373,6 +386,7 @@ class WtBtSnooper:
                     "result":-1,
                     "message":"Invalid workspace"
                 }
+                return ret
 
             ret = {
                 "result":0,
@@ -393,6 +407,7 @@ class WtBtSnooper:
                     "result":-1,
                     "message":"Invalid workspace"
                 }
+                return ret
 
             ret = {
                 "result":0,
@@ -412,15 +427,24 @@ class WtBtSnooper:
                     "result":-1,
                     "message":"Invalid workspace"
                 }
+                return ret
+
+            closes = self.get_bt_closes(path, straid)
+            if closes is None:
+                ret = {
+                    "result":-2,
+                    "message":"Data not found"
+                }
+                return ret
 
             ret = {
                 "result":0,
                 "message":"OK",
-                "closes_long":self.get_bt_closes(path, straid)[0],
-                "closes_short":self.get_bt_closes(path, straid)[1],
-                "closes_all":self.get_bt_closes(path, straid)[2],
-                "closes_month": self.get_bt_closes(path, straid)[3],
-                "closes_year": self.get_bt_closes(path, straid)[4]
+                "closes_long":closes[0],
+                "closes_short":closes[1],
+                "closes_all":closes[2],
+                "closes_month":closes[3],
+                "closes_year":closes[4]
             }
             return ret
 
@@ -435,6 +459,7 @@ class WtBtSnooper:
                     "result":-1,
                     "message":"Invalid workspace"
                 }
+                return ret
 
             ret = {
                 "result":0,
@@ -541,7 +566,7 @@ class WtBtSnooper:
         summary_file = os.path.join(path, summary_file)
         closes_file = f"{straid}/closes.csv"
         closes_file = os.path.join(path, closes_file)
-        if not (os.path.exists(closes_file) or os.path.exists(summary_file)):
+        if not (os.path.exists(closes_file) and os.path.exists(summary_file)):
             return None
 
         f = open(summary_file, 'r')
@@ -824,7 +849,7 @@ class WtBtSnooper:
                     index_name = items[1]
                     line_name = items[2]
                     index_val = float(items[3])
-                    for iInfo in index:
+                    for iInfo in (index or ()):
                         if iInfo["name"] != index_name:
                             continue
 
