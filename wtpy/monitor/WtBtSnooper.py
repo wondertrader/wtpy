@@ -509,7 +509,7 @@ class WtBtSnooper:
         closes_filename = f"{straid}/closes.csv"
         closes_filename = os.path.join(path,closes_filename)
 
-        if not (os.path.exists(funds_filename) or os.path.exists(closes_filename)):
+        if not (os.path.exists(funds_filename) and os.path.exists(closes_filename)):
             return None
 
         df_funds = pd.read_csv(funds_filename)
