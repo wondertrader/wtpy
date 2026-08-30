@@ -104,6 +104,27 @@ def do_trading_analyze(df_closes, df_funds):
     return summary
 
 
+def calc_round_fee(path:str, straid:str, df_closes):
+    """回合手续费按开/平仓成交精确归属: closes 的 entertag/exittag 与品种、
+    交易时间共同对应 trades.csv 中的具体成交行, 回合手续费 =
+    开仓成交手续费 + 平仓成交手续费。原"由账户累计盈亏反推"的启发式
+    (profit - totalprofit + totalprofit.shift) 隐含单品种顺序回合假设,
+    多品种轮动下 totalprofit 跨品种跳变, 推出的费用完全失真。"""
+    trades_file = f"{straid}/trades.csv"
+    trades_file = os.path.join(path, trades_file)
+    if not os.path.exists(trades_file):
+        return 0.0
+
+    df_trades = pd.read_csv(trades_file)
+    if "fee" not in df_trades.columns or len(df_trades) == 0:
+        return 0.0
+
+    fee_map = df_trades.groupby(["code", "time", "tag"])["fee"].sum()
+    ent_keys = pd.MultiIndex.from_arrays([df_closes["code"], df_closes["opentime"], df_closes["entertag"]])
+    ext_keys = pd.MultiIndex.from_arrays([df_closes["code"], df_closes["closetime"], df_closes["exittag"]])
+    return fee_map.reindex(ent_keys).fillna(0.0).to_numpy() + fee_map.reindex(ext_keys).fillna(0.0).to_numpy()
+
+
 class WtBtSnooper:
     '''
     回测管理器
@@ -489,14 +510,19 @@ class WtBtSnooper:
 
         df_funds = pd.read_csv(funds_filename)
         df_closes = pd.read_csv(closes_filename)
-        df_closes['fee'] = df_closes['profit'] - df_closes['totalprofit'] + df_closes['totalprofit'].shift(1).fillna(
-            value=0)
+        df_closes['fee'] = calc_round_fee(path, straid, df_closes)
         df_long = df_closes[df_closes['direct'].apply(lambda x: 'LONG' in x)]
         df_short = df_closes[df_closes['direct'].apply(lambda x: 'SHORT' in x)]
 
         summary_all = do_trading_analyze(df_closes, df_funds)
         summary_short = do_trading_analyze(df_short, df_funds)
         summary_long = do_trading_analyze(df_long, df_funds)
+
+        # 账户口径的手续费以资金曲线的引擎累计值为准(含未闭合回合的尾部持仓
+        # 费用); 各方向切片的手续费保持回合归属值(仅统计已闭合回合)
+        if len(df_funds) > 0 and 'fee' in df_funds.columns:
+            summary_all['fee'] = float(df_funds['fee'].iloc[-1])
+            summary_all['accnet_profit'] = summary_all['net_profit'] - summary_all['fee']
 
         return {
             'summary_all': summary_all,
@@ -551,8 +577,7 @@ class WtBtSnooper:
         capital = summary["capital"]
         df_closes = pd.read_csv(closes_file)
         df_closes = df_closes.copy()
-        df_closes['fee'] = df_closes['profit'] - df_closes['totalprofit'] + df_closes['totalprofit'].shift(1).fillna(
-            value=0)
+        df_closes['fee'] = calc_round_fee(path, straid, df_closes)
         df_closes['profit'] = df_closes['profit'] - df_closes['fee']
         df_closes['profit_sum'] = df_closes['profit'].expanding(1).sum()
         df_closes['Withdrawal'] = df_closes['profit_sum'] - df_closes['profit_sum'].expanding(1).max()
