@@ -100,6 +100,12 @@ def do_trading_analyze(df_closes, df_funds):
     summary["max_consecutive_wins"] = max_consecutive_wins
     summary["max_consecutive_loses"] = max_consecutive_loses
 
+    # 单方向切片(如纯多头策略的空头侧)或无盈/亏样本时, 上方空序列的
+    # max/min 会产出 NaN, 部分比值回落为 "N/A" 字符串; NaN 不是合法 JSON
+    # (响应序列化直接 500), "N/A" 会打断前端按数值渲染的逻辑, 统一清洗为 0
+    for key, value in summary.items():
+        if isinstance(value, str) or value != value:  # value != value 即 NaN
+            summary[key] = 0
 
     return summary
 
