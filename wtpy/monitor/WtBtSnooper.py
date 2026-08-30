@@ -631,7 +631,9 @@ class WtBtSnooper:
         df_short = df_closes[df_closes['direct'].apply(lambda x: 'SHORT' in x)]
         df_long = df_long.copy()
         df_short = df_short.copy()
-        df_long["long_profit"] = df_long["profit"].expanding(1).sum()-df_long["fee"].expanding(1).sum()
+        # profit 此前已扣除归属手续费(L607 净额化), 累计即净利曲线,
+        # 不再重复扣减手续费
+        df_long["long_profit"] = df_long["profit"].expanding(1).sum()
         closes_long = list()
         closes_short = list()
         np_long = np.array(df_long).tolist()
@@ -642,7 +644,7 @@ class WtBtSnooper:
                 "capital":capital
             }
             closes_long.append(litem)
-        df_short["short_profit"] = df_short["profit"].expanding(1).sum()-df_short["fee"].expanding(1).sum()
+        df_short["short_profit"] = df_short["profit"].expanding(1).sum()
         np_short = np.array(df_short).tolist()
         for item in np_short:
             litem = {
