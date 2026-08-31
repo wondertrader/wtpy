@@ -685,9 +685,6 @@ class WtBtSnooper:
             if len(cells) > 7:
                 item["fee"] = float(cells[7])
 
-            if len(cells) > 4:
-                item["fee"] = float(cells[4])
-
             items.append(item)
         
         return items
