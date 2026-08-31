@@ -121,7 +121,7 @@ class WtBtSnooper:
         if not os.path.exists("data.json"):
             return
 
-        f = open("data.json")
+        f = open("data.json", encoding="utf-8")
         content = f.read()
         f.close()
 
@@ -137,7 +137,7 @@ class WtBtSnooper:
             "workspace": self.workspaces
         }
         content = json.dumps(obj, ensure_ascii=False, indent=4)
-        f = open("data.json", "w")
+        f = open("data.json", "w", encoding="utf-8")
         f.write(content)
         f.close() 
 
@@ -458,7 +458,7 @@ class WtBtSnooper:
         if not os.path.exists(filename):
             return None
 
-        f = open(filename, 'r')
+        f = open(filename, 'r', encoding='utf-8')
         content = f.read()
         f.close()
         summary = json.loads(content)
@@ -468,7 +468,7 @@ class WtBtSnooper:
         if not os.path.exists(filename):
             return None
 
-        f = open(filename, 'r')
+        f = open(filename, 'r', encoding='utf-8')
         content = f.read()
         f.close()
         env = json.loads(content)
@@ -510,7 +510,7 @@ class WtBtSnooper:
         if not os.path.exists(filename):
             return None
 
-        f = open(filename, "r")
+        f = open(filename, "r", encoding="utf-8")
         lines = f.readlines()
         f.close()
         lines = lines[1:]
@@ -544,7 +544,7 @@ class WtBtSnooper:
         if not (os.path.exists(closes_file) or os.path.exists(summary_file)):
             return None
 
-        f = open(summary_file, 'r')
+        f = open(summary_file, 'r', encoding="utf-8")
         content = f.read()
         f.close()
         summary = json.loads(content)
@@ -660,7 +660,7 @@ class WtBtSnooper:
         if not os.path.exists(filename):
             return None
 
-        f = open(filename, "r")
+        f = open(filename, "r", encoding="utf-8")
         lines = f.readlines()
         f.close()
         lines = lines[1:]
@@ -698,7 +698,7 @@ class WtBtSnooper:
         if not os.path.exists(filename):
             return None
 
-        f = open(filename, "r")
+        f = open(filename, "r", encoding="utf-8")
         lines = f.readlines()
         f.close()
         lines = lines[1:]
@@ -732,7 +732,7 @@ class WtBtSnooper:
         if not os.path.exists(filename):
             return None
 
-        f = open(filename, "r")
+        f = open(filename, "r", encoding="utf-8")
         lines = f.readlines()
         f.close()
         lines = lines[1:]
@@ -764,7 +764,7 @@ class WtBtSnooper:
         if not os.path.exists(filename):
             return None
 
-        f = open(filename, "r")
+        f = open(filename, "r", encoding="utf-8")
         content = f.read()
         f.close()
 
@@ -782,7 +782,7 @@ class WtBtSnooper:
         filename = f"{straid}/btchart.json"
         filename = os.path.join(path, filename)
         if os.path.exists(filename):
-            f = open(filename, "r")
+            f = open(filename, "r", encoding="utf-8")
             content = f.read()
             f.close()
 
@@ -796,7 +796,7 @@ class WtBtSnooper:
         filename = f"{straid}/marks.csv"
         filename = os.path.join(path, filename)
         if os.path.exists(filename):
-            f = open(filename, "r")
+            f = open(filename, "r", encoding="utf-8")
             lines = f.readlines()
             f.close()
 
@@ -814,7 +814,7 @@ class WtBtSnooper:
         filename = f"{straid}/indice.csv"
         filename = os.path.join(path, filename)
         if os.path.exists(filename):
-            f = open(filename, "r")
+            f = open(filename, "r", encoding="utf-8")
             lines = f.readlines()
             f.close()
 
