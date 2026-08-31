@@ -698,6 +698,16 @@ class WtBtSnooper:
         if not os.path.exists(filename):
             return None
 
+        # 回测周期取自 btenv.json; 缺失时按原值返回, 不做归一
+        env_file = f"{straid}/btenv.json"
+        env_file = os.path.join(path, env_file)
+        isDay = False
+        if os.path.exists(env_file):
+            f = open(env_file, "r", encoding="utf-8")
+            env = json.loads(f.read())
+            f.close()
+            isDay = env.get("period", "d")[0] == 'd'
+
         f = open(filename, "r")
         lines = f.readlines()
         f.close()
@@ -707,12 +717,20 @@ class WtBtSnooper:
         for line in lines:
             cells = line.split(",")
 
+            # 日线周期下开平仓时刻归一到K线收盘时间位(yyyymmdd1500),
+            # 与前端K线 bartime 的日期+时间位匹配约定一致
+            opentime = int(cells[2])
+            closetime = int(cells[4])
+            if isDay:
+                opentime = opentime // 10000 * 10000 + 1500
+                closetime = closetime // 10000 * 10000 + 1500
+
             item = {
                 "code": cells[0],
                 "direct": cells[1],
-                "opentime": int(cells[2]),
+                "opentime": opentime,
                 "openprice": float(cells[3]),
-                "closetime": int(cells[4]),
+                "closetime": closetime,
                 "closeprice": float(cells[5]),
                 "qty": float(cells[6]),
                 "profit": float(cells[7]),
@@ -723,7 +741,7 @@ class WtBtSnooper:
             }
 
             items.append(item)
-        
+
         return items
 
     def get_bt_signals(self, path:str, straid:str) -> list:
@@ -802,10 +820,15 @@ class WtBtSnooper:
 
             if len(lines) > 2:
                 marks = []
+                isDay = period[0] == 'd'
                 for line in lines[1:-1]:
                     items = line.split(",")
+                    # 日线下与K线时间位归一到收盘时刻(yyyymmdd1500)
+                    mktime = int(items[0])
+                    if isDay:
+                        mktime = mktime // 10000 * 10000 + 1500
                     marks.append({
-                        "bartime": int(items[0]),
+                        "bartime": mktime,
                         "price": float(items[1]),
                         "icon": items[2],
                         "tag": items[3]
@@ -846,7 +869,10 @@ class WtBtSnooper:
         bars = list()
         for realBar in barList:
             bars.append(dict(
-                bartime = int(realBar['date'] if isDay else 199000000000 + realBar['time']),
+                # 日线 bartime = yyyymmdd1500(收盘时间位), 与前端按 /10000、
+                # %10000 拆分日期/时间的解析约定一致; int() 先转避免 numpy
+                # uint32 乘法回绕
+                bartime = int(realBar['date']) * 10000 + 1500 if isDay else 199000000000 + realBar['time'],
                 open = realBar['open'],
                 high = realBar['high'],
                 low = realBar['low'],
