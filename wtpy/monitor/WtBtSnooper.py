@@ -652,6 +652,20 @@ class WtBtSnooper:
             }
             closes_short.append(litem)
 
+        # 单方向策略(如纯多头)下空方向没有回合, 曲线为空数组, 前端图表
+        # 对空数据求极值失败而无法渲染; 用对面方向的首末日期合成一条
+        # 零盈亏平线, 叠加初始资金后即为"该方向权益不动"
+        if not closes_long and closes_short:
+            closes_long = [
+                {"date": closes_short[0]["date"], "long_profit": 0.0, "capital": capital},
+                {"date": closes_short[-1]["date"], "long_profit": 0.0, "capital": capital}
+            ]
+        if not closes_short and closes_long:
+            closes_short = [
+                {"date": closes_long[0]["date"], "short_profit": 0.0, "capital": capital},
+                {"date": closes_long[-1]["date"], "short_profit": 0.0, "capital": capital}
+            ]
+
         return closes_long, closes_short, closes_all, closes_month, closes_year
 
     def get_bt_trades(self, path:str, straid:str) -> list:
