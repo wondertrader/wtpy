@@ -9,7 +9,10 @@ from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, WTSOrdQueStruct, WTSOrd
 from .PlatformHelper import PlatformHelper as ph
 from wtpy.WtUtilDefs import singleton
 from wtpy.WtDataDefs import WtNpKline, WtNpOrdDetails, WtNpOrdQueues, WtNpTicks, WtNpTransactions
+import logging
 import os
+
+_logger = logging.getLogger(__name__)
 
 # Python对接C接口的库
 @singleton
@@ -402,7 +405,8 @@ class WtBtWrapper:
                 self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_calc_done, self.cb_stra_cond_trigger)
             self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile, bytes(outDir, encoding = "utf8"))
         except OSError as oe:
-            print(oe)
+            _logger.exception("Failed to initialize WonderTrader backtest framework: %s", oe)
+            raise
 
         self.write_log(102, "WonderTrader CTA backtest framework initialzied, version: %s" % (self.ver))
 
@@ -433,7 +437,8 @@ class WtBtWrapper:
                 self.cb_hftstra_transaction, self.cb_session_event)
             self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile, bytes(outDir, encoding = "utf8"))
         except OSError as oe:
-            print(oe)
+            _logger.exception("Failed to initialize WonderTrader backtest framework: %s", oe)
+            raise
 
         self.write_log(102, "WonderTrader HFT backtest framework initialzied, version: %s" % (self.ver))
 
@@ -456,7 +461,8 @@ class WtBtWrapper:
                 self.cb_stra_calc, self.cb_stra_bar, self.cb_session_event, self.cb_stra_calc_done)
             self.api.init_backtest(bytes(logCfg, encoding = "utf8"), isFile, bytes(outDir, encoding = "utf8"))
         except OSError as oe:
-            print(oe)
+            _logger.exception("Failed to initialize WonderTrader backtest framework: %s", oe)
+            raise
 
         self.write_log(102, "WonderTrader SEL backtest framework initialzied, version: %s" % (self.ver))
 

@@ -11,7 +11,10 @@ from wtpy.WtCoreDefs import WTSTickStruct, WTSBarStruct, WTSOrdQueStruct, WTSOrd
 from wtpy.WtDataDefs import WtNpKline, WtNpOrdDetails, WtNpOrdQueues, WtNpTicks, WtNpTransactions
 from wtpy.WtUtilDefs import singleton
 from .PlatformHelper import PlatformHelper as ph
+import logging
 import os
+
+_logger = logging.getLogger(__name__)
 
 # Python对接C接口的库
 @singleton
@@ -448,7 +451,8 @@ class WtWrapper:
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile, bytes(genDir, encoding = "utf8"))
             self.register_extended_module_callbacks()
         except OSError as oe:
-            print(oe)
+            _logger.exception("Failed to initialize WonderTrader production framework: %s", oe)
+            raise
 
         self.write_log(102, "WonderTrader CTA production framework initialzied, version: %s" % (self.ver))
 
@@ -478,7 +482,8 @@ class WtWrapper:
                 self.cb_hftstra_orddtl, self.cb_hftstra_ordque, self.cb_hftstra_trans, self.cb_session_event, self.cb_hftstra_position)
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile, bytes(genDir, encoding = "utf8"))
         except OSError as oe:
-            print(oe)
+            _logger.exception("Failed to initialize WonderTrader production framework: %s", oe)
+            raise
 
         self.write_log(102, "WonderTrader HFT production framework initialzied, version: %s" % (self.ver))
 
@@ -500,7 +505,8 @@ class WtWrapper:
             self.api.init_porter(bytes(logCfg, encoding = "utf8"), isFile, bytes(genDir, encoding = "utf8"))
             self.register_extended_module_callbacks()
         except OSError as oe:
-            print(oe)
+            _logger.exception("Failed to initialize WonderTrader production framework: %s", oe)
+            raise
 
         self.write_log(102, "WonderTrader SEL production framework initialzied, version: %s" % (self.ver))
 
