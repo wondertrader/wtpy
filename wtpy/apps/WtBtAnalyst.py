@@ -7,7 +7,10 @@ from datetime import datetime
 import math
 import os
 import json
+import logging
 from xlsxwriter import Workbook
+
+_logger = logging.getLogger(__name__)
 
 
 class Calculate():
@@ -1298,7 +1301,7 @@ def funds_analyze(workbook:Workbook, df_funds:df, capital = 5000000, rf = 0, per
     days = len(df_funds)
 
     #先做资金统计吧
-    print("anayzing fund data……")
+    _logger.info("anayzing fund data……")
     df_funds["dynbalance"] += init_capital
     ayBal = df_funds["dynbalance"]              # 每日期末动态权益
 
@@ -1618,7 +1621,7 @@ class WtBtAnalyst:
         for sname in self.__strategies__:
             sInfo = self.__strategies__[sname]
             folder = os.path.join(sInfo["folder"], sname)
-            print("start PnL analyzing for strategy %s……" % (sname))
+            _logger.info("start PnL analyzing for strategy %s……" % (sname))
 
             df_funds = pd.read_csv(os.path.join(folder,"funds.csv"))
             df_closes = pd.read_csv(os.path.join(folder, "closes.csv"))
@@ -1646,7 +1649,7 @@ class WtBtAnalyst:
             f.write(json.dumps(sumObj, indent=4, ensure_ascii=True))
             f.close()
 
-            print("PnL analyzing of strategy %s done" % (sname))
+            _logger.info("PnL analyzing of strategy %s done" % (sname))
 
 
     def run(self, outFileName:str = ''):
@@ -1657,10 +1660,10 @@ class WtBtAnalyst:
             sInfo = self.__strategies__[sname]
             # folder = sInfo["folder"]
             folder = os.path.join(sInfo["folder"], sname)
-            print("start PnL analyzing for strategy %s……" % (sname))
+            _logger.info("start PnL analyzing for strategy %s……" % (sname))
 
             df_funds = pd.read_csv(os.path.join(folder, "funds.csv"))
-            print("fund logs loaded……")
+            _logger.info("fund logs loaded……")
 
             init_capital = sInfo["cap"]
             annual_days = sInfo["atd"]
@@ -1672,7 +1675,7 @@ class WtBtAnalyst:
             funds_analyze(workbook, df_funds, capital=init_capital, rf=rf, period=annual_days)
             workbook.close()
 
-            print("PnL analyzing of strategy %s done" % (sname))
+            _logger.info("PnL analyzing of strategy %s done" % (sname))
 
     def run_simple(self):
         if len(self.__strategies__.keys()) == 0:
